@@ -1,0 +1,2 @@
+--This file contains overrides to our strings for unofficial translations since we don't allow loading custom language client string files in
+--internal ingame.

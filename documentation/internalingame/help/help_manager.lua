@@ -1,0 +1,1 @@
+ZO_HELP_OVERLAY_SYNC_OBJECT = GetOrCreateSynchronizingObject("helpOverlay")

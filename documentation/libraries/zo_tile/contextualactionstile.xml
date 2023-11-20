@@ -1,0 +1,15 @@
+<GuiXml>
+    <Controls>
+        <Control name="ZO_ContextualActionsTile_Control" inherits="ZO_Tile_Control" virtual="true">
+            <Controls>
+                <Texture name="$(parent)Icon" pixelRoundingEnabled="false"/>
+
+                <Backdrop name="$(parent)OverlayBorder" centerColor="00000000"  tier="HIGH" layer="OVERLAY">
+                    <AnchorFill />
+                </Backdrop>
+
+                <Label name="$(parent)Title" />
+            </Controls>
+        </Control>
+    </Controls>
+</GuiXml>

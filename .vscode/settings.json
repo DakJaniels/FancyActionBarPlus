@@ -1,0 +1,28 @@
+{
+	"Lua.runtime.plugin": "documentation/plugin.lua",
+    "Lua.diagnostics.globals": [
+        "FAB_GCD",
+        "FAB_ActionBarFakeQS",
+        "FAB_ActionBarArrow",
+        "FAB_Default_Bar_Position",
+        "ActionButtonOverlay23",
+        "ActionButtonOverlay3",
+        "ActionButton23",
+        "ActionButton9FlipCard",
+        "Front_Bar_List",
+        "Back_Bar_List",
+        "FAB_Mover"
+    ],
+    "editor.inlineSuggest.showToolbar": "onHover",
+    "Lua.runtime.version": "Lua 5.1",
+    "Lua.diagnostics.severity": {
+        "redefined-local": "Warning"
+    },
+    "Lua.misc.parameters": [
+        "--develop=true"
+    ],
+    "Lua.workspace.library": [
+        "libs/LibAddonMenu-2.0",
+		"documentation/"
+    ]
+}

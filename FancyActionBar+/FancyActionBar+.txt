@@ -1,0 +1,15 @@
+## Title: FancyActionBar+
+## Version: 2.4.0b
+## APIVersion: 101040
+## AddOnVersion: 240
+## Author: |cFFFF00andy.s|r Edited by:@nogetrandom [PC EU]
+## SavedVariables: FancyActionBarSV
+## DependsOn: LibAddonMenu-2.0>=35
+## OptionalDependsOn: Azurah BanditsUserInterface DarkUI AdvancedDisableControllerUI LuiExtended PerfectWeave
+
+init.lua
+main.lua
+config.lua
+debuffs.lua
+menu.lua
+ui.xml

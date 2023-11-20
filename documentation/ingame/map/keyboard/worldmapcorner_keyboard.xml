@@ -1,0 +1,37 @@
+<GuiXml>
+    <Controls>
+        <TopLevelControl name="ZO_WorldMapCorner" hidden="true">
+            <OnInitialized>
+                ZO_WorldMapCorner_OnInitialized(self)
+            </OnInitialized>
+            <OnUpdate>
+                ZO_WorldMapCorner_OnUpdate(self, time)
+            </OnUpdate>
+            <Anchor point="TOPLEFT" relativeTo="GuiRoot" offsetX="20" offsetY="18"/>
+            <Controls>
+                <Label name="$(parent)Title" font="ZoFontWinH1">
+                    <Anchor point="TOPLEFT"/>
+                    <Anchor point="TOPRIGHT" relativeTo="ZO_MainMenuCategoryBarButton1Membership" relativePoint="TOPLEFT" />
+                    <OnInitialized>
+                        local fonts =
+                        {
+                            {
+                                font = "ZoFontWinH1",
+                            },
+                            {
+                                font = "ZoFontWinH2",
+                            },
+                            {
+                                font = "ZoFontWinH3",
+                            }
+                        }
+                        ZO_FontAdjustingWrapLabel_OnInitialized(self, fonts, TEXT_WRAP_MODE_ELLIPSIS)
+                    </OnInitialized>
+                </Label>
+                <Label name="$(parent)Time" font="ZoFontWinH3" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)Title" relativePoint="BOTTOMLEFT"/>
+                </Label>
+            </Controls>
+        </TopLevelControl>
+    </Controls>
+</GuiXml>
