@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
-local NAME                       = "FancyActionBar+"
-local VERSION                    = "2.4.0b"
-local slashCommand               = "/fab" or "/FAB"
+local NAME                       = 'FancyActionBar+'
+local VERSION                    = '2.4.0b'
+local slashCommand               = '/fab' or '/FAB'
 local EM                         = EVENT_MANAGER
 local WM                         = WINDOW_MANAGER
 local SM                         = SCENE_MANAGER
@@ -37,11 +37,11 @@ local GAMEPAD_CONSTANTS          = {
     quickslotOffsetX    = 5,
     bindingTextOnUlt    = false,
     showKeybindBG       = false,
-    buttonTemplate      = "ZO_ActionButton_Gamepad_Template",
-    ultButtonTemplate   = "ZO_UltimateActionButton_Gamepad_Template",
-    overlayTemplate     = "FAB_ActionButtonOverlay_Gamepad_Template",
-    ultOverlayTemplate  = "FAB_UltimateButtonOverlay_Gamepad_Template",
-    qsOverlayTemplate   = "FAB_QuickSlotOverlay_Gamepad_Template",
+    buttonTemplate      = 'ZO_ActionButton_Gamepad_Template',
+    ultButtonTemplate   = 'ZO_UltimateActionButton_Gamepad_Template',
+    overlayTemplate     = 'FAB_ActionButtonOverlay_Gamepad_Template',
+    ultOverlayTemplate  = 'FAB_UltimateButtonOverlay_Gamepad_Template',
+    qsOverlayTemplate   = 'FAB_QuickSlotOverlay_Gamepad_Template',
 }
 local KEYBOARD_CONSTANTS         = {
     dimensions          = 50,
@@ -59,17 +59,17 @@ local KEYBOARD_CONSTANTS         = {
     quickslotOffsetX    = 5,
     bindingTextOnUlt    = false,
     showKeybindBG       = false,
-    buttonTemplate      = "ZO_ActionButton_Keyboard_Template",
-    ultButtonTemplate   = "ZO_UltimateActionButton_Keyboard_Template",
-    overlayTemplate     = "FAB_ActionButtonOverlay_Keyboard_Template",
-    ultOverlayTemplate  = "FAB_UltimateButtonOverlay_Keyboard_Template",
-    qsOverlayTemplate   = "FAB_QuickSlotOverlay_Keyboard_Template",
+    buttonTemplate      = 'ZO_ActionButton_Keyboard_Template',
+    ultButtonTemplate   = 'ZO_UltimateActionButton_Keyboard_Template',
+    overlayTemplate     = 'FAB_ActionButtonOverlay_Keyboard_Template',
+    ultOverlayTemplate  = 'FAB_UltimateButtonOverlay_Keyboard_Template',
+    qsOverlayTemplate   = 'FAB_QuickSlotOverlay_Keyboard_Template',
 }
 local ULTIMATE_BUTTON_STYLE      = { -- TODO make back bar ult button to display duration.
     type      = ACTION_BUTTON_TYPE_VISIBLE,
-    template  = "ZO_UltimateActionButton",
+    template  = 'ZO_UltimateActionButton',
     showBinds = false,
-    parentBar = "",
+    parentBar = '',
 }
 local GROUND_EFFECT              = ABILITY_TYPE_AREAEFFECT
 local DEBUFF                     = BUFF_EFFECT_TYPE_DEBUFF
@@ -114,29 +114,29 @@ FancyActionBar.weaponBack        = WEAPONTYPE_NONE
 FancyActionBar.durationMin       = 4
 FancyActionBar.durationMax       = 99
 
-FancyActionBar.player            = { name = "", id = 0 } -- might be needed to check for some effects before updating timer
+FancyActionBar.player            = { name = '', id = 0 } -- might be needed to check for some effects before updating timer
 
 FancyActionBar.constants         = {                     -- all current values for the UI and configuration to use. not sure why I called it 'constants' when they are all in fact variables.
     duration = {
-        font    = "Univers 67",
+        font    = 'Univers 67',
         size    = 24,
-        outline = "thick-outline",
+        outline = 'thick-outline',
         y       = 0,
         color   = { 1, 1, 1 },
     },
     stacks   = {
-        font    = "Univers 67",
+        font    = 'Univers 67',
         size    = 20,
-        outline = "thick-outline",
+        outline = 'thick-outline',
         x       = 37,
         color   = { 1, 0.8, 0 },
     },
     ult      = {
         duration  = {
             show    = true,
-            font    = "Univers 67",
+            font    = 'Univers 67',
             size    = 24,
-            outline = "thick-outline",
+            outline = 'thick-outline',
             x       = 37,
             y       = 0,
             color   = { 1, 1, 1 },
@@ -144,9 +144,9 @@ FancyActionBar.constants         = {                     -- all current values f
         value     = {
             show    = false,
             mode    = 1,
-            font    = "Univers 67",
+            font    = 'Univers 67',
             size    = 20,
-            outline = "outline",
+            outline = 'outline',
             x       = -2,
             y       = -5,
             color   = { 1, 1, 1 },
@@ -160,9 +160,9 @@ FancyActionBar.constants         = {                     -- all current values f
     },
     qs       = {
         show    = true,
-        font    = "Univers 67",
+        font    = 'Univers 67',
         size    = 24,
-        outline = "outline",
+        outline = 'outline',
         x       = 0,
         y       = 10,
         color   = { 1, 0.5, 0.2 },
@@ -226,45 +226,45 @@ function FancyActionBar:dbg(...)
     -- if SV.debugAll then return end
     if SV.debug then
         local str = zo_strformat(...)
-        d("[FAB+] " .. str)
+        d('[FAB+] ' .. str)
     end
 end
 
 function FancyActionBar.SlashCommand(str)
     local setting
     local cmd = string.lower(str)
-    if cmd == "dbg 0" then
+    if cmd == 'dbg 0' then
         SV.debug    = false
         SV.debugAll = false
-        d("[FAB+] debug: Off.")
-    elseif cmd == "dbg 1" then
+        d('[FAB+] debug: Off.')
+    elseif cmd == 'dbg 1' then
         SV.debug = not SV.debug
-        if SV.debug then setting = "On." else setting = "Off." end
-        d("[FAB+] debug1: " .. setting)
-    elseif cmd == "dbg 2" then
+        if SV.debug then setting = 'On.' else setting = 'Off.' end
+        d('[FAB+] debug1: ' .. setting)
+    elseif cmd == 'dbg 2' then
         SV.debugAll = not SV.debugAll
-        if SV.debugAll then setting = "On." else setting = "Off." end
-        d("[FAB+] debugAll: " .. setting)
-    elseif cmd == "dbg 3" then
+        if SV.debugAll then setting = 'On.' else setting = 'Off.' end
+        d('[FAB+] debugAll: ' .. setting)
+    elseif cmd == 'dbg 3' then
         SV.debugVerbose = not SV.debugVerbose
-        if SV.debugVerbose then setting = "On." else setting = "Off." end
-        d("[FAB+] Verbose debug: " .. setting)
-    elseif cmd == "bar1" then
+        if SV.debugVerbose then setting = 'On.' else setting = 'Off.' end
+        d('[FAB+] Verbose debug: ' .. setting)
+    elseif cmd == 'bar1' then
         FancyActionBar.PostSlottedSkills(1)
-    elseif cmd == "bar2" then
+    elseif cmd == 'bar2' then
         FancyActionBar.PostSlottedSkills(2)
-    elseif cmd == "bars" then
+    elseif cmd == 'bars' then
         FancyActionBar.PostSlottedSkills(3)
-    elseif cmd == "overlay" then
+    elseif cmd == 'overlay' then
         FancyActionBar.PostOverlayEffects()
-    elseif cmd == "track" then
+    elseif cmd == 'track' then
         FancyActionBar.PostAbilityConfig()
-    elseif cmd == "stacks" then
+    elseif cmd == 'stacks' then
         for id, effect in pairs(FancyActionBar.stackMap) do
-            d("[" .. id .. "] = " .. effect)
+            d('[' .. id .. '] = ' .. effect)
         end
-    elseif cmd == "dbt" then
-        d("[FAB+] Registered Debuff IDs:")
+    elseif cmd == 'dbt' then
+        d('[FAB+] Registered Debuff IDs:')
         for id in pairs(SV.debuffTable) do
             d(id)
         end
@@ -272,48 +272,48 @@ function FancyActionBar.SlashCommand(str)
 end
 
 local function GetSlotInfoString(index, bar)
-    local slot   = index == 8 and "Ult" or tostring(index - 2)
-    local string = "[" .. slot .. "] "
+    local slot   = index == 8 and 'Ult' or tostring(index - 2)
+    local string = '[' .. slot .. '] '
     local id     = GetSlotBoundId(index, bar)
     if id > 0 then
         local name = GetAbilityName(id)
-        string = string .. "<" .. name .. "> " .. id
+        string = string .. '<' .. name .. '> ' .. id
     end
     return string
 end
 
 function FancyActionBar.PostAbilityConfig()
-    d("FAB+ Ability Configuration:")
+    d('FAB+ Ability Configuration:')
 
     local s = SV.abilityConfig
 
     for skill, id in pairs(s) do
         local v
 
-        if type(id) == "table" then
+        if type(id) == 'table' then
             if id == {} or id[1] == nil
             then
-                v = "{}"
+                v = '{}'
             else
                 v = tostring(id[1])
             end
-        elseif type(id) == "boolean" then
-            v = "false"
+        elseif type(id) == 'boolean' then
+            v = 'false'
         else
             v = tostring(id)
         end
-        d("[|cffffff" .. tostring(skill) .. "|r] = |cff6600" .. v .. "|r")
+        d('[|cffffff' .. tostring(skill) .. '|r] = |cff6600' .. v .. '|r')
     end
 end
 
 function FancyActionBar.PostSlottedSkills(bar)
-    d("[FAB+] Current Skills:")
+    d('[FAB+] Current Skills:')
     if bar == 1 or bar == 3 then
-        d("Front Bar")
+        d('Front Bar')
         for i = 3, 8 do d(GetSlotInfoString(i, 0)) end
     end
     if bar == 2 or bar == 3 then
-        d("Back Bar")
+        d('Back Bar')
         for i = 3, 8 do d(GetSlotInfoString(i, 1)) end
     end
 end
@@ -323,15 +323,15 @@ function FancyActionBar.PostOverlayEffects()
         local o1 = FancyActionBar.overlays[i]
         local o2 = FancyActionBar.overlays[i + 20]
         if o1.effect and o1.effect.id and o1.effect.id > 0 then
-            d("[" .. i .. "]: " .. o1.effect.id)
+            d('[' .. i .. ']: ' .. o1.effect.id)
             for k, v in pairs(o1.effect) do
-                d(" - [" .. k .. "]: " .. tostring(v))
+                d(' - [' .. k .. ']: ' .. tostring(v))
             end
         end
         if o2.effect and o2.effect.id and o2.effect.id > 0 then
-            d("[" .. i + 20 .. "]: " .. o2.effect.id)
+            d('[' .. i + 20 .. ']: ' .. o2.effect.id)
             for k, v in pairs(o2.effect) do
-                d(" - [" .. k .. "]: " .. tostring(v))
+                d(' - [' .. k .. ']: ' .. tostring(v))
             end
         end
     end
@@ -342,7 +342,7 @@ function FancyActionBar.IsDebugMode()
 end
 
 function FancyActionBar.SetDebugMode(mode)
-    assert(type(mode) == "boolean", "Debug mode must be boolean.")
+    assert(type(mode) == 'boolean', 'Debug mode must be boolean.')
     debug = mode
 end
 
@@ -464,7 +464,7 @@ function FancyActionBar.UpdateHideOnNoTargetForSkill(id, hide)
     local effectId = 0
 
     if cfg ~= nil then
-        if type(cfg) == "table" then
+        if type(cfg) == 'table' then
             cfg[5]   = hide
             effectId = cfg[1]
         end
@@ -499,13 +499,13 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
 
     local cI, rI = id, false
 
-    if type(cfg) == "table" then
+    if type(cfg) == 'table' then
         if cfg[1] then cI = cfg[1] end
     end
 
     if FancyActionBar.removeInstantly[cI] then rI = true end
 
-    if type(cfg) == "table" then
+    if type(cfg) == 'table' then
         abilityConfig[id] = { cI, true, isToggled, rI }
     elseif cfg then
         abilityConfig[id] = { id, true, isToggled, rI }
@@ -611,10 +611,10 @@ local function IsSameEffect(index, abilityId)
 end
 
 local function UpdateCompanionOverlayOnChange()
-    if (ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).hasAction and DoesUnitExist("companion") and HasActiveCompanion()) then
+    if (ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).hasAction and DoesUnitExist('companion') and HasActiveCompanion()) then
         hideCompanionUlt    = false
 
-        local current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        local current, _, _ = GetUnitPower('companion', COMBAT_MECHANIC_FLAGS_ULTIMATE)
         cost3               = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, COMPANION)
 
         CompanionUltimateButton:SetHidden(false)
@@ -650,7 +650,7 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
 
     HandleCompanionStateChanged()
 
-    local zone = GetZoneId(GetUnitZoneIndex("player"))
+    local zone = GetZoneId(GetUnitZoneIndex('player'))
     if FancyActionBar.zone ~= zone then
         FancyActionBar.zone = zone
         FancyActionBar.RefreshEffects()
@@ -667,8 +667,8 @@ function CheckForActiveEffect(id) -- update timer on load / reload.
     local duration      = 0
     local currentStacks = 0
 
-    for i = 1, GetNumBuffs("player") do
-        local name, startTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
+    for i = 1, GetNumBuffs('player') do
+        local name, startTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo('player', i)
 
         if --[[not castByPlayer and]] abilityId == id then
             hasEffect     = true
@@ -736,7 +736,7 @@ function UpdateInactiveBarIcon(index, bar) -- for bar swapping.
     local id     = GetSlotBoundId(index, bar)
     local iconId = 0                       -- GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
     local btn    = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET]
-    local icon   = ""
+    local icon   = ''
 
     if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
         if FancyActionBar.destroSkills[id] then
@@ -805,13 +805,13 @@ end
 --------------
 local function ResetOverlayDuration(overlay)
     if overlay then
-        local durationControl = overlay:GetNamedChild("Duration")
-        local bgControl       = overlay:GetNamedChild("BG")
-        local stacksControl   = overlay:GetNamedChild("Stacks")
+        local durationControl = overlay:GetNamedChild('Duration')
+        local bgControl       = overlay:GetNamedChild('BG')
+        local stacksControl   = overlay:GetNamedChild('Stacks')
 
-        if durationControl then durationControl:SetText("") end
+        if durationControl then durationControl:SetText('') end
         if bgControl then bgControl:SetHidden(true) end
-        if stacksControl then stacksControl:SetText("") end
+        if stacksControl then stacksControl:SetText('') end
 
         if overlay.effect then
             if FancyActionBar.stacks[overlay.effect.id] then
@@ -884,13 +884,13 @@ local function UpdateBackgroundVisuals(background, color, index)
         if bgHidden[index] ~= nil then
             local wasHidden = bgHidden[index]
             if wasHidden ~= bgHidden[index] then
-                local isHidden = bgHidden[index] and "hidden" or "showing"
-                d("[" .. index .. "] " .. isHidden)
+                local isHidden = bgHidden[index] and 'hidden' or 'showing'
+                d('[' .. index .. '] ' .. isHidden)
             end
         end
         bgHidden[index] = bgHidden[index]
     else
-        d("Index 0 Error!")
+        d('Index 0 Error!')
     end
 end
 
@@ -910,7 +910,7 @@ local function ResolveLabelAlphaForDebuff(debuff)
 end
 
 local function FormatTextForDurationOfActiveEffect(fading, effect, duration)
-    local timer, color = "", nil
+    local timer, color = '', nil
 
     if duration <= 0 then
         if (SV.delayFade and not effect.instantFade) then
@@ -935,9 +935,9 @@ local function FormatTextForDurationOfActiveEffect(fading, effect, duration)
     else
         if ShouldShowExpire(duration)
         then
-            timer = strformat("%0.1f", duration)
+            timer = strformat('%0.1f', duration)
         else
-            timer = strformat("%0.0f", duration)
+            timer = strformat('%0.0f', duration)
         end
     end
 
@@ -955,10 +955,10 @@ function UpdateOverlay(index) -- timer label updates.
     local overlay = FancyActionBar.overlays[index]
     if overlay then
         local effect          = overlay.effect
-        local durationControl = overlay:GetNamedChild("Duration")
-        local bgControl       = overlay:GetNamedChild("BG")
-        local stacksControl   = overlay:GetNamedChild("Stacks")
-        local lt, lc, la      = "", nil, nil
+        local durationControl = overlay:GetNamedChild('Duration')
+        local bgControl       = overlay:GetNamedChild('BG')
+        local stacksControl   = overlay:GetNamedChild('Stacks')
+        local lt, lc, la      = '', nil, nil
         local bh, bc          = true, nil
 
         if (effect and not effect.ignore and effect.id > 0) then
@@ -1039,16 +1039,16 @@ function UpdateOverlay(index) -- timer label updates.
                     then
                         stacksControl:SetText(zo_max(0, zo_ceil(tt)))
                     else
-                        stacksControl:SetText("")
+                        stacksControl:SetText('')
                     end
                     return
                 end
             end
-            if not FancyActionBar.stacks[effect.id] or (FancyActionBar.stacks[effect.id] and FancyActionBar.stacks[effect.id] == 0) then stacksControl:SetText("") end
+            if not FancyActionBar.stacks[effect.id] or (FancyActionBar.stacks[effect.id] and FancyActionBar.stacks[effect.id] == 0) then stacksControl:SetText('') end
         else
-            durationControl:SetText("")
+            durationControl:SetText('')
             bgControl:SetHidden(true)
-            stacksControl:SetText("")
+            stacksControl:SetText('')
             -- UpdateTimerLabel(durationControl, lt, lc)
             -- UpdateBackgroundVisuals(bgControl, bh, bc, index)
         end
@@ -1058,17 +1058,17 @@ end
 function UpdateStacks(index) -- stacks label.
     local overlay = FancyActionBar.overlays[index]
     if overlay then
-        local stacksControl = overlay:GetNamedChild("Stacks")
+        local stacksControl = overlay:GetNamedChild('Stacks')
         local effect        = overlay.effect
         if effect then
             if FancyActionBar.stacks[effect.id] and FancyActionBar.stacks[effect.id] > 0 then
                 stacksControl:SetText(FancyActionBar.stacks[effect.id])
                 stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
             else
-                stacksControl:SetText("")
+                stacksControl:SetText('')
             end
         else
-            stacksControl:SetText("")
+            stacksControl:SetText('')
         end
     end
 end
@@ -1077,12 +1077,12 @@ function UpdateUltOverlay(index) -- update ultimate labels.
     local overlay = FancyActionBar.ultOverlays[index]
     if overlay then
         local effect = overlay.effect
-        local durationControl = overlay:GetNamedChild("Duration")
+        local durationControl = overlay:GetNamedChild('Duration')
         -- local timerColor = IsInGamepadPreferredMode() and SV.ultColorGP or SV.ultColorKB
         local timerColor = FancyActionBar.constants.ult.duration.color
 
         if not FancyActionBar.constants.ult.duration.show then
-            durationControl:SetText("")
+            durationControl:SetText('')
             return
         end
 
@@ -1092,7 +1092,7 @@ function UpdateUltOverlay(index) -- update ultimate labels.
                 if duration > 0 then
                     if (showDecimal and (duration <= showDecimalStart))
                     then
-                        durationControl:SetText(strformat("%0.1f", zo_max(0, duration)))
+                        durationControl:SetText(strformat('%0.1f', zo_max(0, duration)))
                     else
                         durationControl:SetText(zo_max(0, zo_ceil(duration)))
                     end
@@ -1109,17 +1109,17 @@ function UpdateUltOverlay(index) -- update ultimate labels.
                         then
                             durationControl:SetText(zo_max(0, zo_ceil(duration)))
                         else
-                            durationControl:SetText("")
+                            durationControl:SetText('')
                         end
                     else
-                        durationControl:SetText("")
+                        durationControl:SetText('')
                     end
                 end
             else
-                durationControl:SetText("")
+                durationControl:SetText('')
             end
         else
-            durationControl:SetText("")
+            durationControl:SetText('')
         end
     end
 end
@@ -1366,20 +1366,20 @@ function UpdateQuickSlotOverlay() -- from LUI. update every 500ms
     if (duration > 5000) then
         t:SetHidden(false)
         if remain > 86400000 then    -- more then 1 day
-            t:SetText(string.format("%d d", math.floor(remain / 86400000)))
+            t:SetText(string.format('%d d', math.floor(remain / 86400000)))
         elseif remain > 6000000 then -- over 100 minutes - display XXh
-            t:SetText(string.format("%dh", math.floor(remain / 3600000)))
+            t:SetText(string.format('%dh', math.floor(remain / 3600000)))
         elseif remain > 600000 then  -- over 10 minutes - display XXm
-            t:SetText(string.format("%dm", math.floor(remain / 60000)))
+            t:SetText(string.format('%dm', math.floor(remain / 60000)))
         elseif remain > 60000 then
             local m = math.floor(remain / 60000)
             local s = remain / 1000 - 60 * m
-            t:SetText(string.format("%d:%.2d", m, s))
+            t:SetText(string.format('%d:%.2d', m, s))
         else
-            t:SetText(string.format("%.1d", 0.001 * remain))
+            t:SetText(string.format('%.1d', 0.001 * remain))
         end
     else
-        if not FancyActionBar.InMenu() then t:SetText("") end
+        if not FancyActionBar.InMenu() then t:SetText('') end
     end
 end
 
@@ -1402,17 +1402,17 @@ end
 -- Ultimate
 --------------
 local function GetValueString(mode, value, cost) -- format label text
-    local string = ""
+    local string = ''
     if mode == 1 then
         string = value
     elseif mode == 3 then
-        string = value .. "/" .. cost
+        string = value .. '/' .. cost
     else
         if value >= cost
         then
             string = value
         else
-            string = value .. "/" .. cost
+            string = value .. '/' .. cost
         end
     end
     return string
@@ -1438,7 +1438,7 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
 
         if hideCompanionUlt then
             CompanionUltimateButton:SetHidden(true)
-            if o3 and o3.value then o3.value:SetText("") end
+            if o3 and o3.value then o3.value:SetText('') end
         else
             CompanionUltimateButton:SetHidden(false)
             if o3 and o3.value then o3.value:SetText(GetValueString(modeC, value, cost3)) end
@@ -1478,7 +1478,7 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
     cost1 = ResolveUltCost(GetSlotBoundId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY))
     cost2 = ResolveUltCost(GetSlotBoundId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP))
 
-    local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+    local current, _, _ = GetUnitPower('player', COMBAT_MECHANIC_FLAGS_ULTIMATE)
     FancyActionBar.UpdateUltimateValueLabels(true, current)
 end
 
@@ -1490,13 +1490,13 @@ function FancyActionBar.RefreshUpdateConfiguration() -- set overlays refresh rat
         showDecimal      = false,
         showDecimalStart = 0,
     }
-    if (SV.showDecimal == "Never") then
+    if (SV.showDecimal == 'Never') then
         update.showDecimal      = false
         update.showDecimalStart = 0
-    elseif (SV.showDecimal == "Always") then
+    elseif (SV.showDecimal == 'Always') then
         update.showDecimal      = true
         update.showDecimalStart = SV.durationMax
-    elseif (SV.showDecimal == "Expire") then
+    elseif (SV.showDecimal == 'Expire') then
         update.showDecimal      = true
         update.showDecimalStart = SV.showDecimalStart
     end
@@ -1539,13 +1539,13 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 
         local cI, rI = id, false
 
-        if type(cfg) == "table" then
+        if type(cfg) == 'table' then
             if cfg[1] then cI = cfg[1] end
         end
 
         if FancyActionBar.removeInstantly[cI] then rI = true end
 
-        if type(cfg) == "table" then
+        if type(cfg) == 'table' then
             abilityConfig[id] = { cI, true, toggled, rI }
         elseif cfg then
             abilityConfig[id] = { cI, true, toggled, rI }
@@ -1577,7 +1577,7 @@ end
 local BUFF_EFFECT_TYPE_DEBUFF = BUFF_EFFECT_TYPE_DEBUFF
 local function OnEffectGainedFromAlly(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
     if sourceType == COMBAT_UNIT_TYPE_PLAYER then return end
-    if not AreUnitsEqual("player", unitTag) then return end
+    if not AreUnitsEqual('player', unitTag) then return end
 
     local effect = FancyActionBar.effects[abilityId]
     if effect then
@@ -1613,10 +1613,10 @@ local function OnEffectGainedFromAlly(eventCode, change, effectSlot, effectName,
 end
 
 function FancyActionBar.SetExternalBuffTracking() -- buffs gained from others
-    EM:UnregisterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED)
+    EM:UnregisterForEvent(NAME .. 'External', EVENT_EFFECT_CHANGED)
     if SV.externalBuffs then
-        EM:RegisterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, OnEffectGainedFromAlly)
-        EM:AddFilterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, "player")
+        EM:RegisterForEvent(NAME .. 'External', EVENT_EFFECT_CHANGED, OnEffectGainedFromAlly)
+        EM:AddFilterForEvent(NAME .. 'External', EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, 'player')
     end
 end
 
@@ -1645,7 +1645,7 @@ end
 
 function FancyActionBar.AdjustQuickSlotSpacing() -- quickslot placement and arrow visibility
     local style             = FancyActionBar.GetContants()
-    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
+    local weaponSwapControl = ACTION_BAR:GetNamedChild('WeaponSwap')
     local QSB               = QuickslotButton
 
     QSB:ClearAnchors()
@@ -1688,7 +1688,7 @@ end
 function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button according to variables
     if FancyActionBar.style == 1 then return end
     local style             = FancyActionBar.GetContants()
-    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
+    local weaponSwapControl = ACTION_BAR:GetNamedChild('WeaponSwap')
 
     ActionButton8:ClearAnchors()
     CompanionUltimateButton:ClearAnchors()
@@ -1748,12 +1748,12 @@ end
 
 function FancyActionBar.ToggleQuickSlotDuration() -- enable / disable quickslot timer
     local enable = FancyActionBar.constants.qs.show
-    EM:UnregisterForUpdate(NAME .. "UpdateQuickSlot")
+    EM:UnregisterForUpdate(NAME .. 'UpdateQuickSlot')
     if enable
     then
-        EM:RegisterForUpdate(NAME .. "UpdateQuickSlot", 500, UpdateQuickSlotOverlay)
+        EM:RegisterForUpdate(NAME .. 'UpdateQuickSlot', 500, UpdateQuickSlotOverlay)
     else
-        FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetText("")
+        FancyActionBar.qsOverlay:GetNamedChild('Duration'):SetText('')
     end
 end
 
@@ -1761,12 +1761,12 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
     local e = FancyActionBar.constants.ult.value.show
     local current
 
-    EM:UnregisterForUpdate(NAME .. "UltValue", EVENT_POWER_UPDATE)
-    EM:UnregisterForUpdate(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE)
+    EM:UnregisterForUpdate(NAME .. 'UltValue', EVENT_POWER_UPDATE)
+    EM:UnregisterForUpdate(NAME .. 'UltValueCompanion', EVENT_POWER_UPDATE)
 
     for i in pairs(FancyActionBar.ultOverlays) do
-        local v = FancyActionBar.ultOverlays[i]:GetNamedChild("Value")
-        if v then v:SetText("") end
+        local v = FancyActionBar.ultOverlays[i]:GetNamedChild('Value')
+        if v then v:SetText('') end
     end
 
     -- FancyActionBar.ultOverlays[ULT_INDEX]:GetNamedChild('Value'):SetText('')
@@ -1778,23 +1778,23 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
     cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, COMPANION)
 
     if e then
-        current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        current, _, _ = GetUnitPower('player', COMBAT_MECHANIC_FLAGS_ULTIMATE)
         FancyActionBar.UpdateUltimateValueLabels(true, current)
-        EM:RegisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, OnUltChanged)
-        EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE, REGISTER_FILTER_UNIT_TAG, "player")
+        EM:RegisterForEvent(NAME .. 'UltValue', EVENT_POWER_UPDATE, OnUltChanged)
+        EM:AddFilterForEvent(NAME .. 'UltValue', EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE, REGISTER_FILTER_UNIT_TAG, 'player')
     end
 
-    if (not DoesUnitExist("companion") or not HasActiveCompanion() or cost3 == nil or cost3 == 0) then
+    if (not DoesUnitExist('companion') or not HasActiveCompanion() or cost3 == nil or cost3 == 0) then
         CompanionUltimateButton:SetHidden(true)
         return
     end
 
     local c = FancyActionBar.constants.ult.companion.show
     if c then
-        current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        current, _, _ = GetUnitPower('companion', COMBAT_MECHANIC_FLAGS_ULTIMATE)
         FancyActionBar.UpdateUltimateValueLabels(false, current)
-        EM:RegisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, OnUltChangedCompanion)
-        EM:AddFilterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE, REGISTER_FILTER_UNIT_TAG, "companion")
+        EM:RegisterForEvent(NAME .. 'UltValueCompanion', EVENT_POWER_UPDATE, OnUltChangedCompanion)
+        EM:AddFilterForEvent(NAME .. 'UltValueCompanion', EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE, REGISTER_FILTER_UNIT_TAG, 'companion')
     end
 end
 
@@ -1812,7 +1812,7 @@ function FancyActionBar.OnActionBarInitialized(control) -- backbar control initi
 
     -- Create inactive bar buttons.
     for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
-        local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, control, "ZO_ActionButton")
+        local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, control, 'ZO_ActionButton')
         button:SetShowBindingText(false)
         button.icon:SetHidden(true)
         button:SetupBounceAnimation()
@@ -1829,10 +1829,10 @@ function CreateOverlay(index) -- create normal skill button overlay.
         overlay:ClearAnchors()
         overlay.activeEffects = {}
     else
-        overlay                        = CreateControlFromVirtual("ActionButtonOverlay", ACTION_BAR, template, index)
-        overlay.timer                  = overlay:GetNamedChild("Duration")
-        overlay.bg                     = overlay:GetNamedChild("BG")
-        overlay.stack                  = overlay:GetNamedChild("Stacks")
+        overlay                        = CreateControlFromVirtual('ActionButtonOverlay', ACTION_BAR, template, index)
+        overlay.timer                  = overlay:GetNamedChild('Duration')
+        overlay.bg                     = overlay:GetNamedChild('BG')
+        overlay.stack                  = overlay:GetNamedChild('Stacks')
         FancyActionBar.overlays[index] = overlay
     end
     return overlay
@@ -1853,9 +1853,9 @@ function CreateUltOverlay(index) -- create ultimate skill button overlay.
         else
             parent = ZO_ActionBar_GetButton(ULT_SLOT)
         end
-        overlay = CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index)
-        overlay.timer = overlay:GetNamedChild("Duration")
-        overlay.value = overlay:GetNamedChild("Value")
+        overlay = CreateControlFromVirtual('UltimateButtonOverlay', parent.slot, template, index)
+        overlay.timer = overlay:GetNamedChild('Duration')
+        overlay.value = overlay:GetNamedChild('Value')
         FancyActionBar.ultOverlays[index] = overlay
     end
     return overlay
@@ -1869,7 +1869,7 @@ function CreateQuickSlotOverlay(index) -- create quickslot button overlay.
         ApplyTemplateToControl(overlay, template)
         overlay:ClearAnchors()
     else
-        overlay                  = CreateControlFromVirtual("QuickSlotOverlay", ACTION_BAR, template, index)
+        overlay                  = CreateControlFromVirtual('QuickSlotOverlay', ACTION_BAR, template, index)
         FancyActionBar.qsOverlay = overlay
     end
     return overlay
@@ -1877,7 +1877,7 @@ end
 
 function ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to settings
     local style             = FancyActionBar.GetContants()
-    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
+    local weaponSwapControl = ACTION_BAR:GetNamedChild('WeaponSwap')
     local QSB               = QuickslotButton
 
     ZO_ActionBar_GetButton(ULT_SLOT):ApplyStyle(style.ultButtonTemplate)
@@ -1962,19 +1962,19 @@ function ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to setting
     local u1 = CreateUltOverlay(ULT_INDEX)
     u1:SetAnchor(TOPLEFT, ActionButton8, TOPLEFT, 0, 0)
     u1:SetAnchor(BOTTOMRIGHT, ActionButton8, BOTTOMRIGHT, 0, 0)
-    u1.value = u1:GetNamedChild("Value")
+    u1.value = u1:GetNamedChild('Value')
 
     -- back bar ult
     local u2 = CreateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET)
     u2:SetAnchor(TOPLEFT, ActionButton8, TOPLEFT, 0, 0)
     u2:SetAnchor(BOTTOMRIGHT, ActionButton8, BOTTOMRIGHT, 0, 0)
-    u2.value = u2:GetNamedChild("Value")
+    u2.value = u2:GetNamedChild('Value')
 
     -- companion ult
     local u3 = CreateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET)
     u3:SetAnchor(TOPLEFT, CompanionUltimateButton, TOPLEFT, 0, 0)
     u3:SetAnchor(BOTTOMRIGHT, CompanionUltimateButton, BOTTOMRIGHT, 0, 0)
-    u3.value = u3:GetNamedChild("Value")
+    u3.value = u3:GetNamedChild('Value')
 
     -- quickslot
     local QO = CreateQuickSlotOverlay()
@@ -1982,10 +1982,10 @@ function ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to setting
     -- QO:SetAnchor(BOTTOMRIGHT, ActionButton9,            BOTTOMRIGHT,  0,  0)
     QO:SetAnchor(TOPLEFT, QSB, TOPLEFT, 0, 0)
     QO:SetAnchor(BOTTOMRIGHT, QSB, BOTTOMRIGHT, 0, 0)
-    QO.timer = QO:GetNamedChild("Duration")
+    QO.timer = QO:GetNamedChild('Duration')
     QO.timer:SetColor(unpack(IsInGamepadPreferredMode() and SV.qsColorGP or SV.qsColorKB))
 
-    local qsFrame = FancyActionBar.qsOverlay:GetNamedChild("Frame")
+    local qsFrame = FancyActionBar.qsOverlay:GetNamedChild('Frame')
     if qsFrame then QO.frame = qsFrame end
 end
 
@@ -1993,14 +1993,14 @@ local function ApplyStyle() -- apply style to action bars depending on keyboard/
     FancyActionBar.UpdateStyle()
     currentHotbarCategory   = GetActiveHotbarCategory()
     local style             = FancyActionBar.GetContants()
-    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap") -- Most alignments are relative to weapon swap button.
+    local weaponSwapControl = ACTION_BAR:GetNamedChild('WeaponSwap') -- Most alignments are relative to weapon swap button.
     local lastButton                                                 -- Set positions for buttons and overlays.
     local buttonTemplate    = style.buttonTemplate                   --ZO_GetPlatformTemplate('ZO_ActionButton')
     local overlayTemplate   = style.overlayTemplate                  --ZO_GetPlatformTemplate('FAB_ActionButtonOverlay')
 
     ZO_ActionBar1:SetWidth(style.width)
 
-    ACTION_BAR:GetNamedChild("KeybindBG"):SetHidden(true) -- Hide default background.
+    ACTION_BAR:GetNamedChild('KeybindBG'):SetHidden(true) -- Hide default background.
 
     weaponSwapControl:ClearAnchors()                      -- Achor weapon swap to fake quick slot. Hide and disable mouse click.
     weaponSwapControl:SetAnchor(LEFT, FAB_ActionBarFakeQS, RIGHT, 0, 0)
@@ -2028,9 +2028,9 @@ local function ApplyStyle() -- apply style to action bars depending on keyboard/
 
         if SV.toggledHighlight or SV.showHighlight
         then
-            button.status:SetTexture("/FancyActionBar+/texture/blank.dds")
+            button.status:SetTexture('/FancyActionBar+/texture/blank.dds')
         else
-            button.status:SetTexture("EsoUI/Art/ActionBar/ActionSlot_toggledon.dds")
+            button.status:SetTexture('EsoUI/Art/ActionBar/ActionSlot_toggledon.dds')
         end
     end
 
@@ -2054,9 +2054,9 @@ local function ApplyStyle() -- apply style to action bars depending on keyboard/
 
         if SV.toggledHighlight or SV.showHighlight
         then
-            button.status:SetTexture("/FancyActionBar+/texture/blank.dds")
+            button.status:SetTexture('/FancyActionBar+/texture/blank.dds')
         else
-            button.status:SetTexture("EsoUI/Art/ActionBar/ActionSlot_toggledon.dds")
+            button.status:SetTexture('EsoUI/Art/ActionBar/ActionSlot_toggledon.dds')
         end
 
         if i == MIN_INDEX
@@ -2085,7 +2085,7 @@ end
 
 local function SwapControls() -- refresh action bars positions.
     local style             = FancyActionBar.GetContants()
-    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
+    local weaponSwapControl = ACTION_BAR:GetNamedChild('WeaponSwap')
     local hide
     local bar
 
@@ -2174,32 +2174,32 @@ function FancyActionBar.SetScale() -- resize and check for other addons with sam
             local S = FancyActionBar.constants.abScale.scale
             s = S / 100
             if FancyActionBar.style == 2 then
-                if not Azurah.db.uiData.gamepad["ZO_ActionBar1"]
+                if not Azurah.db.uiData.gamepad['ZO_ActionBar1']
                 then
-                    Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, ZO_ActionBar1:GetLeft(), ZO_ActionBar1:GetTop(), s)
+                    Azurah:RecordUserData('ZO_ActionBar1', TOPLEFT, ZO_ActionBar1:GetLeft(), ZO_ActionBar1:GetTop(), s)
                 else
-                    Azurah.db.uiData.gamepad["ZO_ActionBar1"].scale = s
+                    Azurah.db.uiData.gamepad['ZO_ActionBar1'].scale = s
                 end
             else
-                if not Azurah.db.uiData.keyboard["ZO_ActionBar1"]
+                if not Azurah.db.uiData.keyboard['ZO_ActionBar1']
                 then
-                    Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, ZO_ActionBar1:GetLeft(), ZO_ActionBar1:GetTop(), s)
+                    Azurah:RecordUserData('ZO_ActionBar1', TOPLEFT, ZO_ActionBar1:GetLeft(), ZO_ActionBar1:GetTop(), s)
                 else
-                    Azurah.db.uiData.keyboard["ZO_ActionBar1"].scale = s
+                    Azurah.db.uiData.keyboard['ZO_ActionBar1'].scale = s
                 end
             end
         else
             if FancyActionBar.style == 2 then
-                if Azurah.db.uiData.gamepad["ZO_ActionBar1"] and Azurah.db.uiData.gamepad["ZO_ActionBar1"].scale
+                if Azurah.db.uiData.gamepad['ZO_ActionBar1'] and Azurah.db.uiData.gamepad['ZO_ActionBar1'].scale
                 then
-                    s = Azurah.db.uiData.gamepad["ZO_ActionBar1"].scale
+                    s = Azurah.db.uiData.gamepad['ZO_ActionBar1'].scale
                 else
                     s = 1
                 end
             else
-                if Azurah.db.uiData.keyboard["ZO_ActionBar1"] and Azurah.db.uiData.keyboard["ZO_ActionBar1"].scale
+                if Azurah.db.uiData.keyboard['ZO_ActionBar1'] and Azurah.db.uiData.keyboard['ZO_ActionBar1'].scale
                 then
-                    s = Azurah.db.uiData.keyboard["ZO_ActionBar1"].scale
+                    s = Azurah.db.uiData.keyboard['ZO_ActionBar1'].scale
                 else
                     s = 1
                 end
@@ -2221,7 +2221,7 @@ end
 --------------------------------------------------------------------------------
 -------------------------------[    Hooks   ]-----------------------------------
 --------------------------------------------------------------------------------
-local origApplySwapAnimationStyle = ActionButton["ApplySwapAnimationStyle"]
+local origApplySwapAnimationStyle = ActionButton['ApplySwapAnimationStyle']
 local swapSize
 local function ApplySwapAnimationStyle(button)
     local timeline = button.hotbarSwapAnimation
@@ -2241,16 +2241,16 @@ local function ApplySwapAnimationStyle(button)
     end
 end
 
-local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
+local origSetUltimateMeter = ActionButton['SetUltimateMeter']
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     local isSlotUsed                = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, self.button.hotbarCategory)
-    local barTexture                = GetControl(self.slot, "UltimateBar")
-    local leadingEdge               = GetControl(self.slot, "LeadingEdge")
-    local ultimateReadyBurstTexture = GetControl(self.slot, "ReadyBurst")
-    local ultimateReadyLoopTexture  = GetControl(self.slot, "ReadyLoop")
-    local ultimateFillLeftTexture   = GetControl(self.slot, "FillAnimationLeft")
-    local ultimateFillRightTexture  = GetControl(self.slot, "FillAnimationRight")
-    local ultimateFillFrame         = GetControl(self.slot, "Frame")
+    local barTexture                = GetControl(self.slot, 'UltimateBar')
+    local leadingEdge               = GetControl(self.slot, 'LeadingEdge')
+    local ultimateReadyBurstTexture = GetControl(self.slot, 'ReadyBurst')
+    local ultimateReadyLoopTexture  = GetControl(self.slot, 'ReadyLoop')
+    local ultimateFillLeftTexture   = GetControl(self.slot, 'FillAnimationLeft')
+    local ultimateFillRightTexture  = GetControl(self.slot, 'FillAnimationRight')
+    local ultimateFillFrame         = GetControl(self.slot, 'Frame')
 
     local isGamepad                 = false
     if FancyActionBar.style == 2 then isGamepad = true end
@@ -2312,7 +2312,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     -- self:HideKeys(not isGamepad)
 end
 
-ActionButton["SetUltimateMeter"] = FancySetUltimateMeter
+ActionButton['SetUltimateMeter'] = FancySetUltimateMeter
 
 function FancyActionBar.UpdateStyle()
     local style = {}
@@ -2388,23 +2388,23 @@ local function PostEffectUpdate(name, id, change, duration, stacks, when)
     if duration == 0 then if not FancyActionBar.toggled[id] then return end end
     local type
     if     change == EFFECT_RESULT_GAINED then
-        type = "Gained"
+        type = 'Gained'
     elseif change == EFFECT_RESULT_UPDATED then
-        type = "Updated"
+        type = 'Updated'
     end
-    local stack = "."
-    if (stacks ~= nil and stacks > 0) then stack = " (x" .. stacks .. ")." end
-    FancyActionBar:dbg("[<<2>> (<<3>>)] <<1>>: <<4>><<5>>", type, name, id, strformat("%0.1fs", duration), stack)
+    local stack = '.'
+    if (stacks ~= nil and stacks > 0) then stack = ' (x' .. stacks .. ').' end
+    FancyActionBar:dbg('[<<2>> (<<3>>)] <<1>>: <<4>><<5>>', type, name, id, strformat('%0.1fs', duration), stack)
 end
 
 local function PostEffectFade(name, id, tag)
-    if tag then if string.find(tag, "companion") then return end end
-    local uptime = strformat("%0.3fs", FancyActionBar.activeCasts[id].fade - FancyActionBar.activeCasts[id].begin)
-    local delay  = "."
+    if tag then if string.find(tag, 'companion') then return end end
+    local uptime = strformat('%0.3fs', FancyActionBar.activeCasts[id].fade - FancyActionBar.activeCasts[id].begin)
+    local delay  = '.'
     if FancyActionBar.activeCasts[id].cast > 0 then
-        delay = strformat(" (%0.3fs).", FancyActionBar.activeCasts[id].fade - FancyActionBar.activeCasts[id].cast)
+        delay = strformat(' (%0.3fs).', FancyActionBar.activeCasts[id].fade - FancyActionBar.activeCasts[id].cast)
     end
-    FancyActionBar:dbg("[<<1>> (<<2>>)] faded after <<3>><<4>>", name, id, uptime, delay)
+    FancyActionBar:dbg('[<<1>> (<<2>>)] faded after <<3>><<4>>', name, id, uptime, delay)
     FancyActionBar.activeCasts[id] = nil
 end
 
@@ -2414,50 +2414,50 @@ local function PostAllChanges(e, change, eSlot, eName, tag, gain, fade, stacks, 
     -- if aType == 0 then return end -- passives (annoying when bar swapping)
 
     if FancyActionBar.IsGroupUnit(tag) then
-        if AreUnitsEqual("player", tag) then return end -- filter doubles from 'player' and players 'group' tags.
+        if AreUnitsEqual('player', tag) then return end -- filter doubles from 'player' and players 'group' tags.
     end
 
     local types = {
-        [EFFECT_RESULT_GAINED]       = "Gained",
-        [EFFECT_RESULT_FADED]        = "Faded",
-        [EFFECT_RESULT_UPDATED]      = "Updated",
-        [EFFECT_RESULT_FULL_REFRESH] = "Refreshed",
-        [EFFECT_RESULT_TRANSFER]     = "Transfered",
+        [EFFECT_RESULT_GAINED]       = 'Gained',
+        [EFFECT_RESULT_FADED]        = 'Faded',
+        [EFFECT_RESULT_UPDATED]      = 'Updated',
+        [EFFECT_RESULT_FULL_REFRESH] = 'Refreshed',
+        [EFFECT_RESULT_TRANSFER]     = 'Transfered',
     }
     local ts    = tostring
-    local type  = types[change] or "?"
+    local type  = types[change] or '?'
     local dur, s
 
     if (fade ~= nil and gain ~= nil)
     then
-        dur = strformat(" %0.1f", fade - gain) .. "s"
+        dur = strformat(' %0.1f', fade - gain) .. 's'
     else
         dur = 0
     end
 
     if stacks and stacks > 0
     then
-        s = " x" .. ts(stacks) .. "."
+        s = ' x' .. ts(stacks) .. '.'
     else
-        s = "."
+        s = '.'
     end
 
     if not SV.debugVerbose then
         if change == EFFECT_RESULT_FADED
         then
-            d("[" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName)
+            d('[' .. ts(aId) .. '] ' .. eName .. ': ' .. type .. ' --> ' .. uName)
         else
-            d("[" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName .. dur .. s)
+            d('[' .. ts(aId) .. '] ' .. eName .. ': ' .. type .. ' --> ' .. uName .. dur .. s)
         end
     else
-        d(eName .. " (" .. ts(aId) .. ")" .. "\nchange: " .. types[change] .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || tag: " .. ts(tag) .. " || unit: " .. ts(uName) .. " || unitId: " .. ts(unitId) .. " || buffType: " .. bType .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
+        d(eName .. ' (' .. ts(aId) .. ')' .. '\nchange: ' .. types[change] .. ' || stacks: ' .. ts(stacks) .. ' || duration: ' .. ts(dur) .. ' || slot: ' .. ts(eSlot) .. ' || tag: ' .. ts(tag) .. ' || unit: ' .. ts(uName) .. ' || unitId: ' .. ts(unitId) .. ' || buffType: ' .. bType .. ' || effectType: ' .. ts(eType) .. ' || abilityType: ' .. ts(aType) .. ' || statusEffectType: ' .. ts(seType) .. '\n===================')
     end
 end
 
 local function UnitCheck(unitTag, unitId)
     if unitId ~= nil then
-        if (not AreUnitsEqual("player", unitTag)) then return true end
-        if unitTag == "" then return true end
+        if (not AreUnitsEqual('player', unitTag)) then return true end
+        if unitTag == '' then return true end
     end
     return false
 end
@@ -2466,7 +2466,7 @@ local function ShouldTrackAsDebuff(id, tag)
     if not SV.advancedDebuff then return false end
     if id == 38791 then return false end -- ZoS seem to think that Stampede is a debuff and not a ground effect :S
     if tag ~= nil then
-        if AreUnitsEqual("player", tag) or FancyActionBar.IsGroupUnit(tag) then return false end
+        if AreUnitsEqual('player', tag) or FancyActionBar.IsGroupUnit(tag) then return false end
     end
     return true
 end
@@ -2677,7 +2677,7 @@ function FancyActionBar.RefreshEffects()
 
         if (id == 61905 or id == 61919 or id == 61927) then
             if GFC then
-                GFC.OnEffectChanged(_, 2, _, GetAbilityName(id), "player", _, _, 1, _, _, _, _, _, _, _, id)
+                GFC.OnEffectChanged(_, 2, _, GetAbilityName(id), 'player', _, _, 1, _, _, _, _, _, _, _, id)
                 GFC.UpdateStacks(0)
             end
         end
@@ -2685,8 +2685,8 @@ function FancyActionBar.RefreshEffects()
 
     local t = time()
 
-    for i = 1, GetNumBuffs("player") do
-        local name, startTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
+    for i = 1, GetNumBuffs('player') do
+        local name, startTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo('player', i)
 
         if not castByPlayer then
             if SV.externalBuffs then
@@ -2716,7 +2716,7 @@ function FancyActionBar.RefreshEffects()
                 local _
                 if (id == 61905 or id == 61919 or id == 61927) then
                     if GFC then -- Manually update GrimFocusCounter if enabled
-                        GFC.OnEffectChanged(_, 3, _, GetAbilityName(id), "player", _, _, 0, _, _, _, _, _, _, _, id)
+                        GFC.OnEffectChanged(_, 3, _, GetAbilityName(id), 'player', _, _, 0, _, _, _, _, _, _, _, id)
                     end
                 end
             end
@@ -2766,8 +2766,8 @@ end
 local noget = false
 local function Initialize()
     defaultSettings = FancyActionBar.defaultSettings
-    SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName())
-    CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName())
+    SV = ZO_SavedVars:NewAccountWide('FancyActionBarSV', FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName())
+    CV = ZO_SavedVars:NewCharacterIdSettings('FancyActionBarSV', FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName())
 
     for i = MIN_INDEX, ULT_INDEX do
         FancyActionBar.SetSlottedEffect(i, 0, 0)
@@ -2781,7 +2781,7 @@ local function Initialize()
 
     FancyActionBar.UpdateTextures()
 
-    if GetDisplayName() == "@nogetrandom" then
+    if GetDisplayName() == '@nogetrandom' then
         FancyActionBar.SetPersonalSettings()
         noget = true
         if SV.debuffTable == nil then SV.debuffTable = {} end
@@ -2799,14 +2799,14 @@ local function Initialize()
     FancyActionBar.ApplyDeathStateOption()
     debug = SV.debug
 
-    FancyActionBar.player.name = zo_strformat("<<!aC:1>>", GetUnitName("player"))
+    FancyActionBar.player.name = zo_strformat('<<!aC:1>>', GetUnitName('player'))
 
     --ANTIQUITY_DIGGING_SCENE = 'antiquityDigging'
     --LOCK_PICK_SCENE = 'lockpickKeyboard'
 
     local function LockSkillsOnTrade()
         if TRADE_WINDOW.state == 3 then return false end
-        if SM.currentScene:GetName() == "antiquityDigging" then return false end
+        if SM.currentScene:GetName() == 'antiquityDigging' then return false end
         return true
     end
 
@@ -2821,7 +2821,7 @@ local function Initialize()
                 return LockSkillsOnTrade()
                 -- https://github.com/esoui/esoui/blob/pts7.0/esoui/ingame/actionbar/actionbar.lua
             else
-                return (not (IsGameCameraActive() or IsInteractionCameraActive() or IsProgrammableCameraActive()) or SM:IsShowing("hud")) and not IsUnitDead("player")
+                return (not (IsGameCameraActive() or IsInteractionCameraActive() or IsProgrammableCameraActive()) or SM:IsShowing('hud')) and not IsUnitDead('player')
             end
         end
     end
@@ -2908,16 +2908,16 @@ local function Initialize()
                 if E then
                     if fakes[i] then activeFakes[i] = true end
                     if FancyActionBar.activeCasts[E.id] then FancyActionBar.activeCasts[E.id].cast = t end
-                    local D = E.toggled == true and "0" or tostring(GetAbilityDuration(i) / 1000)
-                    dbg("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id)
+                    local D = E.toggled == true and '0' or tostring(GetAbilityDuration(i) / 1000)
+                    dbg('4 [ActionButton%d]<%s> #%d: ' .. D, index, name, E.id)
                     -- return
                 end
             end
 
             if effect and FancyActionBar.toggled[effect.id] then
                 local o = not FancyActionBar.toggles[effect.id]
-                local O = o == true and "On" or "Off"
-                dbg("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
+                local O = o == true and 'On' or 'Off'
+                dbg('3 [ActionButton%d]<%s> #%d: ' .. O .. '.', index, name, effect.id)
             end
 
             if effect then
@@ -2925,23 +2925,23 @@ local function Initialize()
                     local e = FancyActionBar.effects[i]
                     if e then
                         if fakes[i] then activeFakes[i] = true end
-                        dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or GetAbilityDuration(e.id) / 1000)
+                        dbg('2 [ActionButton%d]<%s> #%d: %0.1fs', index, name, i, e.toggled == true and 0 or GetAbilityDuration(e.id) / 1000)
                     end
                 else
                     if not effect.custom and effect.duration then
                         effect.endTime = effect.duration + t
                         local duration = effect.duration
-                        dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, GetAbilityDuration(effect.id) / 1000)
+                        dbg('1 [ActionButton%d]<%s> #%d: %0.1fs', index, name, effect.id, GetAbilityDuration(effect.id) / 1000)
                         UpdateEffect(effect)
                     else
                         if fakes[id] then activeFakes[id] = true end
-                        dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, GetAbilityDuration(effect.id) / 1000)
+                        dbg('0 [ActionButton%d]<%s> #%d: %0.1fs', index, name, effect.id, GetAbilityDuration(effect.id) / 1000)
                     end
                 end
             elseif FancyActionBar.effects[i] then
-                dbg("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, GetAbilityDuration(FancyActionBar.effects[i].id) / 1000)
+                dbg('? [ActionButton%d]<%s> #%d: %0.1fs', index, name, FancyActionBar.effects[i].id, GetAbilityDuration(FancyActionBar.effects[i].id) / 1000)
             else
-                dbg("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id))
+                dbg('[ActionButton%d] #%d: %0.1fs', index, id, GetAbilityDuration(id))
             end
         end
         -- d('button ' .. n .. ' used.')
@@ -2993,7 +2993,7 @@ local function Initialize()
             end
 
             if (effectType == DEBUFF) then -- if the ability is a debuff, check settings and handle accordingly.
-                local tag = unitTag or ""
+                local tag = unitTag or ''
 
                 if ShouldTrackAsDebuff(abilityId, tag) then
                     effect.isDebuff = true
@@ -3104,14 +3104,14 @@ local function Initialize()
     function OnStackChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
         if (SV.advancedDebuff and effectType == DEBUFF) then return end -- is handled by debuff.lua
 
-        local c = ""
+        local c = ''
         if change == EFFECT_RESULT_FADED then
-            c = "faded"
+            c = 'faded'
             stackCount = 0
         elseif change == EFFECT_RESULT_GAINED then
-            c = "gained"
+            c = 'gained'
         elseif change == EFFECT_RESULT_UPDATED then
-            c = "updated"
+            c = 'updated'
         end
 
         FancyActionBar.stacks[FancyActionBar.stackMap[abilityId]] = change == EFFECT_RESULT_FADED and 0 or stackCount
@@ -3138,7 +3138,7 @@ local function Initialize()
     end
 
     local function OnDeath(eventCode, unitTag, isDead)
-        if not isDead or not AreUnitsEqual("player", unitTag) then return end
+        if not isDead or not AreUnitsEqual('player', unitTag) then return end
 
         FancyActionBar.RefreshEffects()
         FancyActionBar:UpdateDebuffTracking()
@@ -3190,9 +3190,9 @@ local function Initialize()
 
         if SV.debugAll then
             local ts = tostring
-            d("===================")
-            d(aName .. " (" .. ts(aId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hit))
-            d("===================")
+            d('===================')
+            d(aName .. ' (' .. ts(aId) .. ') || result: ' .. ts(result) .. ' || hit: ' .. ts(hit))
+            d('===================')
         end
 
         if (FancyActionBar.reflects[aId]) then
@@ -3214,15 +3214,15 @@ local function Initialize()
         end
     end
 
-    EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTIVE_COMPANION_STATE_CHANGED)
+    EM:UnregisterForEvent('ZO_ActionBar', EVENT_ACTIVE_COMPANION_STATE_CHANGED)
 
     EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, HandleCompanionStateChanged)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed)
-    EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath)
-    EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player")
+    EM:RegisterForEvent(NAME .. 'Death', EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath)
+    EM:AddFilterForEvent(NAME .. 'Death', EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, 'player')
     EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
         uiModeChanged = true
         FancyActionBar.UpdateBarSettings()
@@ -3234,8 +3234,8 @@ local function Initialize()
         ApplyStyle()
         OnAllHotbarsUpdated()
         SwapControls()
-        EM:UnregisterForUpdate(NAME .. "Update")
-        EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
+        EM:UnregisterForUpdate(NAME .. 'Update')
+        EM:RegisterForUpdate(NAME .. 'Update', updateRate, Update)
         EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED)
     end)
 
@@ -3247,7 +3247,7 @@ local function Initialize()
         FancyActionBar.OnPlayerActivated()
     end
 
-    EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated)
+    EM:RegisterForEvent(NAME .. '_Activated', EVENT_PLAYER_ACTIVATED, ActionBarActivated)
     EM:RegisterForEvent(NAME, EVENT_EFFECT_CHANGED, OnEffectChanged)
     EM:AddFilterForEvent(NAME, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
 
@@ -3256,32 +3256,32 @@ local function Initialize()
     EM:RegisterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnEquippedWeaponsChanged)
     EM:AddFilterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN)
 
-    ZO_PreHookHandler(ZO_ActionBar1, "OnHide", function ()
+    ZO_PreHookHandler(ZO_ActionBar1, 'OnHide', function ()
         -- if ZO_ActionBar1:IsHidden() and not wasStopped then
         if not FancyActionBar.wasStopped then
-            EM:UnregisterForUpdate(NAME .. "Update")
+            EM:UnregisterForUpdate(NAME .. 'Update')
             FancyActionBar.wasStopped = true
         end
     end)
 
-    ZO_PreHookHandler(ZO_ActionBar1, "OnShow", function ()
+    ZO_PreHookHandler(ZO_ActionBar1, 'OnShow', function ()
         if FancyActionBar.IsUnlocked() then return end
 
         FancyActionBar.ApplyPosition()
 
         if FancyActionBar.wasStopped then
             Update()
-            EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
+            EM:RegisterForUpdate(NAME .. 'Update', updateRate, Update)
         end
     end)
 
-    ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
-        if (not ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).hasAction or not DoesUnitExist("companion") or not HasActiveCompanion()) then
+    ZO_PreHookHandler(CompanionUltimateButton, 'OnShow', function ()
+        if (not ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).hasAction or not DoesUnitExist('companion') or not HasActiveCompanion()) then
             CompanionUltimateButton:SetHidden(true)
         end
     end)
 
-    class = GetUnitClassId("player")
+    class = GetUnitClassId('player')
     if FancyActionBar.fakeClassEffects[class] then
         for i, x in pairs(FancyActionBar.fakeClassEffects[class]) do fakes[i] = x end
     end
@@ -3299,11 +3299,11 @@ local function Initialize()
     end
 
     for i, x in pairs(FancyActionBar.reflects) do
-        EM:RegisterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, OnReflect)
-        EM:AddFilterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i)
+        EM:RegisterForEvent(NAME .. 'Reflect' .. i, EVENT_COMBAT_EVENT, OnReflect)
+        EM:AddFilterForEvent(NAME .. 'Reflect' .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i)
 
-        EM:RegisterForEvent(NAME .. "Reflect" .. x, EVENT_COMBAT_EVENT, OnReflect)
-        EM:AddFilterForEvent(NAME .. "Reflect" .. x, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, x, REGISTER_FILTER_COMBAT_RESULT, ACTION_RESULT_EFFECT_FADED)
+        EM:RegisterForEvent(NAME .. 'Reflect' .. x, EVENT_COMBAT_EVENT, OnReflect)
+        EM:AddFilterForEvent(NAME .. 'Reflect' .. x, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, x, REGISTER_FILTER_COMBAT_RESULT, ACTION_RESULT_EFFECT_FADED)
     end
 
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
@@ -3338,36 +3338,36 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
     if SV.externalBlackListRun == false then
         SV.externalBlackList = { -- just add all resto staff skills by default and player can take it from there.
-            [61504] = "Vigor",
-            [28385] = "Grand Healing",
-            [40130] = "Ward Ally",
-            [29224] = "Igneous Shield",
-            [76518] = "Major Brutality",
-            [61665] = "Major Brutality",
-            [61704] = "Minor Endurance",
-            [61694] = "Major Resolve",
-            [83850] = "Life Giver",
-            [31531] = "Force Siphon",
-            [85132] = "Lights Champion",
-            [40109] = "Siphon Spirit",
-            [61693] = "Minor Resolve",
-            [61706] = "Minor Intellect",
-            [37232] = "Steadfast Ward",
-            [61697] = "Minor Fortitude",
-            [61506] = "Echoing Vigor",
-            [92503] = "Major Sorcery",
-            [40116] = "Quick Siphon",
-            [28536] = "Regeneration",
-            [88758] = "Major Resolve",
-            [61687] = "Major Sorcery",
-            [38552] = "Panacea",
-            [61721] = "Minor Protection",
-            [40058] = "Illustrious Healing",
-            [40076] = "Rapid Regeneration",
-            [40060] = "Healing Springs",
-            [186493] = "Minor Protection",
-            [40126] = "Healing Ward",
-            [176991] = "Minor Resolve",
+            [61504] = 'Vigor',
+            [28385] = 'Grand Healing',
+            [40130] = 'Ward Ally',
+            [29224] = 'Igneous Shield',
+            [76518] = 'Major Brutality',
+            [61665] = 'Major Brutality',
+            [61704] = 'Minor Endurance',
+            [61694] = 'Major Resolve',
+            [83850] = 'Life Giver',
+            [31531] = 'Force Siphon',
+            [85132] = 'Lights Champion',
+            [40109] = 'Siphon Spirit',
+            [61693] = 'Minor Resolve',
+            [61706] = 'Minor Intellect',
+            [37232] = 'Steadfast Ward',
+            [61697] = 'Minor Fortitude',
+            [61506] = 'Echoing Vigor',
+            [92503] = 'Major Sorcery',
+            [40116] = 'Quick Siphon',
+            [28536] = 'Regeneration',
+            [88758] = 'Major Resolve',
+            [61687] = 'Major Sorcery',
+            [38552] = 'Panacea',
+            [61721] = 'Minor Protection',
+            [40058] = 'Illustrious Healing',
+            [40076] = 'Rapid Regeneration',
+            [40060] = 'Healing Springs',
+            [186493] = 'Minor Protection',
+            [40126] = 'Healing Ward',
+            [176991] = 'Minor Resolve',
         }
 
         SV.externalBlackListRun = true
@@ -3394,7 +3394,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
             SV.abScale = nil
         end
 
-        if (SV.showDecimal == nil or type(SV.showDecimal) ~= "string") then SV.showDecimal = d.showDecimal end
+        if (SV.showDecimal == nil or type(SV.showDecimal) ~= 'string') then SV.showDecimal = d.showDecimal end
 
         if SV.alphaInactive == nil then SV.alphaInactive = d.alphaInactive end
         if SV.desaturationInactive == nil then SV.desaturationInactive = d.desaturationInactive end
@@ -3507,30 +3507,30 @@ end
 
 function FancyActionBar.SetPersonalSettings() -- cause I like my UI fancy...
     local s = ZO_SynergyTopLevel              -- add my button frame to the syngergy button pop-up and rearrange the layout.
-    local c = s:GetNamedChild("Container")
-    local a = c:GetNamedChild("Action")
-    local k = c:GetNamedChild("Key")
-    local i = c:GetNamedChild("Icon")
-    local f = i:GetNamedChild("Frame")
+    local c = s:GetNamedChild('Container')
+    local a = c:GetNamedChild('Action')
+    local k = c:GetNamedChild('Key')
+    local i = c:GetNamedChild('Icon')
+    local f = i:GetNamedChild('Frame')
 
     i:SetDimensions(50, 50)
     f:SetHidden(true)
-    local e = CreateControl("$(parent)Edge", i, CT_TEXTURE)
+    local e = CreateControl('$(parent)Edge', i, CT_TEXTURE)
     e:SetDimensions(50, 50)
     e:ClearAnchors()
     e:SetAnchor(TOPLEFT, i, TOPLEFT, 0, 0)
-    e:SetTexture("/FancyActionBar+/texture/abilityFrame64_up.dds")
+    e:SetTexture('/FancyActionBar+/texture/abilityFrame64_up.dds')
     e:SetColor(unpack(SV.frameColor))
     e:SetDrawLayer(2)
     k:ClearAnchors()
     k:SetScale(0.85)
     k:SetAnchor(BOTTOMLEFT, i, BOTTOMRIGHT, 5, 0)
     a:ClearAnchors()
-    a:SetFont("$(BOLD_FONT)|$(KB_18)|outline")
+    a:SetFont('$(BOLD_FONT)|$(KB_18)|outline')
     a:SetAnchor(BOTTOMLEFT, k, TOPLEFT, 5, 5)
 
     local sub  = ZO_Subtitles
-    local text = sub:GetNamedChild("Text")
+    local text = sub:GetNamedChild('Text')
     text:ClearAnchors()
     text:SetAnchor(TOP, sub, TOP, 0, 0)
     text:SetVerticalAlignment(TOP)
@@ -3547,7 +3547,7 @@ function FancyActionBar.SetPersonalSettings() -- cause I like my UI fancy...
             end
         end, 10)
     end
-    ZO_PreHook("ZO_Dialogs_ShowDialog", HookDestroyConfirm)
+    ZO_PreHook('ZO_Dialogs_ShowDialog', HookDestroyConfirm)
 
     --[[
   filterId    =  MOTIF_KNOWLEDGE_FILTER = 39,

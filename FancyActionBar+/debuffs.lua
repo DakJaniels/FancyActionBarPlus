@@ -2,46 +2,46 @@ local EM            = EVENT_MANAGER
 local NAME
 local SV
 local time          = GetFrameTimeSeconds
-local currentTarget = { name = "", id = 0 }
+local currentTarget = { name = '', id = 0 }
 local targetDebuffs = {}
 local activeDebuffs = {}
 local debuffTargets = {}
 local enemyDebuffs  = {}
 
 local groupUnit     = {
-    ["group1"]  = true,
-    ["group2"]  = true,
-    ["group3"]  = true,
-    ["group4"]  = true,
-    ["group5"]  = true,
-    ["group6"]  = true,
-    ["group7"]  = true,
-    ["group8"]  = true,
-    ["group9"]  = true,
-    ["group10"] = true,
-    ["group11"] = true,
-    ["group12"] = true,
-    ["group13"] = true,
-    ["group14"] = true,
-    ["group15"] = true,
-    ["group16"] = true,
-    ["group17"] = true,
-    ["group18"] = true,
-    ["group19"] = true,
-    ["group20"] = true,
-    ["group21"] = true,
-    ["group22"] = true,
-    ["group23"] = true,
-    ["group24"] = true,
+    ['group1']  = true,
+    ['group2']  = true,
+    ['group3']  = true,
+    ['group4']  = true,
+    ['group5']  = true,
+    ['group6']  = true,
+    ['group7']  = true,
+    ['group8']  = true,
+    ['group9']  = true,
+    ['group10'] = true,
+    ['group11'] = true,
+    ['group12'] = true,
+    ['group13'] = true,
+    ['group14'] = true,
+    ['group15'] = true,
+    ['group16'] = true,
+    ['group17'] = true,
+    ['group18'] = true,
+    ['group19'] = true,
+    ['group20'] = true,
+    ['group21'] = true,
+    ['group22'] = true,
+    ['group23'] = true,
+    ['group24'] = true,
 }
 ---------------------------------
 -- Debug
 ---------------------------------
 local function OnNewTarget()
-    local tag = "reticleover"
+    local tag = 'reticleover'
 
-    local name = zo_strformat("<<t:1>>", GetUnitName(tag))
-    d(name .. " -> " .. GetUnitType(tag) .. " -> " .. GetUnitNameHighlightedByReticle())
+    local name = zo_strformat('<<t:1>>', GetUnitName(tag))
+    d(name .. ' -> ' .. GetUnitType(tag) .. ' -> ' .. GetUnitNameHighlightedByReticle())
 end
 
 -- /script zo_callLater(function() d(tostring(GetUnitType('reticleover'))) end, 2000)
@@ -51,19 +51,19 @@ local function PostReticleTargetInfo(uName, eName, gain, fade, eSlot, stacks, ic
     local ts = tostring
     local dur, s
     if (fade ~= nil and gain ~= nil) then
-        dur = string.format(" %0.1f", fade - gain) .. "s"
+        dur = string.format(' %0.1f', fade - gain) .. 's'
     else
         dur = 0
     end
 
     if (stacks and stacks > 0)
     then
-        s = " x" .. ts(stacks) .. "."
+        s = ' x' .. ts(stacks) .. '.'
     else
-        s = "."
+        s = '.'
     end
 
-    d(eName .. " (" .. ts(aId) .. ")" .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || unit: " .. ts(uName) .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
+    d(eName .. ' (' .. ts(aId) .. ')' .. ' || stacks: ' .. ts(stacks) .. ' || duration: ' .. ts(dur) .. ' || slot: ' .. ts(eSlot) .. ' || unit: ' .. ts(uName) .. ' || effectType: ' .. ts(eType) .. ' || abilityType: ' .. ts(aType) .. ' || statusEffectType: ' .. ts(seType) .. '\n===================')
 end
 ---------------------------------
 -- Checking
@@ -72,12 +72,12 @@ function FancyActionBar.IsAbilityActiveOnCurrentTarget(id)
     if not FancyActionBar.HasEnemyTarget() then return false end
 
     local isActive = false
-    local nBuffs   = GetNumBuffs("reticleover")
+    local nBuffs   = GetNumBuffs('reticleover')
     local data     = { endTime = 0, stacks = 0 }
 
     if nBuffs > 0 then
         for i = 1, nBuffs do
-            local _, _, endTime, _, stacks, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo("reticleover", i)
+            local _, _, endTime, _, stacks, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo('reticleover', i)
 
             if abilityId == id and castByPlayer then
                 isActive     = true
@@ -101,13 +101,13 @@ end
 -- end
 
 function FancyActionBar.IsGroupUnit(tag)
-    if tag == nil or tag == "" then return false end
+    if tag == nil or tag == '' then return false end
     if groupUnit[tag] ~= nil then return true else return false end
 end
 
 function FancyActionBar.IsPlayer(tag, name)
-    if tag == nil or tag == "" then return false end
-    if AreUnitsEqual("player", tag) then return true end
+    if tag == nil or tag == '' then return false end
+    if AreUnitsEqual('player', tag) then return true end
     return false
 end
 
@@ -116,7 +116,7 @@ function FancyActionBar.IsEnemy(tag, id)
 
     local isEnemy = false
 
-    if tag ~= nil and tag ~= "" then
+    if tag ~= nil and tag ~= '' then
         if GetUnitType(tag) == 12 then
             isEnemy = true -- target dummy
         else
@@ -134,7 +134,7 @@ function FancyActionBar.IsLocalPlayerOrEnemy(tag, name, id)
 end
 
 function FancyActionBar.HasEnemyTarget()
-    local tag = "reticleover"
+    local tag = 'reticleover'
 
     if (DoesUnitExist(tag) and not IsUnitDead(tag)) then
         if FancyActionBar.IsEnemy(tag, nil) then return true end
@@ -273,7 +273,7 @@ end
 
 local numEffects = 0
 local function GetTargetEffects()
-    local tag       = "reticleover"
+    local tag       = 'reticleover'
 
     numEffects      = GetNumBuffs(tag)
 
@@ -322,12 +322,12 @@ local function UpdateDebuff(effect, t, stacks, unitId, isTarget)
 end
 
 local function OnReticleTargetChanged()
-    local tag = "reticleover"
+    local tag = 'reticleover'
 
     if (DoesUnitExist(tag) and not IsUnitDead(tag)) then
         if not FancyActionBar.IsEnemy(tag) then return end -- GetUnitType(tag), GetUnitNameHighlightedByReticle()
 
-        local name               = zo_strformat("<<t:1>>", GetUnitName(tag))
+        local name               = zo_strformat('<<t:1>>', GetUnitName(tag))
         local tId                = 0
         local keep               = {}
 
@@ -376,7 +376,7 @@ local function OnReticleTargetChanged()
         end
         -- OnNewTarget()
     else
-        currentTarget = { name = "", id = 0 }
+        currentTarget = { name = '', id = 0 }
         if SV.keepLastTarget == false then
             ClearDebuffsIfNotOnTarget()
         end
@@ -384,16 +384,16 @@ local function OnReticleTargetChanged()
 end
 
 function FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
-    local tag = ""
+    local tag = ''
 
-    if unitTag ~= nil and unitTag ~= "" then tag = unitTag end
+    if unitTag ~= nil and unitTag ~= '' then tag = unitTag end
 
     -- if ((effect.activeOnTarget and tag ~= 'reticleover') or (not effect.activeOnTarget and effect.hideOnNoTarget)) then
     --   FancyActionBar:dbg(1, '<<1>> duration <<2>>s ignored on: <<3>>.', effectName, string.format(' %0.1f', endTime - t), tag )
     --   return
     -- end
 
-    if tag ~= "reticleover" then return end
+    if tag ~= 'reticleover' then return end
 
     if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
         if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = beginTime end
@@ -409,7 +409,7 @@ function FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot
                 UpdateDebuff(effect, endTime, stackCount, unitId, true)
             end
         else
-            FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t))
+            FancyActionBar:dbg(1, '<<1>> duration <<2>>s ignored.', effectName, string.format(' %0.1f', endTime - t))
         end
     elseif (change == EFFECT_RESULT_FADED) then
         if abilityId == 24330 then return end
@@ -437,7 +437,7 @@ end
 
 local function ClearDebuffsOnCombatEnd()
     local t = time()
-    if not IsUnitInCombat("player") then
+    if not IsUnitInCombat('player') then
         for i, x in pairs(FancyActionBar.debuffs) do
             local debuff = FancyActionBar.debuffs[i]
             if debuff then
@@ -467,14 +467,14 @@ function FancyActionBar:UpdateDebuffTracking()
     -- EVENT_TARGET_CHANGED (number eventCode, string unitTag)
     -- EVENT_RETICLE_TARGET_CHANGED (number eventCode)
     -- EVENT_RETICLE_TARGET_PLAYER_CHANGED (number eventCode)
-    EM:UnregisterForEvent(NAME .. "ReticleTaget", EVENT_RETICLE_TARGET_CHANGED)
-    EM:UnregisterForEvent(NAME .. "DebuffCombat", EVENT_PLAYER_COMBAT_STATE)
+    EM:UnregisterForEvent(NAME .. 'ReticleTaget', EVENT_RETICLE_TARGET_CHANGED)
+    EM:UnregisterForEvent(NAME .. 'DebuffCombat', EVENT_PLAYER_COMBAT_STATE)
     -- EM:UnregisterForEvent(NAME .. "EnemyDeath_1", EVENT_COMBAT_EVENT)
     -- EM:UnregisterForEvent(NAME .. "EnemyDeath_2", EVENT_COMBAT_EVENT)
 
     if SV.advancedDebuff then
-        EM:RegisterForEvent(NAME .. "DebuffCombat", EVENT_PLAYER_COMBAT_STATE, ClearDebuffsOnCombatEnd)
-        EM:RegisterForEvent(NAME .. "ReticleTaget", EVENT_RETICLE_TARGET_CHANGED, OnReticleTargetChanged)
+        EM:RegisterForEvent(NAME .. 'DebuffCombat', EVENT_PLAYER_COMBAT_STATE, ClearDebuffsOnCombatEnd)
+        EM:RegisterForEvent(NAME .. 'ReticleTaget', EVENT_RETICLE_TARGET_CHANGED, OnReticleTargetChanged)
 
         -- EM:RegisterForEvent(  NAME .. "EnemyDeath_1", EVENT_COMBAT_EVENT, FancyActionBar.OnDebuffTargetDeath )
         -- EM:AddFilterForEvent( NAME .. "EnemyDeath_1", EVENT_COMBAT_EVENT, REGISTER_FILTER_COMBAT_RESULT, ACTION_RESULT_DIED,    REGISTER_FILTER_IS_ERROR, false )

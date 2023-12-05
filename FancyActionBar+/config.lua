@@ -2,7 +2,7 @@
 ---@return integer
 local function GetShadowImage(shadowImage)
     shadowImage = 35441
-    local raceId = GetUnitRaceId("player")
+    local raceId = GetUnitRaceId('player')
     if raceId == 9 then
         shadowImage = 88677 -- khajiit
     elseif raceId == 6 then
@@ -16,9 +16,9 @@ local shadowImage
 ---@type table<number, table<number, number> | boolean>
 FancyActionBar.abilityConfig     = {
     --[[  [slot_id] = config:
-  - { effect_id } = timer will start when the effect is fired
-  - false = ignore this slot
-  ]]
+    - { effect_id } = timer will start when the effect is fired
+    - false = ignore this slot
+    ]]
 
     -- Two Handed
     [38814]  = { 131562 }, -- dizzying swing (off-balance)

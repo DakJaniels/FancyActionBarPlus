@@ -1,5 +1,0 @@
-; pregame UI files
-## DependsOn: ZO_Common
-
-EsoUI\PregameAndInternalIngame\Gamepad\EsoPlusMembershipInfoDialog_Gamepad.lua
-EsoUI\PregameAndInternalIngame\Gamepad\EsoPlusMembershipInfoDialog_Gamepad.xml
