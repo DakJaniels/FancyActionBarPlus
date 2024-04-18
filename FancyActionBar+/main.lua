@@ -113,7 +113,7 @@ FancyActionBar.inCombat = false;              -- for GCD
 FancyActionBar.weaponFront = WEAPONTYPE_NONE; -- for getting correct id's for destro staff skills on back bar
 FancyActionBar.weaponBack = WEAPONTYPE_NONE;
 
-FancyActionBar.durationMin = 4;
+FancyActionBar.durationMin = 1.75;
 FancyActionBar.durationMax = 99;
 
 FancyActionBar.player = { name = ""; id = 0 }; -- might be needed to check for some effects before updating timer

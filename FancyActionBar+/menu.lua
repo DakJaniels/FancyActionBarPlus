@@ -1077,7 +1077,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Actionbar Size";
           default = defaults.abScale;
           min = 30;
-          max = 150;
+          max = 250;
           disabled = function () return not SV.abScaling.kb.enable; end;
           getFunc = function () return SV.abScaling.kb.scale; end;
           setFunc = function (value)
@@ -1124,7 +1124,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Actionbar Size";
           default = defaults.abScaling.gp.scale;
           min = 30;
-          max = 150;
+          max = 250;
           disabled = function () return not SV.abScaling.gp.enable; end;
           getFunc = function () return SV.abScaling.gp.scale; end;
           setFunc = function (value)
@@ -3445,7 +3445,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               name = "Width";
               default = defaults.gcd.sizeY;
               min = 30;
-              max = 150;
+              max = 250;
               getFunc = function () return SV.gcd.sizeX; end;
               setFunc = function (value)
                 SV.gcd.sizeX = value;
