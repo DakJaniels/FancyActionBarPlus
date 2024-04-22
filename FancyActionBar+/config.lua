@@ -969,6 +969,12 @@ FancyActionBar.tauntSkills = {
   [183165] = "Runic Jolt";      -- Runic Jolt Arcanist
 
   [40336] = "Silver Leash";     -- Silver Leash Fighters Guild
+  
+  [222966] = "Goading Throw";  -- Shield Throw Grimoire, Taunt focus (Scribing)
+  [217180] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)
+  [219972] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)
+  [216674] = "Goading Vault",   -- Vault Grimoire, Taunt focus (Scribing)
+
 };
 
 function FancyActionBar.IsAbilityTaunt(abilityId)
