@@ -30,11 +30,14 @@ FancyActionBar.abilityConfig = {
   [83216] = { 83217 };  -- berserker strike
   [83229] = { 83230 };  -- onslaught
   [83238] = { 83239 };  -- berserker rage
-
+  [217180] = { 38254 }; -- goading smash (Scribing?) (taunt)
+  [219972] = { 38254 }; -- goading smash (scribing) (taunt)
+  
   -- Shield
   [28306] = { 38254 }; -- puncture (taunt)
   [38250] = { 38254 }; -- pierce armor (taunt)
   [38256] = { 38254 }; -- ransack (taunt)
+  [222966] = { 38254 };   -- goading throw (scribing) (taunt)
   [28304] = { 61723 }; -- low slash (minor maim)
   [38268] = { 61723 }; -- deep slash (minor maim)
   [38264] = { 61708 }; -- heroic slash (minor heroism)
@@ -87,7 +90,8 @@ FancyActionBar.abilityConfig = {
   [83465] = { 55131 };  -- rapid fire (cc immunity)
   [85257] = { 55131 };  -- toxic barrage (cc immunity)
   [85451] = { 85458 };  -- ballista
-
+  [216674] = { 38254 }; -- goading valult (scribing) (taunt)
+  
   -- Destruction Staff
   [46340] = { 100306 }; -- force shock (vAS destro)
   [46348] = { 100306 }; -- crushing shock (vAS destro)
@@ -731,16 +735,20 @@ FancyActionBar.debuffIds = {
   [83216] = { 83217 };  -- berserker strike
   [83229] = { 83230 };  -- onslaught
   [83238] = { 83239 };  -- berserker rage
-
+  [83223] = { 83224 };  -- reverse slash
+  [217180] = { 38254 }; -- goading smash (Scribing?) (taunt)
+  [219972] = { 38254 }; -- goading smash (scribing) (taunt)
+  
   -- Shield
   [28306] = { 38254 }; -- puncture (taunt)
   [38250] = { 38254 }; -- pierce armor (taunt)
   [38256] = { 38254 }; -- ransack (taunt)
-  [28304] = { 61723 }; -- low slash (minor maim)
+  [222966] = { 38254 }; -- goading throw (scribing) (taunt)
+  [28304] = { 61723 };  -- low slash (minor maim)
   [38268] = { 61723 }; -- deep slash (minor maim)
   [28719] = { 28720 }; -- shield charge (stun)
   [38405] = { 38407 }; -- invasion (stun)
-
+  
   -- Dual Wield
   [28379] = { 29293 }; -- twin slashes
   [38839] = { 38841 }; -- rending slashes
@@ -750,6 +758,7 @@ FancyActionBar.debuffIds = {
   [85179] = { 85182 }; -- thrive in chaos
 
   -- Bow
+  [216674] = { 38254 }; -- goading vault (scribing) (taunt)
   [28879] = { 113627 }; -- scatter shot (BRP bow)
   [38672] = { 113627 }; -- magnum shot (BRP bow)
   [38669] = { 113627 }; -- draining shot (BRP bow)
@@ -971,7 +980,7 @@ FancyActionBar.tauntSkills = {
   [40336] = "Silver Leash";     -- Silver Leash Fighters Guild
   
   [222966] = "Goading Throw";  -- Shield Throw Grimoire, Taunt focus (Scribing)
-  [217180] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)
+  [217180] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)?
   [219972] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)
   [216674] = "Goading Vault",   -- Vault Grimoire, Taunt focus (Scribing)
 
