@@ -30,14 +30,14 @@ FancyActionBar.abilityConfig = {
   [83216] = { 83217 };  -- berserker strike
   [83229] = { 83230 };  -- onslaught
   [83238] = { 83239 };  -- berserker rage
-  [217180] = { 38254 }; -- goading smash (Scribing?) (taunt)
-  [219972] = { 38254 }; -- goading smash (scribing) (taunt)
-  
+  [217180] = { 38254 };  -- goading smash (Scribing?) (taunt)
+  [219972] = { 38254 };  -- goading smash (scribing) (taunt)
+
   -- Shield
   [28306] = { 38254 }; -- puncture (taunt)
   [38250] = { 38254 }; -- pierce armor (taunt)
   [38256] = { 38254 }; -- ransack (taunt)
-  [222966] = { 38254 };   -- goading throw (scribing) (taunt)
+  [222966] = { 38254 }; -- goading throw (scribing) (taunt)
   [28304] = { 61723 }; -- low slash (minor maim)
   [38268] = { 61723 }; -- deep slash (minor maim)
   [38264] = { 61708 }; -- heroic slash (minor heroism)
@@ -68,7 +68,7 @@ FancyActionBar.abilityConfig = {
   [21157] = { 61665 };  -- hidden blade (major brutality)
   [38914] = { 61665 };  -- shrouded daggers (major brutality)
   [38910] = { 126667 }; -- flying blade first cast
-  [126659] = false;     -- flying blade jump (ignore major brutality)
+  [126659] = false;      -- flying blade jump (ignore major brutality)
   [83600] = { 85156 };  -- lacerate
   [85187] = { 85192 };  -- rend
   [85179] = { 85182 };  -- thrive in chaos
@@ -90,8 +90,8 @@ FancyActionBar.abilityConfig = {
   [83465] = { 55131 };  -- rapid fire (cc immunity)
   [85257] = { 55131 };  -- toxic barrage (cc immunity)
   [85451] = { 85458 };  -- ballista
-  [216674] = { 38254 }; -- goading valult (scribing) (taunt)
-  
+  [216674] = { 38254 };  -- goading valult (scribing) (taunt)
+
   -- Destruction Staff
   [46340] = { 100306 }; -- force shock (vAS destro)
   [46348] = { 100306 }; -- crushing shock (vAS destro)
@@ -169,34 +169,34 @@ FancyActionBar.abilityConfig = {
   [39197] = { 61694 }; -- immovable (major resolve)
 
   -- Werewolf
-  [32632] = { 137156 };  -- punce (carnage bleed)
+  [32632] = { 137156 }; -- punce (carnage bleed)
   [137156] = { 137156 }; -- carnage (bleed)
-  [39105] = { 137184 };  -- brutal pounce (brutal carnage bleed)
+  [39105] = { 137184 }; -- brutal pounce (brutal carnage bleed)
   [137184] = { 137184 }; -- brutal carnage (bleed)
-  [39104] = { 137164 };  -- feral pounce (brutal carnage bleed)
+  [39104] = { 137164 }; -- feral pounce (brutal carnage bleed)
   [137164] = { 137164 }; -- feral carnage (bleed)
-  [58317] = { 61745 };   -- hircine's rage (major berserk)
-  [58325] = { 61704 };   -- hircine's fortitude (minor fortitude)
-  [32633] = { 137257 };  -- roar (off-balance)
-  [39113] = { 45834 };   -- ferocious roar (off-balance), 137287 is heavy attack speed buff
-  [39114] = { 61743 };   -- deafening roar major breach, 137312 is off-balance
-  [58855] = { 58856 };   -- infectious claws
-  [58864] = { 58865 };   -- claws of anguish
-  [58879] = { 58880 };   -- claws of life
-  [32455] = { 32455 };   -- werewolf transformation
-  [39075] = { 32455 };   -- pack leader
-  [39076] = { 32455 };   -- werewolf berserker
+  [58317] = { 61745 };  -- hircine's rage (major berserk)
+  [58325] = { 61704 };  -- hircine's fortitude (minor fortitude)
+  [32633] = { 137257 }; -- roar (off-balance)
+  [39113] = { 45834 };  -- ferocious roar (off-balance); 137287 is heavy attack speed buff
+  [39114] = { 61743 };  -- deafening roar major breach; 137312 is off-balance
+  [58855] = { 58856 };  -- infectious claws
+  [58864] = { 58865 };  -- claws of anguish
+  [58879] = { 58880 };  -- claws of life
+  [32455] = { 32455 };  -- werewolf transformation
+  [39075] = { 32455 };  -- pack leader
+  [39076] = { 32455 };  -- werewolf berserker
 
   -- Vampire
-  [32986] = { 106208 };  -- mist form
-  [38963] = { 106209 };  -- elusive mist
-  [38965] = { 49268 };   -- blood mist
+  [32986] = { 106208 }; -- mist form
+  [38963] = { 106209 }; -- elusive mist
+  [38965] = { 49268 };  -- blood mist
   [132141] = { 172418 }; -- blood frenzy
   [134160] = { 134166 }; -- simmering frenzy
   [135841] = { 172648 }; -- sated fury
-  [32624] = { 32624 };   -- blood scion
-  [38932] = { 38932 };   -- swarming scion
-  [38938] = { 38938 };   -- perfect scion
+  [32624] = { 32624 };  -- blood scion
+  [38932] = { 38932 };  -- swarming scion
+  [38938] = { 38938 };  -- perfect scion
 
   -- Soul Magic
   [26768] = { 126890 }; -- soul trap
@@ -208,9 +208,9 @@ FancyActionBar.abilityConfig = {
   [35737] = { 35737 };  -- circle of protection
   [40181] = { 40181 };  -- turn evil
   [40169] = { 40169 };  -- ring of preservation
-  [35750] = { 35756 };  -- trap beast dot
-  [40372] = { 40375 };  -- lightweight beast trap
-  [40382] = { 40385 };  -- barbed trap dot
+  [35750] = {};         -- trap beast dot
+  [40372] = {};         -- lightweight beast trap
+  [40382] = {};         -- barbed trap dot
   [40194] = { 40194 };  -- evil hunter
   [40195] = { 61744 };  -- camouflaged hunter (minor berserk)
   [35713] = { 62305 };  -- dawnbreaker
@@ -221,9 +221,9 @@ FancyActionBar.abilityConfig = {
   [28567] = { 126370 }; -- entropy
   [40452] = { 126371 }; -- structured entropy
   [40457] = { 126374 }; -- degeneration
-  [31632] = { 31632 };  -- fire rune
-  [40470] = { 40470 };  -- volcanic rune
-  [40465] = { 40468 };  -- scalding rune (dot)
+  [31632] = {};         -- fire rune
+  [40470] = {};         -- volcanic rune
+  [40465] = {};         -- {  40468 }; -- scalding rune (dot)
   [31642] = { 48131 };  -- equilibrium (healing debuff)
   [40445] = { 48136 };  -- spell symmetry (healing debuff)
   [40441] = { 61694 };  -- balance (major resolve)
@@ -281,14 +281,14 @@ FancyActionBar.abilityConfig = {
   [61500] = { 61500 }; -- proximity detonation
   [38563] = { 38564 }; -- war horn
   [40220] = { 40221 }; -- sturdy war horn
-  [40223] = { 40224 }; -- aggressive warhorn (30 sec), 61747: 10 sec major force
+  [40223] = { 40224 }; -- aggressive warhorn (30 sec); 61747: 10 sec major force
   -- Support
   [38570] = { 38570 }; -- siege shield
   [40226] = { 40226 }; -- propelling shield
   [40229] = { 40229 }; -- siege weapon shield
-  [61511] = {};        -- guard  -- [80923]  = { 61511 }, -- guard
-  [61529] = {};        -- stalwart guard  -- [80983]  = { 81420 }, -- stalwart guard gain
-  [61536] = {};        -- mystic guard -- [80947]  = { 61536 }, -- mystic guard
+  [61511] = {};        -- guard  -- [80923] = { 61511 }; -- guard
+  [61529] = {};        -- stalwart guard  -- [80983] = { 81420 }; -- stalwart guard gain
+  [61536] = {};        -- mystic guard -- [80947] = { 61536 }; -- mystic guard
   [81420] = { 61529 }; -- guard slot id while link is acitve
   [61489] = { 61498 }; -- revealing flare
   [61519] = { 61522 }; -- lingering flare
@@ -330,13 +330,13 @@ FancyActionBar.abilityConfig = {
   [32785] = { 32788 };  -- draw essence
   [32792] = { 32796 };  -- deep breath
   [32715] = { 61814 };  -- ferocious leap
-  -- [31816]  = false, -- ignore stone giant
-  [29032] = { 29032 };  -- { 133027 }, -- track stagger
-  [31816] = { 31816 };  -- { 133027 }, -- track stagger
-  [133027] = { 31816 }; -- track stone giant
-  -- [29032] = false, -- don't track stonefist
-  -- [31816]  = { 134336 }, -- track stagger instead
-  -- [133027] = { 134336 }, -- track stagger
+  -- [31816] = false; -- ignore stone giant
+  [29032] = { 29032 };  -- { 133027 }; -- track stagger
+  [31816] = { 31816 };  -- { 133027 }; -- track stagger
+  [133027] = { 31816 };  -- track stone giant
+  -- [29032] = false; -- don't track stonefist
+  -- [31816] = { 134336 }; -- track stagger instead
+  -- [133027] = { 134336 }; -- track stagger
   [29071] = { 29071 }; -- obsidian shield
   [29224] = { 29224 }; -- igneous shield
   [32673] = { 61711 }; -- fragmented shield
@@ -356,7 +356,7 @@ FancyActionBar.abilityConfig = {
   -- Sorcerer
   [43714] = false;      -- crystal shard
   [46324] = { 46327 };  -- crystal fragment proc
-  [114716] = { 46327 }; -- crystal fragment proc
+  [114716] = { 46327 };  -- crystal fragment proc
   [46331] = {};         -- crystal weapon
   [28025] = { 28025 };  -- encase
   [28308] = { 28308 };  -- shattering prison
@@ -367,7 +367,7 @@ FancyActionBar.abilityConfig = {
   [24584] = { 114903 }; -- Dark Exchange
   [24589] = { 114909 }; -- dark conversion
   [24595] = { 114908 }; -- dark deal
-  [24842] = { 24844 };  -- daedric tomb (first mine) 24846, 24847
+  [24842] = { 24844 };  -- daedric tomb (first mine) 24846; 24847
   [27706] = { 27706 };  -- Negate Magic
   [28341] = { 28341 };  -- Suppression Field
   [28348] = { 28348 };  -- Absorption Field
@@ -384,7 +384,7 @@ FancyActionBar.abilityConfig = {
   [29482] = { 29482 };  -- Empowered Ward
   [24158] = { 24158 };  -- Bound Armor
   [24165] = { 24165 };  -- bound armaments
-  [130291] = { 24165 }; --  false  , -- track Bound Armaments duration instead of its proc
+  [130291] = { 24165 };  --  false  ; -- track Bound Armaments duration instead of its proc
   [24163] = { 24163 };  -- Bound Aegis
   [23634] = { 80459 };  -- Summon Storm Atronach
   [23492] = { 80463 };  -- greater storm atronarch
@@ -514,14 +514,14 @@ FancyActionBar.abilityConfig = {
   [36967] = { 36967 };                       -- reapers mark
   [36968] = { 36968 };                       -- piercing mark
   [61902] = {};                              -- grim focus (ingame timer is bugged)
-  [61907] = { 61902 };                       --  false  , -- grim focus proc
+  [61907] = { 61902 };                       --  false  ; -- grim focus proc
   [61919] = {};                              -- merciless resolve (ingame timer is bugged)
-  [61930] = { 61919 };                       -- false  , -- merciless resolve proc
+  [61930] = { 61919 };                       -- false  ; -- merciless resolve proc
   [61927] = {};                              -- relentless focus (ingame timer is bugged)
-  [61932] = { 61927 };                       -- false  , -- relentless focus proc
+  [61932] = { 61927 };                       -- false  ; -- relentless focus proc
   [33398] = { 61389 };                       -- death stroke
   [36508] = { 61393 };                       -- incap (70 ult)
-  [113105] = { 113107 };                     -- incap (120 ult)
+  [113105] = { 113107 };                      -- incap (120 ult)
   [36514] = { 61400 };                       -- soul harvest
   [25255] = { 25256 };                       -- veiled strike (off-balance)
   [25267] = { 34739 };                       -- concealed weapon
@@ -719,7 +719,7 @@ FancyActionBar.stackMap = {
 
   [29032] = 29032;   -- Stone Fist (stacks on self)
   [31816] = 31816;   -- Stone Giant (stacks on self)
-  -- [134336] = 134336,  -- Stone Giant (stacks on target)
+  -- [134336] = 134336;  -- Stone Giant (stacks on target)
   [122658] = 122658; -- Seething Fury
 
   [117638] = 117638; -- Ricochet Skull
@@ -738,17 +738,17 @@ FancyActionBar.debuffIds = {
   [83223] = { 83224 };  -- reverse slash
   [217180] = { 38254 }; -- goading smash (Scribing?) (taunt)
   [219972] = { 38254 }; -- goading smash (scribing) (taunt)
-  
+
   -- Shield
-  [28306] = { 38254 }; -- puncture (taunt)
-  [38250] = { 38254 }; -- pierce armor (taunt)
-  [38256] = { 38254 }; -- ransack (taunt)
+  [28306] = { 38254 };  -- puncture (taunt)
+  [38250] = { 38254 };  -- pierce armor (taunt)
+  [38256] = { 38254 };  -- ransack (taunt)
   [222966] = { 38254 }; -- goading throw (scribing) (taunt)
   [28304] = { 61723 };  -- low slash (minor maim)
-  [38268] = { 61723 }; -- deep slash (minor maim)
-  [28719] = { 28720 }; -- shield charge (stun)
-  [38405] = { 38407 }; -- invasion (stun)
-  
+  [38268] = { 61723 };  -- deep slash (minor maim)
+  [28719] = { 28720 };  -- shield charge (stun)
+  [38405] = { 38407 };  -- invasion (stun)
+
   -- Dual Wield
   [28379] = { 29293 }; -- twin slashes
   [38839] = { 38841 }; -- rending slashes
@@ -804,8 +804,8 @@ FancyActionBar.debuffIds = {
   [39104] = { 137164 };  -- feral pounce (brutal carnage bleed)
   [137164] = { 137164 }; -- feral carnage (bleed)
   [32633] = { 137257 };  -- roar (off-balance)
-  [39113] = { 45834 };   -- ferocious roar (off-balance), 137287 is heavy attack speed buff
-  [39114] = { 61743 };   -- deafening roar major breach, 137312 is off-balance
+  [39113] = { 45834 };   -- ferocious roar (off-balance); 137287 is heavy attack speed buff
+  [39114] = { 61743 };   -- deafening roar major breach; 137312 is off-balance
   [58855] = { 58856 };   -- infectious claws
   [58864] = { 58865 };   -- claws of anguish
   [58879] = { 58880 };   -- claws of life
@@ -852,8 +852,8 @@ FancyActionBar.debuffIds = {
   [20245] = { 20527 }; -- dark talons
   [20251] = { 61723 }; -- choking talons (minor maim)
   [20252] = { 31898 }; -- burning talons
-  -- [133027] = {  31816 }, -- track stone giant
-  -- [31816]  = { 133027 }, -- track stagger
+  -- [133027] = {  31816 }; -- track stone giant
+  -- [31816] = { 133027 }; -- track stagger
   [29032] = false;       -- don't track stonefist
   [31816] = { 134336 };  -- track stagger instead
   [133027] = { 134336 }; -- track stagger
@@ -931,36 +931,36 @@ FancyActionBar.debuffIds = {
 };
 FancyActionBar.specialIds = {
   -- abilities that require a separate function to update correctly.
-  --[38254]  = true, -- taunt
-  --[35750]  = true, -- trap beast placed
-  --[35756]  = true, -- trap beast dot
-  --[40372]  = true, -- lightweight trap placed
-  --[40375]  = true, -- lightweight trap dot
-  --[40382]  = true, -- barbed trap placed
-  --[40385]  = true, -- barbed trap dot
-  --[40465]  = true, -- scalding rune placed
-  --[40468]  = true, -- scalding rune dot
-  [16536] = true;  -- meteor called
-  [63430] = true;  -- meteor aoe
-  [40489] = true;  -- ice comet called
-  [63456] = true;  -- ice comet aoe
-  [40493] = true;  -- shooting star called
-  [63473] = true;  -- shooting star aoe
-  [86009] = true;  -- scorch
+  [38254] = true; -- taunt
+  [35750] = true; -- trap beast placed
+  [35756] = true; -- trap beast dot
+  [40372] = true; -- lightweight trap placed
+  [40375] = true; -- lightweight trap dot
+  [40382] = true; -- barbed trap placed
+  [40385] = true; -- barbed trap dot
+  [40465] = true; -- scalding rune placed
+  [40468] = true; -- scalding rune dot
+  [16536] = true; -- meteor called
+  [63430] = true; -- meteor aoe
+  [40489] = true; -- ice comet called
+  [63456] = true; -- ice comet aoe
+  [40493] = true; -- shooting star called
+  [63473] = true; -- shooting star aoe
+  [86009] = true; -- scorch
   [178020] = true; -- scorch second proc
-  [86015] = true;  -- deep fissure
+  [86015] = true; -- deep fissure
   [178028] = true; -- deep fissure second proc
-  [86019] = true;  -- sub assault
+  [86019] = true; -- sub assault
   [146919] = true; -- sub assault second proc
-  [86175] = true;  -- frozen gate
-  [86179] = true;  -- frozen device
-  [86183] = true;  -- frozen retreat
-  [37475] = true;  -- manifestation of terror placed
-  [76634] = true;  -- manifestation of terror triggered
-  [46331] = true;  -- crystal weapon (to add stacks if tracking duration on self)
+  [86175] = true; -- frozen gate
+  [86179] = true; -- frozen device
+  [86183] = true; -- frozen retreat
+  [37475] = true; -- manifestation of terror placed
+  [76634] = true; -- manifestation of terror triggered
+  [46331] = true; -- crystal weapon (to add stacks if tracking duration on self)
 };
 
--- skill list based on this GetSlotBoundId(hotbarSlot, HOTBAR_CATEGORY_PRIMARY)
+-- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
 FancyActionBar.tauntSkills = {
   [38989] = "Frost Clench";     -- Frost Clench Ice Staff
   [20496] = "Unrelenting Grip"; -- Unrelenting Dragonknight
@@ -978,11 +978,11 @@ FancyActionBar.tauntSkills = {
   [183165] = "Runic Jolt";      -- Runic Jolt Arcanist
 
   [40336] = "Silver Leash";     -- Silver Leash Fighters Guild
-  
-  [222966] = "Goading Throw";  -- Shield Throw Grimoire, Taunt focus (Scribing)
-  [217180] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)?
-  [219972] = "Goading Smash";   -- Smash Grimoire, Taunt focus (Scribing)
-  [216674] = "Goading Vault",   -- Vault Grimoire, Taunt focus (Scribing)
+
+  [222966] = "Goading Throw";   -- Shield Throw Grimoire; Taunt focus (Scribing)
+  [217180] = "Goading Smash";   -- Smash Grimoire; Taunt focus (Scribing)?
+  [219972] = "Goading Smash";   -- Smash Grimoire; Taunt focus (Scribing)
+  [216674] = "Goading Vault";   -- Vault Grimoire; Taunt focus (Scribing)
 
 };
 
@@ -996,10 +996,10 @@ end;
 
 FancyActionBar.fakeClassEffects = {
   --[[
-  scuffed way of updating certain abilities, but updates as intended without much work.
+  scuffed way of updating certain abilities; but updates as intended without much work.
   abilities that can't be tracked in EVENT_EFFECT_CHANGED alone.
   filter so only abilities from the current class is being tracked.
-  when the game registers that you press the button for the ability,
+  when the game registers that you press the button for the ability;
   it allows EVENT_COMBAT_EVENT to update the timer on the first encounter or the id.
   needs to be given specific duration to update correctly.
 ]]
@@ -1011,17 +1011,17 @@ FancyActionBar.fakeClassEffects = {
   };
 
   -- Sorcerer
-  -- [2] = {},
+  -- [2] = {};
 
   -- Nightblade
   --[3] = {
-  --[33211] = { duration = GetAbilityDuration(33211) / 1000, id = 33211 }, -- Summon Shade
-  --[35434] = { duration = GetAbilityDuration(35438) / 1000, id = 35438 }, -- Dark Shade
-  --[35441] = { duration = GetAbilityDuration(35441) / 1000, id = 35441 }  -- Shadow Image
-  --},
+  --[33211] = { duration = GetAbilityDuration(33211) / 1000; id = 33211 }; -- Summon Shade
+  --[35434] = { duration = GetAbilityDuration(35438) / 1000; id = 35438 }; -- Dark Shade
+  --[35441] = { duration = GetAbilityDuration(35441) / 1000; id = 35441 }  -- Shadow Image
+  --};
 
   -- Warden
-  --[4] = {},
+  --[4] = {};
 
   -- Necromancer
   [5] = {
@@ -1045,25 +1045,29 @@ FancyActionBar.fakeClassEffects = {
   };
 
   -- Arcanist
-  --[117] = {},
+  --[117] = {};
 };
 FancyActionBar.fakeSharedEffects = {
   -- tracked along with fakeClassEffects.
-  --[35756] = { duration = GetAbilityDuration(35756) / 1000, id = 35756 }, -- trap beast
-  --[40375] = { duration = GetAbilityDuration(40375) / 1000, id = 40375 }, -- lightweight trap
-  --[40385] = { duration = GetAbilityDuration(40385) / 1000, id = 40385 }, -- barbed trap
-  --[40468] = { duration = GetAbilityDuration(40468) / 1000, id = 40468 }, -- scalding rune
+  [35750] = { duration = GetAbilityDuration(35750) / 1000; id = 35750 }; -- trap beast
+  [40372] = { duration = GetAbilityDuration(40382) / 1000; id = 40372 }; -- lightweight trap
+  [40382] = { duration = GetAbilityDuration(40382) / 1000; id = 40382 }; -- barbed trap
+  --[35756] = { duration = GetAbilityDuration(35756) / 1000; id = 35756 }; -- trap beast
+  --[40375] = { duration = GetAbilityDuration(40375) / 1000; id = 40375 }; -- lightweight trap
+  --[40385] = { duration = GetAbilityDuration(40385) / 1000; id = 40385 }; -- barbed trap
+  [40468] = { duration = GetAbilityDuration(40468) / 1000; id = 40468 }; -- scalding rune
+
 };
 FancyActionBar.needCombatEvent = {
   [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- momentum
   [38794] = { duration = GetAbilityDuration(38794) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- forward momentum
-  --[38802] = { duration = GetAbilityDuration(38802) / 1000, result = ACTION_RESULT_EFFECT_GAINED_DURATION }, -- rally
+  --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- rally
 };
---FancyActionBar.stackingDebuffs   = {
+--FancyActionBar.stackingDebuffs  = {
 -- (debuffs on enemy targets)
--- currently not in use, but will eventually update timers and stacks when a target dies.
---[38745]  = true, -- carve
---[134336] = true, -- stagger
+-- currently not in use; but will eventually update timers and stacks when a target dies.
+--[38745] = true; -- carve
+--[134336] = true; -- stagger
 --}
 FancyActionBar.toggled = {
   -- effects with no duration are discarded for tracking.
@@ -1091,24 +1095,24 @@ FancyActionBar.toggled = {
   [61536] = true; -- mystic guard (on target)
   [61529] = true; -- stalwart guard (on target)
 
-  -- [80923]  = true, -- guard (on self)
-  -- [80947]  = true, -- mystic guard (on self)
-  -- [80983]  = true, -- stalwart guard (on self) 80984 = minor force on target. 80986 = minor force on self
+  -- [80923] = true; -- guard (on self)
+  -- [80947] = true; -- mystic guard (on self)
+  -- [80983] = true; -- stalwart guard (on self) 80984 = minor force on target. 80986 = minor force on self
 
-  -- [78338]  = true, -- guard (inactive)
+  -- [78338] = true; -- guard (inactive)
   [81420] = true; -- Link active
 
   -- Sorcerer
-  -- [24785] = true, -- Overload
-  -- [24806] = true, -- Energy Overload
-  -- [24804] = true, -- Power Overload
+  -- [24785] = true; -- Overload
+  -- [24806] = true; -- Energy Overload
+  -- [24804] = true; -- Power Overload
 };
 FancyActionBar.traps = {
   -- to update the effect when trap is triggered
-  --[35756]  = 35750, --trap beast
-  --[40375]  = 40372, --lightweight trap
-  --[40385]  = 40382, --barbed trap
-  --[40468]  = 40465, --scalding rune
+  [35756] = 35750; --trap beast
+  [40375] = 40372; --lightweight trap
+  [40385] = 40382; --barbed trap
+  [40468] = 40465; --scalding rune
   [61785] = 32685; -- fossilize
 };
 FancyActionBar.graveLordSacrifice = {
@@ -1141,13 +1145,13 @@ FancyActionBar.subAssault = {
 };
 FancyActionBar.soulTrap = {
   -- to check which effect to register once slotted.
-  --slot id = { mag id, stam id}
+  --slot id = { mag id; stam id}
   [26768] = { 126890; 126891 }; -- soul trap
   [40328] = { 126895; 126894 }; -- soul splitting trap
   [40317] = { 126897; 126898 }; -- consuming trap
 };
 FancyActionBar.meteor = {
-  -- same as traps, maybe combine both eventually.
+  -- same as traps; maybe combine both eventually.
   [63430] = 16536; -- meteor
   [63456] = 40489; -- ice comet
   [63473] = 40493; -- shooting star
@@ -1161,7 +1165,7 @@ FancyActionBar.frozen = {
 FancyActionBar.iceShield = {
   -- for tracking if able to absord projectiles.
   [86135] = true; -- crystallized shield
-  -- [86139]  = true, -- crystallized slab
+  -- [86139] = true; -- crystallized slab
   [92168] = true; -- crystallized slab
   [86143] = true; -- shimmering shield
 };
@@ -1292,9 +1296,9 @@ FancyActionBar.dontFade = {
   -- Warden
   [130140] = true; -- cutting dive bleed
   [86019] = true;  -- sub assault
-  -- [86023]  = true, -- swarm
-  -- [86027]  = true, -- fetcher infection
-  -- [86031]  = true, -- growing swarm
+  -- [86023] = true; -- swarm
+  -- [86027] = true; -- fetcher infection
+  -- [86031] = true; -- growing swarm
   [101703] = true; -- swarm
   [101904] = true; -- fetcher infection
   [101944] = true; -- growing swarm
@@ -1330,22 +1334,22 @@ FancyActionBar.dontFade = {
 FancyActionBar.removeInstantly = {
   -- 'proc' effects seem to clutter more when '0.0' is being displayed after use.
   -- few other effects gave same impression. will add options.
-  --[35756]  = true, -- trap best
-  --[40375]  = true, -- lightweight trap
-  --[40385]  = true, -- barbed trap
-  --[40468]  = true, -- scalding rune
-  --[31632]  = true, -- fire rune
-  --[40470]  = true, -- volcanic rune
-  [24785] = true;  -- overload
-  [24806] = true;  -- power overload
-  [24804] = true;  -- energy overload
-  [61721] = true;  -- minor protection
-  [29224] = true;  -- igneous shield (shield)
-  [38254] = true;  -- taunt
-  [46327] = true;  -- crystal frags
-  [86009] = true;  -- scorch
-  [86015] = true;  -- deep fissure
-  [86019] = true;  -- subterranean assault
+  --[35756] = true; -- trap best
+  --[40375] = true; -- lightweight trap
+  [40385] = true; -- barbed trap
+  [40468] = true; -- scalding rune
+  --[31632] = true; -- fire rune
+  --[40470] = true; -- volcanic rune
+  [24785] = true; -- overload
+  [24806] = true; -- power overload
+  [24804] = true; -- energy overload
+  [61721] = true; -- minor protection
+  [29224] = true; -- igneous shield (shield)
+  [38254] = true; -- taunt
+  [46327] = true; -- crystal frags
+  [86009] = true; -- scorch
+  [86015] = true; -- deep fissure
+  [86019] = true; -- subterranean assault
   [103879] = true; -- spell orb
   [114863] = true; -- blastbones
   [117691] = true; -- blighted blastbones
@@ -1355,7 +1359,7 @@ FancyActionBar.removeInstantly = {
   [184220] = true; -- crux
 };
 FancyActionBar.allowedChanneled = {
-  -- all channeled abilities are set to be untracked, unless added here.
+  -- all channeled abilities are set to be untracked; unless added here.
   [103492] = true; -- Meditate
   [103652] = true; -- Deep Thoughts
   [103665] = true; -- Introspection

@@ -44,7 +44,7 @@ FancyActionBar.defaultSettings = {
   noTargetAlpha = 90;
 
   durationMin = 2;
-  durationMax = 99;
+  durationMax = 120;
 
   -- general
   lockInTrade = true;
