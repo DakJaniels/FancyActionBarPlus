@@ -1323,7 +1323,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   if (toggled == false and ignore == false)
   then
-    duration = GetAbilityDuration(effectId) / 1000;
+    duration = (GetAbilityDuration(effectId) or 0) / 1000;
   else
     duration = 0;
   end;
