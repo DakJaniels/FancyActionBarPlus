@@ -2998,7 +2998,7 @@ function FancyActionBar.Initialize()
         if E then
           if fakes[i] then activeFakes[i] = true; end;
           if FancyActionBar.activeCasts[E.id] then FancyActionBar.activeCasts[E.id].cast = t; end;
-          local D = E.toggled == true and "0" or tostring(GetAbilityDuration(i) / 1000);
+          local D = E.toggled == true and "0" or tostring((GetAbilityDuration(i) or 0) / 1000);
           dbg("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id);
           -- return
         end;
