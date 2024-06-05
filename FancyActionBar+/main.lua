@@ -3015,21 +3015,21 @@ function FancyActionBar.Initialize()
           local e = FancyActionBar.effects[i];
           if e then
             if fakes[i] then activeFakes[i] = true; end;
-            dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or GetAbilityDuration(e.id) / 1000);
+            dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
           end;
         else
           if not effect.custom and effect.duration then
             effect.endTime = effect.duration + t;
             local duration = effect.duration;
-            dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, GetAbilityDuration(effect.id) / 1000);
+            dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
             FancyActionBar.UpdateEffect(effect);
           else
             if fakes[id] then activeFakes[id] = true; end;
-            dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, GetAbilityDuration(effect.id) / 1000);
+            dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
           end;
         end;
       elseif FancyActionBar.effects[i] then
-        dbg("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, GetAbilityDuration(FancyActionBar.effects[i].id) / 1000);
+        dbg("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (GetAbilityDuration(FancyActionBar.effects[i].id) or 0) / 1000);
       else
         dbg("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id));
       end;
