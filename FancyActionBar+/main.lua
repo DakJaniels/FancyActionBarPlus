@@ -1,4 +1,5 @@
----@diagnostic disable: undefined-field, inject-field
+---@class (partial) FancyActionBar
+local FancyActionBar = FancyActionBar
 -------------------------------------------------------------------------------
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
