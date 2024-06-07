@@ -1,4 +1,5 @@
----@diagnostic disable: undefined-field, redefined-local
+---@class (partial) FancyActionBar
+local FancyActionBar = FancyActionBar
 local LAM = LibAddonMenu2;
 local EM = GetEventManager();
 local WM = GetWindowManager();
