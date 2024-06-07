@@ -1,3 +1,6 @@
+---@class (partial) FancyActionBar
+local FancyActionBar = FancyActionBar
+
 local EM = GetEventManager();
 local WM = GetWindowManager();
 local SM = SCENE_MANAGER;
