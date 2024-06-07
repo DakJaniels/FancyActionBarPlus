@@ -1,8 +1,10 @@
----@class FancyActionBar : ZO_ActionBarAssignmentManager
+---@class (partial) FancyActionBar
 ---@field __index FancyActionBar
 FancyActionBar = {};
-zo_mixin(FancyActionBar, ZO_ActionBarAssignmentManager);
 FancyActionBar.__index = FancyActionBar;
+
+---@class (partial) FancyActionBar
+local FancyActionBar = FancyActionBar
 
 FancyActionBar.variableVersion = 1;
 
