@@ -333,7 +333,7 @@ end;
 function FancyActionBar.PostAbilityConfig()
   Chat("FAB+ Ability Configuration:");
 
-  local s = SV.abilityConfig;
+  local s = FancyActionBar.abilityConfig;
 
   for skill, id in pairs(s) do
     local v;
@@ -456,12 +456,7 @@ end;
 ---
 ---@return table
 function FancyActionBar.GetAbilityConfig()
-  if CV.useAccountWide
-  then
-    return SV.abilityConfig;
-  else
-    return CV.abilityConfig;
-  end;
+    return FancyActionBar.abilityConfig
 end;
 
 ---
@@ -1581,7 +1576,9 @@ end;
 --  Load Saved Ability Configuration
 --  ---------------------------------
 function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConfig for faster access.
-  local config = FancyActionBar.GetAbilityConfig();
+    local config = FancyActionBar.GetAbilityConfig();
+    local customConfig = FancyActionBar.GetAbilityConfigChanges()
+
   -- for id, cfg in pairs(FancyActionBar.abilityConfig) do
   -- local debuffs = FancyActionBar.constants.hideOnNoTargetList
 
@@ -1602,10 +1599,13 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 
   for id, cfg in pairs(config) do
     local toggled, hide = false, false;
-
-    -- if debuffs[id]
-    -- then hide = debuffs[id]
-    -- else hide = FancyActionBar.GetHideOnNoTargetGlobalSetting() end
+    if customConfig[id] then
+      cfg = customConfig[id];
+    end
+    
+      -- if debuffs[id]
+      -- then hide = debuffs[id]
+      -- else hide = FancyActionBar.GetHideOnNoTargetGlobalSetting() end
 
     if FancyActionBar.toggled[id] then
       toggled = true; FancyActionBar.toggles[id] = false;
@@ -3432,20 +3432,21 @@ end;
 function FancyActionBar.ValidateVariables() -- all about safety checks these days..
   local d = defaultSettings;
 
-  if SV.abilityConfigUpgraded == false then
-    local s = SV.abilityConfig;
-
-    for skill, id in pairs(FancyActionBar.abilityConfig) do s[skill] = id; end;
-    SV.abilityConfigUpgraded = true;
+  if SV.dynamicAbilityConfig == false then
+    if SV.abilityConfig then
+      SV.abilityConfig = nil
+    end
+    SV.dynamicAbilityConfig = true;
   end;
 
-  if CV.abilityConfigUpgraded == false then
-    local c = CV.abilityConfig;
-
-    for skill, id in pairs(FancyActionBar.abilityConfig) do c[skill] = id; end;
-    CV.abilityConfigUpgraded = true;
+  if CV.dynamicAbilityConfig == false then
+    if CV.abilityConfig then
+      CV.abilityConfig = nil
+    end
+    CV.dynamicAbilityConfig = true;
   end;
 
+  
   if SV.externalBlackListRun == false then
     SV.externalBlackList = { -- just add all resto staff skills by default and player can take it from there.
       [61504] = "Vigor";

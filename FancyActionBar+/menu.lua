@@ -396,10 +396,11 @@ end
 local function GetTrackedEffectForAbility(id)
   local effect = nil;
   local cfg = FancyActionBar.GetAbilityConfig();
+  local cstcgf = FancyActionBar.GetAbilityConfigChanges()
   local name = "";
 
-  if cfg[id] then
-    effect = cfg[id];
+  if cstcgf[id] or cfg[id] then
+    effect = cstcgf[id] or cfg[id];
     if type(effect) == "table" then
       local a = effect[1] or id;
       name = GetAbilityName(a) .. " (" .. a .. ")";
@@ -594,25 +595,25 @@ local function UpdateEffectForAbility(track, ability, effect)
   end;
 
   if not CV.useAccountWide then
-    CV.abilityConfig[ability] = config;
+    CV.configChanges[ability] = config or FancyActionBar.abilityConfig[ability];
     if track == 1 then
       CV.configChanges[ability] = nil;
     else
       CV.configChanges[ability] = config;
     end;
     if ability == 31816 then
-      CV.abilityConfig[133027] = CV.abilityConfig[ability] or nil;
+      FancyActionBar.abilityConfig[133027] = FancyActionBar.abilityConfig[ability] or nil;
       CV.configChanges[133027] = CV.configChanges[ability] or nil;
     end;
   else
-    SV.abilityConfig[ability] = config;
+    SV.configChanges[ability] = config or FancyActionBar.abilityConfig[ability];
     if track == 1 then
       SV.configChanges[ability] = nil;
     else
       SV.configChanges[ability] = config;
     end;
     if ability == 31816 then
-      SV.abilityConfig[133027] = SV.abilityConfig[ability] or nil;
+      FancyActionBar.abilityConfig[133027] = FancyActionBar.abilityConfig[ability] or nil;
       SV.configChanges[133027] = SV.configChanges[ability] or nil;
     end;
   end;
