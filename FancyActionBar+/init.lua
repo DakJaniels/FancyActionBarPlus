@@ -10,9 +10,8 @@ FancyActionBar.defaultCharacter = {
   -- for character specific ability tracking
   useAccountWide = true;
 
-  abilityConfig = {};
   configChanges = {};
-  abilityConfigUpgraded = false;
+  dynamicAbilityConfig = false,
 
   hideOnNoTargetGlobal = false;
   hideOnNoTargetList = {};
@@ -25,9 +24,8 @@ FancyActionBar.defaultSettings = {
   variablesValidated = false;
   -- ability tracking
 
-  abilityConfig = {};
   configChanges = {};
-  abilityConfigUpgraded = false;
+  dynamicAbilityConfig = false,
 
   externalBuffs = false;
   externalBlackList = {};
