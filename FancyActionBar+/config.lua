@@ -1,3 +1,6 @@
+---@class (partial) FancyActionBar
+local FancyActionBar = FancyActionBar
+
 ---@param shadowImage integer
 ---@return integer
 local function GetShadowImage(shadowImage)
