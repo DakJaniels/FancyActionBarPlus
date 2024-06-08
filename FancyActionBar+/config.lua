@@ -4,12 +4,12 @@ local FancyActionBar = FancyActionBar
 ---@param shadowImage integer
 ---@return integer
 local function GetShadowImage(shadowImage)
-  shadowImage = 35441;
+  shadowImage = 38528;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
-    shadowImage = 88677; -- khajiit
+    shadowImage = 88696; -- khajiit
   elseif raceId == 6 then
-    shadowImage = 88697; -- argonian
+    shadowImage = 88678; -- argonian
   end;
   return shadowImage;
 end;
