@@ -3,7 +3,6 @@ local FancyActionBar = FancyActionBar
 
 ---@param summonShade integer
 ---@return integer
----@return integer
 local function GetSummonShade(summonShade)
   local summonShade = 38517;
   local raceId = GetUnitRaceId("player");
