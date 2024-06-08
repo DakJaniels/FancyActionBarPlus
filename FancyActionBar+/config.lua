@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 ---@param summonShade integer
 ---@return integer
 ---@return integer
-local function GetSummonShade()
+local function GetSummonShade(summonShade)
   local summonShade = 38517;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
@@ -19,7 +19,7 @@ local summonShade;
 
 ---@param shadowImage integer
 ---@return integer
-local function GetShadowImage()
+local function GetShadowImage(shadowImage)
   local shadowImage = 38528;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
@@ -34,7 +34,7 @@ local shadowImage;
 
 ---@param darkShade integer
 ---@return integer
-local function GetDarkShade()
+local function GetDarkShade(darkShade)
   local darkShade = 35438;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
