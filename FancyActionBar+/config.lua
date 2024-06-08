@@ -1,20 +1,51 @@
 ---@class (partial) FancyActionBar
 local FancyActionBar = FancyActionBar
 
+---@param summonShade integer
+---@return integer
+---@return integer
+local function GetSummonShade()
+  local summonShade = 38517;
+  local raceId = GetUnitRaceId("player");
+  if raceId == 9 then
+    summonShade = 88662; -- khajiit
+  elseif raceId == 6 then
+    summonShade = 88663; -- argonian
+  end;
+  return summonShade;
+end;
+
+local summonShade;
+
 ---@param shadowImage integer
 ---@return integer
-local function GetShadowImage(shadowImage)
-  shadowImage = 38528;
+local function GetShadowImage()
+  local shadowImage = 38528;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
     shadowImage = 88696; -- khajiit
   elseif raceId == 6 then
-    shadowImage = 88678; -- argonian
+    shadowImage = 88697; -- argonian
   end;
   return shadowImage;
 end;
 
 local shadowImage;
+
+---@param darkShade integer
+---@return integer
+local function GetDarkShade()
+  local darkShade = 35438;
+  local raceId = GetUnitRaceId("player");
+  if raceId == 9 then
+    darkShade = 88677; -- khajiit
+  elseif raceId == 6 then
+    darkShade = 88678; -- argonian
+  end;
+  return darkShade;
+end;
+
+local darkShade;
 
 FancyActionBar.abilityConfig = {
   --[[  [slot_id] = config:
@@ -539,8 +570,8 @@ FancyActionBar.abilityConfig = {
   [25352] = { 147643 };                      -- aspect of terror
   [37470] = { 147643 };                      -- mass hysteria
   [37475] = {};                              -- manifestation of terror
-  [33211] = { 38517 };                       -- summon shade
-  [35434] = { 35438 };                       -- dark shade
+  [33211] = { GetSummonShade(summonShade) }; -- summon shade
+  [35434] = { GetDarkShade(darkShade) };     -- dark shade
   [35441] = { GetShadowImage(shadowImage) }; -- shadow image
   [35445] = false;                           -- shadow image proc
   [25411] = { 25411 };                       -- consuming darkness
