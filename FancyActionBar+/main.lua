@@ -2596,13 +2596,11 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
 
       FancyActionBar.activeTaunts[unitId].endTime = endTime;
 
-      if not FancyActionBar.SV.advancedDebuff and FancyActionBar.lastTaunt ~= nil and FancyActionBar.overlays[FancyActionBar.lastTaunt] ~= nil then
+      if FancyActionBar.lastTaunt ~= nil and FancyActionBar.overlays[FancyActionBar.lastTaunt] ~= nil then
         FancyActionBar.activeTaunts[unitId].overlay = FancyActionBar.lastTaunt;
         FancyActionBar.tauntSlots[FancyActionBar.lastTaunt].endTime = endTime;
-                FancyActionBar.tauntSlots[FancyActionBar.lastTaunt].unit = unitId;
-        if not FancyActionBar.SV.advancedDebuff then
-          FancyActionBar.UpdateOverlay(FancyActionBar.lastTaunt);
-        end;
+        FancyActionBar.tauntSlots[FancyActionBar.lastTaunt].unit = unitId;
+        FancyActionBar.UpdateOverlay(FancyActionBar.lastTaunt);
       end;
       -- Chat("Overlay " .. FancyActionBar.activeTaunts[unitId].overlay .. " on " .. unitId .. " for " .. strformat('%0.1fs', endTime - beginTime))
     elseif (FancyActionBar.traps[id] and endTime - beginTime > 2) then
