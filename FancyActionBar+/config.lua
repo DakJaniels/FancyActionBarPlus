@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 ---@param summonShade integer
 ---@return integer
 local function GetSummonShade(summonShade)
-  local summonShade = 38517;
+  summonShade = 38517;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
     summonShade = 88662; -- khajiit
@@ -19,7 +19,7 @@ local summonShade;
 ---@param shadowImage integer
 ---@return integer
 local function GetShadowImage(shadowImage)
-  local shadowImage = 38528;
+  shadowImage = 38528;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
     shadowImage = 88696; -- khajiit
@@ -34,7 +34,7 @@ local shadowImage;
 ---@param darkShade integer
 ---@return integer
 local function GetDarkShade(darkShade)
-  local darkShade = 35438;
+  darkShade = 35438;
   local raceId = GetUnitRaceId("player");
   if raceId == 9 then
     darkShade = 88677; -- khajiit
