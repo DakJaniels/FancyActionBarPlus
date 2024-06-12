@@ -2262,45 +2262,6 @@ function FancyActionBar.SetScale() -- resize and check for other addons with sam
   else
     s = 1;
   end;
-  -- if Azurah then
-  --   if enable then
-  --     local S = FancyActionBar.constants.abScale.scale;
-  --     s = S / 100;
-  --     if FancyActionBar.style == 2 then
-  --       if not Azurah.db.uiData.gamepad["ZO_ActionBar1"]
-  --       then
-  --         Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, ACTION_BAR:GetLeft(), ACTION_BAR:GetTop(), s);
-  --       else
-  --         Azurah.db.uiData.gamepad["ZO_ActionBar1"].scale = s;
-  --       end;
-  --     else
-  --       if not Azurah.db.uiData.keyboard["ZO_ActionBar1"]
-  --       then
-  --         Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, ACTION_BAR:GetLeft(), ACTION_BAR:GetTop(), s);
-  --       else
-  --         Azurah.db.uiData.keyboard["ZO_ActionBar1"].scale = s;
-  --       end;
-  --     end;
-  --   else
-  --     if FancyActionBar.style == 2 then
-  --       if Azurah.db.uiData.gamepad["ZO_ActionBar1"] and Azurah.db.uiData.gamepad["ZO_ActionBar1"].scale
-  --       then
-  --         s = Azurah.db.uiData.gamepad["ZO_ActionBar1"].scale;
-  --       else
-  --         s = 1;
-  --       end;
-  --     else
-  --       if Azurah.db.uiData.keyboard["ZO_ActionBar1"] and Azurah.db.uiData.keyboard["ZO_ActionBar1"].scale
-  --       then
-  --         s = Azurah.db.uiData.keyboard["ZO_ActionBar1"].scale;
-  --       else
-  --         s = 1;
-  --       end;
-  --     end;
-  --   end;
-  -- else
-
-  -- end;
 
   scale = s;
   FancyActionBar.UpdateScale(s);
