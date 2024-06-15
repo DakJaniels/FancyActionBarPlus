@@ -1,3 +1,7 @@
 /.editorconfig
 /.vscode
 /libs
+ui_Definitions.lua
+FAB_SV.lua
+esoui101042.xsd
+esobindings.xsd
