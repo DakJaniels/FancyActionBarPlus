@@ -1,10 +1,10 @@
 ---@class (partial) FancyActionBar
-local FancyActionBar = FancyActionBar
+local FancyActionBar = FancyActionBar;
 -------------------------------------------------------------------------------
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.5.1";
+local VERSION = "2.6.0";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -85,18 +85,14 @@ FancyActionBar.activeCasts = {}; -- updating timers to account for delay and exp
 FancyActionBar.toggles = {};     -- works together with effects to update toggled abilities activation
 FancyActionBar.debuffs = {};     -- effects for debuffs to update if they are active on target
 
-FancyActionBar.lastTaunt = nil;
-FancyActionBar.tauntId = nil;
-FancyActionBar.activeTaunts = {};
-FancyActionBar.tauntSlots = {};
-FancyActionBar.tauntTimers = {};
 
 FancyActionBar.fixedTimers = {}; -- to keep track of certain timers regardless of updates from the game
 FancyActionBar.trapTimers = {};
 
 -- Backbar buttons.
-FancyActionBar.buttons = {};                  -- Contains: abilities duration, number of stacks and visual effects.
+FancyActionBar.buttons = {}; -- Contains: abilities duration, number of stacks and visual effects.
 -- FancyActionBar.abilitySlots                  = {} -- TODO enable tooltip, mouse click and drag functions
+---@type table<integer, FAB_ActionButtonOverlay_Gamepad_Template|FAB_ActionButtonOverlay_Keyboard_Template>
 FancyActionBar.overlays = {};                 -- normal skill button overlays
 FancyActionBar.ultOverlays = {};              -- player and companion ultimate skill button overlays
 FancyActionBar.style = nil;                   -- Gamepad or Keyboard UI for compatibility
@@ -296,7 +292,9 @@ function FancyActionBar.SlashCommand(str)
     FancyActionBar.PostAbilityConfig();
   elseif cmd == "stacks" then
     for id, effect in pairs(FancyActionBar.stackMap) do
-      Chat("[" .. id .. "] = " .. effect);
+      for i = 1, #effect do
+        Chat("[" .. id .. "] = " .. effect[i]);
+      end;
     end;
   elseif cmd == "dbt" then
     Chat("[FAB+] Registered Debuff IDs:");
@@ -306,15 +304,30 @@ function FancyActionBar.SlashCommand(str)
   end;
 end;
 
--- Workaround for FancyActionBar.GetSlotTrueBoundId returning craftedAbilityIds for Scribed Skills
+---@param index number
+---@param bar HotBarCategory
 function FancyActionBar.GetSlotTrueBoundId(index, bar)
-    local id = GetSlotBoundId(index, bar)
-    local actionType = GetSlotType(index, bar)
-    if actionType == ACTION_TYPE_CRAFTED_ABILITY then
-        id = GetAbilityIdForCraftedAbilityId(id)
-    end
-    return id
-end
+  local id = GetSlotBoundId(index, bar);
+  local actionType = GetSlotType(index, bar);
+  if actionType == ACTION_TYPE_CRAFTED_ABILITY then
+    id = GetAbilityIdForCraftedAbilityId(id);
+  end;
+  return id;
+end;
+
+---
+---@param abilityId integer
+function FancyActionBar.GetStackIdForAbilityId(abilityId)
+  if not abilityId or abilityId == "" then return; end;
+  local stackMap = FancyActionBar.stackMap;
+  for stackId, abilityIds in pairs(stackMap) do
+    for i = 1, #abilityIds do
+      if abilityIds[i] == abilityId then
+        return stackId;
+      end;
+    end;
+  end;
+end;
 
 ---
 ---@param index number
@@ -457,7 +470,7 @@ end;
 ---
 ---@return table
 function FancyActionBar.GetAbilityConfig()
-    return FancyActionBar.abilityConfig
+  return FancyActionBar.abilityConfig;
 end;
 
 ---
@@ -586,11 +599,11 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
   if id == 31816 then -- configure stone giant
     abilityConfig[133027] = cfg;
     if cI == 31816 then
-      FancyActionBar.stackMap[31816] = cI;
+      FancyActionBar.stackMap[31816] = { 31816; cI };
       FancyActionBar.stackMap[134336] = nil;
     elseif cI == 134336 then
       FancyActionBar.stackMap[31816] = nil;
-      FancyActionBar.stackMap[134336] = cI;
+      FancyActionBar.stackMap[134336] = { 134336; cI };
     else
       FancyActionBar.stackMap[31816] = nil;
       FancyActionBar.stackMap[134336] = nil;
@@ -753,15 +766,15 @@ function FancyActionBar.ResolveIdToTrack(type, id) -- special cases.
 
   -- if eventually other skills will also need this function.
   if type == 1 then
-      local sDmg = GetPlayerStat(STAT_SPELL_POWER, STAT_BONUS_OPTION_APPLY_BONUS);
-      local wDmg = GetPlayerStat(STAT_POWER, STAT_BONUS_OPTION_APPLY_BONUS);
-      if sDmg > wDmg
-      then
-        idToTrack = FancyActionBar.soulTrap[id][1]; -- mag
-      else
-        idToTrack = FancyActionBar.soulTrap[id][2]; -- stam
-      end;
-    end;
+    local sDmg = GetPlayerStat(STAT_SPELL_POWER, STAT_BONUS_OPTION_APPLY_BONUS);
+    local wDmg = GetPlayerStat(STAT_POWER, STAT_BONUS_OPTION_APPLY_BONUS);
+    if sDmg > wDmg
+    then
+      idToTrack = FancyActionBar.soulTrap[id][1]; -- mag
+    else
+      idToTrack = FancyActionBar.soulTrap[id][2];
+    end; -- stam
+  end;
   return idToTrack;
 end;
 
@@ -816,20 +829,6 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   end;
 end;
 
-function FancyActionBar.IdentifyTaunt(endTime)
-  local id, index = 0, 0;
-
-  for unit, taunt in pairs(FancyActionBar.activeTaunts) do
-    if taunt.endTime == endTime then
-      index = taunt.overlay;
-      id = unit;
-      break;
-    end;
-  end;
-
-  return id, index;
-end;
-
 function FancyActionBar.SetFixedDuration(id, endTime)
   FancyActionBar.fixedTimers[id] = endTime;
 end;
@@ -878,9 +877,9 @@ function FancyActionBar.ResetOverlayDuration(overlay)
     if stacksControl then stacksControl:SetText(""); end;
 
     if overlay.effect then
-      if FancyActionBar.stacks[overlay.effect.id] then
-        local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(overlay.effect.id);
-        FancyActionBar.stacks[overlay.effect.id] = currentStacks;
+      if overlay.effect.stackId then
+        local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(overlay.effect.stackId);
+        FancyActionBar.stacks[overlay.effect.stackId] = currentStacks;
         FancyActionBar.HandleStackUpdate(overlay.effect.id);
       end;
       -- else
@@ -989,10 +988,10 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, dura
       FancyActionBar.HandleStackUpdate(effect);
     end;
 
-    if effect.id == FancyActionBar.deepFissure.id1 then
-      FancyActionBar.stacks[effect.id] = 0;
-      FancyActionBar.HandleStackUpdate(effect);
-    end;
+    -- if effect.id == FancyActionBar.deepFissure.id1 then
+    --   FancyActionBar.stacks[effect.id] = 0;
+    --   FancyActionBar.HandleStackUpdate(effect);
+    -- end;
 
     if effect.id == FancyActionBar.subAssault.id1 then
       FancyActionBar.stacks[effect.id] = 0;
@@ -1032,9 +1031,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
       else
         local duration = 0; -- = effect.endTime - time()
 
-        if (effect.id == FancyActionBar.tauntId and FancyActionBar.tauntSlots[index] ~= nil) then
-          duration = FancyActionBar.tauntSlots[index].endTime - time();
-        elseif FancyActionBar.fixedTimers[effect.id] then
+        if FancyActionBar.fixedTimers[effect.id] then
           duration = FancyActionBar.GetFixedDuration(effect.id) - time();
         else
           duration = effect.endTime - time();
@@ -1050,7 +1047,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
           bc = FancyActionBar.GetHighlightColor(isFading);
         else
           if effect.isDebuff then
-            if FancyActionBar.stacks[effect.id] then FancyActionBar.stacks[effect.id] = 0; end;
+            if effect.stacks or FancyActionBar.stacks[effect.id] then FancyActionBar.stacks[effect.id] = effect.stacks or 0; end;
           end;
         end;
 
@@ -1110,7 +1107,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
           return;
         end;
       end;
-      if not FancyActionBar.stacks[effect.id] or (FancyActionBar.stacks[effect.id] and FancyActionBar.stacks[effect.id] == 0) then stacksControl:SetText(""); end;
+      if effect.stackId and (not FancyActionBar.stacks[effect.stackId]) or (FancyActionBar.stacks[effect.stackId] and FancyActionBar.stacks[effect.stackId] == 0) then stacksControl:SetText(""); end;
     else
       durationControl:SetText("");
       bgControl:SetHidden(true);
@@ -1127,8 +1124,8 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
     local stacksControl = overlay:GetNamedChild("Stacks");
     local effect = overlay.effect;
     if effect then
-      if FancyActionBar.stacks[effect.id] and FancyActionBar.stacks[effect.id] > 0 then
-        stacksControl:SetText(FancyActionBar.stacks[effect.id]);
+      if FancyActionBar.stacks[effect.stackId] and FancyActionBar.stacks[effect.stackId] > 0 then
+        stacksControl:SetText(FancyActionBar.stacks[effect.stackId]);
         stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color));
       else
         stacksControl:SetText("");
@@ -1195,17 +1192,12 @@ function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific ef
   if effect then
     if effect.slot1 then FancyActionBar.UpdateStacks(effect.slot1); end;
     if effect.slot2 then FancyActionBar.UpdateStacks(effect.slot2); end;
-
     if id == 122658 then
       if FancyActionBar.effects[id] and FancyActionBar.stacks[id] == 0 then
         FancyActionBar.effects[122658].endTime = time();
       end;
     end;
   end;
-end;
-
-function FancyActionBar.UpdateTaunt(index)
-  if FancyActionBar.tauntSlots[index] ~= nil then FancyActionBar.UpdateOverlay(index); end;
 end;
 
 function FancyActionBar.UpdateToggledAbility(id, active) -- toggled effect highligh update.
@@ -1250,7 +1242,6 @@ function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
     effect = overlay.effect;
     if effect then
       if effect.id then
-        if effect.id == FancyActionBar.tauntId then FancyActionBar.tauntSlots[index] = nil; end;
         if FancyActionBar.debuffs[effect.id] then FancyActionBar.debuffs[effect.id] = nil; end;
         FancyActionBar.ResetOverlayDuration(overlay);
       end;
@@ -1277,7 +1268,9 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   local cfg = abilityConfig[abilityId];
   local ignore = false;
 
-  if cfg == false then ignore = true; end;
+  local stackId = cfg and cfg[1] and FancyActionBar.GetStackIdForAbilityId(cfg[1]) or FancyActionBar.GetStackIdForAbilityId(abilityId);
+
+  if cfg == false and not stackId then ignore = true; end;
 
   if cfg ~= nil then
     if ignore then
@@ -1285,6 +1278,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       custom = true;
       toggled = false;
       instantFade = false;
+      stackId = nil;
     else
       if (FancyActionBar.soulTrap[abilityId]) then
         if (cfg[1] and cfg[1] == FancyActionBar.abilityConfig[abilityId][1]) -- check if tracked id has been altered
@@ -1322,6 +1316,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade); -- FancyActionBar.effects[effectId]
 
+  if stackId then
+    effect.stackId = stackId;
+  end;
+
   if not ignore then
     effect.duration = duration and duration > 0 and duration or nil;
   end;
@@ -1332,16 +1330,17 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   if not SV.advancedDebuff and effect.isDebuff then effect.isDebuff = false; end;
 
-  if effectId == FancyActionBar.tauntId then
-    if FancyActionBar.tauntSlots[index] == nil then
-      FancyActionBar.tauntSlots[index] = { unit = 0; endTime = 0; activeOnTarget = false };
-    end;
-  end;
-
   if not effect.isDebuff then
     local has, dur, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
+
     if has then effect.endTime = time() + dur; end;
-    if FancyActionBar.stackMap[effectId] then FancyActionBar.stacks[FancyActionBar.stackMap[effectId]] = stacks; end;
+
+    if effect.stackId and (effect.id ~= effect.stackId) then
+      _, _, stacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
+      FancyActionBar.stacks[effect.stackId] = stacks;
+    else
+      FancyActionBar.stacks[effect.id] = stacks;
+    end;
   end;
 
   local isFrontBar = index < SLOT_INDEX_OFFSET and true or false;
@@ -1370,7 +1369,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   -- Assign effect to overlay.
   if overlay then overlay.effect = effect; end;
 
-  if FancyActionBar.stacks[effect.id] then
+  if FancyActionBar.stacks[effect.stackId] then
     FancyActionBar.UpdateOverlay(index);
     FancyActionBar.UpdateStacks(index);
   end;
@@ -1401,24 +1400,21 @@ function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the ef
   end;
 end;
 
-function FancyActionBar.HandleDebuffUpdate(effect, stacks) -- incoming updates from debuff.lua
-  if effect then
-    FancyActionBar.UpdateEffect(effect);
-    if stacks then FancyActionBar.HandleStackUpdate(effect.id); end;
-  end;
-end;
-
-function FancyActionBar.StackCheck() -- ???
-  local t = time();
-  local effect = FancyActionBar.effects[51392];
-  if effect then
-    if effect.endTime >= t then
-      if FancyActionBar.stacks[effect.id] > 0 then
-        FancyActionBar.stacks[effect.id] = 0;
-        FancyActionBar.UpdateEffect(effect);
-        FancyActionBar.HandleStackUpdate(effect.id);
+function FancyActionBar.EffectCheck()
+  for id, effect in pairs(FancyActionBar.effects) do
+    local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
+    if hasEffect then
+      effect.endTime = time() + duration;
+      if stacks > 0 then
+        FancyActionBar.stacks[effect.id] = stacks;
       end;
     end;
+    if effect.stackId then
+      local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
+      FancyActionBar.stacks[effect.stackId] = mappedStacks;
+    end;
+    FancyActionBar.UpdateEffect(effect);
+    FancyActionBar.HandleStackUpdate(effect.id);
   end;
 end;
 
@@ -1573,8 +1569,8 @@ end;
 --  Load Saved Ability Configuration
 --  ---------------------------------
 function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConfig for faster access.
-    local config = FancyActionBar.GetAbilityConfig();
-    local customConfig = FancyActionBar.GetAbilityConfigChanges()
+  local config = FancyActionBar.GetAbilityConfig();
+  local customConfig = FancyActionBar.GetAbilityConfigChanges();
 
   -- for id, cfg in pairs(FancyActionBar.abilityConfig) do
   -- local debuffs = FancyActionBar.constants.hideOnNoTargetList
@@ -1583,11 +1579,11 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     config[133027] = config[31816];
 
     if config[31816][1] == 31816 then
-      FancyActionBar.stackMap[31816] = config[31816][1];
+      FancyActionBar.stackMap[31816] = { 31816; config[31816][1] };
       FancyActionBar.stackMap[134336] = nil;
     elseif config == 134336 then
       FancyActionBar.stackMap[31816] = nil;
-      FancyActionBar.stackMap[134336] = config[31816][1];
+      FancyActionBar.stackMap[134336] = { 134336; config[31816][1] };
     else
       FancyActionBar.stackMap[31816] = nil;
       FancyActionBar.stackMap[134336] = nil;
@@ -1598,11 +1594,11 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     local toggled, hide = false, false;
     if customConfig[id] then
       cfg = customConfig[id];
-    end
-    
-      -- if debuffs[id]
-      -- then hide = debuffs[id]
-      -- else hide = FancyActionBar.GetHideOnNoTargetGlobalSetting() end
+    end;
+
+    -- if debuffs[id]
+    -- then hide = debuffs[id]
+    -- else hide = FancyActionBar.GetHideOnNoTargetGlobalSetting() end
 
     if FancyActionBar.toggled[id] then
       toggled = true; FancyActionBar.toggles[id] = false;
@@ -1900,7 +1896,6 @@ end;
 function FancyActionBar.CreateOverlay(index) -- create normal skill button overlay.
   -- local template = ZO_GetPlatformTemplate('FAB_ActionButtonOverlay')
   local template = FancyActionBar.constants.style.overlayTemplate;
-  ---@type userdata
   local overlay = FancyActionBar.overlays[index];
   if overlay then
     WM:ApplyTemplateToControl(overlay, template);
@@ -1919,7 +1914,6 @@ end;
 function FancyActionBar.CreateUltOverlay(index) -- create ultimate skill button overlay.
   -- local template = ZO_GetPlatformTemplate('FAB_UltimateButtonOverlay')
   local template = FancyActionBar.constants.style.ultOverlayTemplate;
-  ---@type userdata
   local overlay = FancyActionBar.ultOverlays[index];
   if overlay then
     WM:ApplyTemplateToControl(overlay, template);
@@ -2537,177 +2531,209 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
   local effect;        -- the ability we are updating
   local update = true; -- update the stacks display for the ability. not sure why I called it this.
 
-  if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
-    if (id == 40465) then -- scalding rune placed
-      effect = FancyActionBar.effects[id];
-      update = false;
-    elseif (id == 46331) then -- crystal weapon
-      effect = FancyActionBar.effects[id];
-      FancyActionBar.stacks[effect.id] = 2;
-      update = true;
-    elseif (id == FancyActionBar.tauntId) then
-      update = false;
-
-      if FancyActionBar.activeTaunts[unitId] == nil then
-        FancyActionBar.activeTaunts[unitId] = { overlay = 0; endTime = 0 };
+  if FancyActionBar.specialEffects[id] then
+    local specialEffect = FancyActionBar.specialEffects[id];
+    for effectId, effect in pairs(FancyActionBar.effects) do
+      if effect.id == specialEffect.id then
+        if change == EFFECT_RESULT_GAINED then
+          if specialEffect.fixedTime then
+            endTime = updateTime + specialEffect.fixedTime;
+            specialEffect.endTime = endTime;
+          end;
+          if specialEffect.stacks then
+            FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
+          end;
+          for i, x in pairs(specialEffect) do effect[i] = x; end;
+          effect.beginTime = updateTime;
+          FancyActionBar.effects[effectId] = effect;
+          if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = updateTime; end;
+        elseif change == EFFECT_RESULT_FADED then
+          -- Ignore the Ability Fading in the Same GCD as it was cast (indicates a recast)
+          if updateTime < effect.beginTime + 0.5 then return; end;
+          -- Ignore the ability fading because it either already proced it's next effect
+          if effect.hasProced > specialEffect.hasProced then return; end;
+          -- Get the proc update data for the special effect
+          if FancyActionBar.specialEffectProcs[id] then
+            local procUpddates = FancyActionBar.specialEffectProcs[id];
+            local procValues = procUpddates[effect.procs];
+            for i, x in pairs(procValues) do effect[i] = x; end;
+            if effect.stacks then
+              FancyActionBar.stacks[effect.stackId] = effect.stacks;
+            end;
+            FancyActionBar.effects[effectId] = effect;
+          end;
+        end;
       end;
-
-      FancyActionBar.activeTaunts[unitId].endTime = endTime;
-
-      if FancyActionBar.lastTaunt ~= nil and FancyActionBar.overlays[FancyActionBar.lastTaunt] ~= nil then
-        FancyActionBar.activeTaunts[unitId].overlay = FancyActionBar.lastTaunt;
-        FancyActionBar.tauntSlots[FancyActionBar.lastTaunt].endTime = endTime;
-        FancyActionBar.tauntSlots[FancyActionBar.lastTaunt].unit = unitId;
-        FancyActionBar.UpdateOverlay(FancyActionBar.lastTaunt);
+      FancyActionBar.UpdateEffect(effect);
+      if update then
+        FancyActionBar.HandleStackUpdate(effect.id);
       end;
-      -- Chat("Overlay " .. FancyActionBar.activeTaunts[unitId].overlay .. " on " .. unitId .. " for " .. strformat('%0.1fs', endTime - beginTime))
-    elseif (FancyActionBar.traps[id] and endTime - beginTime > 2) then
-      effect = FancyActionBar.effects[FancyActionBar.traps[id]];
-      -- FancyActionBar.trapTimers[effect.id] = endTime
-      -- UpdateEffect(effect)
-      -- return
-    elseif FancyActionBar.meteor[id] then
-      effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
-    elseif FancyActionBar.frozen[id] then -- (id == 86179) then -- frozen device
-      effect = FancyActionBar.effects[id];
-      if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-      fdNum = fdNum + 1;
-      fdStacks[fdNum] = beginTime;
-      FancyActionBar.stacks[id] = fdNum;
-    elseif (id == 37475) then -- manifestation of terror cast
-      effect = FancyActionBar.effects[id];
-      FancyActionBar.stacks[effect.id] = 2;
-      endTime = endTime - 0;
-    elseif (id == 76634) then -- manifestation of terror trigger
-      effect = FancyActionBar.effects[37475];
-      FancyActionBar.stacks[37475] = FancyActionBar.stacks[37475] - 1;
-      if FancyActionBar.stacks[37475] <= 0 then endTime = updateTime; end;
-    elseif id == FancyActionBar.sCorch.id1 then
-      effect = FancyActionBar.effects[id];
-      if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-      FancyActionBar.stacks[id] = 2;
-      endTime = updateTime + 9;
-    elseif id == FancyActionBar.deepFissure.id1 then
-      effect = FancyActionBar.effects[id];
-      if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-      FancyActionBar.stacks[id] = 2;
-      endTime = updateTime + 9;
-    elseif id == FancyActionBar.subAssault.id1 then
-      effect = FancyActionBar.effects[id];
-      if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-      FancyActionBar.stacks[id] = 2;
-      endTime = updateTime + 6;
-    else
-      if FancyActionBar.effects[id] then
+    end;
+  else
+    -- The old system of special effectIds
+    if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
+      if (id == 40465) then -- scalding rune placed
+        FancyActionBar.effects[id].stackId = id;
         effect = FancyActionBar.effects[id];
-      end;
-    end;
-
-    if effect then
-      -- effect.faded    = false
-      effect.endTime = endTime;
-      if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = updateTime; end;
-    end;
-  elseif (change == EFFECT_RESULT_FADED) then
-    if FancyActionBar.meteor[id] then
-      effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
-      effect.endTime = endTime;
-    elseif (id == 46331) then -- crystal weapon
-      -- if unitTag == 'reticleover' then return end
-      effect = FancyActionBar.effects[id];
-      FancyActionBar.stacks[effect.id] = 0;
-      effect.endTime = endTime;
-      update = true;
-    elseif (id == FancyActionBar.tauntId) then
-      update = false;
-
-      if FancyActionBar.activeTaunts[unitId] ~= nil then
-        if (FancyActionBar.tauntSlots[FancyActionBar.activeTaunts[unitId].overlay] ~= nil and FancyActionBar.tauntSlots[FancyActionBar.activeTaunts[unitId].overlay].unit == unitId) then
-          FancyActionBar.tauntSlots[FancyActionBar.activeTaunts[unitId].overlay].endTime = endTime;
-          FancyActionBar.UpdateOverlay(FancyActionBar.activeTaunts[unitId].overlay);
-          -- Chat("Overlay " .. FancyActionBar.activeTaunts[unitId].overlay .. " on " .. unitId .. " faded")
+        update = false;
+      elseif (id == 46331) then -- crystal weapon
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        FancyActionBar.stacks[effect.id] = 2;
+        update = true;
+      elseif (FancyActionBar.traps[id] and endTime - beginTime > 2) then
+        FancyActionBar.effects[FancyActionBar.traps[id]].stackId = FancyActionBar.traps[id];
+        effect = FancyActionBar.effects[FancyActionBar.traps[id]];
+        -- FancyActionBar.trapTimers[effect.id] = endTime
+        -- UpdateEffect(effect)
+        -- return
+      elseif FancyActionBar.meteor[id] then
+        FancyActionBar.effects[FancyActionBar.meteor[id]].stackId = FancyActionBar.meteor[id];
+        effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
+      elseif FancyActionBar.frozen[id] then -- (id == 86179) then -- frozen device
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
+        fdNum = fdNum + 1;
+        fdStacks[fdNum] = beginTime;
+        FancyActionBar.stacks[id] = fdNum;
+      elseif (id == 37475) then -- manifestation of terror cast
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        FancyActionBar.stacks[effect.id] = 1;
+        endTime = endTime - 0;
+      elseif (id == 76634) then -- manifestation of terror trigger
+        FancyActionBar.effects[37475].stackId = 37475;
+        effect = FancyActionBar.effects[37475];
+        FancyActionBar.stacks[37475] = FancyActionBar.stacks[37475] - 1;
+        if FancyActionBar.stacks[37475] <= 0 then endTime = updateTime; end;
+      elseif id == FancyActionBar.sCorch.id1 then
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
+        FancyActionBar.stacks[id] = 2;
+        endTime = updateTime + 9;
+        -- elseif id == FancyActionBar.deepFissure.id1 then
+        --   FancyActionBar.effects[id].stackId = id;
+        --   effect = FancyActionBar.effects[id];
+        --   if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
+        --   FancyActionBar.stacks[id] = 2;
+        --   endTime = updateTime + 9;
+      elseif id == FancyActionBar.subAssault.id1 then
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
+        FancyActionBar.stacks[id] = 2;
+        endTime = updateTime + 6;
+      else
+        if FancyActionBar.effects[id] then
+          FancyActionBar.effects[id].stackId = id;
+          effect = FancyActionBar.effects[id];
         end;
-        FancyActionBar.activeTaunts[unitId] = nil;
       end;
-    elseif id == FancyActionBar.sCorch.id1 then
-      effect = FancyActionBar.effects[id];
-      if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
-    elseif id == FancyActionBar.sCorch.id2 then
-      effect = FancyActionBar.effects[FancyActionBar.sCorch.id1];
-
-      if effect.endTime <= updateTime
-      then
-        FancyActionBar.stacks[FancyActionBar.sCorch.id1] = 0;
-      else
-        update = false;
+      if effect then
+        -- effect.faded    = false
+        effect.endTime = endTime;
+        if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = updateTime; end;
       end;
-    elseif id == FancyActionBar.deepFissure.id1 then
-      effect = FancyActionBar.effects[id];
-      if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
-    elseif id == FancyActionBar.deepFissure.id2 then
-      effect = FancyActionBar.effects[FancyActionBar.deepFissure.id1];
-
-      if effect.endTime <= updateTime
-      then
-        FancyActionBar.stacks[FancyActionBar.deepFissure.id1] = 0;
-      else
-        update = false;
-      end;
-    elseif id == FancyActionBar.subAssault.id1 then
-      effect = FancyActionBar.effects[id];
-      if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
-    elseif id == FancyActionBar.subAssault.id2 then
-      effect = FancyActionBar.effects[FancyActionBar.subAssault.id1];
-
-      if effect.endTime <= updateTime
-      then
-        FancyActionBar.stacks[FancyActionBar.subAssault.id1] = 0;
-      else
-        update = false;
-      end;
-    elseif FancyActionBar.frozen[id] then -- (id == 86179) then -- frozen device
-      if FancyActionBar.effects[id].endTime == 0 then return; end;
-      if not FancyActionBar.stacks[id] then return; end;
-      local faded = 0;
-      local fadeTime = 0;
-      for i = 1, #fdStacks do
-        if fdStacks[i] == beginTime then
-          faded = i;
-          fdStacks = nil;
+    elseif (change == EFFECT_RESULT_FADED) then
+      if FancyActionBar.meteor[id] then
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
+        effect.endTime = endTime;
+      elseif (id == 46331) then -- crystal weapon
+        -- if unitTag == 'reticleover' then return end
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        FancyActionBar.stacks[effect.id] = 0;
+        effect.endTime = endTime;
+        update = true;
+      elseif id == FancyActionBar.sCorch.id1 then
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
+      elseif id == FancyActionBar.sCorch.id2 then
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[FancyActionBar.sCorch.id1];
+        if effect.endTime <= updateTime
+        then
+          FancyActionBar.stacks[FancyActionBar.sCorch.id1] = 0;
         else
-          if (fdStacks[i] > fadeTime) then fadeTime = fdStacks[i]; end;
+          update = false;
         end;
-        if (faded > 0 and i > faded) then fdStacks[i - 1] = fdStacks[i]; end;
-      end;
+        -- elseif id == FancyActionBar.deepFissure.id1 then
+        --   FancyActionBar.effects[id].stackId = id;
+        --   effect = FancyActionBar.effects[id];
+        --   if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
+        -- elseif id == FancyActionBar.deepFissure.id2 then
+        --   FancyActionBar.effects[FancyActionBar.deepFissure.id1].stackId = id;
+        --   effect = FancyActionBar.effects[FancyActionBar.deepFissure.id1];
+        --   if effect.endTime <= updateTime
+        --   then
+        --     FancyActionBar.stacks[FancyActionBar.deepFissure.id1] = 0;
+        --   else
+        --     update = false;
+        --   end;
+      elseif id == FancyActionBar.subAssault.id1 then
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
+      elseif id == FancyActionBar.subAssault.id2 then
+        FancyActionBar.effects[FancyActionBar.subAssault.id1].stackId = id;
+        effect = FancyActionBar.effects[FancyActionBar.subAssault.id1];
+        if effect.endTime <= updateTime
+        then
+          FancyActionBar.stacks[FancyActionBar.subAssault.id1] = 0;
+        else
+          update = false;
+        end;
+      elseif FancyActionBar.frozen[id] then -- (id == 86179) then -- frozen device
+        FancyActionBar.effects[id].stackId = id;
+        if FancyActionBar.effects[id].endTime == 0 then return; end;
+        if not FancyActionBar.stacks[id] then return; end;
+        local faded = 0;
+        local fadeTime = 0;
+        for i = 1, #fdStacks do
+          if fdStacks[i] == beginTime then
+            faded = i;
+            fdStacks = nil;
+          else
+            if (fdStacks[i] > fadeTime) then fadeTime = fdStacks[i]; end;
+          end;
+          if (faded > 0 and i > faded) then fdStacks[i - 1] = fdStacks[i]; end;
+        end;
 
-      effect = FancyActionBar.effects[id];
-      fdNum = fdNum - 1;
-      if fdNum >= 1 then
-        if fadeTime + 15.5 > updateTime then
-          effect.endTime = fadeTime + 15.5;
-          FancyActionBar.stacks[id] = fdNum;
+        effect = FancyActionBar.effects[id];
+        fdNum = fdNum - 1;
+        if fdNum >= 1 then
+          if fadeTime + 15.5 > updateTime then
+            effect.endTime = fadeTime + 15.5;
+            FancyActionBar.stacks[id] = fdNum;
+          else
+            FancyActionBar.stacks[id] = 0;
+            effect.endTime = endTime;
+          end;
         else
           FancyActionBar.stacks[id] = 0;
           effect.endTime = endTime;
         end;
-      else
-        FancyActionBar.stacks[id] = 0;
-        effect.endTime = endTime;
-      end;
-    elseif id == 37475 then -- manifestation of terror
-      effect = FancyActionBar.effects[id];
-      if effect.endTime - updateTime > 1 and FancyActionBar.stacks[id] > 0 then
-        return;
-      elseif effect.endTime <= updateTime + 1 then
-        FancyActionBar.stacks[id] = 0;
+      elseif id == 37475 then -- manifestation of terror
+        FancyActionBar.effects[id].stackId = id;
+        effect = FancyActionBar.effects[id];
+        if effect.endTime - updateTime > 1 and FancyActionBar.stacks[id] > 0 then
+          return;
+        elseif effect.endTime <= updateTime + 1 then
+          FancyActionBar.stacks[id] = 0;
+        end;
       end;
     end;
-  end;
-
-  if effect then
-    FancyActionBar.UpdateEffect(effect);
-    if update then
-      FancyActionBar.HandleStackUpdate(effect.id);
+    if effect then
+      FancyActionBar.UpdateEffect(effect);
+      if update then
+        FancyActionBar.HandleStackUpdate(effect.id);
+      end;
+    else
+      return;
     end;
   end;
 end;
@@ -2756,15 +2782,19 @@ function FancyActionBar.RefreshEffects()
         end;
       end;
     else
-      if stackCount > 0 and FancyActionBar.stackMap[abilityId] then
-        FancyActionBar.stacks[FancyActionBar.stackMap[abilityId]] = stackCount or 0;
-        FancyActionBar.HandleStackUpdate(FancyActionBar.stackMap[abilityId]);
-        local id = abilityId;
-        if (id == 61905 or id == 61919 or id == 61927) then
-          if GFC then -- Manually update GrimFocusCounter if enabled
-            local _;
-            GFC.OnEffectChanged(_, 3, _, GetAbilityName(id), "player", _, _, 0, _, _, _, _, _, _, _, id);
+      if FancyActionBar.stackMap[abilityId] then
+        for id, effect in pairs(FancyActionBar.effects) do
+          if effect.stackId and (abilityId == effect.stackId) then
+            FancyActionBar.stacks[abilityId] = stackCount or 0;
+            FancyActionBar.HandleStackUpdate(id);
           end;
+        end;
+      end;
+      local id = abilityId;
+      if (id == 61905 or id == 61919 or id == 61927) then
+        if GFC then -- Manually update GrimFocusCounter if enabled
+          local _;
+          GFC.OnEffectChanged(_, 3, _, GetAbilityName(id), "player", _, _, 0, _, _, _, _, _, _, _, id);
         end;
       end;
 
@@ -2939,12 +2969,8 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
 
-      -- lastButton = index
 
-      if effect and effect.id == FancyActionBar.tauntId then -- to track which taunt skill was used and which button it is assigned to
-        FancyActionBar.lastTaunt = index;
-        -- Chat("Taunt cast from button " .. index)
-      end;
+      -- lastButton = index
 
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) then -- track when the skill was used and ignore other events for it that is lower than the GCD
         if (abilityConfig[id] and abilityConfig[id] ~= false) then
@@ -3004,7 +3030,7 @@ function FancyActionBar.Initialize()
 
     local t = time();
 
-    if FancyActionBar.specialIds[abilityId] then -- abilities that need to be handled differently.
+    if FancyActionBar.specialIds[abilityId] and not (SV.advancedDebuff and (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].isDebuff)) then -- abilities that need to be handled differently.
       FancyActionBar.HandleSpecial(abilityId, change, t, beginTime, endTime, unitTag, unitId);
       return;
     end;
@@ -3028,8 +3054,7 @@ function FancyActionBar.Initialize()
       end;
     end;
 
-    local effect = FancyActionBar.effects[abilityId];
-
+    local effect = (FancyActionBar.effects[abilityId]) or ((FancyActionBar.specialEffects[abilityId]) and { id = abilityId });
     if effect then
       if effect.toggled then -- update the highlight of toggled abilities.
         if change == EFFECT_RESULT_FADED
@@ -3062,6 +3087,16 @@ function FancyActionBar.Initialize()
       end;
 
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
+        local stackMap = FancyActionBar.stackMap;
+        for stackId, stackSources in pairs(stackMap) do
+          for i = 1, #stackSources do
+            if stackSources[i] == abilityId then
+              effect.stackId = stackId;
+            end;
+          end;
+        end;
+
+
         if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = beginTime; end;
 
         if endTime ~= beginTime then -- lazy fix
@@ -3070,24 +3105,21 @@ function FancyActionBar.Initialize()
 
         -- Ignore abilities which will end in less than min or longer than max (seconds).
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
-          if abilityId == 24330 then -- haunting curse (if advancedDebuff is disabled)
-            effect.endTime = t + 12;
-          else
-            if abilityType == GROUND_EFFECT then -- make sure to only track duration of the most recent cast of the ground ability.
-              lastAreaTargets[abilityId] = unitId;
-              if abilityId == 117805 then        -- unnerving boneyard sometimes updates to 25s duration, not sure why..
-                effect.endTime = t + 10;
-                FancyActionBar.UpdateEffect(effect);
-                return;
-              end;
+          if abilityType == GROUND_EFFECT then -- make sure to only track duration of the most recent cast of the ground ability.
+            lastAreaTargets[abilityId] = unitId;
+            if abilityId == 117805 then        -- unnerving boneyard sometimes updates to 25s duration, not sure why..
+              effect.endTime = t + 10;
+              FancyActionBar.UpdateEffect(effect);
+              return;
             end;
-
-            effect.endTime = endTime;
           end;
 
-          if stackCount and stackCount > 0 then -- update stacks
-            FancyActionBar.stacks[effect.id] = stackCount;
-            FancyActionBar.HandleStackUpdate(FancyActionBar.stackMap[effect.id]);
+          effect.endTime = endTime;
+          for id, effect in pairs(FancyActionBar.effects) do
+            if effect.stackId and (abilityId == effect.stackId) then
+              FancyActionBar.stacks[abilityId] = stackCount or 0;
+              FancyActionBar.HandleStackUpdate(id);
+            end;
           end;
         else
           effect.endTime = 0; -- duration too long or too short. don't track.
@@ -3106,8 +3138,8 @@ function FancyActionBar.Initialize()
 
         if abilityId == 122658 and FancyActionBar.effects[122658] then
           FancyActionBar.effects[122658].endTime = t;
-          FancyActionBar.stacks[FancyActionBar.stackMap[abilityId]] = stackCount;
-          FancyActionBar.HandleStackUpdate(FancyActionBar.stackMap[abilityId]);
+          FancyActionBar.stacks[122658] = stackCount;
+          FancyActionBar.HandleStackUpdate(122658);
         end;
 
         if (effectType == DEBUFF or abilityId == 38791) then return; end; -- (FancyActionBar.dontFade[abilityId]) then return end
@@ -3134,9 +3166,6 @@ function FancyActionBar.Initialize()
 
       if FancyActionBar.stackMap[abilityId] then
         if (SV.advancedDebuff and effectType == DEBUFF) then return; end; -- is handled by debuff.lua
-
-        FancyActionBar.stacks[FancyActionBar.stackMap[abilityId]] = stackCount;
-        FancyActionBar.HandleStackUpdate(FancyActionBar.stackMap[abilityId]);
       end;
     end;
   end;
@@ -3170,19 +3199,30 @@ function FancyActionBar.Initialize()
       c = "updated";
     end;
 
-    FancyActionBar.stacks[FancyActionBar.stackMap[abilityId]] = change == EFFECT_RESULT_FADED and 0 or stackCount;
+    if FancyActionBar.stackMap[abilityId] then
+      for id, effect in pairs(FancyActionBar.effects) do
+        if effect.stackId and (abilityId == effect.stackId) then
+          FancyActionBar.stacks[abilityId] = (change == EFFECT_RESULT_FADED) and 0 or stackCount;
+          FancyActionBar.HandleStackUpdate(id);
+        end;
+      end;
+    end;
+
     if stackCount == 0 then
       -- Remove Seething Fury effect manually, otherwise it will keep counting down.
       if abilityId == 122658 and FancyActionBar.effects[122658] then FancyActionBar.effects[122658].endTime = time(); end;
     end;
     -- Chat("[" .. abilityId .. "] " .. c .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
-    FancyActionBar.HandleStackUpdate(FancyActionBar.stackMap[abilityId]);
   end;
 
-  for abilityId in pairs(FancyActionBar.stackMap) do
+  for abilityId, stackAbilities in pairs(FancyActionBar.stackMap) do
     EM:RegisterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, OnStackChanged);
     EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, abilityId);
     EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+    for i = 1, #stackAbilities do
+      EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, stackAbilities[i]);
+      EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+    end;
   end;
 
   local function OnEquippedWeaponsChanged(eventCode, bagId, slotId, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange)
@@ -3306,7 +3346,7 @@ function FancyActionBar.Initialize()
   local function ActionBarActivated(eventCode, initial)
     if not initial then
       -- OnAllHotbarsUpdated()
-      FancyActionBar.StackCheck();
+      FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
   end;
@@ -3348,6 +3388,14 @@ function FancyActionBar.Initialize()
   class = GetUnitClassId("player");
   if FancyActionBar.fakeClassEffects[class] then
     for i, x in pairs(FancyActionBar.fakeClassEffects[class]) do fakes[i] = x; end;
+  end;
+
+  if FancyActionBar.specialClassEffects[class] then
+    for i, x in pairs(FancyActionBar.specialClassEffects[class]) do FancyActionBar.specialEffects[i] = x; end;
+  end;
+
+  if FancyActionBar.specialClassEffectProcs[class] then
+    for i, x in pairs(FancyActionBar.specialClassEffectProcs[class]) do FancyActionBar.specialEffectProcs[i] = x; end;
   end;
 
   for i, x in pairs(FancyActionBar.fakeSharedEffects) do fakes[i] = x; end;
@@ -3393,19 +3441,19 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
   if SV.dynamicAbilityConfig == false then
     if SV.abilityConfig then
-      SV.abilityConfig = nil
-    end
+      SV.abilityConfig = nil;
+    end;
     SV.dynamicAbilityConfig = true;
   end;
 
   if CV.dynamicAbilityConfig == false then
     if CV.abilityConfig then
-      CV.abilityConfig = nil
-    end
+      CV.abilityConfig = nil;
+    end;
     CV.dynamicAbilityConfig = true;
   end;
 
-  
+
   if SV.externalBlackListRun == false then
     SV.externalBlackList = { -- just add all resto staff skills by default and player can take it from there.
       [61504] = "Vigor";

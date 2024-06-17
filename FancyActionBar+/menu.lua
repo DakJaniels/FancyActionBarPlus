@@ -1,5 +1,5 @@
 ---@class (partial) FancyActionBar
-local FancyActionBar = FancyActionBar
+local FancyActionBar = FancyActionBar;
 local LAM = LibAddonMenu2;
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -397,7 +397,7 @@ end
 local function GetTrackedEffectForAbility(id)
   local effect = nil;
   local cfg = FancyActionBar.GetAbilityConfig();
-  local cstcgf = FancyActionBar.GetAbilityConfigChanges()
+  local cstcgf = FancyActionBar.GetAbilityConfigChanges();
   local name = "";
 
   if cstcgf[id] or cfg[id] then
@@ -4178,7 +4178,7 @@ function FancyActionBar.SaveMoverPosition()
 
   if Azurah then
     if ((FancyActionBar.style == 2 and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
-          or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
+        or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
     then
       Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, x, y, FancyActionBar.GetScale());
     end;

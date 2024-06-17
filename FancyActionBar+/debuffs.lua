@@ -1,5 +1,5 @@
 ---@class (partial) FancyActionBar
-local FancyActionBar = FancyActionBar
+local FancyActionBar = FancyActionBar;
 
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -12,6 +12,7 @@ local targetDebuffs = {};
 local activeDebuffs = {};
 local debuffTargets = {};
 local enemyDebuffs = {};
+local specialEffect;
 
 ---@param msg string
 ---@param ... any
@@ -90,8 +91,7 @@ function FancyActionBar.IsAbilityActiveOnCurrentTarget(id)
   if nBuffs > 0 then
     for i = 1, nBuffs do
       local _, _, endTime, _, stacks, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo("reticleover", i);
-
-      if abilityId == id and castByPlayer then
+      if abilityId == id and (castByPlayer or stacks) then
         isActive = true;
         data.endTime = endTime;
         data.stacks = stacks or 0;
@@ -159,27 +159,23 @@ end;
 ---------------------------------
 -- Tracking
 ---------------------------------
-local function ClearDebuff(effect)
-  if effect then
-    -- effect.activeOnTarget = false
-
-    local stacks = false;
-    -- if effect.hideOnNoTarget then
-    if FancyActionBar.stackMap[effect.id] then
-      FancyActionBar.stackMap[effect.id] = 0;
-      stacks = true;
-    end;
-    -- end
-
-    FancyActionBar.HandleDebuffUpdate(effect, stacks);
-  end;
-end;
 
 local function ClearTargetEffects()
-  for id, debuff in pairs(FancyActionBar.debuffs) do
-    local effect = FancyActionBar.effects[id];
-    if effect then
-      ClearDebuff(effect);
+  for debuffId, debuff in pairs(FancyActionBar.debuffs) do
+    local doStackUpdate = false;
+    if FancyActionBar.stacks[debuff.id] then
+      FancyActionBar.stacks[debuff.id] = 0;
+      doStackUpdate = true;
+    end;
+
+    for effectId, effect in pairs(FancyActionBar.effects) do
+      if debuff.id == effect.id then
+        effect.endTime = time();
+      end;
+      FancyActionBar.UpdateEffect(effect);
+      if doStackUpdate then
+        FancyActionBar.HandleStackUpdate(debuff.id);
+      end;
     end;
   end;
 end;
@@ -188,18 +184,20 @@ local function ClearDebuffsIfNotOnTarget()
   for id, debuff in pairs(FancyActionBar.debuffs) do
     debuff.activeOnTarget = false;
     debuff.endTime = 0;
-    local hasStacks = false;
+    local doStackUpdate = false;
     if FancyActionBar.stacks[debuff.id] then
-      hasStacks = true;
+      doStackUpdate = true;
       FancyActionBar.stacks[debuff.id] = 0;
     end;
-    FancyActionBar.HandleDebuffUpdate(debuff, hasStacks);
-  end;
-
-  for index in pairs(FancyActionBar.tauntSlots) do
-    if FancyActionBar.tauntSlots[index] ~= nil then
-      FancyActionBar.tauntSlots[index].activeOnTarget = false;
-      FancyActionBar.UpdateTaunt(index);
+    for id, effect in pairs(FancyActionBar.effects) do
+      if debuff.id == effect.id then
+        for i, x in pairs(debuff) do effect[i] = x; end;
+        effect.endTime = time();
+      end;
+      FancyActionBar.UpdateEffect(effect);
+      if doStackUpdate then
+        FancyActionBar.HandleStackUpdate(effect.id);
+      end;
     end;
   end;
 end;
@@ -299,12 +297,13 @@ local function GetTargetEffects()
     for i = 1, numEffects do
       local abilityName, startTime, endTime, buffSlot, stacks, icon, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo(tag, i);
 
-      if castByPlayer then
+      if castByPlayer or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].forceShow) then
         -- PostReticleTargetInfo(name, abilityName, startTime, endTime, buffSlot, stacks, icon, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer)
 
         debuffNum = debuffNum + 1;
         local db = {
           id = abilityId;
+          startTime = startTime or 0;
           endTime = endTime or 0;
           stacks = stacks or 0;
         };
@@ -315,23 +314,31 @@ local function GetTargetEffects()
   return debuffs, debuffNum;
 end;
 
-local function UpdateDebuff(effect, t, stacks, unitId, isTarget)
-  if not effect then return; end;
+local function UpdateDebuff(debuff, t, stacks, unitId, isTarget)
+  if not debuff then return; end;
+  local doStackUpdate = false;
+  local idsToUpdate = {};
+  debuff.endTime = t;
 
-  -- effect.activeOnTarget = isTarget or false
-
-  -- if not isTarget and effect.hideOnNoTarget
-  -- then effect.endTime = 0
-  -- else effect.endTime = t end
-
-  local updateStacks = false;
-
-  if stacks ~= nil and FancyActionBar.stackMap[effect.id] then
-    FancyActionBar.stacks[FancyActionBar.stackMap[effect.id]] = stacks;
-    updateStacks = true;
+  if debuff.id == debuff.stackId then
+    debuff.stacks = stacks;
+    FancyActionBar.stacks[debuff.stackId] = stacks;
+    doStackUpdate = true;
   end;
 
-  FancyActionBar.HandleDebuffUpdate(effect, updateStacks);
+  for id, effect in pairs(FancyActionBar.effects) do
+    if effect.id == debuff.id then
+      for eId, effects in pairs(debuff) do effect[eId] = effects; end;
+      FancyActionBar.effects[id] = effect;
+      FancyActionBar.UpdateEffect(effect);
+      idsToUpdate[id] = true;
+    end;
+  end;
+  if doStackUpdate then
+    for id in pairs(idsToUpdate) do
+      FancyActionBar.HandleStackUpdate(id);
+    end;
+  end;
 end;
 
 local function OnReticleTargetChanged()
@@ -352,29 +359,38 @@ local function OnReticleTargetChanged()
       for i = 1, debuffNum do
         local debuff = debuffs[i];
 
-        local ID = debuff.id;
-
-        if debuff.id == FancyActionBar.hCurse2 then
-          ID = FancyActionBar.hCurse1;
+        for stackSourceId, targetIds in pairs(FancyActionBar.stackMap) do
+          for t = 1, #targetIds do
+            if targetIds[t] == debuff.id then
+              debuff.stackId = stackSourceId;
+            end;
+          end;
         end;
 
-        keep[ID] = true;
+        local specialEffect = FancyActionBar.specialEffects[debuff.id];
 
-        if ID == FancyActionBar.tauntId then -- taunt is handled separately.
-          local unit, index = FancyActionBar.IdentifyTaunt(debuff.endTime);
-          if index > 0 then
-            tId = unit;
-            FancyActionBar.tauntSlots[index].endTime = debuff.endTime;
-            FancyActionBar.tauntSlots[index].unit = unit;
-            FancyActionBar.tauntSlots[index].activeOnTarget = true;
-            FancyActionBar.UpdateTaunt(index);
+        if specialEffect then
+          keep[debuff.id] = true; -- make sure we're keeping the debuff in case the specialEffect changes the id
+          for sId, effects in pairs(specialEffect) do debuff[sId] = effects; end;
+          if specialEffect.fixedTime and debuff.startTime ~= 0 then
+            debuff.endTime = debuff.startTime + specialEffect.fixedTime;
           end;
-        else -- update durations for active effects on the target.
-          if FancyActionBar.debuffs[ID] then
-            FancyActionBar.debuffs[ID].activeOnTarget = true;
-            FancyActionBar.debuffs[ID].endTime = debuff.endTime;
-            UpdateDebuff(FancyActionBar.debuffs[ID], debuff.endTime, debuff.stacks, tId, true);
-          end;
+        end;
+
+        if debuff.id == debuff.stackId then
+          FancyActionBar.stacks[debuff.id] = debuff.stacks;
+        else
+          debuff.stacks = FancyActionBar.stacks[debuff.stackId] or debuff.stacks;
+        end;
+
+        keep[debuff.id] = true;
+
+        -- update durations for active effects on the target.
+        if FancyActionBar.debuffs[debuff.id] or specialEffect then
+          FancyActionBar.debuffs[debuff.id] = debuff;
+          FancyActionBar.debuffs[debuff.id].activeOnTarget = true;
+          FancyActionBar.debuffs[debuff.id].endTime = debuff.endTime;
+          UpdateDebuff(FancyActionBar.debuffs[debuff.id], debuff.endTime, debuff.stacks, tId, true);
         end;
       end;
     end;
@@ -384,7 +400,7 @@ local function OnReticleTargetChanged()
       if keep[id] == nil then -- update debuffs that are not active on the target according to settings.
         debuff.activeOnTarget = false;
         debuff.endTime = 0;
-        UpdateDebuff(FancyActionBar.debuffs[debuff.id], debuff.endTime, 0, tId, false);
+        UpdateDebuff(FancyActionBar.debuffs[id], debuff.endTime, 0, tId, false);
       end;
     end;
     -- OnNewTarget()
@@ -396,9 +412,8 @@ local function OnReticleTargetChanged()
   end;
 end;
 
-function FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
+function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
   local tag = "";
-
   if unitTag ~= nil and unitTag ~= "" then tag = unitTag; end;
 
   -- if ((effect.activeOnTarget and tag ~= 'reticleover') or (not effect.activeOnTarget and effect.hideOnNoTarget)) then
@@ -408,35 +423,67 @@ function FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot
 
   if tag ~= "reticleover" then return; end;
 
-  if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-    if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = beginTime; end;
+  specialEffect = FancyActionBar.specialEffects[abilityId];
 
-    if ((endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (effect.duration > FancyActionBar.durationMin)) then
-      if abilityId == 24330 then -- haunting curse
-        FancyActionBar.SetFixedDuration(abilityId, t + 12);
-        FancyActionBar.debuffs[abilityId].activeOnTarget = true;
-        -- effect.endTime = t + 12
-        UpdateDebuff(effect, t + 12, nil, unitId, true);
-      else
-        effect.endTime = endTime;
-        UpdateDebuff(effect, endTime, stackCount, unitId, true);
+  debuff.stacks = stackCount;
+  debuff.endTime = endTime;
+
+  for stackSourceId, targetIds in pairs(FancyActionBar.stackMap) do
+    for i = 1, #targetIds do
+      if targetIds[i] == abilityId then
+        debuff.stackId = stackSourceId;
       end;
+    end;
+  end;
+
+  if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
+    if specialEffect then
+      for i, x in pairs(specialEffect) do debuff[i] = x; end;
+      if specialEffect.fixedTime then
+        endTime = t + specialEffect.fixedTime;
+        debuff.endTime = endTime;
+      end;
+    end;
+
+    if debuff.id == debuff.stackId then
+      FancyActionBar.stacks[debuff.id] = debuff.stacks;
+    end;
+
+    debuff.stacks = FancyActionBar.stacks[debuff.stackId] or debuff.stacks;
+
+    FancyActionBar.debuffs[debuff.id] = debuff;
+    if FancyActionBar.activeCasts[debuff.id] then FancyActionBar.activeCasts[debuff.id].begin = beginTime; end;
+
+    if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
+      UpdateDebuff(debuff, debuff.endTime, debuff.stacks, unitId, true);
     else
       FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t));
     end;
   elseif (change == EFFECT_RESULT_FADED) then
-    if abilityId == 24330 then return; end;
-
-    if (FancyActionBar.activeCasts[effect.id] and FancyActionBar.activeCasts[effect.id].begin < (t - 0.7)) then
-      if effect.instantFade
-      then
-        effect.endTime = 0;
-      else
-        effect.endTime = t;
+    if (debuff and debuff.hasProced) and specialEffect then
+      if debuff.hasProced > specialEffect.hasProced then
+        return; -- we don't need to worry about this effect anymore because it has already proced
+      elseif FancyActionBar.specialEffectProcs[abilityId] then
+        -- Get the debuff data for the parent ability if we're handing a seconday proc, and the necessicary updates
+        debuff = FancyActionBar.debuffs[specialEffect.id];
+        local procUpddates = FancyActionBar.specialEffectProcs[abilityId];
+        local procValues = procUpddates[debuff.procs];
+        for i, x in pairs(procValues) do debuff[i] = x; end;
+        if debuff.stacks then
+          FancyActionBar.stacks[debuff.stackId] = debuff.stacks;
+        end;
       end;
-
-      UpdateDebuff(effect, t, 0, unitId, false);
     end;
+
+    if (FancyActionBar.activeCasts[debuff.id] and FancyActionBar.activeCasts[debuff.id].begin < (t - 0.7)) then
+      if debuff.instantFade
+      then
+        debuff.endTime = 0;
+      else
+        debuff.endTime = t;
+      end;
+    end;
+    UpdateDebuff(debuff, debuff.endTime, debuff.stacks, unitId, false);
   end;
 end;
 
@@ -455,20 +502,18 @@ local function ClearDebuffsOnCombatEnd()
       local debuff = FancyActionBar.debuffs[i];
       if debuff then
         if debuff.endTime > t then
+          if FancyActionBar.specialEffects[debuff.id] then
+            if FancyActionBar.specialEffects[debuff.id].fixedTime then
+            else
+              debuff.endTime = t;
+              UpdateDebuff(debuff, t, 0, 0, false);
+            end;
+          end;
           debuff.endTime = t;
           UpdateDebuff(debuff, t, 0, 0, false);
         end;
       end;
     end;
-
-    for index in pairs(FancyActionBar.tauntSlots) do
-      if FancyActionBar.tauntSlots[index] ~= nil then
-        FancyActionBar.tauntSlots[index].activeOnTarget = false;
-        FancyActionBar.tauntSlots[index].endTime = 0;
-        FancyActionBar.UpdateTaunt(index);
-      end;
-    end;
-
     ClearAllDebuffs();
   end;
 end;
