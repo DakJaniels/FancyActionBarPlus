@@ -2858,11 +2858,11 @@ function FancyActionBar.Initialize()
 
   FancyActionBar.UpdateTextures();
 
-  if GetDisplayName() == "@dack_janiels" then
+--[[   if GetDisplayName() == "@dack_janiels" then
     FancyActionBar.SetPersonalSettings();
     noget = true;
     if SV.debuffTable == nil then SV.debuffTable = {}; end;
-  end;
+  end; ]]
 
   SLASH_COMMANDS[slashCommand] = FancyActionBar.SlashCommand;
 

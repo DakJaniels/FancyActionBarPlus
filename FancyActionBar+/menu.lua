@@ -3675,13 +3675,13 @@ function FancyActionBar.SetFrameColor()
       frame:SetColor(unpack(SV.frameColor));
     end;
     FancyActionBar.qsOverlay.frame:SetColor(unpack(SV.frameColor));
-    if GetDisplayName() == "@dack_janiels" then
+--[[     if GetDisplayName() == "@dack_janiels" then
       local s = GetControl("ZO_SynergyTopLevel");
       local c = s:GetNamedChild("Container");
       local i = c:GetNamedChild("Icon");
       local e = i:GetNamedChild("Edge");
       e:SetColor(unpack(SV.frameColor));
-    end;
+    end; ]]
   end;
 end;
 
