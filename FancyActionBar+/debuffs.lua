@@ -12,7 +12,6 @@ local targetDebuffs = {};
 local activeDebuffs = {};
 local debuffTargets = {};
 local enemyDebuffs = {};
-local specialEffect;
 
 ---@param msg string
 ---@param ... any
@@ -423,7 +422,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
   if tag ~= "reticleover" then return; end;
 
-  specialEffect = FancyActionBar.specialEffects[abilityId];
+  local specialEffect = FancyActionBar.specialEffects[abilityId];
 
   debuff.stacks = stackCount;
   debuff.endTime = endTime;
