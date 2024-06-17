@@ -2535,7 +2535,7 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
     local specialEffect = FancyActionBar.specialEffects[id];
     for effectId, effect in pairs(FancyActionBar.effects) do
       if effect.id == specialEffect.id then
-        if change == EFFECT_RESULT_GAINED then
+        if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
           if specialEffect.fixedTime then
             endTime = updateTime + specialEffect.fixedTime;
             specialEffect.endTime = endTime;
