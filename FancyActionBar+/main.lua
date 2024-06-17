@@ -3030,7 +3030,7 @@ function FancyActionBar.Initialize()
 
     local t = time();
 
-    if FancyActionBar.specialIds[abilityId] and not (SV.advancedDebuff and (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].isDebuff)) then -- abilities that need to be handled differently.
+    if (FancyActionBar.specialEffects[abilityId] or FancyActionBar.specialIds[abilityId]) and not (SV.advancedDebuff and (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].isDebuff)) then -- abilities that need to be handled differently.
       FancyActionBar.HandleSpecial(abilityId, change, t, beginTime, endTime, unitTag, unitId);
       return;
     end;
