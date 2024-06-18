@@ -749,7 +749,7 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
   local currentStacks = 0;
 
   for i = 1, GetNumBuffs("player") do
-    local name, startTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
+    local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
 
     if --[[not castByPlayer and]] abilityId == id then
       hasEffect = true;
@@ -1047,51 +1047,10 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
           bc = FancyActionBar.GetHighlightColor(isFading);
         else
           if effect.isDebuff then
-            if effect.stacks or FancyActionBar.stacks[effect.id] then FancyActionBar.stacks[effect.id] = effect.stacks or 0; end;
+            if effect.stackId and (effect.stackId == effect.id) and FancyActionBar.stacks[effect.stackId] then
+              FancyActionBar.stacks[effect.id] = effect.stacks or 0; end;
           end;
         end;
-
-        -- if duration <= 0 then
-        --   if (SV.delayFade and not effect.instantFade) then
-        --     local delayEnd = (effect.endTime + SV.fadeDelay) - time()
-        --     if delayEnd > 0 then
-        --       lt = zo_max(0, zo_ceil(duration))
-        --     else
-        --     end
-        --   else
-        --     if effect.id == FancyActionBar.subAssault.id1 then
-        --       FancyActionBar.stacks[effect.id] = 0
-        --       FancyActionBar.HandleStackUpdate(effect)
-        --     end
-        --   end
-        -- else
-
-        -- bgControl:SetHidden(not SV.showHighlight)
-        --
-        -- if (showDecimal and (duration <= showDecimalStart)) then
-        --   lt = strformat('%0.1f', duration)
-        --   durationControl:SetText(strformat('%0.1f', duration))
-        -- else
-        --   lt = strformat('%0.0f', duration)
-        --   durationControl:SetText(strformat('%0.0f', duration))
-        -- end
-        --
-        -- if (duration <= SV.showExpireStart) then
-        --   if (SV.showExpire) then
-        --     lc = SV.expireColor
-        --     durationControl:SetColor(unpack(SV.expireColor))
-        --   end
-        --   if (SV.highlightExpire) then
-        --     bc = SV.highlightExpireColor
-        --     bgControl:SetColor(unpack(SV.highlightExpireColor))
-        --   end
-        -- else
-        --   lc = timerColor
-        --   bc = SV.highlightColor
-        --   bgControl:SetColor(unpack(SV.highlightColor))
-        --   durationControl:SetColor(unpack(FancyActionBar.constants.duration.color))
-        -- end
-        -- end
 
         FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
         FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index);
@@ -1192,7 +1151,7 @@ function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific ef
   if effect then
     if effect.slot1 then FancyActionBar.UpdateStacks(effect.slot1); end;
     if effect.slot2 then FancyActionBar.UpdateStacks(effect.slot2); end;
-    if id == 122658 then
+    if id == 122658 then -- Seething Fury
       if FancyActionBar.effects[id] and FancyActionBar.stacks[id] == 0 then
         FancyActionBar.effects[122658].endTime = time();
       end;
@@ -2532,7 +2491,7 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
   local update = true; -- update the stacks display for the ability. not sure why I called it this.
 
   if FancyActionBar.specialEffects[id] then
-    local specialEffect = FancyActionBar.specialEffects[id];
+    local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
     for effectId, effect in pairs(FancyActionBar.effects) do
       if effect.id == specialEffect.id then
         if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
@@ -2549,13 +2508,13 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
           if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = updateTime; end;
         elseif change == EFFECT_RESULT_FADED then
           -- Ignore the Ability Fading in the Same GCD as it was cast (indicates a recast)
-          if updateTime < effect.beginTime + 0.5 then return; end;
+          if effect.beginTime and (effect.beginTime > updateTime - 0.5) then return; end;
           -- Ignore the ability fading because it either already proced it's next effect
           if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced > specialEffect.hasProced) then return; end;
           -- Get the proc update data for the special effect
           if FancyActionBar.specialEffectProcs[id] then
-            local procUpddates = FancyActionBar.specialEffectProcs[id];
-            local procValues = procUpddates[effect.procs];
+            local procUpdates = FancyActionBar.specialEffectProcs[id];
+            local procValues = procUpdates[effect.procs];
             for i, x in pairs(procValues) do effect[i] = x; end;
             if effect.stacks then
               FancyActionBar.stacks[effect.stackId] = effect.stacks;
@@ -2759,13 +2718,13 @@ function FancyActionBar.RefreshEffects()
   local t = time();
 
   for i = 1, GetNumBuffs("player") do
-    local name, startTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
+    local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
 
     if not castByPlayer then
       if SV.externalBuffs then
         local effect = FancyActionBar.effects[abilityId];
         if effect then
-          if startTime == endTime then
+          if beginTime == endTime then
             FancyActionBar.UpdatePassiveEffect(effect.id, true);
           else
             if (not FancyActionBar.activeCasts[effect.id] --[[and effect.id ~= 61744]]) then
@@ -2774,7 +2733,7 @@ function FancyActionBar.RefreshEffects()
               FancyActionBar.activeCasts[effect.id] = { slot = slot; cast = 0; begin = 0; fade = 0 };
             end;
             if endTime - t > 0 then
-              FancyActionBar.activeCasts[effect.id].begin = startTime;
+              FancyActionBar.activeCasts[effect.id].begin = beginTime;
               effect.endTime = endTime;
               FancyActionBar.UpdateEffect(effect);
             end;
@@ -2813,7 +2772,7 @@ function FancyActionBar.RefreshEffects()
           end;
 
           if FancyActionBar.activeCasts[effect.id] then
-            FancyActionBar.activeCasts[effect.id].begin = startTime;
+            FancyActionBar.activeCasts[effect.id].begin = beginTime;
             effect.endTime = endTime;
             FancyActionBar.UpdateEffect(effect);
           end;
@@ -3030,7 +2989,11 @@ function FancyActionBar.Initialize()
 
     local t = time();
 
-    if (FancyActionBar.specialEffects[abilityId] or FancyActionBar.specialIds[abilityId]) and not (SV.advancedDebuff and (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].isDebuff)) then -- abilities that need to be handled differently.
+    local specialEffect = FancyActionBar.specialEffects[abilityId]
+     and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId])
+    local isSpecial = specialEffect or FancyActionBar.specialIds[abilityId]
+    local isSpecialDebuff = specialEffect and specialEffect.isDebuff
+    if isSpecial and not (SV.advancedDebuff and isSpecialDebuff) then
       FancyActionBar.HandleSpecial(abilityId, change, t, beginTime, endTime, unitTag, unitId);
       return;
     end;
@@ -3053,8 +3016,7 @@ function FancyActionBar.Initialize()
         return;
       end;
     end;
-
-    local effect = (FancyActionBar.effects[abilityId]) or ((FancyActionBar.specialEffects[abilityId]) and { id = abilityId });
+    local effect = FancyActionBar.effects[abilityId] or {id = abilityId}
     if effect then
       if effect.toggled then -- update the highlight of toggled abilities.
         if change == EFFECT_RESULT_FADED
