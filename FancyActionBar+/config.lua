@@ -797,7 +797,13 @@ FancyActionBar.stackMap = {
   -- [24330] = {
   --   24330; -- first proc, haunting curse
   --   89491; -- second proc, haunting curse
-  -- }
+    -- }
+  
+  -- Healing Springs Mag Recovey
+  [40062] = {
+    40062, -- Healing Springs
+    99781, -- Grand Rejuviantion
+  },
 };
 
 -- Abilities here also have to be present in stackMap

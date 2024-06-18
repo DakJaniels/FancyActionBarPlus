@@ -2551,7 +2551,7 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
           -- Ignore the Ability Fading in the Same GCD as it was cast (indicates a recast)
           if updateTime < effect.beginTime + 0.5 then return; end;
           -- Ignore the ability fading because it either already proced it's next effect
-          if effect.hasProced > specialEffect.hasProced then return; end;
+          if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced > specialEffect.hasProced) then return; end;
           -- Get the proc update data for the special effect
           if FancyActionBar.specialEffectProcs[id] then
             local procUpddates = FancyActionBar.specialEffectProcs[id];
@@ -3188,7 +3188,6 @@ function FancyActionBar.Initialize()
   ---@param abilityId integer
   local function OnStackChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
     if (SV.advancedDebuff and effectType == DEBUFF) then return; end; -- is handled by debuff.lua
-
     local c = "";
     if change == EFFECT_RESULT_FADED then
       c = "faded";
@@ -3197,14 +3196,26 @@ function FancyActionBar.Initialize()
       c = "gained";
     elseif change == EFFECT_RESULT_UPDATED then
       c = "updated";
-    end;
-
+        end;
+    
+        FancyActionBar.stacks[abilityId] = stackCount;
+    
     if FancyActionBar.stackMap[abilityId] then
       for id, effect in pairs(FancyActionBar.effects) do
+        local doStackUpdate = false
+        if effect.id == abilityId then
+          if effect.stacks then
+            effect.stacks = stackCount;
+            FancyActionBar.effects[id] = effect
+            doStackUpdate = true
+          end;
+        end
         if effect.stackId and (abilityId == effect.stackId) then
-          FancyActionBar.stacks[abilityId] = (change == EFFECT_RESULT_FADED) and 0 or stackCount;
-          FancyActionBar.HandleStackUpdate(id);
+          doStackUpdate = true
         end;
+        if doStackUpdate then
+          FancyActionBar.HandleStackUpdate(id);
+        end
       end;
     end;
 
