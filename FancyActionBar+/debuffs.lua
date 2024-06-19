@@ -379,7 +379,6 @@ local function OnReticleTargetChanged()
         end;
         local specialEffect = (FancyActionBar.specialEffects[debuff.id]
                     and ZO_DeepTableCopy(FancyActionBar.specialEffects[debuff.id]));
-          d(specialEffect)
         if specialEffect then
           keep[debuff.id] = true; -- make sure we're keeping the debuff in case the specialEffect changes the id
           for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
