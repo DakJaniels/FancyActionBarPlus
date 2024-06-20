@@ -397,7 +397,7 @@ local function OnReticleTargetChanged()
     end;
 
     for id, debuff in pairs(FancyActionBar.debuffs) do
-      if FancyActionBar.traps[id] then return; end;
+      if debuff.keepOnTargetChange then return; end;
       if keep[debuff.id] == nil then -- update debuffs that are not active on the target according to settings.
         debuff.activeOnTarget = false;
         debuff.endTime = 0;

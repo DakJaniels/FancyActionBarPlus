@@ -87,7 +87,6 @@ FancyActionBar.debuffs = {};     -- effects for debuffs to update if they are ac
 
 
 FancyActionBar.fixedTimers = {}; -- to keep track of certain timers regardless of updates from the game
-FancyActionBar.trapTimers = {};
 
 -- Backbar buttons.
 FancyActionBar.buttons = {}; -- Contains: abilities duration, number of stacks and visual effects.
@@ -736,6 +735,7 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
     FancyActionBar.zone = zone;
     FancyActionBar.RefreshEffects();
   end;
+  FancyActionBar.EffectCheck();
   FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT));
   FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT));
 end;
@@ -1025,18 +1025,16 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     local stacksControl = overlay:GetNamedChild("Stacks");
     local lt, lc, la = "", nil, nil;
     local bh, bc = true, nil;
+    local duration = 0; -- = effect.endTime - time()
 
     if (effect and not effect.ignore and effect.id > 0) then
       if (effect.toggled or effect.passive) then
       else
-        local duration = 0; -- = effect.endTime - time()
-
         if FancyActionBar.fixedTimers[effect.id] then
           duration = FancyActionBar.GetFixedDuration(effect.id) - time();
         else
           duration = effect.endTime - time();
         end;
-
         local isFading = false;
         if (duration <= SV.showExpireStart) then isFading = SV.showExpire; end;
 
@@ -1046,27 +1044,21 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         if duration > 0 then
           bc = FancyActionBar.GetHighlightColor(isFading);
         else
-          if effect.isDebuff then
-            if effect.stackId and (effect.stackId == effect.id) and FancyActionBar.stacks[effect.stackId] then
-              FancyActionBar.stacks[effect.id] = effect.stacks or 0; end;
+          if effect.stackId or effect.stacks then
+            if duration <= 0 and (effect.forceExpireStacks or (effect.isDebuff and effect.stacks)) then
+              effect.stacks = 0;
+              FancyActionBar.effects[effect.id] = effect
+              FancyActionBar.stacks[effect.stackId] = 0;
+              stacksControl:SetText("");
+            end
+          elseif (not FancyActionBar.stacks[effect.stackId]) then
+              stacksControl:SetText("");
           end;
         end;
 
         FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
         FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index);
-
-        if FancyActionBar.trapTimers[effect.id] then
-          local tt = FancyActionBar.trapTimers[effect.id] - time();
-          if tt > 0
-          then
-            stacksControl:SetText(zo_max(0, zo_ceil(tt)));
-          else
-            stacksControl:SetText("");
-          end;
-          return;
-        end;
       end;
-      if effect.stackId and (not FancyActionBar.stacks[effect.stackId]) or (FancyActionBar.stacks[effect.stackId] and FancyActionBar.stacks[effect.stackId] == 0) then stacksControl:SetText(""); end;
     else
       durationControl:SetText("");
       bgControl:SetHidden(true);
@@ -1360,21 +1352,54 @@ function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the ef
 end;
 
 function FancyActionBar.EffectCheck()
+  local checkTime = time();
   for id, effect in pairs(FancyActionBar.effects) do
-    local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
-    if hasEffect then
-      effect.endTime = time() + duration;
-      if stacks > 0 then
-        FancyActionBar.stacks[effect.id] = stacks;
+    if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
+      zo_callLater(function () FancyActionBar.ReCheckSpecialEffect(effect); end, (effect.endTime - checkTime) * 1000);
+    else
+      local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
+      if hasEffect then
+        effect.endTime = checkTime + duration;
+        if stacks > 0 then
+          FancyActionBar.stacks[effect.id] = stacks;
+        end;
+        effect.stacks = stacks;
+      end;
+      if effect.stackId then
+        local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
+        FancyActionBar.stacks[effect.stackId] = mappedStacks;
+        if (effect.stacks and effect.stacks > 0) or mappedStacks > 0 then
+          effect.stacks = mappedStacks;
+        end;
+      end;
+      FancyActionBar.UpdateEffect(effect);
+      FancyActionBar.HandleStackUpdate(effect.id);
+    end;
+  end;
+end;
+
+-- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios 
+function FancyActionBar.ReCheckSpecialEffect(effect)
+  local checkTime = time();
+  if not FancyActionBar.specialEffects[effect.id] then return; end;
+  local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[effect.id]);
+  local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
+  if (stacks > 0) or (specialEffect.stacks and specialEffect.stacks > 0) then
+    stacks = (stacks > 0) and stacks or 0;
+    effect.stacks = stacks;
+    effect.endTime = checkTime + duration;
+    FancyActionBar.stacks[effect.id] = stacks;
+  end;
+  if effect.stackId and effect.stackId ~= effect.id then
+    -- WARNING: This will infinite loop if effect.stackId == effect.id
+    for id, stackEffect in pairs(FancyActionBar.effects) do
+      if stackEffect.id == effect.stackId then
+        FancyActionBar.ReCheckSpecialEffect(stackEffect);
       end;
     end;
-    if effect.stackId then
-      local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
-      FancyActionBar.stacks[effect.stackId] = mappedStacks;
-    end;
-    FancyActionBar.UpdateEffect(effect);
-    FancyActionBar.HandleStackUpdate(effect.id);
   end;
+  FancyActionBar.UpdateEffect(effect);
+  FancyActionBar.HandleStackUpdate(effect.id);
 end;
 
 --------------
@@ -2376,8 +2401,8 @@ end;
 function FancyActionBar.IdCheck(index, id)
   if abilityConfig[id] and abilityConfig[id] == false then return false; end;
   if slottedIds[index] ~= nil and slottedIds[index].ability ~= slottedIds[index].effect then
-    if FancyActionBar.toggled[id] then return true; end;
-    if not FancyActionBar.traps[id] then return false; end;
+  if FancyActionBar.toggled[id] then return true; end;
+  if FancyActionBar.specialEffects[id] then return true; end;
   end;
   return true;
 end;
@@ -2497,13 +2522,13 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
         if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
           if specialEffect.fixedTime then
             endTime = updateTime + specialEffect.fixedTime;
-            specialEffect.endTime = endTime;
           end;
           if specialEffect.stacks then
             FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
           end;
           for i, x in pairs(specialEffect) do effect[i] = x; end;
           effect.beginTime = updateTime;
+          effect.endTime = endTime;
           FancyActionBar.effects[effectId] = effect;
           if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = updateTime; end;
         elseif change == EFFECT_RESULT_FADED then
@@ -2540,12 +2565,6 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
         effect = FancyActionBar.effects[id];
         FancyActionBar.stacks[effect.id] = 2;
         update = true;
-      elseif (FancyActionBar.traps[id] and endTime - beginTime > 2) then
-        FancyActionBar.effects[FancyActionBar.traps[id]].stackId = FancyActionBar.traps[id];
-        effect = FancyActionBar.effects[FancyActionBar.traps[id]];
-        -- FancyActionBar.trapTimers[effect.id] = endTime
-        -- UpdateEffect(effect)
-        -- return
       elseif FancyActionBar.meteor[id] then
         FancyActionBar.effects[FancyActionBar.meteor[id]].stackId = FancyActionBar.meteor[id];
         effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
@@ -2572,12 +2591,6 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
         if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
         FancyActionBar.stacks[id] = 2;
         endTime = updateTime + 9;
-        -- elseif id == FancyActionBar.deepFissure.id1 then
-        --   FancyActionBar.effects[id].stackId = id;
-        --   effect = FancyActionBar.effects[id];
-        --   if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-        --   FancyActionBar.stacks[id] = 2;
-        --   endTime = updateTime + 9;
       elseif id == FancyActionBar.subAssault.id1 then
         FancyActionBar.effects[id].stackId = id;
         effect = FancyActionBar.effects[id];
@@ -2620,19 +2633,6 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
         else
           update = false;
         end;
-        -- elseif id == FancyActionBar.deepFissure.id1 then
-        --   FancyActionBar.effects[id].stackId = id;
-        --   effect = FancyActionBar.effects[id];
-        --   if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
-        -- elseif id == FancyActionBar.deepFissure.id2 then
-        --   FancyActionBar.effects[FancyActionBar.deepFissure.id1].stackId = id;
-        --   effect = FancyActionBar.effects[FancyActionBar.deepFissure.id1];
-        --   if effect.endTime <= updateTime
-        --   then
-        --     FancyActionBar.stacks[FancyActionBar.deepFissure.id1] = 0;
-        --   else
-        --     update = false;
-        --   end;
       elseif id == FancyActionBar.subAssault.id1 then
         FancyActionBar.effects[id].stackId = id;
         effect = FancyActionBar.effects[id];
@@ -2703,7 +2703,8 @@ function FancyActionBar.RefreshEffects()
   for effect, data in pairs(FancyActionBar.effects) do data.endTime = 0; end;
 
   for id in pairs(FancyActionBar.stacks) do
-    FancyActionBar.stacks[id] = 0;
+    local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(id);
+    FancyActionBar.stacks[id] = currentStacks or 0;
     FancyActionBar.HandleStackUpdate(id);
 
     if (id == 61905 or id == 61919 or id == 61927) then
@@ -2741,14 +2742,6 @@ function FancyActionBar.RefreshEffects()
         end;
       end;
     else
-      if FancyActionBar.stackMap[abilityId] then
-        for id, effect in pairs(FancyActionBar.effects) do
-          if effect.stackId and (abilityId == effect.stackId) then
-            FancyActionBar.stacks[abilityId] = stackCount or 0;
-            FancyActionBar.HandleStackUpdate(id);
-          end;
-        end;
-      end;
       local id = abilityId;
       if (id == 61905 or id == 61919 or id == 61927) then
         if GFC then -- Manually update GrimFocusCounter if enabled
@@ -2909,6 +2902,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.SlotEffects();
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
+    FancyActionBar.EffectCheck();
   end;
 
   local function OnActiveWeaponPairChanged()
@@ -2926,9 +2920,7 @@ function FancyActionBar.Initialize()
       local t = time();
       local effect = FancyActionBar.SlotEffect(index, id);
       -- local effect = FancyActionBar.effects[id]
-      local i = FancyActionBar.GetSlottedEffect(index);
-
-
+      local i = FancyActionBar.GetSlottedEffect(index); -- Scribing Might Be Failing Here
       -- lastButton = index
 
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) then -- track when the skill was used and ignore other events for it that is lower than the GCD
@@ -2967,6 +2959,15 @@ function FancyActionBar.Initialize()
             local duration = effect.duration;
             dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
             FancyActionBar.UpdateEffect(effect);
+          elseif FancyActionBar.specialEffects[id] and FancyActionBar.specialEffects[id].needCombatEvent then
+            local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
+            for i, x in pairs(specialEffect) do effect[i] = x; end;
+            effect.endTime = (specialEffect.fixedTime or effect.duration) + t;
+            FancyActionBar.UpdateEffect(effect);
+            if specialEffect.stacks then
+              FancyActionBar.stacks[specialEffect.stackId or specialEffect.id] = specialEffect.stacks;
+              FancyActionBar.HandleStackUpdate(effect.id);
+            end;
           else
             if fakes[id] then activeFakes[id] = true; end;
             dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
@@ -2986,7 +2987,7 @@ function FancyActionBar.Initialize()
     if SV.debugAll then
       FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType);
     end;
-
+    
     local t = time();
 
     local specialEffect = FancyActionBar.specialEffects[abilityId]
@@ -2996,13 +2997,6 @@ function FancyActionBar.Initialize()
     if isSpecial and not (SV.advancedDebuff and isSpecialDebuff) then
       FancyActionBar.HandleSpecial(abilityId, change, t, beginTime, endTime, unitTag, unitId);
       return;
-    end;
-
-    if (FancyActionBar.traps[abilityId]) then
-      if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-        FancyActionBar.trapTimers[abilityId] = 0;
-      end;
-      abilityId = FancyActionBar.traps[abilityId];
     end;
 
     if (abilityId == 143808 and change == EFFECT_RESULT_GAINED) then -- crystal weapon. remove a stack when the debuff is applied.
@@ -3210,11 +3204,21 @@ function FancyActionBar.Initialize()
     if not isDead or not AreUnitsEqual("player", unitTag) then return; end;
 
     FancyActionBar.RefreshEffects();
+    FancyActionBar.EffectCheck();
     FancyActionBar:UpdateDebuffTracking();
   end;
 
   local function OnCombatEvent(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
     local effect;
+    local t = time();
+
+    local specialEffect = FancyActionBar.specialEffects[aId]
+      and ZO_DeepTableCopy(FancyActionBar.specialEffects[aId]);
+    local isSpecialDebuff = specialEffect and specialEffect.isDebuff;
+    if specialEffect and not (SV.advancedDebuff and isSpecialDebuff) then
+      FancyActionBar.HandleSpecial(aId, result, t, t, t + GetAbilityDuration(aId), _, tId);
+      return;
+    end;
 
     if (FancyActionBar.needCombatEvent[aId] and result == FancyActionBar.needCombatEvent[aId].result) then
       effect = FancyActionBar.effects[aId];
@@ -3237,8 +3241,6 @@ function FancyActionBar.Initialize()
       effect = FancyActionBar.effects[aId];
       if effect then
         effect.endTime = time() + fakes[aId].duration;
-
-        -- FancyActionBar.trapTimers[effect.id] = time() + fakes[aId].duration
 
         FancyActionBar.UpdateEffect(effect);
 
@@ -3371,7 +3373,12 @@ function FancyActionBar.Initialize()
     for i, x in pairs(FancyActionBar.specialClassEffectProcs[class]) do FancyActionBar.specialEffectProcs[i] = x; end;
   end;
 
-  for i, x in pairs(FancyActionBar.fakeSharedEffects) do fakes[i] = x; end;
+  for id, effect in pairs(FancyActionBar.specialEffects) do
+    if effect.needComabatEvent then
+      EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent);
+      EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+    end;
+  end;
 
   for id in pairs(fakes) do
     EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent);

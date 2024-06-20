@@ -51,7 +51,6 @@ FancyActionBar.abilityConfig = {
     - { effect_id } = timer will start when the effect is fired
     - false = ignore this slot
     ]]
-
   -- Two Handed
   [38814] = { 131562 }; -- dizzying swing (off-balance)
   [38807] = { 61745 };  -- wrecking blow (major berserk)
@@ -903,9 +902,9 @@ FancyActionBar.debuffIds = {
 
   -- Fighters Guild
   [40336] = { 40340 }; -- silver leash
-  [35750] = { 35756 }; -- trap beast dot
-  [40372] = { 40375 }; -- lightweight beast trap dot
-  [40382] = { 40385 }; -- barbed trap dot
+  [35750] = { }; -- trap beast dot
+  [40372] = { }; -- lightweight beast trap dot
+  [40382] = { }; -- barbed trap dot
   [35713] = { 62305 }; -- dawnbreaker
   [40158] = { 62314 }; -- dawnbreaker of smiting
 
@@ -913,7 +912,7 @@ FancyActionBar.debuffIds = {
   [28567] = { 126370 }; -- entropy
   [40452] = { 126371 }; -- structured entropy
   [40457] = { 126374 }; -- degeneration
-  [40465] = { 40468 };  -- scalding rune (dot)
+  [40465] = { };  -- scalding rune (dot)
 
   -- Psijic Order
   [104059] = { 104078 }; -- borrowed time shield absorb
@@ -1017,14 +1016,6 @@ FancyActionBar.debuffIds = {
 };
 FancyActionBar.specialIds = {
   -- abilities that require a separate function to update correctly.
-  [35750] = true;  -- trap beast placed
-  [35756] = true;  -- trap beast dot
-  [40372] = true;  -- lightweight trap placed
-  [40375] = true;  -- lightweight trap dot
-  [40382] = true;  -- barbed trap placed
-  [40385] = true;  -- barbed trap dot
-  [40465] = true;  -- scalding rune placed
-  [40468] = true;  -- scalding rune dot
   [16536] = true;  -- meteor called
   [63430] = true;  -- meteor aoe
   [40489] = true;  -- ice comet called
@@ -1133,18 +1124,39 @@ FancyActionBar.fakeClassEffects = {
   --[117] = {};
 };
 
-FancyActionBar.specialEffects = {
-  [52790] = { id = 52790; stackId = 52790; isDebuff = true; forceShow = true } -- Debuff Effect for the Taunt Counter
-};
-FancyActionBar.specialEffectProcs = {};
+-- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
+-- The Key for each table is the AbilityId you want to modify through HandleSpecial, the id key is the target Ability
 
--- The values must always be stored under the effectid tied to the action bar slot, in the case of haunting curse: 24330
+FancyActionBar.specialEffects = {
+  [52790] = { id = 52790; stackId = 52790; isDebuff = true; forceShow = true }; -- Debuff Effect for the Taunt Counter
+  [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; needCombatEvent = true }; -- Trap Beast Placed
+  [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Trap Beast DOT
+  [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; needCombatEvent = true }; -- Lightweight Trap Placed
+  [40375] = { id = 40372; stackId = 40372; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Lightweight Trap DOT
+  [40382] = { id = 40382; stackId = 40382; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; needCombatEvent = true }; -- Barbed Trap Placed
+  [40385] = { id = 40382; stackId = 40382; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Barbed Trap DOT
+  [40465] = { id = 40465; stackId = 40465; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- Scalding Rune Placed
+  [40468] = { id = 40465; stackId = 40465; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };  -- Scalding Rune DOT
+};
+
+-- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
+FancyActionBar.specialEffectProcs = {
+  [35750] = { [1] = { id = 35750; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; }; }; -- Trap Beast Placed
+  [35756] = { [1] = { id = 35750; stacks = 0; procs = 1; hasProced = 0; isDebuff = true; }; };  -- Trap Beast DOT
+  [40372] = { [1] = { id = 40372; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; }; }; -- Lightweight Trap Placed
+  [40375] = { [1] = { id = 40372; stacks = 0; procs = 1; hasProced = 0; isDebuff = true; }; };  -- Lightweight Trap DOT
+  [40382] = { [1] = { id = 40382; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; }; }; -- Barbed Trap Placed
+  [40385] = { [1] = { id = 40382; stacks = 0; procs = 1; hasProced = 0; isDebuff = true; }; };  -- Barbed Trap DOT
+  [40465] = { [1] = { id = 40465; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; }; }; -- Scalding Rune Placed
+  [40468] = { [1] = { id = 40465; stacks = 0; procs = 1; hasProced = 0; isDebuff = true; }; };  -- Scalding Rune DOT
+};
+
+-- Class Specific Effects Processed through the FancyActionBar.HandleSpecial function
 FancyActionBar.specialClassEffects = {
-  --- effects tracked through the HandleSpecial function
   -- Sorcerer
   [2] = {
-    [24330] = { id = 24330; stackId = 24330; fixedTime = 3.5; stacks = 2; procs = 1; hasProced = 0; isDebuff = true }; -- Haunting Curse, first proc
-    [89491] = { id = 24330; stackId = 24330; fixedTime = 8.5; stacks = 1; procs = 1; hasProced = 1; isDebuff = true }; -- Haunting Curse, second proc
+    [24330] = { id = 24330; stackId = 24330; fixedTime = 3.5; stacks = 2; procs = 1; hasProced = 0; isDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
+    [89491] = { id = 24330; stackId = 24330; fixedTime = 8.5; stacks = 1; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
   };
   -- Warden
   [4] = {
@@ -1152,7 +1164,7 @@ FancyActionBar.specialClassEffects = {
     [178028] = { id = 86015; stackId = 86015; fixedTime = 6; stacks = 1; procs = 1; hasProced = 1; isDebuff = false }; -- Deep Fissure, second proc
   }
 };
-
+-- Class Specific Fade Effects
 FancyActionBar.specialClassEffectProcs = {
   --- Effect updates for ability completion conditions keyed by abilityId then procs number
   -- Sorcerer
@@ -1165,18 +1177,6 @@ FancyActionBar.specialClassEffectProcs = {
     [86015] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 }; };
     [178028] = { [1] = { id = 86015; stacks = 0, procs = 1, hasProced = 0 } },
   };
-};
-
-FancyActionBar.fakeSharedEffects = {
-  -- tracked along with fakeClassEffects.
-  [35750] = { duration = GetAbilityDuration(35750) / 1000; id = 35750 }; -- trap beast
-  [40372] = { duration = GetAbilityDuration(40382) / 1000; id = 40372 }; -- lightweight trap
-  [40382] = { duration = GetAbilityDuration(40382) / 1000; id = 40382 }; -- barbed trap
-  --[35756] = { duration = GetAbilityDuration(35756) / 1000; id = 35756 }; -- trap beast
-  --[40375] = { duration = GetAbilityDuration(40375) / 1000; id = 40375 }; -- lightweight trap
-  --[40385] = { duration = GetAbilityDuration(40385) / 1000; id = 40385 }; -- barbed trap
-  [40468] = { duration = GetAbilityDuration(40468) / 1000; id = 40468 }; -- scalding rune
-
 };
 
 FancyActionBar.needCombatEvent = {
@@ -1227,14 +1227,6 @@ FancyActionBar.toggled = {
   -- [24785] = true; -- Overload
   -- [24806] = true; -- Energy Overload
   -- [24804] = true; -- Power Overload
-};
-FancyActionBar.traps = {
-  -- to update the effect when trap is triggered
-  [35756] = 35750; --trap beast
-  [40375] = 40372; --lightweight trap
-  [40385] = 40382; --barbed trap
-  [40468] = 40465; --scalding rune
-  [61785] = 32685; -- fossilize
 };
 FancyActionBar.graveLordSacrifice = {
   id = 117749;
