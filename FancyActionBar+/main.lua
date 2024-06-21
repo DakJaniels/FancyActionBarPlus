@@ -2568,7 +2568,7 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
       end;
     elseif (change == EFFECT_RESULT_FADED) then
       if FancyActionBar.meteor[id] then
-        FancyActionBar.effects[id].stackId = id;
+        FancyActionBar.effects[FancyActionBar.meteor[id]].stackId = FancyActionBar.meteor[id];
         effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
         effect.endTime = endTime;
       elseif (id == 46331) then -- crystal weapon
