@@ -1161,8 +1161,8 @@ FancyActionBar.specialClassEffects = {
   };
   -- Warden
   [4] = {
-    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
+    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0; isDebuff = false }; -- Deep Fissure, first proc
+    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1; isDebuff = false }; -- Deep Fissure, second proc
   };
   -- Arcanist
   [117] = {
