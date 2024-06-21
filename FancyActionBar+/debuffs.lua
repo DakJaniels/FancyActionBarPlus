@@ -383,7 +383,7 @@ local function OnReticleTargetChanged()
           keep[debuff.id] = true; -- make sure we're keeping the debuff in case the specialEffect changes the id
           for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
           if specialEffect.fixedTime then
-            debuff.endTime = debuff.beginTime + specialEffect.fixedTime;
+            debuff.endTime = debuff.beginTime + specialEffect.duration;
           end;
         end
 
@@ -439,7 +439,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     if specialEffect then
       for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
       if specialEffect.fixedTime then
-        endTime = t + specialEffect.fixedTime;
+        endTime = t + specialEffect.duration;
         debuff.endTime = endTime;
       end;
       if not specialEffect.stacks then

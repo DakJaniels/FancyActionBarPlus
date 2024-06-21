@@ -796,7 +796,7 @@ FancyActionBar.stackMap = {
   -- [24330] = {
   --   24330; -- first proc, haunting curse
   --   89491; -- second proc, haunting curse
-    -- }
+  -- }
   
   -- Healing Springs Mag Recovey
   [40062] = {
@@ -1153,29 +1153,41 @@ FancyActionBar.specialEffectProcs = {
 
 -- Class Specific Effects Processed through the FancyActionBar.HandleSpecial function
 FancyActionBar.specialClassEffects = {
+  --- effects tracked through the HandleSpecial function
   -- Sorcerer
   [2] = {
-    [24330] = { id = 24330; stackId = 24330; fixedTime = 3.5; stacks = 2; procs = 1; hasProced = 0; isDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
-    [89491] = { id = 24330; stackId = 24330; fixedTime = 8.5; stacks = 1; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
+    [24330] = { id = 24330; stackId = 24330; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; faded = false; isDebuff = false; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
+    [89491] = { id = 24330; stackId = 24330; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; faded = false; isDebuff = false; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
   };
   -- Warden
   [4] = {
-    [86015] = { id = 86015; stackId = 86015; fixedTime = 3; stacks = 2; procs = 1; hasProced = 0; isDebuff = false };  -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = 86015; fixedTime = 6; stacks = 1; procs = 1; hasProced = 1; isDebuff = false }; -- Deep Fissure, second proc
+    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
+    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
+  };
+  -- Arcanist
+  [117] = {
+    -- Priority level will be used instead of stacks, shorter durations should have a higher priority
+    --[184258] = { id = 182988; stackId = 182988; procs = 1; hasProced = 0; isSpecialDebuff = true; priority = 1; allowRecast = false }; -- Fulminating Rune Explosion
+    --[182989] = { id = 182988; stackId = 182988; procs = 1; hasProced = 0; isDebuff = true; priority = 0; }; -- Fulminating Rune DOT
   }
 };
--- Class Specific Fade Effects
+
 FancyActionBar.specialClassEffectProcs = {
   --- Effect updates for ability completion conditions keyed by abilityId then procs number
   -- Sorcerer
   [2] = {
-    [24330] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0 }; };
-    [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0 }; };
+    [24330] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; },
+    [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
   };
   -- Warden
   [4] = {
     [86015] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 }; };
-    [178028] = { [1] = { id = 86015; stacks = 0, procs = 1, hasProced = 0 } },
+    [178028] = { [1] = { id = 178028; stacks = 0; procs = 1; hasProced = 0 } };
+  };
+  -- Arcanist
+  [117] = {
+    --[184258] = { [1] = { id = 182988; stacks = 0; procs = 1; hasProced = 0 } };
+    --[182989] = { [1] = { id = 182988; stacks = 0; procs = 1; hasProced = 0 }; };
   };
 };
 
@@ -1277,21 +1289,22 @@ FancyActionBar.frozen = {
 };
 FancyActionBar.iceShield = {
   -- for tracking if able to absord projectiles.
-  [86135] = true; -- crystallized shield
-  -- [86139] = true; -- crystallized slab
+  [86135] = true, -- crystallized shield
+  [86139] = true, -- crystallized slab
   [92168] = true; -- crystallized slab
-  [86143] = true; -- shimmering shield
+  [86143] = true, -- shimmering shield
 };
 FancyActionBar.reflects = {
   -- to track the reflect / absorb charges.
   -- abilities entered here will be updated with EVENT_COMBAT_EVENT 'OnReflect'.
-  [126604] = 28727; -- defensive posture
-  [126608] = 38312; -- defensive stance
-  [38324] = 38317;  -- absorb missile
-
-  [92168] = 86139;  -- crystallized Slab
+  [126604] = 28727, -- defensive posture
+  [126608] = 38312, -- defensive stance
+  [38324] = 38317,  -- absorb missile
+  [86135] = 86135,  -- crystallized shield
+  [86139] = 86139,  -- crystallized slab
+  [86143] = 86143,  -- shimmering shield
 };
-FancyActionBar.ignore = {
+FancyActionBar.dontFade = {
   -- filter for debugging.
   [63601] = true;  -- ESO Plus
   [160197] = true; -- ward master
