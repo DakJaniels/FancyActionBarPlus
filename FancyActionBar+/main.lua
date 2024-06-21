@@ -845,6 +845,7 @@ function FancyActionBar.ResetOverlayDuration(overlay)
     if overlay.effect then
       if overlay.effect.stackId then
         local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(overlay.effect.stackId);
+        overlay.effect.stacks = overlay.effect.stacks and currentStacks;
         FancyActionBar.stacks[overlay.effect.stackId] = currentStacks;
         FancyActionBar.HandleStackUpdate(overlay.effect.id);
       end;
@@ -1008,8 +1009,10 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
       else
         if effect.stackId or effect.stacks then
           if duration <= 0 and (effect.forceExpireStacks or ((effect.isDebuff or effect.isSpecialDebuff) and effect.stacks)) then
+            local stackId = effect.stackId or effect.id
+            effect.stacks = effect.stacks and 0;
             effect.stacks = 0;
-            FancyActionBar.stacks[effect.stackId] = 0;
+            FancyActionBar.stacks[stackId] = 0;
             stacksControl:SetText("");
           end;
         elseif (not FancyActionBar.stacks[effect.stackId]) then
@@ -1314,23 +1317,20 @@ function FancyActionBar.EffectCheck()
     if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
       zo_callLater(function () FancyActionBar.ReCheckSpecialEffect(effect); end, (effect.endTime - checkTime) * 1000);
     else
-    local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
-    if hasEffect then
+      local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
+      if hasEffect then
         effect.endTime = checkTime + duration;
-      if stacks > 0 then
-        FancyActionBar.stacks[effect.id] = stacks;
-      end;
-        effect.stacks = stacks;
-    end;
-    if effect.stackId then
-      local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
-      FancyActionBar.stacks[effect.stackId] = mappedStacks;
-        if (effect.stacks and effect.stacks > 0) or mappedStacks > 0 then
-          effect.stacks = mappedStacks;
+        if stacks > 0 then
+          FancyActionBar.stacks[effect.id] = stacks;
         end;
-    end;
-    FancyActionBar.UpdateEffect(effect);
-    FancyActionBar.HandleStackUpdate(effect.id);
+        effect.stacks = stacks;
+      end;
+      if effect.stackId and effect.stackId ~= effect.id then
+        local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
+        FancyActionBar.stacks[effect.stackId] = mappedStacks;
+      end;
+      FancyActionBar.UpdateEffect(effect);
+      FancyActionBar.HandleStackUpdate(effect.id);
     end;
   end;
 end;
