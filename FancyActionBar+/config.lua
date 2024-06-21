@@ -1304,7 +1304,7 @@ FancyActionBar.reflects = {
   [86139] = 86139,  -- crystallized slab
   [86143] = 86143,  -- shimmering shield
 };
-FancyActionBar.dontFade = {
+FancyActionBar.ignore = {
   -- filter for debugging.
   [63601] = true;  -- ESO Plus
   [160197] = true; -- ward master
