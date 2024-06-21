@@ -1182,7 +1182,7 @@ FancyActionBar.specialClassEffectProcs = {
   -- Warden
   [4] = {
     [86015] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 }; };
-    [178028] = { [1] = { id = 178028; stacks = 0; procs = 1; hasProced = 0 } };
+    [178028] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 } };
   };
   -- Arcanist
   [117] = {
