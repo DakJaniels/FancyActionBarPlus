@@ -875,7 +875,7 @@ local function DisplayUltimateSlotTimer(durationControl, duration, timerColor)
       d:SetText("");
       EM:UnregisterForUpdate(FancyActionBar.GetName() .. "UltTimer");
     else
-      if (SV.showDecimal ~= "Never" and (duration <= SV.showDecimalStart)) then
+      if (SV.showDecimal and SV.showDecimalStart and SV.showExpireStart) and (SV.showDecimal ~= "Never" and (duration <= SV.showDecimalStart)) then
         durationControl:SetText(string.format("%0.1f", zo_max(0, duration)));
       else
         durationControl:SetText(zo_max(0, zo_ceil(duration)));
