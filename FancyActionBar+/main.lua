@@ -2478,11 +2478,7 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
       if effect.id == specialEffect.id then
         if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
           effect.beginTime = updateTime;
-          if specialEffect.fixedTime then
-            endTime = updateTime + specialEffect.duration;
-          else
-            effect.endTime = endTime;
-          end;
+          effect.endTime = updateTime + ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or 0);
           if specialEffect.stacks then
             FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
           end;
@@ -2926,6 +2922,7 @@ function FancyActionBar.Initialize()
             FancyActionBar.UpdateEffect(effect);
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
+            if not specialEffect.needCombatEvent then return end
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or  0) + t;
             FancyActionBar.UpdateEffect(effect);

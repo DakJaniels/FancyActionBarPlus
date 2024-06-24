@@ -1156,13 +1156,13 @@ FancyActionBar.specialClassEffects = {
   --- effects tracked through the HandleSpecial function
   -- Sorcerer
   [2] = {
-    [24330] = { id = 24330; stackId = 24330; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; faded = false; isDebuff = false; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
-    [89491] = { id = 24330; stackId = 24330; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; faded = false; isDebuff = false; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
+    [24330] = { id = 24330; stackId = 24330; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
+    [89491] = { id = 24330; stackId = 24330; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
   };
   -- Warden
   [4] = {
-    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0; isDebuff = false }; -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1; isDebuff = false }; -- Deep Fissure, second proc
+    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
+    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
   };
   -- Arcanist
   [117] = {
