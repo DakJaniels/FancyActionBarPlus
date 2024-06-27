@@ -1247,6 +1247,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     if has then effect.endTime = time() + dur; end;
 
     if effect.stackId and (effect.id ~= effect.stackId) then
+      local _
       _, _, stacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
       FancyActionBar.stacks[effect.stackId] = stacks;
     else
