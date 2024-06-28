@@ -760,23 +760,6 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
   return hasEffect, duration, currentStacks;
 end;
 
-function FancyActionBar.ResolveIdToTrack(type, id) -- special cases.
-  local idToTrack;
-
-  -- if eventually other skills will also need this function.
-  if type == 1 then
-    local sDmg = GetPlayerStat(STAT_SPELL_POWER, STAT_BONUS_OPTION_APPLY_BONUS);
-    local wDmg = GetPlayerStat(STAT_POWER, STAT_BONUS_OPTION_APPLY_BONUS);
-    if sDmg > wDmg
-    then
-      idToTrack = FancyActionBar.soulTrap[id][1]; -- mag
-    else
-      idToTrack = FancyActionBar.soulTrap[id][2];
-    end; -- stam
-  end;
-  return idToTrack;
-end;
-
 function FancyActionBar.GetIdForDestroSkill(id, bar) -- cause too hard for game to figure out.
   local destroId, staffType;
 
@@ -1191,14 +1174,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       instantFade = false;
       stackId = nil;
     else
-      if (FancyActionBar.soulTrap[abilityId]) then
-        if (cfg[1] and cfg[1] == FancyActionBar.abilityConfig[abilityId][1]) -- check if tracked id has been altered
-        then
-          effectId = FancyActionBar.ResolveIdToTrack(1, abilityId);
-        else
-          effectId = cfg[1] or abilityId;
-        end;
-      elseif abilityId == 81420 then -- guard slot id while active for all morphs
+      if abilityId == 81420 then -- guard slot id while active for all morphs
         if guardId > 0 then effectId = guardId; end;
       else
         effectId = cfg[1] or (FancyActionBar.specialEffects[effectId] and FancyActionBar.specialEffects[effectId].id) or abilityId;

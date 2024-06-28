@@ -233,7 +233,7 @@ FancyActionBar.abilityConfig = {
   -- Soul Magic
   [26768] = { 126890 }; -- soul trap
   [40328] = { 126895 }; -- soul splitting trap
-  [40317] = { 126898 }; -- consuming trap
+  [40317] = { 126897 }; -- consuming trap
 
   -- Fighters Guild
   [40336] = { 40340 };  -- silver leash
@@ -1267,13 +1267,6 @@ FancyActionBar.sCorch = {
 FancyActionBar.subAssault = {
   id1 = 86019;
   id2 = 146919;
-};
-FancyActionBar.soulTrap = {
-  -- to check which effect to register once slotted.
-  --slot id = { mag id; stam id}
-  [26768] = { 126890; 126891 }; -- soul trap
-  [40328] = { 126895; 126894 }; -- soul splitting trap
-  [40317] = { 126897; 126898 }; -- consuming trap
 };
 FancyActionBar.meteor = {
   -- same as traps; maybe combine both eventually.
