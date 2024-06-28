@@ -1161,9 +1161,13 @@ FancyActionBar.specialClassEffects = {
   };
   -- Warden
   [4] = {
-    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
-  };
+    [86009] = { id = 86009, stackId = 86009, fixedTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
+    [178020] = { id = 86009, stackId = 86009, fixedTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Scorch, second proc
+    [86019] = { id = 86019, stackId = 86019, fixedTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
+    [146919] = { id = 86019, stackId = 86019, fixedTime = true, duration = 3, stacks = 1, procs = 1, hasProced = 1 }, -- Sub Assault, second proc
+    [86015] = { id = 86015, stackId = 86015, fixedTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Deep Fissure, first proc
+    [178028] = { id = 86015, stackId = 86015, fixedTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Deep Fissure, second proc
+  },
   -- Arcanist
   [117] = {
     -- Priority level will be used instead of stacks, shorter durations should have a higher priority
@@ -1181,9 +1185,13 @@ FancyActionBar.specialClassEffectProcs = {
   };
   -- Warden
   [4] = {
-    [86015] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 }; };
-    [178028] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 } };
-  };
+    [86009] = { [1] = { id = 86009, stacks = 0, procs = 1, hasProced = 0 }, },
+    [178020] = { [1] = { id = 86009, stacks = 0, procs = 1, hasProced = 0 } },
+    [86019] = { [1] = { id = 86019, stacks = 0, procs = 1, hasProced = 0 }, },
+    [146919] = { [1] = { id = 86019, stacks = 0, procs = 1, hasProced = 0 } },
+    [86015] = { [1] = { id = 86015, stacks = 0, procs = 1, hasProced = 0 }, },
+    [178028] = { [1] = { id = 86015, stacks = 0, procs = 1, hasProced = 0 } },
+  },
   -- Arcanist
   [117] = {
     --[184258] = { [1] = { id = 182988; stacks = 0; procs = 1; hasProced = 0 } };
@@ -1255,18 +1263,6 @@ FancyActionBar.guard = {
     [61529] = true; -- stalwart guard
     [61536] = true; -- mystic guard
   };
-};
-FancyActionBar.sCorch = {
-  id1 = 86009;
-  id2 = 178020;
-};
--- FancyActionBar.deepFissure = {
---   id1 = 86015;
---   id2 = 178028;
--- };
-FancyActionBar.subAssault = {
-  id1 = 86019;
-  id2 = 146919;
 };
 FancyActionBar.meteor = {
   -- same as traps; maybe combine both eventually.

@@ -2536,18 +2536,6 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
         effect = FancyActionBar.effects[37475];
         FancyActionBar.stacks[37475] = FancyActionBar.stacks[37475] - 1;
         if FancyActionBar.stacks[37475] <= 0 then endTime = updateTime; end;
-      elseif id == FancyActionBar.sCorch.id1 then
-        FancyActionBar.effects[id].stackId = id;
-        effect = FancyActionBar.effects[id];
-        if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-        FancyActionBar.stacks[id] = 2;
-        endTime = updateTime + 9;
-      elseif id == FancyActionBar.subAssault.id1 then
-        FancyActionBar.effects[id].stackId = id;
-        effect = FancyActionBar.effects[id];
-        if not FancyActionBar.stacks[id] then FancyActionBar.stacks[id] = 0; end;
-        FancyActionBar.stacks[id] = 2;
-        endTime = updateTime + 6;
       else
         if FancyActionBar.effects[id] then
           FancyActionBar.effects[id].stackId = id;
@@ -2571,32 +2559,6 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
         FancyActionBar.stacks[effect.id] = 0;
         effect.endTime = endTime;
         update = true;
-      elseif id == FancyActionBar.sCorch.id1 then
-        FancyActionBar.effects[id].stackId = id;
-        effect = FancyActionBar.effects[id];
-        if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
-      elseif id == FancyActionBar.sCorch.id2 then
-        FancyActionBar.effects[id].stackId = id;
-        effect = FancyActionBar.effects[FancyActionBar.sCorch.id1];
-        if effect.endTime <= updateTime
-        then
-          FancyActionBar.stacks[FancyActionBar.sCorch.id1] = 0;
-        else
-          update = false;
-        end;
-      elseif id == FancyActionBar.subAssault.id1 then
-        FancyActionBar.effects[id].stackId = id;
-        effect = FancyActionBar.effects[id];
-        if FancyActionBar.stacks[id] == 2 then FancyActionBar.stacks[id] = 1; end;
-      elseif id == FancyActionBar.subAssault.id2 then
-        FancyActionBar.effects[FancyActionBar.subAssault.id1].stackId = id;
-        effect = FancyActionBar.effects[FancyActionBar.subAssault.id1];
-        if effect.endTime <= updateTime
-        then
-          FancyActionBar.stacks[FancyActionBar.subAssault.id1] = 0;
-        else
-          update = false;
-        end;
       elseif FancyActionBar.frozen[id] then -- (id == 86179) then -- frozen device
         FancyActionBar.effects[id].stackId = id;
         if FancyActionBar.effects[id].endTime == 0 then return; end;
