@@ -801,6 +801,7 @@ FancyActionBar.stackMap = {
   -- Healing Springs Mag Recovey
   [40062] = {
     40062, -- Healing Springs
+    40060, -- Healing Springs
     99781, -- Grand Rejuviantion
   },
 };
