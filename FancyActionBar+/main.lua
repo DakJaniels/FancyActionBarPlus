@@ -933,20 +933,6 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, dura
       end;
     end;
 
-    if effect.id == FancyActionBar.sCorch.id1 then
-      FancyActionBar.stacks[effect.id] = 0;
-      FancyActionBar.HandleStackUpdate(effect);
-    end;
-
-    -- if effect.id == FancyActionBar.deepFissure.id1 then
-    --   FancyActionBar.stacks[effect.id] = 0;
-    --   FancyActionBar.HandleStackUpdate(effect);
-    -- end;
-
-    if effect.id == FancyActionBar.subAssault.id1 then
-      FancyActionBar.stacks[effect.id] = 0;
-      FancyActionBar.HandleStackUpdate(effect);
-    end;
   else
     if FancyActionBar.ShouldShowExpire(duration)
     then
