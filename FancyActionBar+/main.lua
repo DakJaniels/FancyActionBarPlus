@@ -2457,11 +2457,12 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
 
   if FancyActionBar.specialEffects[id] then
     local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
+    if specialEffect.isReflect then return end
     for effectId, effect in pairs(FancyActionBar.effects) do
       if effect.id == specialEffect.id then
         if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED) then
           effect.beginTime = updateTime;
-          effect.endTime = updateTime + ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or 0);
+          effect.endTime = updateTime + ((specialEffect.fixedTime and specialEffect.duration) or (change == EFFECT_RESULT_GAINED and (GetAbilityDuration(specialEffect.id) / 1000)) or effect.duration or 0);
           if specialEffect.stacks then
             FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
           end;
@@ -2867,7 +2868,7 @@ function FancyActionBar.Initialize()
             FancyActionBar.UpdateEffect(effect);
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
-            if not specialEffect.needCombatEvent then return end
+            if not specialEffect.onAbilityUsed then return end
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or  0) + t;
             FancyActionBar.UpdateEffect(effect);
@@ -3174,6 +3175,7 @@ function FancyActionBar.Initialize()
 
   local function OnReflect(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
     if (tType ~= COMBAT_UNIT_TYPE_PLAYER) then return; end;
+    local doStackUpdate = false
 
     if SV.debugAll then
       local ts = tostring;
@@ -3181,24 +3183,29 @@ function FancyActionBar.Initialize()
       Chat(aName .. " (" .. ts(aId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hit));
       Chat("===================");
     end;
+    
+    local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[aId]);
+    if not specialEffect.isReflect then return end
 
-    if (FancyActionBar.reflects[aId]) then
-      if (result == ACTION_RESULT_EFFECT_GAINED_DURATION) then
-        if FancyActionBar.iceShield[aId] then
-          FancyActionBar.stacks[FancyActionBar.reflects[aId]] = 3;
-        else
-          FancyActionBar.stacks[FancyActionBar.reflects[aId]] = 1;
-        end;
-      elseif (result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.iceShield[aId]) then
-        FancyActionBar.stacks[FancyActionBar.reflects[aId]] = FancyActionBar.stacks[FancyActionBar.reflects[aId]] - 1;
-      elseif (result == ACTION_RESULT_EFFECT_FADED) then
-        FancyActionBar.stacks[FancyActionBar.reflects[aId]] = 0;
-      end;
-      FancyActionBar.HandleStackUpdate(FancyActionBar.reflects[aId]);
-    elseif (FancyActionBar.effects[aId] and result == ACTION_RESULT_EFFECT_FADED) then
-      FancyActionBar.stacks[aId] = 0;
-      FancyActionBar.HandleStackUpdate(aId);
+    if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
+      FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
+      doStackUpdate = true
     end;
+
+    if result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.stacks[specialEffect.stackId] and FancyActionBar.stacks[specialEffect.stackId] > 0 then
+      FancyActionBar.stacks[specialEffect.stackId] = FancyActionBar.stacks[specialEffect.stackId] - 1;
+      doStackUpdate = true
+    end
+
+    if (result == ACTION_RESULT_EFFECT_FADED) then
+      FancyActionBar.stacks[specialEffect.stackId] = 0;
+      doStackUpdate = true
+    end;
+      
+    if doStackUpdate == true then
+      FancyActionBar.HandleStackUpdate(specialEffect.id);
+    end;
+
   end;
 
   EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTIVE_COMPANION_STATE_CHANGED);
@@ -3293,9 +3300,9 @@ function FancyActionBar.Initialize()
     EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
   end;
 
-  for i in pairs(FancyActionBar.needCombatEvent) do
-    EM:RegisterForEvent(NAME .. i, EVENT_COMBAT_EVENT, OnCombatEvent);
-    EM:AddFilterForEvent(NAME .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+  for id in pairs(FancyActionBar.needCombatEvent) do
+    EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent);
+    EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
   end;
 
   if FancyActionBar.graveLordSacrifice then
@@ -3303,12 +3310,11 @@ function FancyActionBar.Initialize()
     EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET);
   end;
 
-  for i, x in pairs(FancyActionBar.reflects) do
-    EM:RegisterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, OnReflect);
-    EM:AddFilterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i);
-
-    EM:RegisterForEvent(NAME .. "Reflect" .. x, EVENT_COMBAT_EVENT, OnReflect);
-    EM:AddFilterForEvent(NAME .. "Reflect" .. x, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, x, REGISTER_FILTER_COMBAT_RESULT, ACTION_RESULT_EFFECT_FADED);
+  for id, effect in pairs(FancyActionBar.specialEffects) do
+    if effect.isReflect then
+      EM:RegisterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, OnReflect);
+      EM:AddFilterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id);
+    end
   end;
 
   -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)

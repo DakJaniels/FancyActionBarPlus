@@ -801,6 +801,7 @@ FancyActionBar.stackMap = {
   -- Healing Springs Mag Recovey
   [40062] = {
     40062, -- Healing Springs
+    40060, -- Healing Springs
     99781, -- Grand Rejuviantion
   },
 };
@@ -1129,14 +1130,24 @@ FancyActionBar.fakeClassEffects = {
 
 FancyActionBar.specialEffects = {
   [52790] = { id = 52790; stackId = 52790; isDebuff = true; forceShow = true }; -- Debuff Effect for the Taunt Counter
-  [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; needCombatEvent = true }; -- Trap Beast Placed
+  [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
   [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Trap Beast DOT
-  [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; needCombatEvent = true }; -- Lightweight Trap Placed
+  [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
   [40375] = { id = 40372; stackId = 40372; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Lightweight Trap DOT
-  [40382] = { id = 40382; stackId = 40382; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; needCombatEvent = true }; -- Barbed Trap Placed
+  [40382] = { id = 40382; stackId = 40382; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
   [40385] = { id = 40382; stackId = 40382; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Barbed Trap DOT
   [40465] = { id = 40465; stackId = 40465; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- Scalding Rune Placed
   [40468] = { id = 40465; stackId = 40465; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };  -- Scalding Rune DOT
+
+  [28727] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive posture
+  [126604] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive posture
+
+  [38312] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive stance
+  [126608] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive stance
+
+  [38317] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };  -- absorb missile
+  [38324] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };  -- absorb missile
+
 };
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
@@ -1167,6 +1178,11 @@ FancyActionBar.specialClassEffects = {
     [146919] = { id = 86019; stackId = 86019; fixedTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
     [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
     [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
+
+    [86135] = {id = 86135; stackId = 86135; stacks = 3; isReflect = true; onAbilityUsed = true; }; -- crystallized shield
+    [86139] = {id = 86139; stackId = 86139; stacks = 3; isReflect = true; onAbilityUsed = true; }; -- crystallized slab
+    [86143] = {id = 86143; stackId = 86143; stacks = 3; isReflect = true; onAbilityUsed = true; }; -- shimmering shield
+  
   };
   -- Arcanist
   [117] = {
@@ -1276,23 +1292,7 @@ FancyActionBar.frozen = {
   [86179] = true; -- frozen device
   [86183] = true; -- frozen retreat
 };
-FancyActionBar.iceShield = {
-  -- for tracking if able to absord projectiles.
-  [86135] = true, -- crystallized shield
-  [86139] = true, -- crystallized slab
-  [92168] = true; -- crystallized slab
-  [86143] = true, -- shimmering shield
-};
-FancyActionBar.reflects = {
-  -- to track the reflect / absorb charges.
-  -- abilities entered here will be updated with EVENT_COMBAT_EVENT 'OnReflect'.
-  [126604] = 28727, -- defensive posture
-  [126608] = 38312, -- defensive stance
-  [38324] = 38317,  -- absorb missile
-  [86135] = 86135,  -- crystallized shield
-  [86139] = 86139,  -- crystallized slab
-  [86143] = 86143,  -- shimmering shield
-};
+
 FancyActionBar.ignore = {
   -- filter for debugging.
   [63601] = true;  -- ESO Plus
