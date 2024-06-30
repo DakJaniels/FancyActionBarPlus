@@ -2868,7 +2868,7 @@ function FancyActionBar.Initialize()
             FancyActionBar.UpdateEffect(effect);
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
-            if not specialEffect.needCombatEvent then return end
+            if not specialEffect.onAbilityUsed then return end
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or  0) + t;
             FancyActionBar.UpdateEffect(effect);
@@ -3118,93 +3118,86 @@ function FancyActionBar.Initialize()
   end;
 
   local function OnCombatEvent(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
+    local doStackUpdate = false
+    local doEffectUpdate = false
     local effect;
     local t = time();
 
     local specialEffect = FancyActionBar.specialEffects[aId]
       and ZO_DeepTableCopy(FancyActionBar.specialEffects[aId]);
     local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff;
-    if specialEffect and not useSpecialDebuffTracking then
+
+    if specialEffect and specialEffect.isReflect then
+      
+
+      if SV.debugAll then
+        local ts = tostring;
+        Chat("===================");
+        Chat(aName .. " (" .. ts(aId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hit));
+        Chat("===================");
+      end;
+
+      if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
+        FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
+        doStackUpdate = true
+      end;
+      if result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.stacks[specialEffect.stackId] and FancyActionBar.stacks[specialEffect.stackId] > 0 then
+        FancyActionBar.stacks[specialEffect.stackId] = FancyActionBar.stacks[specialEffect.stackId] - 1;
+        doStackUpdate = true
+      end
+      if (result == ACTION_RESULT_EFFECT_FADED) then
+        FancyActionBar.stacks[specialEffect.stackId] = 0;
+        doStackUpdate = true
+      end;
+      if doStackUpdate == true then
+        FancyActionBar.HandleStackUpdate(specialEffect.id);
+      end;
+
+    elseif specialEffect and not useSpecialDebuffTracking then
+
       FancyActionBar.HandleSpecial(aId, result, t, t, t + GetAbilityDuration(aId), _, tId);
       return;
-    end;
 
-    if (FancyActionBar.needCombatEvent[aId] and result == FancyActionBar.needCombatEvent[aId].result) then
+    elseif (FancyActionBar.needCombatEvent[aId] and result == FancyActionBar.needCombatEvent[aId].result) then
       effect = FancyActionBar.effects[aId];
       if effect then
         effect.endTime = time() + FancyActionBar.needCombatEvent[aId].duration;
-        -- effect.faded = false
+        doEffectUpdate = true
 
         -- local ts = tostring
         -- Chat('===================')
         -- Chat(aName..' ('..ts(aId)..') || result: '..ts(result)..' || hit: '..ts(hit))
         -- Chat('===================')
 
-        FancyActionBar.UpdateEffect(effect);
-        return;
       end;
-    end;
+    elseif activeFakes[aId] and result == ACTION_RESULT_EFFECT_GAINED then
 
-    if (result == ACTION_RESULT_EFFECT_GAINED and activeFakes[aId]) then
       activeFakes[aId] = false;
       effect = FancyActionBar.effects[aId];
       if effect then
         effect.endTime = time() + fakes[aId].duration;
-
-        FancyActionBar.UpdateEffect(effect);
-
-        -- effect.faded = false
+        doEffectUpdate = true
 
         -- local ts = tostring
         -- Chat('===================')
         -- Chat(aName..' ('..ts(aId)..') || result: '..ts(result)..' || hit: '..ts(hit))
         -- Chat('===================')
 
-        FancyActionBar.UpdateEffect(effect);
       end;
-    end;
 
-    if aId == FancyActionBar.graveLordSacrifice.eventId then
+    elseif aId == FancyActionBar.graveLordSacrifice.eventId then
+
       effect = FancyActionBar.effects[FancyActionBar.graveLordSacrifice.id];
       if effect then
         effect.endTime = time() + FancyActionBar.graveLordSacrifice.duration;
-        FancyActionBar.UpdateEffect(effect);
+        doEffectUpdate = true
       end;
-    end;
-  end;
 
-  local function OnReflect(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
-    if (tType ~= COMBAT_UNIT_TYPE_PLAYER) then return; end;
-    local doStackUpdate = false
-
-    if SV.debugAll then
-      local ts = tostring;
-      Chat("===================");
-      Chat(aName .. " (" .. ts(aId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hit));
-      Chat("===================");
-    end;
-    
-    local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[aId]);
-    if not specialEffect.isReflect then return end
-
-    if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
-      FancyActionBar.stacks[specialEffect.stackId] = specialEffect.stacks;
-      doStackUpdate = true
     end;
 
-    if result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.stacks[specialEffect.stackId] and FancyActionBar.stacks[specialEffect.stackId] > 0 then
-      FancyActionBar.stacks[specialEffect.stackId] = FancyActionBar.stacks[specialEffect.stackId] - 1;
-      doStackUpdate = true
+    if effect and doEffectUpdate == true then
+      FancyActionBar.UpdateEffect(effect);
     end
-
-    if (result == ACTION_RESULT_EFFECT_FADED) then
-      FancyActionBar.stacks[specialEffect.stackId] = 0;
-      doStackUpdate = true
-    end;
-      
-    if doStackUpdate == true then
-      FancyActionBar.HandleStackUpdate(specialEffect.id);
-    end;
 
   end;
 
@@ -3308,13 +3301,6 @@ function FancyActionBar.Initialize()
   if FancyActionBar.graveLordSacrifice then
     EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, OnCombatEvent);
     EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET);
-  end;
-
-  for i, x in pairs(FancyActionBar.specialEffects) do
-    if x.isReflect then
-      EM:RegisterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, OnReflect);
-      EM:AddFilterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i);
-    end
   end;
 
   -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
