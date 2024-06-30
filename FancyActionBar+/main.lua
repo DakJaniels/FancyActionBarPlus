@@ -2868,7 +2868,7 @@ function FancyActionBar.Initialize()
             FancyActionBar.UpdateEffect(effect);
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
-            if not specialEffect.needCombatEvent then return end
+            if not specialEffect.onAbilityUsed then return end
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or  0) + t;
             FancyActionBar.UpdateEffect(effect);
@@ -3300,9 +3300,9 @@ function FancyActionBar.Initialize()
     EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
   end;
 
-  for i in pairs(FancyActionBar.needCombatEvent) do
-    EM:RegisterForEvent(NAME .. i, EVENT_COMBAT_EVENT, OnCombatEvent);
-    EM:AddFilterForEvent(NAME .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+  for id in pairs(FancyActionBar.needCombatEvent) do
+    EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent);
+    EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
   end;
 
   if FancyActionBar.graveLordSacrifice then
@@ -3310,10 +3310,10 @@ function FancyActionBar.Initialize()
     EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET);
   end;
 
-  for i, x in pairs(FancyActionBar.specialEffects) do
-    if x.isReflect then
-      EM:RegisterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, OnReflect);
-      EM:AddFilterForEvent(NAME .. "Reflect" .. i, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, i);
+  for id, effect in pairs(FancyActionBar.specialEffects) do
+    if effect.isReflect then
+      EM:RegisterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, OnReflect);
+      EM:AddFilterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id);
     end
   end;
 
