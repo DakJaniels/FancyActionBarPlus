@@ -149,7 +149,7 @@ FancyActionBar.abilityConfig = {
   [38970] = { 62712 };  -- frost reach
   [29173] = { 61743 };  -- weaknees to elements
   [39089] = { 39089 };  -- elemental susceptibility
-  [39095] = { 61743 };  -- elemental drain (minor magickasteal)
+  [39095] = { 39095 };  -- elemental drain
   [28794] = { 115003 }; -- fire impulse (BRP destro)
   [28799] = { 115003 }; -- shock impulse (BRP destro)
   [28798] = { 115003 }; -- frost impulse (BRP destro)
@@ -803,16 +803,31 @@ FancyActionBar.stackMap = {
     40062, -- Healing Springs
     40060, -- Healing Springs
     99781, -- Grand Rejuviantion
-  },
-};
+  };
+  
 
--- Abilities here also have to be present in stackMap
--- FancyActionBar.fixedStacks = {
---   -- stackSourceId = targetId
---   -- [52790] = {52790, false}; -- taunt counter, taunt
---   [24330] = 2; -- first proc, haunting curse
---   [89491] = 1; -- second proc, haunting curse
--- }
+  -- These IDs are here because the ability that applies them can
+  -- be cast on multiple targets simultaneously and we want to add
+  -- a stack for each instance of the parent ability that's active
+  -- Defined in FancyActionBar.multiTarget
+  
+  -- Minor Vuln
+  [79717] =
+  { 185918;
+    185921;
+  };
+
+  --Minor Brittle
+  [145975] = { 183267 };
+
+  -- weaknees to elements
+  [29173] = { 29173 };
+  -- elemental susceptibility
+  [39089] = { 39089 };
+
+  -- elemental drain
+  [39095] = { 39095 };
+};
 
 FancyActionBar.debuffIds = {
   -- Two Handed
@@ -866,7 +881,7 @@ FancyActionBar.debuffIds = {
   [38970] = { 62712 };  -- frost reach
   [29173] = { 61743 };  -- weaknees to elements
   [39089] = { 39089 };  -- elemental susceptibility
-  [39095] = { 61743 };  -- elemental drain (minor magickasteal)
+  [39095] = { 39095 };  -- elemental drain
   [28794] = { 115003 }; -- fire impulse (BRP destro)
   [28799] = { 115003 }; -- shock impulse (BRP destro)
   [28798] = { 115003 }; -- frost impulse (BRP destro)
@@ -1015,6 +1030,7 @@ FancyActionBar.debuffIds = {
   [185921] = { 79717 };  -- rune of uncanny adoration (minor vuln)
   [183267] = { 145975 }; -- rune of the colorless pool (minor brittle)
 };
+
 FancyActionBar.specialIds = {
   -- abilities that require a separate function to update correctly.
   [16536] = true;  -- meteor called
@@ -1220,12 +1236,7 @@ FancyActionBar.needCombatEvent = {
   [38794] = { duration = GetAbilityDuration(38794) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- forward momentum
   --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- rally
 };
---FancyActionBar.stackingDebuffs  = {
--- (debuffs on enemy targets)
--- currently not in use; but will eventually update timers and stacks when a target dies.
---[38745] = true; -- carve
---[134336] = true; -- stagger
---}
+
 FancyActionBar.toggled = {
   -- effects with no duration are discarded for tracking.
   -- add exceptions for toggles here.
@@ -1264,11 +1275,13 @@ FancyActionBar.toggled = {
   -- [24806] = true; -- Energy Overload
   -- [24804] = true; -- Power Overload
 };
+
 FancyActionBar.graveLordSacrifice = {
   id = 117749;
   eventId = 117757;
   duration = 20;
 };
+
 FancyActionBar.guard = {
   -- to help identify and update overlays as the slotted id changes depending on link state.
   link = 81420;
@@ -1280,12 +1293,14 @@ FancyActionBar.guard = {
     [61536] = true; -- mystic guard
   };
 };
+
 FancyActionBar.meteor = {
   -- same as traps; maybe combine both eventually.
   [63430] = 16536; -- meteor
   [63456] = 40489; -- ice comet
   [63473] = 40493; -- shooting star
 };
+
 FancyActionBar.frozen = {
   -- for tracking active portals.
   [86175] = true; -- frozen gate
@@ -1301,6 +1316,7 @@ FancyActionBar.ignore = {
   [61744] = true;  -- minor berserk
   [114716] = true; -- crystal frags
 };
+
 FancyActionBar.dontFade = {
   -- don't reset duration when effect fades until function to update corretly is in place.
   -- buffs
@@ -1446,6 +1462,7 @@ FancyActionBar.dontFade = {
   [185840] = true; -- rune of displacement (rune of displacement)
   [182989] = true; -- fulminating rune (fulminating rune)
 };
+
 FancyActionBar.removeInstantly = {
   -- 'proc' effects seem to clutter more when '0.0' is being displayed after use.
   -- few other effects gave same impression. will add options.
@@ -1474,6 +1491,7 @@ FancyActionBar.removeInstantly = {
   [184220] = true; -- crux
   [52790] = true;  -- taunt counter
 };
+
 FancyActionBar.allowedChanneled = {
   -- all channeled abilities are set to be untracked; unless added here.
   [103492] = true; -- Meditate
@@ -1498,6 +1516,7 @@ FancyActionBar.allowedChanneled = {
   [186200] = true; -- curative surge
   [198537] = true; -- curative surge
 };
+
 FancyActionBar.soloTarget = {
   -- abilities that are removed from target when cast before it expires.
   [28025] = true; -- encase
@@ -1506,6 +1525,12 @@ FancyActionBar.soloTarget = {
   [24326] = true; -- Daedric Curse
   [24330] = true; -- haunting curse
   [24328] = true; -- Daedric Prey
+};
+
+FancyActionBar.multiTarget = {
+  [29173] = {}; -- weaknees to elements
+  [39089] = {}; -- elemental susceptibility
+  [39095] = {}; -- elemental drain (minor magickasteal)
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;
