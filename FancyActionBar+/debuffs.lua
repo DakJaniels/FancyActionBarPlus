@@ -12,6 +12,7 @@ local targetDebuffs = {};
 local activeDebuffs = {};
 local debuffTargets = {};
 local enemyDebuffs = {};
+local time = GetFrameTimeSeconds;
 
 ---@param msg string
 ---@param ... any
@@ -322,12 +323,10 @@ local function GetTargetEffects()
   return debuffs, debuffNum;
 end;
 
-local function UpdateDebuff(debuff, t, stacks, unitId, isTarget)
+local function UpdateDebuff(debuff, stacks, unitId, isTarget)
   if not debuff then return; end;
   local doStackUpdate = false;
   local idsToUpdate = {};
-  debuff.endTime = t;
-
   if debuff.id == debuff.stackId then
     debuff.stacks = stacks;
     FancyActionBar.stacks[debuff.stackId] = stacks;
@@ -392,7 +391,7 @@ local function OnReticleTargetChanged()
         FancyActionBar.debuffs[debuff.id] = debuff;
         FancyActionBar.debuffs[debuff.id].activeOnTarget = true;
         FancyActionBar.debuffs[debuff.id].endTime = debuff.endTime;
-        UpdateDebuff(FancyActionBar.debuffs[debuff.id], debuff.endTime, debuff.stacks, tId, true);
+        UpdateDebuff(FancyActionBar.debuffs[debuff.id], debuff.stacks, tId, true);
       end;
     end;
 
@@ -401,7 +400,7 @@ local function OnReticleTargetChanged()
       if keep[debuff.id] == nil then -- update debuffs that are not active on the target according to settings.
         debuff.activeOnTarget = false;
         debuff.endTime = 0;
-        UpdateDebuff(FancyActionBar.debuffs[id], debuff.endTime, 0, tId, false);
+        UpdateDebuff(FancyActionBar.debuffs[id], 0, tId, false);
       end;
     end;
     -- OnNewTarget()
@@ -440,7 +439,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
       if specialEffect.fixedTime then
         endTime = t + specialEffect.duration;
-        debuff.endTime = endTime;
       end;
       if not specialEffect.stacks then
         if debuff.id == debuff.stackId then
@@ -457,23 +455,19 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
     end;
 
-    debuff.beginTime = t;
+    debuff.beginTime = t or beginTime or time();
     debuff.endTime = endTime;
     debuff.duration = endTime - beginTime;
-
     FancyActionBar.debuffs[debuff.id] = debuff;
-    if FancyActionBar.activeCasts[debuff.id] then FancyActionBar.activeCasts[debuff.id].begin = beginTime; end;
+    if FancyActionBar.activeCasts[debuff.id] then FancyActionBar.activeCasts[debuff.id].begin = debuff.beginTime; end;
 
     if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
-      UpdateDebuff(debuff, debuff.endTime, debuff.stacks, unitId, true);
+      UpdateDebuff(debuff, debuff.stacks, unitId, true);
     else
       FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t));
     end;
   elseif (change == EFFECT_RESULT_FADED) then
-    if debuff.beginTime and (debuff.beginTime > t - 0.5) and not FancyActionBar.removeInstantly[debuff.id] then
-      return;
-    end;
-    
+    if debuff.beginTime and (debuff.beginTime - t < 0.3) and not debuff.instantFade then return; end;
     if debuff and specialEffect then
       if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
         return; -- we don't need to worry about this effect anymore because it has already proced
@@ -487,12 +481,10 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
     end;
 
-    if (FancyActionBar.activeCasts[debuff.id] and FancyActionBar.activeCasts[debuff.id].begin < (t - 0.7) and debuff.instantFade) or FancyActionBar.removeInstantly[debuff.id] then
+    if debuff.instantFade then
       debuff.endTime = 0;
-    else
-      debuff.endTime = t;
     end;
-    UpdateDebuff(debuff, debuff.endTime, debuff.stacks, unitId, false);
+    UpdateDebuff(debuff, debuff.stacks, unitId, false);
   end;
 end;
 
@@ -513,7 +505,8 @@ local function ClearDebuffsOnCombatEnd()
       if (specialEffect and specialEffect.fixedTime) and (debuff.endTime and debuff.endTime > t) then
         keep[i] = true;
       else
-        UpdateDebuff(debuff, t, 0, 0, false);
+        debuff.endTime = 0;
+        UpdateDebuff(debuff, 0, 0, false);
       end;
       ClearDebuffs(keep);
     end;
