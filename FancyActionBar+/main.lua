@@ -1157,7 +1157,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       effectId = abilityId;
       custom = true;
       toggled = false;
-      instantFade = false;
+      instantFade = FancyActionBar.removeInstantly[effectId] or false;
       stackId = nil;
     else
       if abilityId == 81420 then -- guard slot id while active for all morphs
