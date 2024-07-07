@@ -147,7 +147,7 @@ FancyActionBar.abilityConfig = {
   [38944] = { 62682 };  -- flame reach
   [38978] = { 62745 };  -- shock reach
   [38970] = { 62712 };  -- frost reach
-  [29173] = { 61743 };  -- weaknees to elements
+  [29173] = { 61743 };  -- Weakness to elements
   [39089] = { 39089 };  -- elemental susceptibility
   [39095] = { 39095 };  -- elemental drain
   [28794] = { 115003 }; -- fire impulse (BRP destro)
@@ -797,20 +797,20 @@ FancyActionBar.stackMap = {
   --   24330; -- first proc, haunting curse
   --   89491; -- second proc, haunting curse
   -- }
-  
+
   -- Healing Springs Mag Recovey
   [40062] = {
-    40062, -- Healing Springs
-    40060, -- Healing Springs
-    99781, -- Grand Rejuviantion
+    40062; -- Healing Springs
+    40060; -- Healing Springs
+    99781; -- Grand Rejuviantion
   };
-  
+
 
   -- These IDs are here because the ability that applies them can
   -- be cast on multiple targets simultaneously and we want to add
   -- a stack for each instance of the parent ability that's active
   -- Defined in FancyActionBar.multiTarget
-  
+
   -- Minor Vuln
   [79717] =
   { 185918;
@@ -820,13 +820,24 @@ FancyActionBar.stackMap = {
   --Minor Brittle
   [145975] = { 183267 };
 
-  -- weaknees to elements
+  -- Weakness to Elements
   [29173] = { 29173 };
-  -- elemental susceptibility
+
+  -- Elemental Susceptibility
   [39089] = { 39089 };
 
-  -- elemental drain
+  -- Elemental Drain
   [39095] = { 39095 };
+
+  -- Entropy
+  [126370] = { 126370 };
+
+  -- Structured Entropy
+  [126371] = { 126371 };
+
+  -- Degeneration
+  [126374] = { 126374 };
+
 };
 
 FancyActionBar.debuffIds = {
@@ -879,7 +890,7 @@ FancyActionBar.debuffIds = {
   [38944] = { 62682 };  -- flame reach
   [38978] = { 62745 };  -- shock reach
   [38970] = { 62712 };  -- frost reach
-  [29173] = { 61743 };  -- weaknees to elements
+  [29173] = { 61743 };  -- Weakness to elements
   [39089] = { 39089 };  -- elemental susceptibility
   [39095] = { 39095 };  -- elemental drain
   [28794] = { 115003 }; -- fire impulse (BRP destro)
@@ -918,9 +929,9 @@ FancyActionBar.debuffIds = {
 
   -- Fighters Guild
   [40336] = { 40340 }; -- silver leash
-  [35750] = { }; -- trap beast dot
-  [40372] = { }; -- lightweight beast trap dot
-  [40382] = { }; -- barbed trap dot
+  [35750] = {};        -- trap beast dot
+  [40372] = {};        -- lightweight beast trap dot
+  [40382] = {};        -- barbed trap dot
   [35713] = { 62305 }; -- dawnbreaker
   [40158] = { 62314 }; -- dawnbreaker of smiting
 
@@ -928,7 +939,7 @@ FancyActionBar.debuffIds = {
   [28567] = { 126370 }; -- entropy
   [40452] = { 126371 }; -- structured entropy
   [40457] = { 126374 }; -- degeneration
-  [40465] = { };  -- scalding rune (dot)
+  [40465] = {};         -- scalding rune (dot)
 
   -- Psijic Order
   [104059] = { 104078 }; -- borrowed time shield absorb
@@ -963,9 +974,9 @@ FancyActionBar.debuffIds = {
   [32685] = {};          -- fossilize
 
   -- Sorcerer
-  [28025] = {}; -- encase
-  [28308] = {}; -- shattering prison
-  [28311] = {}; -- restraining prison
+  [28025] = {};        -- encase
+  [28308] = {};        -- shattering prison
+  [28311] = {};        -- restraining prison
   [24326] = { 24326 }; -- Daedric Curse
   [24330] = { 24330 }; -- haunting curse
   [24328] = { 24328 }; -- Daedric Prey
@@ -1145,24 +1156,24 @@ FancyActionBar.fakeClassEffects = {
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
 FancyActionBar.specialEffects = {
-  [52790] = { id = 52790; stackId = 52790; isDebuff = true; forceShow = true }; -- Debuff Effect for the Taunt Counter
+  [52790] = { id = 52790; stackId = 52790; isDebuff = true; forceShow = true };                                                                                                                         -- Debuff Effect for the Taunt Counter
   [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
-  [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Trap Beast DOT
+  [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
   [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
-  [40375] = { id = 40372; stackId = 40372; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Lightweight Trap DOT
+  [40375] = { id = 40372; stackId = 40372; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Lightweight Trap DOT
   [40382] = { id = 40382; stackId = 40382; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
-  [40385] = { id = 40382; stackId = 40382; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Barbed Trap DOT
-  [40465] = { id = 40465; stackId = 40465; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- Scalding Rune Placed
-  [40468] = { id = 40465; stackId = 40465; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };  -- Scalding Rune DOT
+  [40385] = { id = 40382; stackId = 40382; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Barbed Trap DOT
+  [40465] = { id = 40465; stackId = 40465; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
+  [40468] = { id = 40465; stackId = 40465; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Scalding Rune DOT
 
-  [28727] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive posture
-  [126604] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive posture
+  [28727] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive posture
+  [126604] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive posture
 
-  [38312] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive stance
-  [126608] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; }; -- defensive stance
+  [38312] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive stance
+  [126608] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive stance
 
-  [38317] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };  -- absorb missile
-  [38324] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };  -- absorb missile
+  [38317] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
+  [38324] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
 
 };
 
@@ -1195,10 +1206,10 @@ FancyActionBar.specialClassEffects = {
     [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
     [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
 
-    [86135] = {id = 86135; stackId = 86135; stacks = 3; isReflect = true; onAbilityUsed = true; }; -- crystallized shield
-    [86139] = {id = 86139; stackId = 86139; stacks = 3; isReflect = true; onAbilityUsed = true; }; -- crystallized slab
-    [86143] = {id = 86143; stackId = 86143; stacks = 3; isReflect = true; onAbilityUsed = true; }; -- shimmering shield
-  
+    [86135] = { id = 86135; stackId = 86135; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized shield
+    [86139] = { id = 86139; stackId = 86139; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized slab
+    [86143] = { id = 86143; stackId = 86143; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- shimmering shield
+
   };
   -- Arcanist
   [117] = {
@@ -1531,9 +1542,12 @@ FancyActionBar.soloTarget = {
 };
 
 FancyActionBar.multiTarget = {
-  [29173] = {}; -- weaknees to elements
-  [39089] = {}; -- elemental susceptibility
-  [39095] = {}; -- elemental drain (minor magickasteal)
+  [29173] = {};  -- Weakness to elements
+  [39089] = {};  -- elemental susceptibility
+  [39095] = {};  -- elemental drain
+  [126370] = {}; -- entropy
+  [126371] = {}; -- structured entropy
+  [126374] = {}; -- degeneration
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;
