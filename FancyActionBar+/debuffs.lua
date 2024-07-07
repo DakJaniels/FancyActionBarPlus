@@ -183,12 +183,12 @@ local function ClearDebuffsIfNotOnTarget()
   for id, debuff in pairs(FancyActionBar.debuffs) do
     debuff.activeOnTarget = false;
     debuff.endTime = 0;
-    debuff.stacks = 0
+    debuff.stacks = 0;
     local doStackUpdate = false;
     if FancyActionBar.stacks[debuff.stackId] then
       FancyActionBar.stacks[debuff.stackId] = 0;
       doStackUpdate = true;
-        end;
+    end;
     if FancyActionBar.stacks[debuff.id] then
       FancyActionBar.stacks[debuff.id] = 0;
       doStackUpdate = true;
@@ -196,11 +196,11 @@ local function ClearDebuffsIfNotOnTarget()
     for id, effect in pairs(FancyActionBar.effects) do
       if effect.stackId and effect.stackId == debuff.id then
         doStackUpdate = true;
-      end
+      end;
       if debuff.id == effect.id then
         for i, x in pairs(debuff) do effect[i] = x; end;
         effect.endTime = time();
-            end;
+      end;
       FancyActionBar.UpdateEffect(effect);
       if doStackUpdate then
         FancyActionBar.HandleStackUpdate(effect.id);
@@ -333,8 +333,8 @@ local function UpdateDebuff(debuff, t, stacks, unitId, isTarget)
     FancyActionBar.stacks[debuff.stackId] = stacks;
     doStackUpdate = true;
   end;
-    for id, effect in pairs(FancyActionBar.effects) do
-      if effect.id == debuff.id then
+  for id, effect in pairs(FancyActionBar.effects) do
+    if effect.id == debuff.id then
       for dId, dEffect in pairs(debuff) do effect[dId] = dEffect; end;
       FancyActionBar.effects[id] = effect;
       FancyActionBar.UpdateEffect(effect);
@@ -378,14 +378,14 @@ local function OnReticleTargetChanged()
           end;
         end;
         local specialEffect = (FancyActionBar.specialEffects[debuff.id]
-                    and ZO_DeepTableCopy(FancyActionBar.specialEffects[debuff.id]));
+          and ZO_DeepTableCopy(FancyActionBar.specialEffects[debuff.id]));
         if specialEffect then
           keep[debuff.id] = true; -- make sure we're keeping the debuff in case the specialEffect changes the id
           for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
           if specialEffect.fixedTime then
             debuff.endTime = debuff.beginTime + specialEffect.duration;
           end;
-        end
+        end;
 
         keep[debuff.id] = true;
         debuff.duration = debuff.endTime - debuff.beginTime;
@@ -425,8 +425,8 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
   if SV.keepLastTarget == false and tag ~= "reticleover" then return; end;
 
   local specialEffect = (FancyActionBar.specialEffects[abilityId]
-   and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]));
-  
+    and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]));
+
   for stackSourceId, targetIds in pairs(FancyActionBar.stackMap) do
     for i = 1, #targetIds do
       if targetIds[i] == abilityId then
@@ -448,19 +448,19 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         else
           debuff.stacks = FancyActionBar.stacks[debuff.stackId] or stackCount;
         end;
-      end
+      end;
     elseif stackCount then
       if debuff.id == debuff.stackId then
         debuff.stacks = stackCount or 1;
       else
         debuff.stacks = FancyActionBar.stacks[debuff.stackId] or stackCount;
       end;
-    end
+    end;
 
     debuff.beginTime = t;
     debuff.endTime = endTime;
     debuff.duration = endTime - beginTime;
-    
+
     FancyActionBar.debuffs[debuff.id] = debuff;
     if FancyActionBar.activeCasts[debuff.id] then FancyActionBar.activeCasts[debuff.id].begin = beginTime; end;
 
@@ -469,8 +469,11 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     else
       FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t));
     end;
-    elseif (change == EFFECT_RESULT_FADED) then
-    if (debuff.beginTime and (debuff.beginTime > t - 0.5)) and (not FancyActionBar.removeInstantly[debuff.id]) then return; end;
+  elseif (change == EFFECT_RESULT_FADED) then
+    if debuff.beginTime and (debuff.beginTime > t - 0.5) and not FancyActionBar.removeInstantly[debuff.id] then
+      return;
+    end;
+    
     if debuff and specialEffect then
       if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
         return; -- we don't need to worry about this effect anymore because it has already proced
@@ -502,13 +505,13 @@ end;
 -- end
 
 local function ClearDebuffsOnCombatEnd()
-    local t = time();
+  local t = time();
   local keep = {};
   if not IsUnitInCombat("player") then
     for i, debuff in pairs(FancyActionBar.debuffs) do
-      local specialEffect = FancyActionBar.specialEffects[debuff.id]
+      local specialEffect = FancyActionBar.specialEffects[debuff.id];
       if (specialEffect and specialEffect.fixedTime) and (debuff.endTime and debuff.endTime > t) then
-        keep[i] = true
+        keep[i] = true;
       else
         UpdateDebuff(debuff, t, 0, 0, false);
       end;
