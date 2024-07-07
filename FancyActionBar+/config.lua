@@ -1490,6 +1490,9 @@ FancyActionBar.removeInstantly = {
   [117625] = true; -- venom skull
   [184220] = true; -- crux
   [52790] = true;  -- taunt counter
+  [18746] = true;  -- mages' fury debuff
+  [19118] = true;  -- endless fury debuff
+  [19125] = true;  -- mages' wrath debuff
 };
 
 FancyActionBar.allowedChanneled = {
