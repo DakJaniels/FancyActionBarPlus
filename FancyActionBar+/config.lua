@@ -410,7 +410,7 @@ FancyActionBar.abilityConfig = {
   [108840] = { 108842 }; -- summon unstable familiar
   [23304] = { 108844 };  -- unstable pulse
   [24326] = { 24326 };   -- Daedric Curse
-  [24330] = {};          -- haunting curse - 89491 is second proc
+  [24330] = { 24330 };   -- haunting curse - 89491 is second proc
   [24328] = { 24328 };   -- Daedric Prey
   [28418] = { 28418 };   -- Conjured Ward
   [29489] = { 29489 };   -- Hardened Ward
@@ -966,9 +966,9 @@ FancyActionBar.debuffIds = {
   [28025] = {}; -- encase
   [28308] = {}; -- shattering prison
   [28311] = {}; -- restraining prison
-  [24326] = {}; -- Daedric Curse
-  [24330] = {}; -- haunting curse
-  [24328] = {}; -- Daedric Prey
+  [24326] = { 24326 }; -- Daedric Curse
+  [24330] = { 24330 }; -- haunting curse
+  [24328] = { 24328 }; -- Daedric Prey
 
   -- Templar
   [21726] = { 21728 }; -- sun fire
