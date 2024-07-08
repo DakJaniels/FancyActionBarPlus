@@ -416,8 +416,7 @@ FancyActionBar.abilityConfig = {
   [29489] = { 29489 };   -- Hardened Ward
   [29482] = { 29482 };   -- Empowered Ward
   [24158] = { 24158 };   -- Bound Armor
-  [24165] = { 24165 };   -- bound armaments
-  [130291] = { 24165 };  --  false  ; -- track Bound Armaments duration instead of its proc
+  [24165] = { 203447 };  -- bound armaments
   [24163] = { 24163 };   -- Bound Aegis
   [23634] = { 80459 };   -- Summon Storm Atronach
   [23492] = { 80463 };   -- greater storm atronarch
@@ -757,7 +756,10 @@ FancyActionBar.stackMap = {
   [122586] = { 61919 };  -- Merciless Resolve
   [122587] = { 61927 };  -- Relentless Focus
 
-  [203447] = { 24165 };  -- Bound Armaments
+  [203447] = {
+    24165;  -- Bound Armaments
+    203447; -- Bound Armaments Stacks
+  };
 
   [51392] = { 51392 };   -- Streak Fatigue
 
@@ -830,13 +832,22 @@ FancyActionBar.stackMap = {
   [39095] = { 39095 };
 
   -- Entropy
-  [126370] = { 126370 };
+  [126370] = {
+    28567;  -- Entropy abilityId
+    126370; -- Entropy debuffId
+  };
 
   -- Structured Entropy
-  [126371] = { 126371 };
+  [126371] = {
+    40452;  -- Structured Entropy abilityId
+    126371; -- Structured Entropy debuffId
+  };
 
   -- Degeneration
-  [126374] = { 126374 };
+  [126374] = {
+    40457;  -- Degeneration abilityId
+    126374; -- Degeneration debuffId
+  };
 
 };
 
@@ -1542,12 +1553,12 @@ FancyActionBar.soloTarget = {
 };
 
 FancyActionBar.multiTarget = {
-  [29173] = {};  -- Weakness to elements
-  [39089] = {};  -- elemental susceptibility
-  [39095] = {};  -- elemental drain
-  [126370] = {}; -- entropy
-  [126371] = {}; -- structured entropy
-  [126374] = {}; -- degeneration
+  [29173] = { targets = 0 };  -- Weakness to elements
+  [39089] = { targets = 0 };  -- elemental susceptibility
+  [39095] = { targets = 0 };  -- elemental drain
+  [126370] = { targets = 0 }; -- entropy
+  [126371] = { targets = 0 }; -- structured entropy
+  [126374] = { targets = 0 }; -- degeneration
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;
