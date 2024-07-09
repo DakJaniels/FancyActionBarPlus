@@ -459,6 +459,26 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     debuff.endTime = endTime;
     debuff.duration = endTime - beginTime;
     FancyActionBar.debuffs[debuff.id] = debuff;
+
+    if FancyActionBar.multiTarget[debuff.id] then
+      --d("Targeted ability: " .. abilityId);
+      --d("EndTime: " .. endTime);
+      local targetData = FancyActionBar.targets[debuff.id] or { targets = 0; maxEndTime = 0; endTimes = {} };
+      if change == EFFECT_RESULT_GAINED then
+        if targetData.endTimes[unitId] and targetData.endTimes[unitId] > t then
+          targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
+          targetData.endTimes[unitId] = endTime;
+        else
+          targetData.targets = (targetData.targets or 0) + 1;
+        end;
+      else
+        targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
+        targetData.endTimes[unitId] = endTime;
+      end;
+      FancyActionBar.targets[debuff.id] = targetData;
+      FancyActionBar.HandleTargetUpdate(debuff.id);
+    end;
+
     if FancyActionBar.activeCasts[debuff.id] then FancyActionBar.activeCasts[debuff.id].begin = debuff.beginTime; end;
 
     if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
@@ -478,6 +498,17 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         if debuff.stackId and debuff.stacks then
           FancyActionBar.stacks[debuff.stackId] = debuff.stacks;
         end;
+      end;
+    end;
+
+    if FancyActionBar.targets[debuff.id] then
+      local targetData = FancyActionBar.targets[debuff.id];
+      targetData.targets = (targetData.targets - 1);
+      targetData.endTimes[unitId] = nil;
+      FancyActionBar.targets[debuff.id] = targetData;
+      FancyActionBar.HandleTargetUpdate(debuff.id);
+      if targetData.targets >= 1 then
+        return;
       end;
     end;
 
