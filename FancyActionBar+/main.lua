@@ -81,6 +81,7 @@ local DEBUFF = BUFF_EFFECT_TYPE_DEBUFF;
 -------------------------------------------------------------------------------
 FancyActionBar.effects = {};        -- currently slotted abilities
 FancyActionBar.stacks = {};         -- ability id => current stack count
+FancyActionBar.targets = {};        -- ability id => current active target count
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
 FancyActionBar.debuffs = {};        -- effects for debuffs to update if they are active on target
@@ -88,7 +89,7 @@ FancyActionBar.stashedEffects = {}; -- Used with specalEffects to track prioriti
 
 
 -- Backbar buttons.
-FancyActionBar.buttons = {}; -- Contains: abilities duration, number of stacks and visual effects.
+FancyActionBar.buttons = {}; -- Contains: abilities duration, number of stacks and debuffed targets, and visual effects.
 -- FancyActionBar.abilitySlots                  = {} -- TODO enable tooltip, mouse click and drag functions
 ---@type table<integer, FAB_ActionButtonOverlay_Gamepad_Template|FAB_ActionButtonOverlay_Keyboard_Template>
 FancyActionBar.overlays = {};                 -- normal skill button overlays
@@ -122,6 +123,13 @@ FancyActionBar.constants = {                   -- all current values for the UI 
     color = { 1; 1; 1 };
   };
   stacks = {
+    font = "Univers 67";
+    size = 20;
+    outline = "thick-outline";
+    x = 37;
+    color = { 1; 0.8; 0 };
+  };
+  targets = {
     font = "Univers 67";
     size = 20;
     outline = "thick-outline";
@@ -290,6 +298,12 @@ function FancyActionBar.SlashCommand(str)
     FancyActionBar.PostAbilityConfig();
   elseif cmd == "stacks" then
     for id, effect in pairs(FancyActionBar.stackMap) do
+      for i = 1, #effect do
+        Chat("[" .. id .. "] = " .. effect[i]);
+      end;
+    end;
+  elseif cmd == "targets" then
+    for id, effect in pairs(FancyActionBar.targets) do
       for i = 1, #effect do
         Chat("[" .. id .. "] = " .. effect[i]);
       end;
@@ -742,6 +756,7 @@ end;
 -------------------------------------------------------------------------------
 -----------------------------[ 		UI Updates    ]------------------------------
 -------------------------------------------------------------------------------
+
 function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reload.
   local hasEffect = false;
   local duration = 0;
@@ -758,6 +773,27 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
   end;
 
   return hasEffect, duration, currentStacks;
+end;
+
+function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarget abilities.
+  if FancyActionBar.targets[id] then
+    local currentTime = time();
+    local targetData = FancyActionBar.targets[id];
+    if (targetData.maxEndTime < currentTime) or (targetData.targets == 0) then
+      FancyActionBar.targets[id].targets = 0;
+      FancyActionBar.targets[id].maxEndTime = 0;
+    else
+      local activeTargets = 0;
+      for unitId, endTime in pairs(targetData.endTimes) do
+        if endTime < currentTime then
+          FancyActionBar.targets[id].endTimes[unitId] = nil;
+        else
+          activeTargets = activeTargets + 1;
+        end;
+      end;
+      FancyActionBar.targets[id].targets = activeTargets;
+    end;
+  end;
 end;
 
 function FancyActionBar.GetIdForDestroSkill(id, bar) -- cause too hard for game to figure out.
@@ -819,10 +855,12 @@ function FancyActionBar.ResetOverlayDuration(overlay)
     local durationControl = overlay:GetNamedChild("Duration");
     local bgControl = overlay:GetNamedChild("BG");
     local stacksControl = overlay:GetNamedChild("Stacks");
+    local targetsControl = overlay:GetNamedChild("Targets");
 
     if durationControl then durationControl:SetText(""); end;
     if bgControl then bgControl:SetHidden(true); end;
     if stacksControl then stacksControl:SetText(""); end;
+    if targetsControl then targetsControl:SetText(""); end;
 
     if overlay.effect then
       if overlay.effect.stackId then
@@ -830,6 +868,9 @@ function FancyActionBar.ResetOverlayDuration(overlay)
         overlay.effect.stacks = overlay.effect.stacks and currentStacks;
         FancyActionBar.stacks[overlay.effect.stackId] = currentStacks;
         FancyActionBar.HandleStackUpdate(overlay.effect.id);
+      end;
+      if FancyActionBar.targets[overlay.effect.id] then
+        FancyActionBar.HandleTargetUpdate(overlay.effect.id, true);
       end;
       -- else
     end;
@@ -957,13 +998,15 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     local durationControl = overlay:GetNamedChild("Duration");
     local bgControl = overlay:GetNamedChild("BG");
     local stacksControl = overlay:GetNamedChild("Stacks");
+    local targetsControl = overlay:GetNamedChild("Targets");
     local lt, lc, la = "", nil, nil;
     local bh, bc = true, nil;
     local duration = 0; -- = effect.endTime - time()
     if (effect and not effect.ignore and effect.id > 0) then
+      local currentTime = time();
       if (effect.toggled or effect.passive) then
       else
-        duration = effect.endTime - time();
+        duration = effect.endTime - currentTime;
       end;
       local isFading = false;
       if (duration <= SV.showExpireStart) then isFading = SV.showExpire; end;
@@ -980,13 +1023,19 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
             effect.stacks = effect.stacks and 0;
             effect.stacks = 0;
             FancyActionBar.stacks[stackId] = 0;
-            if FancyActionBar.multiTarget[stackId] then
-              FancyActionBar.multiTarget[stackId].targets = 0;
-            end;
             stacksControl:SetText("");
           end;
         elseif (not FancyActionBar.stacks[effect.stackId]) then
           stacksControl:SetText("");
+        end;
+      end;
+      if FancyActionBar.targets[effect.id] then
+        local targetData = FancyActionBar.targets[effect.id];
+        if (targetData.maxEndTime < currentTime) or (targetData.targets == 0) then
+          FancyActionBar.targets[effect.id].targets = 0;
+          FancyActionBar.targets[effect.id].maxEndTime = 0;
+          FancyActionBar.targets[effect.id].endTimes = {};
+          targetsControl:SetText("");
         end;
       end;
       FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
@@ -1013,6 +1062,24 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
       end;
     else
       stacksControl:SetText("");
+    end;
+  end;
+end;
+
+function FancyActionBar.UpdateTargets(index) -- stacks label.
+  local overlay = FancyActionBar.overlays[index];
+  if overlay then
+    local targetsControl = overlay:GetNamedChild("Targets");
+    local effect = overlay.effect;
+    if effect then
+      if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targets > 0 then
+        targetsControl:SetText(FancyActionBar.targets[effect.id].targets);
+        targetsControl:SetColor(unpack(FancyActionBar.constants.targets.color));
+      else
+        targetsControl:SetText("");
+      end;
+    else
+      targetsControl:SetText("");
     end;
   end;
 end;
@@ -1076,6 +1143,23 @@ function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific ef
     if id == 122658 then -- Seething Fury
       if FancyActionBar.effects[id] and FancyActionBar.stacks[id] == 0 then
         FancyActionBar.effects[122658].endTime = time();
+      end;
+    end;
+  end;
+end;
+
+function FancyActionBar.HandleTargetUpdate(targetId, singleEffect) -- find overlays for a specific effect and update stacks.
+  if singleEffect then
+    local effect = FancyActionBar.effects[targetId];
+    if effect then
+      if effect.slot1 then FancyActionBar.UpdateTargets(effect.slot1); end;
+      if effect.slot2 then FancyActionBar.UpdateTargets(effect.slot2); end;
+    end;
+  else
+    for id, effect in pairs(FancyActionBar.effects) do
+      if targetId == effect.id then
+        if effect.slot1 then FancyActionBar.UpdateTargets(effect.slot1); end;
+        if effect.slot2 then FancyActionBar.UpdateTargets(effect.slot2); end;
       end;
     end;
   end;
@@ -1243,6 +1327,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   end;
   -- Assign effect to overlay.
   if overlay then overlay.effect = effect; end;
+
+  if FancyActionBar.targets[effect.id] then
+    FancyActionBar.UpdateTargets(index);
+  end;
 
   if FancyActionBar.stacks[effect.stackId] then
     FancyActionBar.UpdateOverlay(index);
@@ -2943,7 +3031,7 @@ function FancyActionBar.Initialize()
           FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType);
 
           if noget == true then
-            if SV.debuffTable[abilityId] == nil then SV.debuffTable[abilityId] = true; end;
+            if SV.debuffTable[effect.id] == nil then SV.debuffTable[effect.id] = true; end;
           end;
 
           return;
@@ -2954,24 +3042,27 @@ function FancyActionBar.Initialize()
         local stackMap = FancyActionBar.stackMap;
         for stackId, stackSources in pairs(stackMap) do
           for i = 1, #stackSources do
-            if stackSources[i] == abilityId then
+            if stackSources[i] == effect.id then
               effect.stackId = stackId;
             end;
           end;
         end;
 
         if FancyActionBar.multiTarget[effect.id] then
+          --d("Targeted ability: " .. abilityId);
+          --d("EndTime: " .. endTime);
+          local targetData = FancyActionBar.targets[effect.id] or { targets = 0; maxEndTime = 0; endTimes = {} };
           if change == EFFECT_RESULT_GAINED then
-            stackCount = FancyActionBar.multiTarget[effect.id].targets + 1;
-            FancyActionBar.multiTarget[effect.id].targets = stackCount;
-            effect.stacks = stackCount;
+            targetData.targets = (targetData.targets or 0) + 1;
+            targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
+            targetData.endTimes[unitId] = endTime;
           else
-            stackCount = FancyActionBar.multiTarget[effect.id].targets;
-            effect.stacks = stackCount;
+            targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
+            targetData.endTimes[unitId] = endTime;
           end;
+          FancyActionBar.targets[effect.id] = targetData;
+          FancyActionBar.HandleTargetUpdate(effect.id);
         end;
-
-        if abilityId == 39089 then d(stackCount); end;
 
         if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = beginTime; end;
 
@@ -3005,19 +3096,18 @@ function FancyActionBar.Initialize()
       elseif (change == EFFECT_RESULT_FADED) then
         if FancyActionBar.IsGroupUnit(unitTag) then return; end; -- don't track anything on group members.
 
-        if FancyActionBar.multiTarget[effect.id] then
-          stackCount = FancyActionBar.multiTarget[effect.id].targets - 1;
-          FancyActionBar.multiTarget[effect.id].targets = stackCount;
-          FancyActionBar.stacks[effect.stackId] = stackCount;
-          effect.stacks = stackCount;
-          if abilityId == 39089 then d(stackCount); end;
-          if stackCount >= 1 then
-            FancyActionBar.HandleStackUpdate(effect.id);
+        if FancyActionBar.targets[effect.id] then
+          local targetData = FancyActionBar.targets[effect.id];
+          targetData.targets = (targetData.targets - 1);
+          targetData.endTimes[unitId] = nil;
+          FancyActionBar.targets[effect.id] = targetData;
+          FancyActionBar.HandleTargetUpdate(effect.id);
+          if targetData.targets >= 1 then
             return;
           end;
         end;
 
-        if FancyActionBar.removeInstantly[abilityId] then -- abilities we want to reset the overlay instantly for when expired.
+        if FancyActionBar.removeInstantly[effect.id] then -- abilities we want to reset the overlay instantly for when expired.
           effect.endTime = endTime;
           FancyActionBar.UpdateEffect(effect);
           return;
@@ -3025,9 +3115,8 @@ function FancyActionBar.Initialize()
 
 
         if abilityId == 122658 and FancyActionBar.effects[122658] then
-          stackCount = 0;
           FancyActionBar.effects[122658].endTime = t;
-          FancyActionBar.stacks[122658] = stackCount;
+          FancyActionBar.stacks[122658] = 0;
           FancyActionBar.HandleStackUpdate(122658);
         end;
 

@@ -807,48 +807,6 @@ FancyActionBar.stackMap = {
     99781; -- Grand Rejuviantion
   };
 
-
-  -- These IDs are here because the ability that applies them can
-  -- be cast on multiple targets simultaneously and we want to add
-  -- a stack for each instance of the parent ability that's active
-  -- Defined in FancyActionBar.multiTarget
-
-  -- Minor Vuln
-  [79717] =
-  { 185918;
-    185921;
-  };
-
-  --Minor Brittle
-  [145975] = { 183267 };
-
-  -- Weakness to Elements
-  [29173] = { 29173 };
-
-  -- Elemental Susceptibility
-  [39089] = { 39089 };
-
-  -- Elemental Drain
-  [39095] = { 39095 };
-
-  -- Entropy
-  [126370] = {
-    28567;  -- Entropy abilityId
-    126370; -- Entropy debuffId
-  };
-
-  -- Structured Entropy
-  [126371] = {
-    40452;  -- Structured Entropy abilityId
-    126371; -- Structured Entropy debuffId
-  };
-
-  -- Degeneration
-  [126374] = {
-    40457;  -- Degeneration abilityId
-    126374; -- Degeneration debuffId
-  };
-
 };
 
 FancyActionBar.debuffIds = {
@@ -1553,12 +1511,22 @@ FancyActionBar.soloTarget = {
 };
 
 FancyActionBar.multiTarget = {
-  [29173] = { targets = 0 };  -- Weakness to elements
-  [39089] = { targets = 0 };  -- elemental susceptibility
-  [39095] = { targets = 0 };  -- elemental drain
-  [126370] = { targets = 0 }; -- entropy
-  [126371] = { targets = 0 }; -- structured entropy
-  [126374] = { targets = 0 }; -- degeneration
+  [38254] = true;  -- Taunt
+  [126890] = true; -- soul trap
+  [126895] = true; -- soul splitting trap
+  [126898] = true; -- consuming trap
+  [29173] = true;  -- Weakness to elements
+  [39089] = true;  -- elemental susceptibility
+  [39095] = true;  -- elemental drain
+  [126370] = true; -- entropy
+  [126371] = true; -- structured entropy
+  [126374] = true; -- degeneration
+  [61743] = true;  -- Major Breach
+  [79717] = true;  -- Minor Vuln
+  [145975] = true; -- Minor Brittle
+  [78867] = true;  -- Minor Cowardice
+  [182989] = true; -- Fulminating Rune DOT
+  [183008] = true  -- Abyssal Ink
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;

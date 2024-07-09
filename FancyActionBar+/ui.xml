@@ -78,6 +78,9 @@
         <Label name="$(parent)Stacks" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
           <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
         </Label>
+        <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
+        </Label>
         <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_20)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="ZO_ActionButton_FlipCardControl" text="">
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="0" />
         </Label>
@@ -95,6 +98,9 @@
         </Label>
         <Label name="$(parent)Stacks" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
           <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
+        </Label>
+        <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
         </Label>
         <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_22)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="ZO_ActionButton_FlipCardControl" text="">
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="0" />
@@ -119,6 +125,9 @@
         <Label name="$(parent)Stacks" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
           <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
         </Label>
+        <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
+        </Label>
       </Controls>
     </Control>
     <!-- Action Button Gamepad -->
@@ -134,6 +143,9 @@
         </Label>
         <Label name="$(parent)Stacks" tier="HIGH" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" wrapMode="TRUNCATE" inheritAlpha="true" text="">
           <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
+        </Label>
+        <Label name="$(parent)Targets" tier="HIGH" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" wrapMode="TRUNCATE" inheritAlpha="true" text="">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
         </Label>
       </Controls>
     </Control>

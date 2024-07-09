@@ -1672,6 +1672,95 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               };
             };
 
+            --============[ Keyboard Targets ]======================
+            {
+              type = "submenu";
+              name = "|cFFFACDTargets Display Settings|r";
+              controls = {
+                {
+                  type = "dropdown";
+                  name = "Targets font";
+                  scrollable = true;
+                  tooltip = "Select which font to display ability targets for the keyboard UI in.";
+                  choices = FancyActionBar.GetFonts();
+                  sort = "name-up";
+                  getFunc = function () return SV.fontNameTargetKB; end;
+                  setFunc = function (value)
+                    SV.fontNameTargetKB = value;
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.targets.font = value;
+                      FancyActionBar.ApplyTargetFont();
+                    end;
+                  end;
+                  default = defaults.fontNameTargetKB;
+                  width = "half";
+                };
+                {
+                  type = "slider";
+                  name = "Targets font size";
+                  min = 10;
+                  max = 25;
+                  step = 1;
+                  getFunc = function () return SV.fontSizeTargetKB; end;
+                  setFunc = function (value)
+                    SV.fontSizeTargetKB = value;
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.targets.size = value;
+                      FancyActionBar.ApplyTargetFont();
+                    end;
+                  end;
+                  default = defaults.fontSizeTargetKB;
+                  width = "half";
+                };
+                {
+                  type = "dropdown";
+                  name = "Target font style";
+                  tooltip = "Select which effect to display the targets font in.";
+                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  sort = "name-up";
+                  getFunc = function () return SV.fontTypeTargetKB; end;
+                  setFunc = function (value)
+                    SV.fontTypeTargetKB = value;
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.targets.outline = value;
+                      FancyActionBar.ApplyTargetFont();
+                    end;
+                  end;
+                  width = "half";
+                  default = defaults.fontTypeTargetKB;
+                };
+                {
+                  type = "colorpicker";
+                  name = "Target color";
+                  default = ZO_ColorDef:New(unpack(defaults.targetColorKB));
+                  getFunc = function () return unpack(SV.targetColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.targetColorKB = { r; g; b };
+                    if FancyActionBar.style == 1 then FancyActionBar.constants.targets.color = SV.targetColorKB; end;
+                  end;
+                  width = "half";
+                };
+                {
+                  type = "slider";
+                  name = "Adjust targets position";
+                  tooltip = "Move targets [<- left] or [right ->]";
+                  default = defaults.targetXKB;
+                  min = 0;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.targetXKB; end;
+                  setFunc = function (value)
+                    SV.targetXKB = value;
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.targets.x = value;
+                      FancyActionBar.AdjustTargetX();
+                    end;
+                  end;
+                  width = "half";
+                };
+              };
+            };
+
             --==========[ Keyboard Ultimate Duration ]=============
             {
               type = "submenu";
@@ -2307,6 +2396,97 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     SV.stackColorGP = { r; g; b };
                     if FancyActionBar.style == 2 then
                       FancyActionBar.constants.stacks.color = { r; g; b };
+                    end;
+                  end;
+                  width = "half";
+                };
+              };
+            };
+
+            --============[	Gamepad Targets	]======================
+            {
+              type = "submenu";
+              name = "|cFFFACDtargets display settings|r";
+              controls = {
+                {
+                  type = "dropdown";
+                  name = "Targets font";
+                  scrollable = true;
+                  tooltip = "Select which font to display ability targets in.";
+                  choices = FancyActionBar.GetFonts();
+                  sort = "name-up";
+                  getFunc = function () return SV.fontNameTargetGP; end;
+                  setFunc = function (value)
+                    SV.fontNameTargetGP = value;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.targets.font = value;
+                      FancyActionBar.ApplyTargetFont();
+                    end;
+                  end;
+                  default = defaults.fontNameTargetGP;
+                  width = "half";
+                };
+                {
+                  type = "slider";
+                  name = "Targets font size";
+                  min = 10;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.fontSizeTargetGP; end;
+                  setFunc = function (value)
+                    SV.fontSizeTargetGP = value;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.targets.size = value;
+                    end;
+                    FancyActionBar.ApplyTargetFont();
+                  end;
+                  default = defaults.fontSizeTargetGP;
+                  width = "half";
+                };
+                {
+                  type = "dropdown";
+                  name = "Target font style";
+                  tooltip = "Select which effect to display the targets font in.";
+                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  sort = "name-up";
+                  getFunc = function () return SV.fontTypeTargetGP; end;
+                  setFunc = function (value)
+                    SV.fontTypeTargetGP = value;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.targets.outline = value;
+                      FancyActionBar.ApplyTimerFont();
+                    end;
+                  end;
+                  width = "half";
+                  default = defaults.fontTypeTargetGP;
+                };
+                {
+                  type = "slider";
+                  name = "Adjust targets position";
+                  tooltip = "Move targets [<- left] or [right ->]";
+                  default = defaults.targetXGP;
+                  min = 0;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.targetXGP; end;
+                  setFunc = function (value)
+                    SV.targetXGP = value;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.targets.x = value;
+                      FancyActionBar.AdjustTargetX();
+                    end;
+                  end;
+                  width = "half";
+                };
+                {
+                  type = "colorpicker";
+                  name = "Target color";
+                  default = ZO_ColorDef:New(unpack(defaults.targetColorGP));
+                  getFunc = function () return unpack(SV.targetColorGP); end;
+                  setFunc = function (r, g, b)
+                    SV.targetColorGP = { r; g; b };
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.targets.color = { r; g; b };
                     end;
                   end;
                   width = "half";
@@ -3675,7 +3855,7 @@ function FancyActionBar.SetFrameColor()
       frame:SetColor(unpack(SV.frameColor));
     end;
     FancyActionBar.qsOverlay.frame:SetColor(unpack(SV.frameColor));
---[[     if GetDisplayName() == "@dack_janiels" then
+    --[[     if GetDisplayName() == "@dack_janiels" then
       local s = GetControl("ZO_SynergyTopLevel");
       local c = s:GetNamedChild("Container");
       local i = c:GetNamedChild("Icon");
@@ -3799,6 +3979,51 @@ function FancyActionBar.AdjustStackX()
 
     stack:ClearAnchors();
     stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
+  end;
+end;
+
+function FancyActionBar.ApplyTargetFont()
+  local function GetCurrentTargetFont()
+    local c = FancyActionBar.constants.targets;
+    return c.font, c.size, c.outline;
+  end;
+
+  local name, size, type = GetCurrentTargetFont();
+
+  if name == "" then name = "$(BOLD_FONT)"; end;
+
+  for i = MIN_INDEX, MAX_INDEX do
+    local overlay = FancyActionBar.overlays[i];
+    local target = overlay:GetNamedChild("Targets");
+
+    target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type);
+    target:SetHidden(false);
+
+    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    target = overlay:GetNamedChild("Targets");
+
+    target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type);
+    target:SetHidden(false);
+  end;
+end;
+
+function FancyActionBar.AdjustTargetX()
+  local targetX = FancyActionBar.constants.targets.x;
+  -- so moving slider in setting will move target the same direction
+  local x = targetX - 40;
+
+  for i = MIN_INDEX, MAX_INDEX do
+    local overlay = FancyActionBar.overlays[i];
+    local target = overlay:GetNamedChild("Targets");
+
+    target:ClearAnchors();
+    target:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
+
+    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    target = overlay:GetNamedChild("Targets");
+
+    target:ClearAnchors();
+    target:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
   end;
 end;
 

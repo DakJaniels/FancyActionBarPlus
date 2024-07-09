@@ -4,7 +4,7 @@ FancyActionBar = {};
 FancyActionBar.__index = FancyActionBar;
 
 ---@class (partial) FancyActionBar
-local FancyActionBar = FancyActionBar
+local FancyActionBar = FancyActionBar;
 
 FancyActionBar.variableVersion = 1;
 
@@ -13,7 +13,7 @@ FancyActionBar.defaultCharacter = {
   useAccountWide = true;
 
   configChanges = {};
-  dynamicAbilityConfig = false,
+  dynamicAbilityConfig = false;
 
   hideOnNoTargetGlobal = false;
   hideOnNoTargetList = {};
@@ -27,7 +27,7 @@ FancyActionBar.defaultSettings = {
   -- ability tracking
 
   configChanges = {};
-  dynamicAbilityConfig = false,
+  dynamicAbilityConfig = false;
 
   externalBuffs = false;
   externalBlackList = {};
@@ -84,6 +84,12 @@ FancyActionBar.defaultSettings = {
   fontTypeStackKB = "thick-outline";
   stackXKB = 37;
   stackColorKB = { 1; 0.8; 0 };
+  -- targets
+  fontNameTargetKB = "Univers 67";
+  fontSizeTargetKB = 20;
+  fontTypeTargetKB = "thick-outline";
+  targetXKB = 37;
+  targetColorKB = { 1; 0.8; 0 };
   -- ult duration
   ultShowKB = true;
   ultNameKB = "Univers 67";
@@ -127,6 +133,12 @@ FancyActionBar.defaultSettings = {
   fontTypeStackGP = "thick-outline";
   stackXGP = 37;
   stackColorGP = { 1; 0.8; 0 };
+  -- targets
+  fontNameTargetGP = "Univers 67";
+  fontSizeTargetGP = 22;
+  fontTypeTargetGP = "thick-outline";
+  targetXGP = 37;
+  targetColorGP = { 1; 0.8; 0 };
   -- ult
   ultShowGP = true;
   ultNameGP = "Univers 67";
@@ -210,9 +222,10 @@ FancyActionBar.strings = {
   subMisc = "|cFFFACDMiscellaneous|r";
 
   -- submenu descriptions
-  subTimerDesc = "Here you can adjust size and postion of the timer and stacks displays.\nThe settings are individual to the keyboard and gamepad UI's in their respective submenu, and can be changed regardless of which mode your UI is currently in.\nThe timer decimals options apply to both UI modes";
+  subTimerDesc = "Here you can adjust size and postion of the timer, stacks, and target counts displays.\nThe settings are individual to the keyboard and gamepad UI's in their respective submenu, and can be changed regardless of which mode your UI is currently in.\nThe timer decimals options apply to both UI modes";
   subTimerKBDesc = "Keyboard UI timer display settings";
-  subStackKBDesc = "Keyboard UI stacks display settings";
+  subStackKBDesc = "Keyboard UI target count display settings";
+  subTargetKBDesc = "Keyboard UI target count display settings";
 
   -- submenu category titles (desription titles)
   catBBVisual = "[ |cffdf80Back Bar Visibility|r ]";
@@ -263,12 +276,16 @@ FancyActionBar.strings = {
   timerStyleKBTT = "Edge effect for Keyboard UI timer numbers.";
   stackFontKBTT = "Stacks Counter font for keyboard UI.";
   stackStyleKBTT = "Edge effect of the Keyboard UI stacks counter.";
+  targetFontKBTT = "Target Counter font for keyboard UI.";
+  targetStyleKBTT = "Edge effect of the Keyboard UI targets counter.";
 
   -- GP UI tooltips
   timerFontGPTT = "Timer font for Gamepad UI timer.";
   timerStyleGPTT = "Edge effect for Gamepad UI timer numbers.";
   stackFontGPTT = "Stacks Counter font for Gamepad UI.";
   stackStyleGPTT = "Edge effect of the Gamepad UI stacks counter.";
+  targetFontGPTT = "Target Counter font for Gamepad UI.";
+  targetStyleGPTT = "Edge effect of the Gamepad UI targets counter.";
 
   -- timer for both KB and GP
   timerFont = "Timer font";
@@ -283,6 +300,13 @@ FancyActionBar.strings = {
   stackStyle = "Stacks counter style";
   stackXName = "Adjust stacks position";
   stackXTT = "Move stacks counter [<- left] or [right ->]";
+
+  -- targets for both KB and GP
+  targetFont = "Target counter font";
+  targetSize = "Targets counter size";
+  targetStyle = "Targets counter style";
+  targetXName = "Adjust targets position";
+  targetXTT = "Move targets counter [<- left] or [right ->]";
 
   -- timer decimals and expiration color
   decimalChoiceName = "Enable timer decimals";
@@ -333,6 +357,13 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         outline = SV.fontTypeStackKB;
         x = SV.stackXKB;
         color = SV.stackColorKB;
+      };
+      targets = {
+        font = SV.fontNameTargetKB;
+        size = SV.fontSizeTargetKB;
+        outline = SV.fontTypeTargetKB;
+        x = SV.targetXKB;
+        color = SV.targetColorKB;
       };
       ult = {
         duration = {
@@ -397,6 +428,13 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         outline = SV.fontTypeStackGP;
         x = SV.stackXGP;
         color = SV.stackColorGP;
+      };
+      targets = {
+        font = SV.fontNameTargetGP;
+        size = SV.fontSizeTargetGP;
+        outline = SV.fontTypeTargetGP;
+        x = SV.targetXGP;
+        color = SV.targetColorGP;
       };
       ult = {
         duration = {
