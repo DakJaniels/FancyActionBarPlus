@@ -499,10 +499,14 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targets = (targetData.targets - 1);
       targetData.endTimes[unitId] = nil;
-      FancyActionBar.targets[debuff.id] = targetData;
-      FancyActionBar.HandleTargetUpdate(debuff.id);
       if targetData.targets >= 1 then
+        FancyActionBar.targets[debuff.id] = targetData;
+        FancyActionBar.HandleTargetUpdate(debuff.id);
         return;
+      else
+        targetData.maxEndTime = 0;
+        FancyActionBar.targets[debuff.id] = targetData;
+        FancyActionBar.HandleTargetUpdate(debuff.id);
       end;
     end;
 
