@@ -807,6 +807,14 @@ FancyActionBar.stackMap = {
     99781; -- Grand Rejuviantion
   };
 
+  -- Echoing Vigor
+  [61506] = {
+    61506; -- Echoing Vigor
+    61503; -- Echoing Vigor
+    61504; -- Echoing Vigor
+    61505; -- Echoing Vigor
+  };
+
 };
 
 FancyActionBar.debuffIds = {
@@ -1526,7 +1534,19 @@ FancyActionBar.multiTarget = {
   [145975] = true; -- Minor Brittle
   [78867] = true;  -- Minor Cowardice
   [182989] = true; -- Fulminating Rune DOT
-  [183008] = true  -- Abyssal Ink
+  [183008] = true; -- Abyssal Ink
+  [61506] = true;  -- Echoing Vigor
+};
+
+
+FancyActionBar.echoingVigor = {
+  primary = 61506;
+  ids = {
+    [61503] = true;
+    [61504] = true;
+    [61505] = true;
+    [61506] = true;
+  };
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;

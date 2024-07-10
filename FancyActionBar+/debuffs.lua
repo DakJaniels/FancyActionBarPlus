@@ -464,17 +464,11 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       --d("Targeted ability: " .. abilityId);
       --d("EndTime: " .. endTime);
       local targetData = FancyActionBar.targets[debuff.id] or { targets = 0; maxEndTime = 0; endTimes = {} };
-      if change == EFFECT_RESULT_GAINED then
-        if targetData.endTimes[unitId] and targetData.endTimes[unitId] > t then
-          targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
-          targetData.endTimes[unitId] = endTime;
-        else
-          targetData.targets = (targetData.targets or 0) + 1;
-        end;
-      else
-        targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
-        targetData.endTimes[unitId] = endTime;
+      if change == EFFECT_RESULT_GAINED and not targetData.endTimes[unitId] then
+        targetData.targets = (targetData.targets + 1);
       end;
+      targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
+      targetData.endTimes[unitId] = endTime;
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
     end;
