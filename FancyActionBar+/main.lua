@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.6.1";
+local VERSION = "2.6.2";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -764,11 +764,16 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
 
   for i = 1, GetNumBuffs("player") do
     local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
-
-    if --[[not castByPlayer and]] abilityId == id then
+    if (id == FancyActionBar.echoingVigor.primary) and FancyActionBar.echoingVigor.ids[abilityId] then
+      currentStacks = currentStacks + 1;
+      if abilityId == id then
+        hasEffect = true;
+        duration = endTime - time();
+      end;
+    elseif --[[not castByPlayer and]] abilityId == id then
+      currentStacks = stackCount or 0;
       hasEffect = true;
       duration = endTime - time();
-      currentStacks = stackCount or 0;
     end;
   end;
 
@@ -1660,6 +1665,20 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
   if sourceType == COMBAT_UNIT_TYPE_PLAYER then return; end;
   if not AreUnitsEqual("player", unitTag) then return; end;
 
+  if FancyActionBar.echoingVigor.ids[abilityId] then
+    if change == EFFECT_RESULT_GAINED then
+      stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 0) + 1;
+      FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
+    elseif (change == EFFECT_RESULT_FADED) then
+      stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1;
+      FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
+    end;
+        FancyActionBar.HandleStackUpdate(FancyActionBar.echoingVigor.primary);
+    if FancyActionBar.effects[FancyActionBar.echoingVigor.primary] then
+      FancyActionBar.UpdateEffect(FancyActionBar.effects[FancyActionBar.echoingVigor.primary]);
+    end;
+  end;
+
   local effect = FancyActionBar.effects[abilityId];
   if effect then
     local t = time();
@@ -1698,6 +1717,10 @@ function FancyActionBar.SetExternalBuffTracking() -- buffs gained from others
   if SV.externalBuffs then
     EM:RegisterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, FancyActionBar.OnEffectGainedFromAlly);
     EM:AddFilterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, "player");
+    end;
+  for id in pairs(FancyActionBar.echoingVigor.ids) do
+    EM:RegisterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, FancyActionBar.OnEffectGainedFromAlly);
+    EM:AddFilterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, "player");
   end;
 end;
 
@@ -3048,18 +3071,23 @@ function FancyActionBar.Initialize()
           end;
         end;
 
+        if FancyActionBar.echoingVigor.ids[abilityId] then
+          if change == EFFECT_RESULT_GAINED then
+            stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 0) + 1;
+          else
+            stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary]);
+          end;
+        end;
+
         if FancyActionBar.multiTarget[effect.id] then
           --d("Targeted ability: " .. abilityId);
           --d("EndTime: " .. endTime);
-          local targetData = FancyActionBar.targets[effect.id] or { targets = 0; maxEndTime = 0; endTimes = {} };
-          if change == EFFECT_RESULT_GAINED then
-            targetData.targets = (targetData.targets or 0) + 1;
-            targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
-            targetData.endTimes[unitId] = endTime;
-          else
-            targetData.maxEndTime = (endTime > targetData.maxEndTime) and endTime or targetData.maxEndTime;
-            targetData.endTimes[unitId] = endTime;
+          local targetData = FancyActionBar.targets[effect.id] or { targets = 0, maxEndTime = 0, endTimes = {} };
+          if change == EFFECT_RESULT_GAINED and not targetData.endTimes[unitId] then
+            targetData.targets = (targetData.targets + 1);
           end;
+          targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
+          targetData.endTimes[unitId] = endTime;
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
         end;
@@ -3094,9 +3122,7 @@ function FancyActionBar.Initialize()
         end;
         FancyActionBar.UpdateEffect(effect);
       elseif (change == EFFECT_RESULT_FADED) then
-        if FancyActionBar.IsGroupUnit(unitTag) then return; end; -- don't track anything on group members.
-
-        if FancyActionBar.targets[effect.id] then
+        if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].endTimes[unitId] then
           local targetData = FancyActionBar.targets[effect.id];
           targetData.targets = (targetData.targets - 1);
           targetData.endTimes[unitId] = nil;
@@ -3107,7 +3133,15 @@ function FancyActionBar.Initialize()
           end;
         end;
 
-        if FancyActionBar.removeInstantly[effect.id] then -- abilities we want to reset the overlay instantly for when expired.
+        if FancyActionBar.IsGroupUnit(unitTag) then return; end; -- don't track anything on group members.
+
+        if FancyActionBar.echoingVigor.ids[abilityId] then
+          stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1;
+          FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
+          FancyActionBar.HandleStackUpdate(FancyActionBar.echoingVigor.primary);
+        end;
+
+        if effect.instantFade or FancyActionBar.removeInstantly[effect.id] then -- abilities we want to reset the overlay instantly for when expired.
           effect.endTime = endTime;
           FancyActionBar.UpdateEffect(effect);
           return;
@@ -3175,6 +3209,12 @@ function FancyActionBar.Initialize()
       c = "gained";
     elseif change == EFFECT_RESULT_UPDATED then
       c = "updated";
+    end;
+
+    if FancyActionBar.echoingVigor.ids[abilityId] then
+      abilityId = FancyActionBar.echoingVigor.primary;
+      local _;
+      _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
     end;
 
     FancyActionBar.stacks[abilityId] = stackCount;
