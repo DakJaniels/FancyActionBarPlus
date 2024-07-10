@@ -481,7 +481,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t));
     end;
   elseif (change == EFFECT_RESULT_FADED) then
-    if debuff.beginTime and (debuff.beginTime - t < 0.3) and not debuff.instantFade then return; end;
+    if debuff.beginTime and (t - debuff.beginTime < 0.3) and not debuff.instantFade then return; end;
     if debuff and specialEffect then
       if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
         return; -- we don't need to worry about this effect anymore because it has already proced
@@ -495,7 +495,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
     end;
 
-    if FancyActionBar.targets[debuff.id] then
+    if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].endTimes[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targets = (targetData.targets - 1);
       targetData.endTimes[unitId] = nil;
