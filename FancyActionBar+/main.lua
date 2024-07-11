@@ -1022,7 +1022,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         bc = FancyActionBar.GetHighlightColor(isFading);
       else
         if effect.stackId then
-          if effect.forceExpireStacks and (effect.isDebuff or effect.isSpecialDebuff) then
+          if effect.forceExpireStacks or (effect.isDebuff or effect.isSpecialDebuff) then
             local stackId = effect.stackId or effect.id;
             effect.stacks = 0;
             FancyActionBar.stacks[stackId] = 0;
