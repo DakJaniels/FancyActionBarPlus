@@ -46,6 +46,9 @@ FancyActionBar.defaultSettings = {
   durationMin = 2;
   durationMax = 120;
 
+  showOvertauntStacks = true;
+  showSingleTargetInstance = false;
+
   -- general
   lockInTrade = true;
   staticBars = true;
