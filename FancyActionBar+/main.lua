@@ -81,7 +81,7 @@ local DEBUFF = BUFF_EFFECT_TYPE_DEBUFF;
 -------------------------------------------------------------------------------
 FancyActionBar.effects = {};        -- currently slotted abilities
 FancyActionBar.stacks = {};         -- ability id => current stack count
-FancyActionBar.targets = {};        -- ability id => current active target count
+FancyActionBar.targets = {};        -- ability id => current active target table
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
 FancyActionBar.debuffs = {};        -- effects for debuffs to update if they are active on target
@@ -870,7 +870,6 @@ function FancyActionBar.ResetOverlayDuration(overlay)
     if overlay.effect then
       if overlay.effect.stackId then
         local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(overlay.effect.stackId);
-        overlay.effect.stacks = overlay.effect.stacks and currentStacks;
         FancyActionBar.stacks[overlay.effect.stackId] = currentStacks;
         FancyActionBar.HandleStackUpdate(overlay.effect.id);
       end;
@@ -1022,15 +1021,14 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
       if duration > 0 then
         bc = FancyActionBar.GetHighlightColor(isFading);
       else
-        if effect.stackId or effect.stacks then
-          if duration <= 0 and (effect.forceExpireStacks or ((effect.isDebuff or effect.isSpecialDebuff) and effect.stacks)) then
+        if effect.stackId then
+          if effect.forceExpireStacks and (effect.isDebuff or effect.isSpecialDebuff) then
             local stackId = effect.stackId or effect.id;
-            effect.stacks = effect.stacks and 0;
             effect.stacks = 0;
             FancyActionBar.stacks[stackId] = 0;
             stacksControl:SetText("");
           end;
-        elseif (not FancyActionBar.stacks[effect.stackId]) then
+        elseif FancyActionBar.stacks[effect.stackId] == 0 or (not FancyActionBar.stacks[effect.stackId]) then
           stacksControl:SetText("");
         end;
       end;
@@ -1059,13 +1057,12 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
     local stacksControl = overlay:GetNamedChild("Stacks");
     local effect = overlay.effect;
     if effect then
-      if FancyActionBar.stacks[effect.stackId] and FancyActionBar.stacks[effect.stackId] > 0 then
-        stacksControl:SetText(FancyActionBar.stacks[effect.stackId]);
+      local stackCount = FancyActionBar.stacks[effect.stackId or effect.id];
+      if stackCount and stackCount > 0 then
+        stacksControl:SetText(stackCount);
         stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color));
-      else
-        stacksControl:SetText("");
+        return;
       end;
-    else
       stacksControl:SetText("");
     end;
   end;
@@ -1076,16 +1073,15 @@ function FancyActionBar.UpdateTargets(index) -- stacks label.
   if overlay then
     local targetsControl = overlay:GetNamedChild("Targets");
     local effect = overlay.effect;
-    if effect then
-      if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targets > 0 then
-        targetsControl:SetText(FancyActionBar.targets[effect.id].targets);
+    if effect and effect.id and FancyActionBar.targets[effect.id] then
+      local target = FancyActionBar.targets[effect.id]
+      if ((not SV.showSingleTargetInstance and target.targets > 1) or (SV.showSingleTargetInstance and target.targets > 0)) then
+        targetsControl:SetText(target.targets);
         targetsControl:SetColor(unpack(FancyActionBar.constants.targets.color));
-      else
-        targetsControl:SetText("");
+        return;
       end;
-    else
-      targetsControl:SetText("");
     end;
+    targetsControl:SetText("");
   end;
 end;
 
@@ -1377,10 +1373,7 @@ function FancyActionBar.EffectCheck()
       local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
       if hasEffect then
         effect.endTime = checkTime + duration;
-        if stacks > 0 then
           FancyActionBar.stacks[effect.id] = stacks;
-        end;
-        effect.stacks = stacks;
       end;
       if effect.stackId and effect.stackId ~= effect.id then
         local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
@@ -1670,10 +1663,10 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
       stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 0) + 1;
       FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
     elseif (change == EFFECT_RESULT_FADED) then
-      stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1;
+      stackCount = math.max((FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1, 0);
       FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
     end;
-        FancyActionBar.HandleStackUpdate(FancyActionBar.echoingVigor.primary);
+    FancyActionBar.HandleStackUpdate(FancyActionBar.echoingVigor.primary);
     if FancyActionBar.effects[FancyActionBar.echoingVigor.primary] then
       FancyActionBar.UpdateEffect(FancyActionBar.effects[FancyActionBar.echoingVigor.primary]);
     end;
@@ -2582,7 +2575,7 @@ function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime
           FancyActionBar.activeCasts[effect.id].begin = updateTime;
         elseif change == EFFECT_RESULT_FADED then
           -- Ignore the Ability Fading in the Same GCD as it was cast (indicates a recast)
-          if effect.beginTime and (effect.beginTime > updateTime - 0.5) then return; end;
+          if effect.beginTime and (updateTime - effect.beginTime < 0.3) then return; end;
           -- Ignore the ability fading because it either already proced it's next effect
           if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced > specialEffect.hasProced) then return; end;
           -- Get the proc update data for the special effect
@@ -3006,7 +2999,6 @@ function FancyActionBar.Initialize()
     if SV.debugAll then
       FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType);
     end;
-
     local t = time();
 
     local specialEffect = FancyActionBar.specialEffects[abilityId]
@@ -3050,7 +3042,6 @@ function FancyActionBar.Initialize()
           if not FancyActionBar.debuffs[abilityId] then
             FancyActionBar.debuffs[abilityId] = effect;
           end;
-
           FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType);
 
           if noget == true then
@@ -3111,9 +3102,8 @@ function FancyActionBar.Initialize()
 
           effect.endTime = endTime;
           for id, effect in pairs(FancyActionBar.effects) do
-            if effect.stackId and (abilityId == effect.stackId) then
+            if effect.stackId and (abilityId == effect.stackId) and (effectType ~= DEBUFF) then
               FancyActionBar.stacks[abilityId] = stackCount or 0;
-              effect.stacks = stackCount or 0;
               FancyActionBar.HandleStackUpdate(id);
             end;
           end;
@@ -3136,7 +3126,7 @@ function FancyActionBar.Initialize()
         if FancyActionBar.IsGroupUnit(unitTag) then return; end; -- don't track anything on group members.
 
         if FancyActionBar.echoingVigor.ids[abilityId] then
-          stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1;
+          stackCount = math.max((FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1, 0);
           FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
           FancyActionBar.HandleStackUpdate(FancyActionBar.echoingVigor.primary);
         end;
@@ -3221,18 +3211,7 @@ function FancyActionBar.Initialize()
 
     if FancyActionBar.stackMap[abilityId] then
       for id, effect in pairs(FancyActionBar.effects) do
-        local doStackUpdate = false;
         if effect.id == abilityId then
-          if effect.stacks then
-            effect.stacks = stackCount;
-            FancyActionBar.effects[id] = effect;
-            doStackUpdate = true;
-          end;
-        end;
-        if effect.stackId and (abilityId == effect.stackId) then
-          doStackUpdate = true;
-        end;
-        if doStackUpdate then
           FancyActionBar.HandleStackUpdate(id);
         end;
       end;
@@ -3650,6 +3629,14 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.fontSizeStackGP == nil then SV.fontSizeStackGP = d.fontSizeStackGP; end;
     if SV.fontTypeStackGP == nil then SV.fontTypeStackGP = d.fontTypeStackGP; end;
     if SV.stackGP == nil then SV.stackXGP = d.stackXGP; end;
+    if SV.fontNameTargetKB == nil then SV.fontNameTargetKB = d.fontNameTargetKB; end;
+    if SV.fontSizeTargetKB == nil then SV.fontSizeTargetKB = d.fontSizeTargetKB; end;
+    if SV.fontTypeTargetKB == nil then SV.fontTypeTargetKB = d.fontTypeTargetKB; end;
+    if SV.targetXKB == nil then SV.targetX = d.targetXKB; end;
+    if SV.fontNameTargetGP == nil then SV.fontNameTargetGP = d.fontNameTargetGP; end;
+    if SV.fontSizeTargetGP == nil then SV.fontSizeTargetGP = d.fontSizeTargetGP; end;
+    if SV.fontTypeTargetGP == nil then SV.fontTypeTargetGP = d.fontTypeTargetGP; end;
+    if SV.targetGP == nil then SV.targetXGP = d.targetXGP; end;
     if SV.showHotkeys == nil then SV.showHotkeys = d.showHotkeys; end;
     if SV.showHighlight == nil then SV.showHighlight = d.showHighlight; end;
     if SV.highlightColor == nil then SV.highlightColor = d.highlightColor; end;
@@ -3665,6 +3652,8 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.debug == nil then SV.debug = d.debug; end;
     if SV.showToggle == nil then SV.showToggle = d.showToggle; end;
     if SV.toggleColor == nil then SV.toggleColor = d.toggleColor; end;
+    if SV.showOvertauntStacks == nil then SV.showOvertauntStacks = d.showOvertauntStacks; end;
+    if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
 
     SV.variablesValidated = true;
   end;

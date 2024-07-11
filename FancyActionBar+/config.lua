@@ -236,7 +236,7 @@ FancyActionBar.abilityConfig = {
   [40317] = { 126897 }; -- consuming trap
 
   -- Fighters Guild
-  [40336] = { 40340 };  -- silver leash
+  [40336] = { 38254 };  -- silver leash (taunt)
   [35737] = { 35737 };  -- circle of protection
   [40181] = { 40181 };  -- turn evil
   [40169] = { 40169 };  -- ring of preservation
@@ -765,7 +765,6 @@ FancyActionBar.stackMap = {
 
   [29032] = { 29032 };   -- Stone Fist (stacks on self)
   [31816] = { 31816 };   -- Stone Giant (stacks on self)
-  -- [134336] = 134336;  -- Stone Giant (stacks on target)
   [122658] = { 122658 }; -- Seething Fury
 
   [117638] = { 117638 }; -- Ricochet Skull
@@ -774,6 +773,25 @@ FancyActionBar.stackMap = {
 
   [184220] = { 184220 }; -- crux
 
+  -- Healing Springs Mag Recovey
+  [40062] = {
+    40062; -- Healing Springs
+    40060; -- Healing Springs
+    99781; -- Grand Rejuviantion
+  };
+
+  -- Echoing Vigor
+  [61506] = {
+    61506; -- Echoing Vigor
+    61503; -- Echoing Vigor
+    61504; -- Echoing Vigor
+    61505; -- Echoing Vigor
+  };
+
+};
+
+FancyActionBar.debuffStackMap = {
+  -- [134336] = 134336;  -- Stone Giant (stacks on target)
   -- Taunt Counter
   [52790] = {
     52790;  -- taunt counter
@@ -793,28 +811,10 @@ FancyActionBar.stackMap = {
     217180; -- goading smash (Scribing?) (taunt)
     219972; -- goading smash (scribing) (taunt)
   };
+};
 
-  -- -- Haunting Curse
-  -- [24330] = {
-  --   24330; -- first proc, haunting curse
-  --   89491; -- second proc, haunting curse
-  -- }
-
-  -- Healing Springs Mag Recovey
-  [40062] = {
-    40062; -- Healing Springs
-    40060; -- Healing Springs
-    99781; -- Grand Rejuviantion
-  };
-
-  -- Echoing Vigor
-  [61506] = {
-    61506; -- Echoing Vigor
-    61503; -- Echoing Vigor
-    61504; -- Echoing Vigor
-    61505; -- Echoing Vigor
-  };
-
+FancyActionBar.allowExternalStacks = {
+  [52790] = true; -- taunt counter
 };
 
 FancyActionBar.debuffIds = {
@@ -905,7 +905,7 @@ FancyActionBar.debuffIds = {
   [40317] = { 126898 }; -- consuming trap
 
   -- Fighters Guild
-  [40336] = { 40340 }; -- silver leash
+  [40336] = { 38254 }; -- silver leash (taunt)
   [35750] = {};        -- trap beast dot
   [40372] = {};        -- lightweight beast trap dot
   [40382] = {};        -- barbed trap dot
@@ -1133,7 +1133,6 @@ FancyActionBar.fakeClassEffects = {
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
 FancyActionBar.specialEffects = {
-  [52790] = { id = 52790; stackId = 52790; isDebuff = true; forceShow = true };                                                                                                                         -- Debuff Effect for the Taunt Counter
   [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
   [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
   [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
@@ -1519,23 +1518,67 @@ FancyActionBar.soloTarget = {
 };
 
 FancyActionBar.multiTarget = {
-  [38254] = true;  -- Taunt
-  [126890] = true; -- soul trap
-  [126895] = true; -- soul splitting trap
-  [126898] = true; -- consuming trap
-  [29173] = true;  -- Weakness to elements
-  [39089] = true;  -- elemental susceptibility
-  [39095] = true;  -- elemental drain
-  [126370] = true; -- entropy
-  [126371] = true; -- structured entropy
-  [126374] = true; -- degeneration
-  [61743] = true;  -- Major Breach
+  -- Universal Abilities
+  [126890] = true; -- Soul Trap
+  [126895] = true; -- Soul Splitting Trap
+  [126898] = true; -- Consuming Trap
+
+  [29173] = true;  -- Weakness to Elements
+  [39095] = true;  -- Elemental Drain
+  [39089] = true;  -- Elemental Susceptibility
+
+  [126370] = true; -- Entropy
+  [126371] = true; -- Structured Entropy
+  [126374] = true; -- Degeneration
+
+  [44540] = true;  -- Poison Arrow
+  [44545] = true;  -- Venom Arrow
+  [44549] = true;  -- Poison Injection
+
+  [29293] = true;  -- Twin Slashes
+  [38841] = true;  -- Rending Slashes
+  [38848] = true;  -- Blood Craze
+
+  [85182] = true;  -- Thrive in Chaos
+
+  [38747] = true;  -- Carve
+
+  [61506] = true;  -- Echoing Vigor
+
+  -- Class Abilities
+  [25493] = true;  -- Lotus Fan
+
+  [101703] = true; -- Swarm
+  [101904] = true; -- Fetcher Infection
+  [101944] = true; -- Growing Swarm
+
+  [44363] = true;  -- Searing Strike
+  [44369] = true;  -- Venomous Claw
+  [44373] = true;  -- Burning Embers
+
+  [31102] = true;  -- Fiery Breath
+  [31104] = true;  -- Engulfing Flames
+  [31103] = true;  -- Noxious Breath
+
+  [20527] = true;  -- Dark Talons
+  -- [ ] = true;  -- Choking Talons
+  [31898] = true;  -- Burning Talons
+
+  -- Major Debuffs
+  [61743] = true; -- Major Breach
+  [61725] = true; -- Major Maim
+
+  -- Minor Debuffs
+  [61742] = true;  -- Minor Breach
   [79717] = true;  -- Minor Vuln
   [145975] = true; -- Minor Brittle
   [78867] = true;  -- Minor Cowardice
-  [182989] = true; -- Fulminating Rune DOT
+  [61723] = true;  -- Minor Maim
+
+  -- Unique Debuffs
+  [38254] = true;  -- Taunt
   [183008] = true; -- Abyssal Ink
-  [61506] = true;  -- Echoing Vigor
+  [182989] = true; -- Fulminating Rune DOT
 };
 
 

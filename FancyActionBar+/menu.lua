@@ -3371,6 +3371,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             };
 
             {
+              type = "checkbox";
+              name = "Show Stack Count for Overtaunt Debuff";
+              tooltip = "Multiple taunt sources can cause an enemy to gain taunt immunity, this stack counter tracks the status of this debuff.";
+              default = defaults.showOvertauntStacks;
+              getFunc = function () return SV.showOvertauntStacks; end;
+              setFunc = function (value) SV.showOvertauntStacks = value or false; end;
+              disabled = function () return not SV.advancedDebuff; end;
+            };
+            
+            {
               type = "description";
               text = "More options to come.";
               width = "full";
@@ -3494,6 +3504,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               end;
               width = "half";
               default = defaults.durationMax;
+            };
+            {
+              type = "checkbox";
+              name = "Show Instance Count with One Active Instance";
+              tooltip = "Abilities that can be applied to multiple enemies simultaneously can show an instance counter on the top left of the ability icon, by default this count is hidden if only one instance of the effect is active.";
+              default = defaults.showSingleTargetInstance;
+              getFunc = function () return SV.showSingleTargetInstance; end;
+              setFunc = function (value) SV.showSingleTargetInstance = value or false; end;
             };
           };
         };
