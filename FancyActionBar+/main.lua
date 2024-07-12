@@ -81,6 +81,7 @@ local DEBUFF = BUFF_EFFECT_TYPE_DEBUFF;
 -------------------------------------------------------------------------------
 FancyActionBar.effects = {};        -- currently slotted abilities
 FancyActionBar.stacks = {};         -- ability id => current stack count
+FancyActionBar.alliedEffects = {};  -- effects active on the player sourced from allies
 FancyActionBar.targets = {};        -- ability id => current active target table
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
@@ -1664,17 +1665,23 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
   if not AreUnitsEqual("player", unitTag) then return; end;
 
   if FancyActionBar.echoingVigor.ids[abilityId] then
+    local echoingVigor = FancyActionBar.echoingVigor.primary;
+    local vigorInstances = FancyActionBar.alliedEffects[echoingVigor] or {};
     if change == EFFECT_RESULT_GAINED then
-      stackCount = (FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 0) + 1;
-      FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
+      if vigorInstances[unitId] then return; end;
+      vigorInstances[unitId] = beginTime;
+      stackCount = (FancyActionBar.stacks[echoingVigor] or 0) + 1;
+      FancyActionBar.stacks[echoingVigor] = stackCount;
     elseif (change == EFFECT_RESULT_FADED) then
-      stackCount = math.max((FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] or 1) - 1, 0);
-      FancyActionBar.stacks[FancyActionBar.echoingVigor.primary] = stackCount;
+      vigorInstances[unitId] = nil;
+      stackCount = math.max((FancyActionBar.stacks[echoingVigor] or 1) - 1, 0);
+      FancyActionBar.stacks[echoingVigor] = stackCount;
     end;
-    FancyActionBar.HandleStackUpdate(FancyActionBar.echoingVigor.primary);
-    if FancyActionBar.effects[FancyActionBar.echoingVigor.primary] then
-      FancyActionBar.UpdateEffect(FancyActionBar.effects[FancyActionBar.echoingVigor.primary]);
+    FancyActionBar.HandleStackUpdate(echoingVigor);
+    if FancyActionBar.effects[echoingVigor] then
+      FancyActionBar.UpdateEffect(FancyActionBar.effects[echoingVigor]);
     end;
+    FancyActionBar.alliedEffects[echoingVigor] = vigorInstances;
   end;
 
   local effect = FancyActionBar.effects[abilityId];
@@ -1714,11 +1721,13 @@ function FancyActionBar.SetExternalBuffTracking() -- buffs gained from others
   EM:UnregisterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED);
   if SV.externalBuffs then
     EM:RegisterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, FancyActionBar.OnEffectGainedFromAlly);
-    EM:AddFilterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, "player");
+    EM:AddFilterForEvent(NAME .. "External", EVENT_EFFECT_CHANGED, REGISTER_FILTER_TARGET_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+  else
+    for id in pairs(FancyActionBar.echoingVigor.ids) do
+      EM:RegisterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, FancyActionBar.OnEffectGainedFromAlly);
+      EM:AddFilterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, id);
+      EM:AddFilterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, REGISTER_FILTER_TARGET_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
     end;
-  for id in pairs(FancyActionBar.echoingVigor.ids) do
-    EM:RegisterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, FancyActionBar.OnEffectGainedFromAlly);
-    EM:AddFilterForEvent(NAME .. "External_" .. id, EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, "player");
   end;
 end;
 
@@ -3234,8 +3243,10 @@ function FancyActionBar.Initialize()
     EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, abilityId);
     EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
     for i = 1, #stackAbilities do
-      EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, stackAbilities[i]);
-      EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+      if not FancyActionBar.stackMap[abilityId] then
+        EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, stackAbilities[i]);
+        EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+      end;
     end;
   end;
 
