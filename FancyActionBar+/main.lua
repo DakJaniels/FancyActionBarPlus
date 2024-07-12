@@ -1027,8 +1027,12 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
             effect.stacks = 0;
             FancyActionBar.stacks[stackId] = 0;
             stacksControl:SetText("");
+          elseif FancyActionBar.stacks[effect.stackId] > 0 then
+            stacksControl:SetText(FancyActionBar.stacks[effect.stackId]);
+          else
+            stacksControl:SetText("");
           end;
-        elseif FancyActionBar.stacks[effect.stackId] == 0 or (not FancyActionBar.stacks[effect.stackId]) then
+        else
           stacksControl:SetText("");
         end;
       end;
@@ -1150,6 +1154,7 @@ function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific ef
 end;
 
 function FancyActionBar.HandleTargetUpdate(targetId, singleEffect) -- find overlays for a specific effect and update stacks.
+  if SV.showTargetCount == false then return; end;
   if singleEffect then
     local effect = FancyActionBar.effects[targetId];
     if effect then
@@ -1329,7 +1334,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   -- Assign effect to overlay.
   if overlay then overlay.effect = effect; end;
 
-  if FancyActionBar.targets[effect.id] then
+  if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then
     FancyActionBar.UpdateTargets(index);
   end;
 
@@ -3653,6 +3658,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showToggle == nil then SV.showToggle = d.showToggle; end;
     if SV.toggleColor == nil then SV.toggleColor = d.toggleColor; end;
     if SV.showOvertauntStacks == nil then SV.showOvertauntStacks = d.showOvertauntStacks; end;
+    if SV.showTargetCount == nil then SV.showTargetCount = d.showTargetCount; end;
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
 
     SV.variablesValidated = true;
