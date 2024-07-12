@@ -3379,7 +3379,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               setFunc = function (value) SV.showOvertauntStacks = value or false; end;
               disabled = function () return not SV.advancedDebuff; end;
             };
-            
+
             {
               type = "description";
               text = "More options to come.";
@@ -3505,13 +3505,23 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               width = "half";
               default = defaults.durationMax;
             };
+            { type = "divider" };
+            {
+              type = "checkbox";
+              name = "Show Instance Counter";
+              tooltip = "Abilities that track an effect that can be applied to multiple targets simultaneously will show an instance counter on the top left of the ability icon.";
+              default = defaults.showTargetCount;
+              getFunc = function () return SV.showTargetCount; end;
+              setFunc = function (value) SV.showTargetCount = value or false; end;
+            };
             {
               type = "checkbox";
               name = "Show Instance Count with One Active Instance";
-              tooltip = "Abilities that can be applied to multiple enemies simultaneously can show an instance counter on the top left of the ability icon, by default this count is hidden if only one instance of the effect is active.";
+              tooltip = "Show the target instance counter if only one instance of the effect is active.";
               default = defaults.showSingleTargetInstance;
               getFunc = function () return SV.showSingleTargetInstance; end;
               setFunc = function (value) SV.showSingleTargetInstance = value or false; end;
+              disabled = function () return not SV.showTargetCount; end;
             };
           };
         };

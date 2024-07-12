@@ -47,6 +47,7 @@ FancyActionBar.defaultSettings = {
   durationMax = 120;
 
   showOvertauntStacks = true;
+  showTargetCount = true;
   showSingleTargetInstance = false;
 
   -- general
