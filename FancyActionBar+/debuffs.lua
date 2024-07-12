@@ -419,20 +419,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t));
     end;
   elseif (change == EFFECT_RESULT_FADED) then
-    if debuff.beginTime and (t - debuff.beginTime < 0.3) and (not debuff.instantFade) then return; end;
-    if specialEffect then
-      if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
-        return; -- we don't need to worry about this effect anymore because it has already proced
-      elseif FancyActionBar.specialEffectProcs[abilityId] then
-        local procUpdates = FancyActionBar.specialEffectProcs[abilityId];
-        local procValues = procUpdates[debuff.procs or specialEffect.procs];
-        for i, x in pairs(procValues) do debuff[i] = x; end;
-        stackCount = debuff.stacks or stackCount;
-      end;
-    else
-      stackCount = math.max((FancyActionBar.stacks[debuff.stackId] or 1) - stackCount, 0);
-    end;
-
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].endTimes[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targets = (targetData.targets - 1);
@@ -447,7 +433,19 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         FancyActionBar.HandleTargetUpdate(debuff.id);
       end;
     end;
-
+    if debuff.beginTime and (t - debuff.beginTime < 0.3) and (not debuff.instantFade) then return; end;
+    if specialEffect then
+      if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
+        return; -- we don't need to worry about this effect anymore because it has already proced
+      elseif FancyActionBar.specialEffectProcs[abilityId] then
+        local procUpdates = FancyActionBar.specialEffectProcs[abilityId];
+        local procValues = procUpdates[debuff.procs or specialEffect.procs];
+        for i, x in pairs(procValues) do debuff[i] = x; end;
+        stackCount = debuff.stacks or stackCount;
+      end;
+    else
+      stackCount = math.max((FancyActionBar.stacks[debuff.stackId] or 1) - stackCount, 0);
+    end;
     if debuff.instantFade then
       debuff.endTime = 0;
     end;
@@ -458,7 +456,7 @@ end;
 
 local function OnDebuffStacksChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
   if (not SV.showOvertauntStacks) and abilityId.id == 52790 then return; end;
-  
+
   for debuffId, debuff in pairs(FancyActionBar.debuffs) do
     if abilityId == debuff.stackId then
       UpdateDebuff(debuff, stackCount or 0, unitId, false);
@@ -515,8 +513,8 @@ function FancyActionBar:UpdateDebuffTracking()
     -- EM:AddFilterForEvent( NAME .. "EnemyDeath_2", EVENT_COMBAT_EVENT, REGISTER_FILTER_COMBAT_RESULT, ACTION_RESULT_DIED_XP, REGISTER_FILTER_IS_ERROR, false )
     for id in pairs(FancyActionBar.debuffStackMap) do
       EM:RegisterForEvent(NAME .. id .. "DebuffStacks", EVENT_EFFECT_CHANGED, OnDebuffStacksChanged);
-      EM:AddFilterForEvent(NAME .. id.. "DebuffStacks", EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, id);
-    end
+      EM:AddFilterForEvent(NAME .. id .. "DebuffStacks", EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, id);
+    end;
   end;
 end;
 
