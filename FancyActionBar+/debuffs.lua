@@ -455,7 +455,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 end;
 
 local function OnDebuffStacksChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
-  if (not SV.showOvertauntStacks) and abilityId.id == 52790 then return; end;
+  if (not SV.showOvertauntStacks) and abilityId == 52790 then return; end;
 
   for debuffId, debuff in pairs(FancyActionBar.debuffs) do
     if abilityId == debuff.stackId then
