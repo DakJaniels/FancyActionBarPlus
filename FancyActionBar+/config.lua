@@ -1481,6 +1481,7 @@ FancyActionBar.removeInstantly = {
   [18746] = true;  -- mages' fury debuff
   [19118] = true;  -- endless fury debuff
   [19125] = true;  -- mages' wrath debuff
+  [51392] = true;  -- Streak Fatigue
 };
 
 FancyActionBar.allowedChanneled = {
