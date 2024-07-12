@@ -805,6 +805,7 @@ FancyActionBar.debuffStackMap = {
     38256;  -- ransack (taunt)
     183165; -- runic jolt
     183430; -- runic sunder
+    187742; -- runic sunder (armor steal)
     186531; -- runic embrace
     222966; -- goading throw (scribing) (taunt)
     216674; -- goading valult (scribing) (taunt)

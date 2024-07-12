@@ -254,9 +254,10 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
   if isTarget == false then
     local activeDebuffs = activeTargetDebuffs[debuff.id];
     if activeDebuffs then
-      for unitId, beginTime in pairs(activeDebuffs) do
+      for debuffUnitId, beginTime in pairs(activeDebuffs) do
         if debuff.beginTime == beginTime then
-          unitUpdating = unitId;
+          unitUpdating = debuffUnitId;
+          break;
         end;
       end;
       if unitId ~= unitUpdating then return; end;
@@ -391,8 +392,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
           stackCount = FancyActionBar.stacks[debuff.stackId] or stackCount;
         end;
       end;
-    elseif change == EFFECT_RESULT_GAINED then
-      stackCount = (FancyActionBar.stacks[debuff.stackId] or 0) + stackCount;
     end;
 
     debuff.beginTime = t or beginTime or time();
@@ -457,6 +456,16 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
   end;
 end;
 
+local function OnDebuffStacksChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
+  if (not SV.showOvertauntStacks) and abilityId.id == 52790 then return; end;
+  
+  for debuffId, debuff in pairs(FancyActionBar.debuffs) do
+    if abilityId == debuff.stackId then
+      UpdateDebuff(debuff, stackCount or 0, unitId, false);
+    end;
+  end;
+end;
+
 -- function FancyActionBar.OnDebuffTargetDeath( eventCode, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId )
 --
 --   if targetUnitId == nil or targetUnitId == 0 then return end
@@ -470,6 +479,7 @@ local function ClearDebuffsOnCombatEnd()
   local keep = {};
   if not IsUnitInCombat("player") then
     for i, debuff in pairs(FancyActionBar.debuffs) do
+      FancyActionBar.targets[debuff.id] = nil;
       local specialEffect = FancyActionBar.specialEffects[debuff.id];
       if (specialEffect and specialEffect.fixedTime) and (debuff.endTime and debuff.endTime > t) then
         keep[i] = true;
@@ -503,6 +513,10 @@ function FancyActionBar:UpdateDebuffTracking()
     --
     -- EM:RegisterForEvent(  NAME .. "EnemyDeath_2", EVENT_COMBAT_EVENT, FancyActionBar.OnDebuffTargetDeath )
     -- EM:AddFilterForEvent( NAME .. "EnemyDeath_2", EVENT_COMBAT_EVENT, REGISTER_FILTER_COMBAT_RESULT, ACTION_RESULT_DIED_XP, REGISTER_FILTER_IS_ERROR, false )
+    for id in pairs(FancyActionBar.debuffStackMap) do
+      EM:RegisterForEvent(NAME .. id .. "DebuffStacks", EVENT_EFFECT_CHANGED, OnDebuffStacksChanged);
+      EM:AddFilterForEvent(NAME .. id.. "DebuffStacks", EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, id);
+    end
   end;
 end;
 
