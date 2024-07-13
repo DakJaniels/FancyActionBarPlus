@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.6.2";
+local VERSION = "2.6.3";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -320,12 +320,36 @@ end;
 ---@param index number
 ---@param bar HotBarCategory
 function FancyActionBar.GetSlotTrueBoundId(index, bar)
+  bar = bar or GetActiveHotbarCategory();
   local id = GetSlotBoundId(index, bar);
   local actionType = GetSlotType(index, bar);
   if actionType == ACTION_TYPE_CRAFTED_ABILITY then
     id = GetAbilityIdForCraftedAbilityId(id);
   end;
   return id;
+end;
+
+function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
+  local skillType, skillLineIndex, skillIndex = GetSpecificSkillAbilityKeysByAbilityId(abilityId);
+  local progressionId = GetProgressionSkillProgressionId(skillType, skillLineIndex, skillIndex);
+  local collectibleId = GetActiveProgressionSkillAbilityFxOverrideCollectibleId(progressionId);
+  if not collectibleId or collectibleId == 0 then return nil; end;
+  local collectibleIcon = GetCollectibleIcon(collectibleId);
+  return collectibleIcon;
+end;
+
+function FancyActionBar.SkillStyleCollectibleUpdated(collectibleId)
+  if not SV.applyActionBarSkillStyles then return; end;
+  FancyActionBar.ApplyAbilityFxOverrides(SV.applyActionBarSkillStyles); -- TODO: Only update the specific ability and only when the specific collectible is updated.
+  -- local ZO_COLLECTIBLE_DATA_MANAGER = ZO_COLLECTIBLE_DATA_MANAGER;
+  -- local data;
+  -- local collectibleIcon;
+  -- data = ZO_COLLECTIBLE_DATA_MANAGER:GetCategoryDataById(COLLECTIBLE_CATEGORY_TYPE_ABILITY_FX_OVERRIDE);
+  -- if data then
+  --   data:GetSpecializedSortedCollectiblesObject().dirty = true;
+  -- end;
+  -- local collectibleData = ZO_COLLECTIBLE_DATA_MANAGER:GetCollectibleDataById(collectibleId);
+  -- if (not collectibleData) or (not collectibleData:IsSkillStyle()) then return; end;
 end;
 
 ---
@@ -646,6 +670,28 @@ function FancyActionBar.GetActionButton(index) -- get actionbutton by index.
   end;
 end;
 
+function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
+  if not userPreferenceChanged and SV.applyActionBarSkillStyles == false then return; end;
+  for i = MIN_INDEX, ULT_INDEX do
+    FancyActionBar.SetActionButtonAbilityFxOverride(i);
+    if userPreferenceChanged then
+      FancyActionBar.UpdateInactiveBarIcon(i, HOTBAR_CATEGORY_BACKUP);
+    end
+  end;
+end;
+
+function FancyActionBar.SetActionButtonAbilityFxOverride(index)
+  local button = FancyActionBar.GetActionButton(index);
+  if not button then return; end;
+  local id = FancyActionBar.GetSlotTrueBoundId(index);
+  if id > 0 then
+    local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
+    if icon then
+      button.icon:SetTexture(icon);
+    end;
+  end;
+end;
+
 function FancyActionBar.GetOverlay(index)
   if (index == ULT_SLOT) or (index == ULT_SLOT + SLOT_INDEX_OFFSET)
   then
@@ -834,17 +880,18 @@ function FancyActionBar.GetIdForDestroSkill(id, bar) -- cause too hard for game 
 end;
 
 function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
+  if index == ULT_INDEX then return; end;
   local id = FancyActionBar.GetSlotTrueBoundId(index, bar);
   local iconId = 0;                                       -- GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
   local btn = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
   local icon = "";
-
   if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
     if FancyActionBar.destroSkills[id] then
       id = FancyActionBar.GetIdForDestroSkill(id, bar);
-      icon = GetAbilityIcon(id);
+      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
     else
-      icon = GetAbilityIcon(GetEffectiveAbilityIdForAbilityOnHotbar(id, bar));
+      id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar);
+      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
     end;
     btn.icon:SetHidden(false);
     btn.icon:SetTexture(icon);
@@ -1139,6 +1186,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
       durationControl:SetText("");
     end;
   end;
+  FancyActionBar.SetActionButtonAbilityFxOverride(index);
 end;
 
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
@@ -2293,6 +2341,7 @@ function FancyActionBar.UpdateBarSettings() -- run all UI visual updates when UI
   FancyActionBar.SwapControls();
   FancyActionBar.AdjustControlsPositions();
   FancyActionBar.ApplyPosition();
+  FancyActionBar.ApplyAbilityFxOverrides();
 end;
 
 function FancyActionBar.SetScale() -- resize and check for other addons with same function
@@ -2897,6 +2946,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.UpdateUltimateCost();
       end;
       FancyActionBar.UpdateSlottedSkillsDecriptions();
+      FancyActionBar.SetActionButtonAbilityFxOverride(n);
     end;
     -- Chat('Slot ' .. tostring(n) .. ' changed')
   end;
@@ -2934,11 +2984,13 @@ function FancyActionBar.Initialize()
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
+    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   local function OnActiveWeaponPairChanged()
     currentHotbarCategory = GetActiveHotbarCategory();
     FancyActionBar.SwapControls();
+    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   -- IsAbilityUltimate(*integer* _abilityId_)
@@ -2951,7 +3003,7 @@ function FancyActionBar.Initialize()
       local t = time();
       local effect = FancyActionBar.SlotEffect(index, id);
       -- local effect = FancyActionBar.effects[id]
-      local i = FancyActionBar.GetSlottedEffect(index); -- Scribing Might Be Failing Here
+      local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
 
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) then -- track when the skill was used and ignore other events for it that is lower than the GCD
@@ -3381,6 +3433,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ApplyStyle();
     OnAllHotbarsUpdated();
     FancyActionBar.SwapControls();
+    FancyActionBar.ApplyAbilityFxOverrides();
     EM:UnregisterForUpdate(NAME .. "Update");
     EM:RegisterForUpdate(NAME .. "Update", updateRate, Update);
     EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED);
@@ -3392,9 +3445,11 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
+    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
+  EM:RegisterForEvent(Name, EVENT_COLLECTIBLE_UPDATED, FancyActionBar.SkillStyleCollectibleUpdated);
   EM:RegisterForEvent(NAME, EVENT_EFFECT_CHANGED, OnEffectChanged);
   EM:AddFilterForEvent(NAME, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
 
@@ -3676,6 +3731,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showOvertauntStacks == nil then SV.showOvertauntStacks = d.showOvertauntStacks; end;
     if SV.showTargetCount == nil then SV.showTargetCount = d.showTargetCount; end;
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
+    if SV.applyActionBarSkillStyles == nil then SV.applyActionBarSkillStyles = d.applyActionBarSkillStyles; end;
 
     SV.variablesValidated = true;
   end;
