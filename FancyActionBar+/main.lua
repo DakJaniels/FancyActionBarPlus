@@ -3225,7 +3225,7 @@ function FancyActionBar.Initialize()
 
     if FancyActionBar.stackMap[abilityId] then
       for id, effect in pairs(FancyActionBar.effects) do
-        if effect.id == abilityId then
+        if abilityId == effect.stackId then
           FancyActionBar.HandleStackUpdate(id);
         end;
       end;
