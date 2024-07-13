@@ -42,6 +42,7 @@ FancyActionBar.defaultSettings = {
 
   noTargetFade = false;
   noTargetAlpha = 90;
+  applyActionBarSkillStyles = true;
 
   durationMin = 2;
   durationMax = 120;

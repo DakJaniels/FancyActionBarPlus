@@ -1220,7 +1220,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         };
-
         -- { type = 'checkbox', 			name = 'Hide inactive back bar buttons (not for static bars)',
         -- 	tooltip = 'ON = Inactive back bar buttons WILL be hidden.\nOFF = Inactive back bar buttons WONT be hidden.',
         -- 	disabled = function() return SV.staticBars end,
@@ -1466,6 +1465,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
           width = "half";
+        };
+        { type = "divider" };
+        --=============[  Skill Styles  ]==================
+        {
+          type = "checkbox";
+          name = "Apply Skill Styles to Action Bar Slots";
+          default = defaults.applyActionBarSkillStyles;
+          getFunc = function () return SV.applyActionBarSkillStyles; end;
+          setFunc = function (value)
+            SV.applyActionBarSkillStyles = value or false;
+            FancyActionBar.ApplyAbilityFxOverrides(true);
+          end;
+          width = "full";
         };
       };
     };
