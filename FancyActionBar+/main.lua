@@ -695,13 +695,13 @@ function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
 end;
 
 function FancyActionBar.SetActionButtonAbilityFxOverride(index)
-  local button = FancyActionBar.GetActionButton(index);
-  if not button then return; end;
+  local btn = FancyActionBar.GetActionButton(index);
+  if not btn then return; end;
   local id = FancyActionBar.GetSlotTrueBoundId(index);
   if id > 0 then
     local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
     if icon then
-      button.icon:SetTexture(icon);
+      btn.icon:SetTexture(icon);
     end;
   end;
 end;
@@ -2981,11 +2981,15 @@ function FancyActionBar.Initialize()
   -- Button (usable) state changed.
   local function OnSlotStateChanged(_, n)
     local btn = ZO_ActionBar_GetButton(n);
-    if btn then btn:UpdateState(); end;
+    if btn then
+      btn:UpdateState();
+      FancyActionBar.SetActionButtonAbilityFxOverride(n);
+    end;
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
   local function OnAllHotbarsUpdated()
+    FancyActionBar.ApplyAbilityFxOverrides();
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
       if button then
@@ -3011,7 +3015,6 @@ function FancyActionBar.Initialize()
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
-    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   local function OnActiveWeaponPairChanged()
@@ -3445,6 +3448,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionStateChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
+  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function() FancyActionBar.ApplyAbilityFxOverrides(); end);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed);
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
