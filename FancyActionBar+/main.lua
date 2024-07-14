@@ -330,6 +330,9 @@ function FancyActionBar.GetSlotTrueBoundId(index, bar)
 end;
 
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
+  if FancyActionBar.destroSkills[abilityId] then
+    abilityId = FancyActionBar.GetBaseIdForDestroSkill(abilityId);
+  end
   local skillType, skillLineIndex, skillIndex = GetSpecificSkillAbilityKeysByAbilityId(abilityId);
   local progressionId = GetProgressionSkillProgressionId(skillType, skillLineIndex, skillIndex);
   local collectibleId = GetActiveProgressionSkillAbilityFxOverrideCollectibleId(progressionId);
@@ -879,6 +882,20 @@ function FancyActionBar.GetIdForDestroSkill(id, bar) -- cause too hard for game 
   return destroId;
 end;
 
+function FancyActionBar.GetBaseIdForDestroSkill(id) -- cause too hard for game to figure out.
+  local destroBaseId;
+  local skill1 = FancyActionBar.destroSkills[id];
+  local skill2 = FancyActionBar.idsForStaff[skill1.type][skill1.morph];
+
+  if skill2[WEAPONTYPE_NONE]
+  then
+    destroBaseId = skill2[WEAPONTYPE_NONE];
+  else
+    destroBaseId = id;
+  end;
+  return destroBaseId;
+end;
+
 function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   if index == ULT_INDEX then return; end;
   local id = FancyActionBar.GetSlotTrueBoundId(index, bar);
@@ -887,8 +904,7 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   local icon = "";
   if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
     if FancyActionBar.destroSkills[id] then
-      id = FancyActionBar.GetIdForDestroSkill(id, bar);
-      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
+      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetIdForDestroSkill(id, bar));
     else
       id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar);
       icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
