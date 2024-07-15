@@ -1586,14 +1586,12 @@ FancyActionBar.multiTarget = {
 };
 
 
-FancyActionBar.echoingVigor = {
-  primary = 61506;
-  ids = {
-    [61503] = true;
-    [61504] = true;
-    [61505] = true;
-    [61506] = true;
-  };
+FancyActionBar.stackableBuff = {
+  -- Echoing Vigor
+    [61503] = 61506;
+    [61504] = 61506;
+    [61505] = 61506;
+    [61506] = 61506;
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;
