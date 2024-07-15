@@ -352,6 +352,25 @@ local function OnReticleTargetChanged()
   end;
 end;
 
+function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId)
+  if (change == EFFECT_RESULT_FADED) then
+    if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
+      local targetData = FancyActionBar.targets[debuff.id];
+      targetData.targetCount = (targetData.targetCount - 1);
+      targetData.times[unitId] = nil;
+      if targetData.targetCount >= 1 then
+        FancyActionBar.targets[debuff.id] = targetData;
+        FancyActionBar.HandleTargetUpdate(debuff.id);
+        return;
+      else
+        targetData.maxEndTime = 0;
+        FancyActionBar.targets[debuff.id] = targetData;
+        FancyActionBar.HandleTargetUpdate(debuff.id);
+      end;
+    end;
+  end;
+end;
+
 function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
   local tag = "";
   if unitTag ~= nil and unitTag ~= "" then tag = unitTag; end;
@@ -367,7 +386,11 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     debuff = FancyActionBar.debuffs[specialEffect.id] or debuff;
   end;
 
-  if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then return; end;
+    if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
+      if FancyActionBar.multiTarget[debuff.id] then
+      FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId);
+      end;
+      return; end;
 
   for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
     for i = 1, #targetIds do
@@ -400,12 +423,12 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     FancyActionBar.debuffs[debuff.id] = debuff;
 
     if FancyActionBar.multiTarget[debuff.id] then
-      local targetData = FancyActionBar.targets[debuff.id] or { targets = 0; maxEndTime = 0; endTimes = {} };
-      if change == EFFECT_RESULT_GAINED and not targetData.endTimes[unitId] then
-        targetData.targets = (targetData.targets + 1);
+      local targetData = FancyActionBar.targets[debuff.id] or { targetCount = 0; maxEndTime = 0; times = {} };
+      if change == EFFECT_RESULT_GAINED and not targetData.times[unitId] then
+        targetData.targetCount = (targetData.targetCount + 1);
       end;
       targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
-      targetData.endTimes[unitId] = endTime;
+      targetData.times[unitId] = { beginTime = debuff.beginTime; endTime = debuff.endTime };
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
     end;
@@ -419,11 +442,11 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t));
     end;
   elseif (change == EFFECT_RESULT_FADED) then
-    if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].endTimes[unitId] then
+    if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
-      targetData.targets = (targetData.targets - 1);
-      targetData.endTimes[unitId] = nil;
-      if targetData.targets >= 1 then
+      targetData.targetCount = (targetData.targetCount - 1);
+      targetData.times[unitId] = nil;
+      if targetData.targetCount >= 1 then
         FancyActionBar.targets[debuff.id] = targetData;
         FancyActionBar.HandleTargetUpdate(debuff.id);
         return;
