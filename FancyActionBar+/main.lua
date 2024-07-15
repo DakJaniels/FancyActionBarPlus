@@ -1743,7 +1743,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
     local echoingVigor = FancyActionBar.echoingVigor.primary;
     local vigorInstances = FancyActionBar.alliedEffects[echoingVigor] or {};
     if change == EFFECT_RESULT_GAINED then
-      if vigorInstances[unitId] then 
+      if vigorInstances[unitId] then
         vigorInstances[unitId] = beginTime;
         return;
       end;
@@ -1751,6 +1751,10 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
       stackCount = (FancyActionBar.stacks[echoingVigor] or 0) + 1;
       FancyActionBar.stacks[echoingVigor] = stackCount;
     elseif change == EFFECT_RESULT_UPDATED then
+      if not vigorInstances[unitId] then
+        stackCount = (FancyActionBar.stacks[echoingVigor] or 0) + 1;
+        FancyActionBar.stacks[echoingVigor] = stackCount;
+      end;
       vigorInstances[unitId] = beginTime;
     elseif (change == EFFECT_RESULT_FADED) then
       vigorInstances[unitId] = nil;
