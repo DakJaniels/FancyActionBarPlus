@@ -1546,6 +1546,8 @@ FancyActionBar.multiTarget = {
   [38747] = true;  -- Carve
 
   [61506] = true;  -- Echoing Vigor
+  [40079] = true;  -- Radiating Regeneration
+  [99781] = true;  -- Grand Rejuviantion
 
   -- Class Abilities
   [25493] = true;  -- Lotus Fan
