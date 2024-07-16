@@ -1743,7 +1743,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
   local _;
   if FancyActionBar.stackableBuff[abilityId] then
     local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
-    _, _, stackCount = FancyActionBar.CheckForActiveEffect(effect.id);
+    _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId);
     FancyActionBar.stacks[stackableBuffId] = stackCount;
     FancyActionBar.HandleStackUpdate(stackableBuffId);
     for id, effect in pairs(FancyActionBar.effects) do
