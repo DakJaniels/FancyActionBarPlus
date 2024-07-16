@@ -357,7 +357,7 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endT
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targetCount = (targetData.targetCount - 1);
-      targetData.times[unitId] = nil;
+      targetData.times[unitId] = {};
       if targetData.targetCount >= 1 then
         FancyActionBar.targets[debuff.id] = targetData;
         FancyActionBar.HandleTargetUpdate(debuff.id);
@@ -386,12 +386,13 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     debuff = FancyActionBar.debuffs[specialEffect.id] or debuff;
   end;
 
-    if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
-      if FancyActionBar.multiTarget[debuff.id] then
+  if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
+    if FancyActionBar.multiTarget[debuff.id] then
       FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId);
-      end;
-      return; end;
-
+    end;
+    return;
+  end;
+  
   for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
     for i = 1, #targetIds do
       if targetIds[i] == abilityId then
@@ -428,7 +429,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         targetData.targetCount = (targetData.targetCount + 1);
       end;
       targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
-      targetData.times[unitId] = { beginTime = debuff.beginTime; endTime = debuff.endTime };
+      targetData.times[unitId] = { beginTime = debuff.beginTime; endTime = endTime };
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
     end;
@@ -445,7 +446,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targetCount = (targetData.targetCount - 1);
-      targetData.times[unitId] = nil;
+      targetData.times[unitId] = {};
       if targetData.targetCount >= 1 then
         FancyActionBar.targets[debuff.id] = targetData;
         FancyActionBar.HandleTargetUpdate(debuff.id);

@@ -1571,6 +1571,7 @@ FancyActionBar.multiTarget = {
   -- Major Debuffs
   [61743] = true; -- Major Breach
   [61725] = true; -- Major Maim
+  [61745] = true; -- Major Berserk
 
   -- Minor Debuffs
   [61742] = true;  -- Minor Breach
@@ -1578,6 +1579,8 @@ FancyActionBar.multiTarget = {
   [145975] = true; -- Minor Brittle
   [78867] = true;  -- Minor Cowardice
   [61723] = true;  -- Minor Maim
+  [61693] = true;  -- Minor Resolve
+  [61744] = true;  -- Minor Berserk
 
   -- Unique Debuffs
   [38254] = true;  -- Taunt
@@ -1592,6 +1595,7 @@ FancyActionBar.stackableBuff = {
     [61504] = 61506;
     [61505] = 61506;
     [61506] = 61506;
+    
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;

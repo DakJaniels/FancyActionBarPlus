@@ -81,7 +81,6 @@ local DEBUFF = BUFF_EFFECT_TYPE_DEBUFF;
 -------------------------------------------------------------------------------
 FancyActionBar.effects = {};        -- currently slotted abilities
 FancyActionBar.stacks = {};         -- ability id => current stack count
-FancyActionBar.alliedEffects = {};  -- effects active on the player sourced from allies
 FancyActionBar.targets = {};        -- ability id => current active target table
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
@@ -822,10 +821,11 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
   local hasEffect = false;
   local duration = 0;
   local currentStacks = 0;
-
+  local buffBeginTimes = {};
   for i = 1, GetNumBuffs("player") do
     local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
     if (id == FancyActionBar.stackableBuff[id]) and FancyActionBar.stackableBuff[abilityId] then
+      buffBeginTimes[beginTime] = true
       currentStacks = currentStacks + 1;
       if abilityId == id then
         hasEffect = true;
@@ -845,19 +845,20 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
   if FancyActionBar.targets[id] then
     local currentTime = time();
     local targetData = FancyActionBar.targets[id];
-    if (targetData.maxEndTime < currentTime) or (targetData.targets == 0) then
-      FancyActionBar.targets[id].targets = 0;
+    if (targetData.maxEndTime < currentTime) or (targetData.targetCount == 0) then
+      FancyActionBar.targets[id].targetCount = 0;
       FancyActionBar.targets[id].maxEndTime = 0;
+      FancyActionBar.targets[id].times = {};
     else
       local activeTargets = 0;
-      for unitId, endTime in pairs(targetData.endTimes) do
-        if endTime < currentTime then
-          FancyActionBar.targets[id].endTimes[unitId] = nil;
+      for unitId, times in pairs(targetData.times) do
+        if times.endTime and (times.endTime < currentTime) then
+          FancyActionBar.targets[id].times[unitId] = nil;
         else
           activeTargets = activeTargets + 1;
         end;
       end;
-      FancyActionBar.targets[id].targets = activeTargets;
+      FancyActionBar.targets[id].targetCount = activeTargets;
     end;
   end;
 end;
@@ -1043,10 +1044,11 @@ end;
 
 function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, duration)
   local timer, color = "", nil;
-
+  local time = time();
   if duration <= 0 then
-    if (SV.delayFade and not effect.instantFade) then
-      local delayEnd = (effect.endTime + SV.fadeDelay) - time();
+    if (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > time) and (SV.keepLastTarget == false))) then
+      -- adding or (effect.isDebuff and SV.keepLastTarget == false) is to try to prevent a flicker of 0 on reticleover when a debuff isn't active
+      local delayEnd = (effect.endTime + SV.fadeDelay) - time;
       if delayEnd > 0 then
         timer = zo_max(0, zo_ceil(tonumber(duration)));
       end;
@@ -1113,10 +1115,10 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
       end;
       if FancyActionBar.targets[effect.id] then
         local targetData = FancyActionBar.targets[effect.id];
-        if (targetData.maxEndTime < currentTime) or (targetData.targets == 0) then
-          FancyActionBar.targets[effect.id].targets = 0;
+        if (targetData.maxEndTime < currentTime) or (targetData.targetCount == 0) then
+          FancyActionBar.targets[effect.id].targetCount = 0;
           FancyActionBar.targets[effect.id].maxEndTime = 0;
-          FancyActionBar.targets[effect.id].endTimes = {};
+          FancyActionBar.targets[effect.id].times = {};
           targetsControl:SetText("");
         end;
       end;
@@ -1154,8 +1156,8 @@ function FancyActionBar.UpdateTargets(index) -- stacks label.
     local effect = overlay.effect;
     if effect and effect.id and FancyActionBar.targets[effect.id] then
       local target = FancyActionBar.targets[effect.id]
-      if ((not SV.showSingleTargetInstance and target.targets > 1) or (SV.showSingleTargetInstance and target.targets > 0)) then
-        targetsControl:SetText(target.targets);
+      if ((not SV.showSingleTargetInstance and target.targetCount > 1) or (SV.showSingleTargetInstance and target.targetCount > 0)) then
+        targetsControl:SetText(target.targetCount);
         targetsControl:SetColor(unpack(FancyActionBar.constants.targets.color));
         return;
       end;
@@ -1738,29 +1740,17 @@ local BUFF_EFFECT_TYPE_DEBUFF = BUFF_EFFECT_TYPE_DEBUFF;
 function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
   if sourceType == COMBAT_UNIT_TYPE_PLAYER then return; end;
   if not AreUnitsEqual("player", unitTag) then return; end;
-
+  local _;
   if FancyActionBar.stackableBuff[abilityId] then
     local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
-    local stackableBuffInstances = FancyActionBar.alliedEffects[stackableBuffId] or {};
-    if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-      if not stackableBuffInstances[unitId] then
-        stackCount = (FancyActionBar.stacks[stackableBuffId] or 0) + 1;
-        FancyActionBar.stacks[stackableBuffId] = stackCount;
-      else
-        stackCount = FancyActionBar.stacks[stackableBuffId];
-      end;
-      stackableBuffInstances[unitId] = beginTime;
-      FancyActionBar.stacks[stackableBuffId] = stackCount;
-    elseif (change == EFFECT_RESULT_FADED) then
-      stackableBuffInstances[unitId] = nil;
-      stackCount = math.max((FancyActionBar.stacks[stackableBuffId] or 1) - 1, 0);
-      FancyActionBar.stacks[stackableBuffId] = stackCount;
-    end;
+    _, _, stackCount = FancyActionBar.CheckForActiveEffect(effect.id);
+    FancyActionBar.stacks[stackableBuffId] = stackCount;
     FancyActionBar.HandleStackUpdate(stackableBuffId);
-    if FancyActionBar.effects[stackableBuffId] then
-      FancyActionBar.UpdateEffect(FancyActionBar.effects[stackableBuffId]);
+    for id, effect in pairs(FancyActionBar.effects) do
+      if FancyActionBar.stackableBuff[id] or FancyActionBar.stackableBuff[effect.id] then
+      FancyActionBar.UpdateEffect(effect);
+      end;
     end;
-    FancyActionBar.alliedEffects[stackableBuffId] = stackableBuffInstances;
   end;
 
   local effect = FancyActionBar.effects[abilityId];
@@ -2988,7 +2978,6 @@ function FancyActionBar.Initialize()
 
   -- Any skill swapped. Setup buttons and slot effects.
   local function OnAllHotbarsUpdated()
-    FancyActionBar.ApplyAbilityFxOverrides();
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
       if button then
@@ -3014,6 +3003,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
+    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   local function OnActiveWeaponPairChanged()
@@ -3099,6 +3089,7 @@ function FancyActionBar.Initialize()
     if SV.debugAll then
       FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType);
     end;
+    local _;
     local t = time();
 
     local specialEffect = FancyActionBar.specialEffects[abilityId]
@@ -3164,26 +3155,19 @@ function FancyActionBar.Initialize()
 
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
-          local stackableBufInstances = FancyActionBar.alliedEffects[stackableBuffId] or {};
-          if not stackableBufInstances[unitId] then
-            stackCount = (FancyActionBar.stacks[stackableBuffId] or 0) + 1;
-            FancyActionBar.stacks[stackableBuffId] = stackCount;
-          else
-            stackCount = (FancyActionBar.stacks[stackableBuffId]);
-          end;
-          stackableBufInstances[unitId] = beginTime;
-          FancyActionBar.alliedEffects[stackableBuffId] = stackableBufInstances;
+          _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
+          FancyActionBar.stacks[stackableBuffId] = stackCount;
         end;
 
         if FancyActionBar.multiTarget[effect.id] then
           --d("Targeted ability: " .. abilityId);
           --d("EndTime: " .. endTime);
-          local targetData = FancyActionBar.targets[effect.id] or { targets = 0, maxEndTime = 0, endTimes = {} };
-          if change == EFFECT_RESULT_GAINED and not targetData.endTimes[unitId] then
-            targetData.targets = (targetData.targets + 1);
+          local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0, maxEndTime = 0, times = {} };
+          if change == EFFECT_RESULT_GAINED and not targetData.times[unitId] then
+            targetData.targetCount = (targetData.targetCount + 1);
           end;
           targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
-          targetData.endTimes[unitId] = endTime;
+          targetData.times[unitId] = { beginTime = beginTime, endTime = endTime };
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
         end;
@@ -3217,13 +3201,13 @@ function FancyActionBar.Initialize()
         end;
         FancyActionBar.UpdateEffect(effect);
       elseif (change == EFFECT_RESULT_FADED) then
-        if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].endTimes[unitId] then
+        if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].times[unitId] then
           local targetData = FancyActionBar.targets[effect.id];
-          targetData.targets = (targetData.targets - 1);
-          targetData.endTimes[unitId] = nil;
+          targetData.targetCount = (targetData.targetCount - 1);
+          targetData.times[unitId] = nil;
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
-          if targetData.targets >= 1 then
+          if targetData.targetCount >= 1 then
             return;
           end;
         end;
@@ -3232,13 +3216,11 @@ function FancyActionBar.Initialize()
 
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
-          local stackableBuffInstances = FancyActionBar.alliedEffects[stackableBuffId] or {};
-          stackableBuffInstances[unitId] = nil;
-          stackCount = math.max((FancyActionBar.stacks[stackableBuffId] or 1) - 1, 0);
+          _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
           FancyActionBar.stacks[stackableBuffId] = stackCount;
           FancyActionBar.HandleStackUpdate(stackableBuffId);
-          FancyActionBar.alliedEffects[stackableBuffId] = stackableBuffInstances;
         end;
+
         if effect.instantFade or FancyActionBar.removeInstantly[effect.id] then -- abilities we want to reset the overlay instantly for when expired.
           effect.endTime = endTime;
           FancyActionBar.UpdateEffect(effect);
@@ -3310,9 +3292,9 @@ function FancyActionBar.Initialize()
     end;
 
     if FancyActionBar.stackableBuff[abilityId] then
-      stackableBuffId = FancyActionBar.stackableBuff[abilityId];
+      abilityId = FancyActionBar.stackableBuff[abilityId];
       local _;
-      _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId);
+      _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
     end;
 
     FancyActionBar.stacks[abilityId] = stackCount;
