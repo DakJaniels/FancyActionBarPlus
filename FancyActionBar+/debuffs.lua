@@ -366,15 +366,11 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endT
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targetCount = (targetData.targetCount - 1);
-      targetData.times[unitId] = {};
+      targetData.times[unitId] = nil;
+      FancyActionBar.targets[debuff.id] = targetData;
+      FancyActionBar.HandleTargetUpdate(debuff.id);
       if targetData.targetCount >= 1 then
-        FancyActionBar.targets[debuff.id] = targetData;
-        FancyActionBar.HandleTargetUpdate(debuff.id);
         return;
-      else
-        targetData.maxEndTime = 0;
-        FancyActionBar.targets[debuff.id] = targetData;
-        FancyActionBar.HandleTargetUpdate(debuff.id);
       end;
     end;
   end;
@@ -427,7 +423,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       stackCount = FancyActionBar.stacks[debuff.stackId] or stackCount;
     end;
 
-    debuff.beginTime = t or beginTime or time();
+    debuff.beginTime = (beginTime and beginTime ~= 0 and beginTime) or t;
     debuff.endTime = endTime;
     debuff.duration = endTime - beginTime;
     FancyActionBar.debuffs[debuff.id] = debuff;
@@ -455,18 +451,13 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.targetCount = (targetData.targetCount - 1);
-      targetData.times[unitId] = {};
+      targetData.times[unitId] = nil;
+      FancyActionBar.targets[debuff.id] = targetData;
+      FancyActionBar.HandleTargetUpdate(debuff.id);
       if targetData.targetCount >= 1 then
-        FancyActionBar.targets[debuff.id] = targetData;
-        FancyActionBar.HandleTargetUpdate(debuff.id);
         return;
-      else
-        targetData.maxEndTime = 0;
-        FancyActionBar.targets[debuff.id] = targetData;
-        FancyActionBar.HandleTargetUpdate(debuff.id);
       end;
     end;
-    if debuff.beginTime and (t - debuff.beginTime < 0.3) and (not debuff.instantFade) then return; end;
     if specialEffect then
       if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
         return; -- we don't need to worry about this effect anymore because it has already proced
