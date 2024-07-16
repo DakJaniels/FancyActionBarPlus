@@ -1154,8 +1154,8 @@ function FancyActionBar.UpdateTargets(index) -- stacks label.
     local targetsControl = overlay:GetNamedChild("Targets");
     local effect = overlay.effect;
     if effect and effect.id and FancyActionBar.targets[effect.id] then
-      local target = FancyActionBar.targets[effect.id]
-      if ((not SV.showSingleTargetInstance and target.targetCount > 1) or (SV.showSingleTargetInstance and target.targetCount > 0)) then
+      local target = FancyActionBar.targets[effect.id];
+      if ((SV.showSingleTargetInstance or effect.isDebuff) and target.targetCount > 0) or (not SV.showSingleTargetInstance and target.targetCount > 1 ) then
         targetsControl:SetText(target.targetCount);
         targetsControl:SetColor(unpack(FancyActionBar.constants.targets.color));
         return;
