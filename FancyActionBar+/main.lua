@@ -1099,10 +1099,9 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         bc = FancyActionBar.GetHighlightColor(isFading);
       else
         if effect.stackId then
-          if effect.forceExpireStacks or (effect.isDebuff or effect.isSpecialDebuff) then
-            local stackId = effect.stackId or effect.id;
+          if effect.forceExpireStacks or effect.isSpecialDebuff or (effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId]) then
             effect.stacks = 0;
-            FancyActionBar.stacks[stackId] = 0;
+            FancyActionBar.stacks[effect.stackId] = 0;
             stacksControl:SetText("");
           elseif FancyActionBar.stacks[effect.stackId] > 0 then
             stacksControl:SetText(FancyActionBar.stacks[effect.stackId]);
@@ -3114,6 +3113,16 @@ function FancyActionBar.Initialize()
     end;
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
+
+      local stackMap = FancyActionBar.stackMap;
+      for stackId, stackSources in pairs(stackMap) do
+        for i = 1, #stackSources do
+          if stackSources[i] == effect.id then
+            effect.stackId = stackId;
+          end;
+        end;
+      end;
+
       if effect.toggled then -- update the highlight of toggled abilities.
         if change == EFFECT_RESULT_FADED
         then
@@ -3144,15 +3153,6 @@ function FancyActionBar.Initialize()
       end;
 
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-        local stackMap = FancyActionBar.stackMap;
-        for stackId, stackSources in pairs(stackMap) do
-          for i = 1, #stackSources do
-            if stackSources[i] == effect.id then
-              effect.stackId = stackId;
-            end;
-          end;
-        end;
-
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
           _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);

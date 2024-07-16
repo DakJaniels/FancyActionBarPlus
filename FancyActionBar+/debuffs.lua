@@ -165,6 +165,11 @@ local function ClearTargetEffects()
       doStackUpdate = true;
     end;
 
+    if FancyActionBar.debuffStackMap[debuff.stackId] and FancyActionBar.stacks[debuff.stackId] then
+      FancyActionBar.stacks[debuff.stackId] = 0;
+      doStackUpdate = true;
+    end;
+    
     for effectId, effect in pairs(FancyActionBar.effects) do
       if debuff.id == effect.id then
         effect.endTime = time();
@@ -184,14 +189,17 @@ local function ClearDebuffsIfNotOnTarget()
       debuff.endTime = 0;
       debuff.stacks = 0;
       local doStackUpdate = false;
-      if FancyActionBar.stacks[debuff.stackId] then
-        FancyActionBar.stacks[debuff.stackId] = 0;
-        doStackUpdate = true;
-      end;
+
       if FancyActionBar.stacks[debuff.id] then
         FancyActionBar.stacks[debuff.id] = 0;
         doStackUpdate = true;
       end;
+
+      if FancyActionBar.debuffStackMap[debuff.stackId] and FancyActionBar.stacks[debuff.stackId] then
+        FancyActionBar.stacks[debuff.stackId] = 0;
+        doStackUpdate = true;
+      end;
+      
       for id, effect in pairs(FancyActionBar.effects) do
         if effect.stackId and effect.stackId == debuff.id then
           doStackUpdate = true;
@@ -264,7 +272,6 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
     end;
   end;
 
-  local stacksUpdated = false;
   if not debuff then return; end;
   local t = time();
   debuff.stackId = debuff.stackId or debuff.id;
@@ -276,14 +283,10 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
   end;
 
   for id, effect in pairs(FancyActionBar.effects) do
-    if effect.stackId == debuff.id then
-      stacksUpdated = true;
-      FancyActionBar.HandleStackUpdate(id);
-    end;
     if effect.id == debuff.id then
       for dId, dEffect in pairs(debuff) do effect[dId] = dEffect; end;
       FancyActionBar.effects[id] = effect;
-      if not stacksUpdated then
+      if effect.stackId then
         FancyActionBar.HandleStackUpdate(id);
       end;
       FancyActionBar.UpdateEffect(effect);
@@ -308,7 +311,11 @@ local function OnReticleTargetChanged()
     if debuffNum > 0 then
       for i = 1, debuffNum do
         local debuff = debuffs[i];
-
+        local effect = FancyActionBar.effects[debuff.id];
+        if effect then
+          for dId, dEffect in pairs(debuff) do effect[dId] = dEffect; end;
+          debuff = effect;
+        end;
         for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
           for t = 1, #targetIds do
             if targetIds[t] == debuff.id then
@@ -325,6 +332,8 @@ local function OnReticleTargetChanged()
             debuff.endTime = debuff.beginTime + specialEffect.duration;
           end;
           keep[debuff.id] = true; -- keep the debuff.id after pushing all the special effect properties
+        else
+          debuff.stacks = FancyActionBar.stacks[debuff.stackId] or debuff.stacks;
         end;
 
         debuff.duration = debuff.endTime - debuff.beginTime;
@@ -412,10 +421,10 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       else
         if debuff.id == debuff.stackId then
           stackCount = stackCount or 1;
-        else
-          stackCount = FancyActionBar.stacks[debuff.stackId] or stackCount;
         end;
       end;
+    else
+      stackCount = FancyActionBar.stacks[debuff.stackId] or stackCount;
     end;
 
     debuff.beginTime = t or beginTime or time();
