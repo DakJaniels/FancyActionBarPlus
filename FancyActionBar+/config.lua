@@ -1314,141 +1314,141 @@ FancyActionBar.dontFade = {
   [92503] = true;  -- major sorcery
   [61694] = true;  -- major resolve
   [88758] = true;  -- major resolve
-  [106754] = true; -- major vuln
-  [61743] = true;  -- major breach
+  -- [106754] = true; -- major vuln
+  -- [61743] = true;  -- major breach
   [61704] = true;  -- minor endurance
   [61706] = true;  -- minor intellect
   [61697] = true;  -- minor fortitude
-  [61723] = true;  -- minor maim
-  [61742] = true;  -- minor breach
+  -- [61723] = true;  -- minor maim
+  -- [61742] = true;  -- minor breach
   [86304] = true;  -- minor lifesteal
   [61693] = true;  -- minor resolve
   [176991] = true; -- minor resolve
-  [145975] = true; -- minor brittle
-  [61504] = true;  -- vigor
-  [61506] = true;  -- echoing vigor
+  -- [145975] = true; -- minor brittle
+  -- [61504] = true;  -- vigor
+  -- [61506] = true;  -- echoing vigor
   [61737] = true;  -- empower
-  [34733] = true;  -- off-balance
-  [25256] = true;  -- off-balance
-  [45834] = true;  -- off-balance
-  [125750] = true; -- off-balance
-  [131562] = true; -- off-balance
-  [137257] = true; -- off-balance
-  [137312] = true; -- off-balance
-  [130129] = true; -- off-balance
+  -- [34733] = true;  -- off-balance
+  -- [25256] = true;  -- off-balance
+  -- [45834] = true;  -- off-balance
+  -- [125750] = true; -- off-balance
+  -- [131562] = true; -- off-balance
+  -- [137257] = true; -- off-balance
+  -- [137312] = true; -- off-balance
+  -- [130129] = true; -- off-balance
 
   -- Two Handed
-  [38747] = true; -- carve
-  [83217] = true; -- berserker strike
-  [83230] = true; -- onslaught
-  [83239] = true; -- berserker rage
+  -- [38747] = true; -- carve
+  -- [83217] = true; -- berserker strike
+  -- [83230] = true; -- onslaught
+  -- [83239] = true; -- berserker rage
 
   -- Dual Wield
-  [29293] = true; -- twin slashes
-  [38841] = true; -- rending slashes
-  [38848] = true; -- blood craze
-  [85156] = true; -- lacerate
-  [85192] = true; -- rend
-  [85182] = true; -- thrive in chaos
+  -- [29293] = true; -- twin slashes
+  -- [38841] = true; -- rending slashes
+  -- [38848] = true; -- blood craze
+  -- [85156] = true; -- lacerate
+  -- [85192] = true; -- rend
+  -- [85182] = true; -- thrive in chaos
 
   -- Bow
-  [113627] = true; -- magnum shot (BRP bow)
-  [38707] = true;  -- bombard
-  [38703] = true;  -- acid spray
-  [44540] = true;  -- poison arrow
-  [44545] = true;  -- venom arrow
-  [44549] = true;  -- poison injection
+  -- [113627] = true; -- magnum shot (BRP bow)
+  -- [38707] = true;  -- bombard
+  -- [38703] = true;  -- acid spray
+  -- [44540] = true;  -- poison arrow
+  -- [44545] = true;  -- venom arrow
+  -- [44549] = true;  -- poison injection
 
   -- Destruction Staff
-  [62648] = true;  -- flame touch
-  [62692] = true;  -- frost touch
-  [62722] = true;  -- shock touch
-  [62682] = true;  -- flame reach
-  [62712] = true;  -- frost reach
-  [62745] = true;  -- shock reach
-  [115003] = true; -- BRP destro
+  -- [62648] = true;  -- flame touch
+  -- [62692] = true;  -- frost touch
+  -- [62722] = true;  -- shock touch
+  -- [62682] = true;  -- flame reach
+  -- [62712] = true;  -- frost reach
+  -- [62745] = true;  -- shock reach
+  -- [115003] = true; -- BRP destro
 
   -- Soul Magic
-  [126890] = true; -- soul trap
-  [126895] = true; -- soul splitting trap
-  [126898] = true; -- consuming trap
+  -- [126890] = true; -- soul trap
+  -- [126895] = true; -- soul splitting trap
+  -- [126898] = true; -- consuming trap
 
   -- Fighters Guild
-  [35756] = true; -- trap beast
-  [40375] = true; -- lightweight trap
-  [40385] = true; -- barbed trap
+  -- [35756] = true; -- trap beast
+  -- [40375] = true; -- lightweight trap
+  -- [40385] = true; -- barbed trap
 
   -- Mages Guild
-  [40468] = true;  -- scalding rune
-  [126370] = true; -- entropy
-  [126371] = true; -- structured entropy
-  [126374] = true; -- degeneration
-  [16536] = true;  -- meteor
+  -- [40468] = true;  -- scalding rune
+  -- [126370] = true; -- entropy
+  -- [126371] = true; -- structured entropy
+  -- [126374] = true; -- degeneration
+  -- [16536] = true;  -- meteor
 
   -- Undaunted
-  [38254] = true; -- taunt
-  [42062] = true; -- inner beast
+  -- [38254] = true; -- taunt
+  -- [42062] = true; -- inner beast
 
   -- Dragonknight
-  [44363] = true; -- searing strike
-  [44369] = true; -- venomous claw
-  [44373] = true; -- burning embers
-  [31102] = true; -- fiery breath
-  [31103] = true; -- noxious breath
-  [31104] = true; -- engulfing flames
-  [31898] = true; -- burning talons
-  [32685] = true; -- fossilize
+  -- [44363] = true; -- searing strike
+  -- [44369] = true; -- venomous claw
+  -- [44373] = true; -- burning embers
+  -- [31102] = true; -- fiery breath
+  -- [31103] = true; -- noxious breath
+  -- [31104] = true; -- engulfing flames
+  -- [31898] = true; -- burning talons
+  -- [32685] = true; -- fossilize
 
   -- Sorcerer
-  [24844] = true; -- daedric tomb
-  [24326] = true; -- Daedric Curse
-  [24330] = true; -- haunting curse
-  [24328] = true; -- Daedric Prey
+  -- [24844] = true; -- daedric tomb
+  -- [24326] = true; -- Daedric Curse
+  -- [24330] = true; -- haunting curse
+  -- [24328] = true; -- Daedric Prey
 
   -- Templar
-  [21728] = true; -- sun fire
-  [21734] = true; -- reflective light
-  [21731] = true; -- vampire's bane
-  [21763] = true; -- PotL
-  [21765] = true; -- purifying light
+  -- [21728] = true; -- sun fire
+  -- [21734] = true; -- reflective light
+  -- [21731] = true; -- vampire's bane
+  -- [21763] = true; -- PotL
+  -- [21765] = true; -- purifying light
 
   -- Warden
-  [130140] = true; -- cutting dive bleed
-  [86019] = true;  -- sub assault
+  -- [130140] = true; -- cutting dive bleed
+  -- [86019] = true;  -- sub assault
   -- [86023] = true; -- swarm
   -- [86027] = true; -- fetcher infection
   -- [86031] = true; -- growing swarm
-  [101703] = true; -- swarm
-  [101904] = true; -- fetcher infection
-  [101944] = true; -- growing swarm
-  [85840] = true;  -- growing swarm
+  -- [101703] = true; -- swarm
+  -- [101904] = true; -- fetcher infection
+  -- [101944] = true; -- growing swarm
+  -- [85840] = true;  -- growing swarm
 
   -- Nightblade
-  [33357] = true;  -- mark target
-  [36967] = true;  -- reapers mark
-  [36968] = true;  -- piercing mark
-  [61389] = true;  -- death stroke
-  [61393] = true;  -- incap (70 ult)
-  [113107] = true; -- incap (120 ult)
-  [61400] = true;  -- soul harvest
-  [33333] = true;  -- cripple
-  [36947] = true;  -- debilitate
-  [36960] = true;  -- crippling grasp
-  [25093] = true;  -- soul shred
-  [35462] = true;  -- soul tether
+  -- [33357] = true;  -- mark target
+  -- [36967] = true;  -- reapers mark
+  -- [36968] = true;  -- piercing mark
+  -- [61389] = true;  -- death stroke
+  -- [61393] = true;  -- incap (70 ult)
+  -- [113107] = true; -- incap (120 ult)
+  -- [61400] = true;  -- soul harvest
+  -- [33333] = true;  -- cripple
+  -- [36947] = true;  -- debilitate
+  -- [36960] = true;  -- crippling grasp
+  -- [25093] = true;  -- soul shred
+  -- [35462] = true;  -- soul tether
 
   -- Necromancer
-  [61726] = true; -- render flesh (minor defile)
+  -- [61726] = true; -- render flesh (minor defile)
 
 
   -- Arcanist
-  [185818] = true; -- abyssal impact (abyssal ink)
-  [183008] = true; -- cephaliarch's flail (abyssal ink)
-  [185825] = true; -- tentacular dread (abyssal ink)
-  [187742] = true; -- runic sunder (armor steal)
-  [185838] = true; -- the imperfect ring (the imperfect ring)
-  [185840] = true; -- rune of displacement (rune of displacement)
-  [182989] = true; -- fulminating rune (fulminating rune)
+  -- [185818] = true; -- abyssal impact (abyssal ink)
+  -- [183008] = true; -- cephaliarch's flail (abyssal ink)
+  -- [185825] = true; -- tentacular dread (abyssal ink)
+  -- [187742] = true; -- runic sunder (armor steal)
+  -- [185838] = true; -- the imperfect ring (the imperfect ring)
+  -- [185840] = true; -- rune of displacement (rune of displacement)
+  -- [182989] = true; -- fulminating rune (fulminating rune)
 };
 
 FancyActionBar.removeInstantly = {
@@ -1548,6 +1548,7 @@ FancyActionBar.multiTarget = {
   [61506] = true;  -- Echoing Vigor
   [40079] = true;  -- Radiating Regeneration
   [99781] = true;  -- Grand Rejuviantion
+  [217654] = true; -- Healing Contingency (Damage Reduction)
 
   -- Class Abilities
   [25493] = true;  -- Lotus Fan
@@ -1596,6 +1597,10 @@ FancyActionBar.stackableBuff = {
     [61505] = 61506;
     [61506] = 61506;
     
+};
+
+FancyActionBar.confirmBuffFade = {
+
 };
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE;

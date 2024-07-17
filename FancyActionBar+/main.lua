@@ -714,7 +714,7 @@ function FancyActionBar.GetOverlay(index)
   end;
 end;
 
-function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade)
+function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade)
   local effect = FancyActionBar.effects[id];
   if not effect then
     if config then
@@ -728,6 +728,7 @@ function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFa
         isDebuff = false;
         activeOnTarget = false;
         instantFade = instantFade;
+        dontFade = dontFade;
         faded = true;
       };
       FancyActionBar.effects[id] = effect;
@@ -1311,7 +1312,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   local overlay = FancyActionBar.GetOverlay(index);
   if not overlay then return; end;
 
-  local effectId, duration, custom, toggled, passive, instantFade;
+  local effectId, duration, custom, toggled, passive, instantFade, dontFade;
 
   local cfg = abilityConfig[abilityId];
   local ignore = false;
@@ -1336,14 +1337,16 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       end;
 
       custom = true;
-      toggled = cfg[3] or false;
-      instantFade = cfg[4] or false;
+      toggled = cfg[3] or FancyActionBar.toggled[effectId] or false;
+      instantFade = cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
+      dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
     end;
   else
     effectId = abilityId;
     custom = false;
     toggled = FancyActionBar.toggled[effectId] or false;
     instantFade = FancyActionBar.removeInstantly[effectId] or false;
+    dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
   end;
 
   FancyActionBar.SetSlottedEffect(index, abilityId, effectId);
@@ -1355,7 +1358,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     duration = 0;
   end;
 
-  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade); -- FancyActionBar.effects[effectId]
 
   if stackId then
     effect.stackId = stackId;
@@ -3213,6 +3216,8 @@ function FancyActionBar.Initialize()
         end;
 
         if FancyActionBar.IsGroupUnit(unitTag) then return; end; -- don't track anything on group members.
+        
+
 
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
@@ -3235,7 +3240,9 @@ function FancyActionBar.Initialize()
         end;
 
         if (effectType == DEBUFF or abilityId == 38791) then return; end; -- (FancyActionBar.dontFade[abilityId]) then return end
-
+        
+        if (not SV.externalBuffs) and effect.dontFade and FancyActionBar.CheckForActiveEffect(effect.id) then return; end;
+        
         if FancyActionBar.activeCasts[effect.id] then
           if abilityType == GROUND_EFFECT then -- prevent effect from fading if event is from previous cast of the ability when reapplied before it had expired
             if lastAreaTargets[abilityId] then
