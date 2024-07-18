@@ -2974,7 +2974,7 @@ function FancyActionBar.Initialize()
     local btn = ZO_ActionBar_GetButton(n);
     if btn then
       btn:UpdateState();
-      FancyActionBar.SetActionButtonAbilityFxOverride(n);
+      --FancyActionBar.SetActionButtonAbilityFxOverride(n);
     end;
   end;
 
@@ -3273,7 +3273,9 @@ function FancyActionBar.Initialize()
   local function Update()
     FancyActionBar.UpdateUltOverlay(ULT_INDEX);
     FancyActionBar.UpdateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET);
-    FancyActionBar.UpdateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET);
+    if AreCompanionSkillsInitialized() then
+      FancyActionBar.UpdateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET);
+    end;
     for i, overlay in pairs(FancyActionBar.overlays) do FancyActionBar.UpdateOverlay(i); end;
   end;
 
