@@ -2023,6 +2023,7 @@ function FancyActionBar.CreateOverlay(index) -- create normal skill button overl
     overlay.timer = overlay:GetNamedChild("Duration");
     overlay.bg = overlay:GetNamedChild("BG");
     overlay.stack = overlay:GetNamedChild("Stacks");
+    overlay.target = overlay:GetNamedChild("Targets");
     FancyActionBar.overlays[index] = overlay;
   end;
   return overlay;
