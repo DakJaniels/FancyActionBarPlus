@@ -318,7 +318,7 @@ end;
 
 ---@param index number
 ---@param bar HotBarCategory
-function FancyActionBar.GetSlotTrueBoundId(index, bar)
+function FancyActionBar.GetSlotBoundAbilityId(index, bar)
   bar = bar or GetActiveHotbarCategory();
   local id = GetSlotBoundId(index, bar);
   local actionType = GetSlotType(index, bar);
@@ -375,7 +375,7 @@ end;
 local function GetSlotInfoString(index, bar)
   local slot = index == 8 and "Ult" or tostring(index - 2);
   local string = "[" .. slot .. "] ";
-  local id = FancyActionBar.GetSlotTrueBoundId(index, bar);
+  local id = FancyActionBar.GetSlotBoundAbilityId(index, bar);
   if id > 0 then
     local name = GetAbilityName(id);
     string = string .. "<" .. name .. "> " .. id;
@@ -652,8 +652,8 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
   local currentSlots = {};
 
   for i = MIN_INDEX, MAX_INDEX + 1 do
-    local I0 = FancyActionBar.GetSlotTrueBoundId(i, 0);
-    local I1 = FancyActionBar.GetSlotTrueBoundId(i, 1);
+    local I0 = FancyActionBar.GetSlotBoundAbilityId(i, 0);
+    local I1 = FancyActionBar.GetSlotBoundAbilityId(i, 1);
     if I0 == id then currentSlots[i] = true; end;
     if I1 == id then currentSlots[i + SLOT_INDEX_OFFSET] = true; end;
   end;
@@ -696,7 +696,7 @@ end;
 function FancyActionBar.SetActionButtonAbilityFxOverride(index)
   local btn = FancyActionBar.GetActionButton(index);
   if not btn then return; end;
-  local id = FancyActionBar.GetSlotTrueBoundId(index);
+  local id = FancyActionBar.GetSlotBoundAbilityId(index);
   if id > 0 then
     local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
     if icon then
@@ -911,7 +911,7 @@ end;
 
 function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   if index == ULT_INDEX then return; end;
-  local id = FancyActionBar.GetSlotTrueBoundId(index, bar);
+  local id = FancyActionBar.GetSlotBoundAbilityId(index, bar);
   local iconId = 0;                                       -- GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
   local btn = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
   local icon = "";
@@ -1430,11 +1430,11 @@ end;
 function FancyActionBar.SlotEffects() -- slot effects for primary and backup bars.
   if currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
     for i = MIN_INDEX, MAX_INDEX do
-      FancyActionBar.SlotEffect(i, FancyActionBar.GetSlotTrueBoundId(i, HOTBAR_CATEGORY_PRIMARY));
-      FancyActionBar.SlotEffect(i + SLOT_INDEX_OFFSET, FancyActionBar.GetSlotTrueBoundId(i, HOTBAR_CATEGORY_BACKUP));
+      FancyActionBar.SlotEffect(i, FancyActionBar.GetSlotBoundAbilityId(i, HOTBAR_CATEGORY_PRIMARY));
+      FancyActionBar.SlotEffect(i + SLOT_INDEX_OFFSET, FancyActionBar.GetSlotBoundAbilityId(i, HOTBAR_CATEGORY_BACKUP));
     end;
-    FancyActionBar.SlotEffect(ULT_INDEX, FancyActionBar.GetSlotTrueBoundId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY));
-    FancyActionBar.SlotEffect(ULT_INDEX + SLOT_INDEX_OFFSET, FancyActionBar.GetSlotTrueBoundId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP));
+    FancyActionBar.SlotEffect(ULT_INDEX, FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY));
+    FancyActionBar.SlotEffect(ULT_INDEX + SLOT_INDEX_OFFSET, FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP));
   else
     -- Unslot all effects, if we are on a special bar.
     for i = MIN_INDEX, ULT_INDEX do
@@ -1616,8 +1616,8 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
     return cost;
   end;
 
-  cost1 = ResolveUltCost(FancyActionBar.GetSlotTrueBoundId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY));
-  cost2 = ResolveUltCost(FancyActionBar.GetSlotTrueBoundId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP));
+  cost1 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY));
+  cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP));
 
   local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE);
   FancyActionBar.UpdateUltimateValueLabels(true, current);
@@ -3021,7 +3021,7 @@ function FancyActionBar.Initialize()
   local function OnAbilityUsed(_, n)
     if (n >= MIN_INDEX and n <= ULT_INDEX) then -- or n == (ULT_INDEX + SLOT_INDEX_OFFSET) then
       -- local duration = t + (GetActionSlotEffectTimeRemaining(n, currentHotbarCategory) / 1000)
-      local id = FancyActionBar.GetSlotTrueBoundId(n, currentHotbarCategory);
+      local id = FancyActionBar.GetSlotBoundAbilityId(n, currentHotbarCategory);
       local index = FancyActionBar.IdentifyIndex(n, currentHotbarCategory);
       local name = GetAbilityName(id);
       local t = time();
