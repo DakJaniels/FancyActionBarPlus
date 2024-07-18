@@ -846,7 +846,7 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
   if FancyActionBar.targets[id] then
     local currentTime = time();
     local targetData = FancyActionBar.targets[id];
-    if (targetData.maxEndTime < currentTime) or (targetData.targetCount == 0) then
+    if (targetData.maxEndTime <= currentTime) or (targetData.targetCount == 0) then
       FancyActionBar.targets[id].targetCount = 0;
       FancyActionBar.targets[id].maxEndTime = 0;
       FancyActionBar.targets[id].times = {};
@@ -1115,12 +1115,14 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
       end;
       if FancyActionBar.targets[effect.id] then
         local targetData = FancyActionBar.targets[effect.id];
-        if (targetData.maxEndTime < currentTime) or (targetData.targetCount == 0) then
+        if (targetData.maxEndTime <= currentTime) or (targetData.targetCount == 0) then
           FancyActionBar.targets[effect.id].targetCount = 0;
           FancyActionBar.targets[effect.id].maxEndTime = 0;
           FancyActionBar.targets[effect.id].times = {};
           targetsControl:SetText("");
         end;
+      else
+        targetsControl:SetText("");
       end;
       FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
       FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index);
