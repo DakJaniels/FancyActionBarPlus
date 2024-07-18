@@ -258,6 +258,7 @@ local function GetTargetEffects()
 end;
 
 local function UpdateDebuff(debuff, stacks, unitId, isTarget)
+  -- TODO: If unitUpdating is the final instance then don't return
   local unitUpdating;
   if isTarget == false then
     local activeDebuffs = activeTargetDebuffs[debuff.id];
@@ -458,6 +459,9 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         return;
       end;
     end;
+
+    if debuff.beginTime and (t - debuff.beginTime < 0.3) and (not debuff.instantFade) then return; end;
+
     if specialEffect then
       if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
         return; -- we don't need to worry about this effect anymore because it has already proced
