@@ -1533,7 +1533,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   type = "slider";
                   name = "Timer font size";
                   min = 10;
-                  max = 30;
+                  max = 50;
                   step = 1;
                   getFunc = function () return SV.fontSizeKB; end;
                   setFunc = function (value)
