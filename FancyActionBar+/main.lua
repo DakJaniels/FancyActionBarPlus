@@ -1460,8 +1460,8 @@ function FancyActionBar.EffectCheck()
       local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
       if hasEffect then
         effect.endTime = checkTime + duration;
-          FancyActionBar.stacks[effect.id] = stacks;
       end;
+      FancyActionBar.stacks[effect.id] = stacks;
       if effect.stackId and effect.stackId ~= effect.id then
         local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId);
         FancyActionBar.stacks[effect.stackId] = mappedStacks;
