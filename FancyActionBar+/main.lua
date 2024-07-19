@@ -2969,6 +2969,9 @@ function FancyActionBar.Initialize()
       FancyActionBar.UpdateSlottedSkillsDecriptions();
       FancyActionBar.SetActionButtonAbilityFxOverride(n);
     end;
+    if currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
+      FancyActionBar.UpdateInactiveBarIcon(n, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and 0 or 1);
+    end;
     -- Chat('Slot ' .. tostring(n) .. ' changed')
   end;
 
