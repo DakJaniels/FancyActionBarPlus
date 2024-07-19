@@ -910,7 +910,7 @@ function FancyActionBar.GetBaseIdForDestroSkill(id) -- cause too hard for game t
 end;
 
 function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
-  if index == ULT_INDEX then return; end;
+  if index < MIN_INDEX or index > MAX_INDEX then return; end;
   local id = FancyActionBar.GetSlotBoundAbilityId(index, bar);
   local iconId = 0;                                       -- GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
   local btn = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
