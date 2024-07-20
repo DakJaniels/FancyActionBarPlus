@@ -9,7 +9,6 @@ local SV;
 local time = GetFrameTimeSeconds;
 local currentTarget = { name = ""; id = 0 };
 local activeTargetDebuffs = {};
-local time = GetFrameTimeSeconds;
 
 ---@param msg string
 ---@param ... any
@@ -18,7 +17,8 @@ local function Chat(msg, ...)
 end;
 
 
-local groupUnit = {
+local groupUnit =
+{
   ["group1"] = true;
   ["group2"] = true;
   ["group3"] = true;
@@ -31,18 +31,6 @@ local groupUnit = {
   ["group10"] = true;
   ["group11"] = true;
   ["group12"] = true;
-  ["group13"] = true;
-  ["group14"] = true;
-  ["group15"] = true;
-  ["group16"] = true;
-  ["group17"] = true;
-  ["group18"] = true;
-  ["group19"] = true;
-  ["group20"] = true;
-  ["group21"] = true;
-  ["group22"] = true;
-  ["group23"] = true;
-  ["group24"] = true;
 };
 ---------------------------------
 -- Debug
@@ -169,7 +157,7 @@ local function ClearTargetEffects()
       FancyActionBar.stacks[debuff.stackId] = 0;
       doStackUpdate = true;
     end;
-    
+
     for effectId, effect in pairs(FancyActionBar.effects) do
       if debuff.id == effect.id then
         effect.endTime = time();
@@ -199,7 +187,7 @@ local function ClearDebuffsIfNotOnTarget()
         FancyActionBar.stacks[debuff.stackId] = 0;
         doStackUpdate = true;
       end;
-      
+
       for id, effect in pairs(FancyActionBar.effects) do
         if effect.stackId and effect.stackId == debuff.id then
           doStackUpdate = true;
@@ -218,14 +206,28 @@ local function ClearDebuffsIfNotOnTarget()
 end;
 
 local function ClearDebuffs(keep)
-  -- todo: implement ability to keep certian debuffs with specialEffect properties
+  -- Implement ability to keep certain debuffs with specialEffect properties
   ClearTargetEffects();
+
+  -- Iterate over all debuffs
+  for id, debuff in pairs(FancyActionBar.debuffs) do
+    -- Check if the debuff has specialEffect properties and should be kept
+    if FancyActionBar.specialEffects[debuff.id] and keep[debuff.id] then
+      -- Retain the debuff
+      FancyActionBar.debuffs[debuff.id] = debuff;
+    else
+      -- Remove the debuff
+      FancyActionBar.debuffs[debuff.id] = nil;
+    end;
+  end;
+
   activeTargetDebuffs = {};
-  FancyActionBar.debuffs = {};
 end;
 
 local numEffects = 0;
----@return table, number
+
+---@return table debuffs
+---@return number debuffNum
 local function GetTargetEffects()
   local tag = "reticleover";
 
@@ -235,20 +237,30 @@ local function GetTargetEffects()
   local debuffNum = 0;
 
   if numEffects <= 0 then
+    ---@diagnostic disable-next-line: return-type-mismatch
     return nil, 0;
   else
     for i = 1, numEffects do
-      local abilityName, beginTime, endTime, buffSlot, stacks, icon, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo(tag, i);
+      local abilityName, beginTime, endTime, buffSlot, stacks, icon, _, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo(tag, i);
 
       if castByPlayer or (FancyActionBar.allowExternalStacks[abilityId]) then
         -- PostReticleTargetInfo(name, abilityName, beginTime, endTime, buffSlot, stacks, icon, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer)
 
         debuffNum = debuffNum + 1;
-        local db = {
+        local db =
+        {
           id = abilityId;
           beginTime = beginTime or 0;
           endTime = endTime or 0;
           stacks = stacks or 0;
+          name = abilityName;
+          slot = buffSlot;
+          icon = icon;
+          effectType = effectType;
+          abilityType = abilityType;
+          statusEffectType = statusEffectType;
+          canClickOff = canClickOff;
+          castByPlayer = castByPlayer;
         };
         table.insert(debuffs, db);
       end;
@@ -269,7 +281,7 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
           break;
         end;
       end;
-      if unitId ~= unitUpdating and #activeDebuffs > 1 then return; end;
+      if unitId ~= unitUpdating then return; end;
     end;
   end;
 
@@ -398,7 +410,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     end;
     return;
   end;
-  
+
   for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
     for i = 1, #targetIds do
       if targetIds[i] == abilityId then

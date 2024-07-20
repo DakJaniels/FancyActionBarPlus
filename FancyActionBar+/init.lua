@@ -8,7 +8,8 @@ local FancyActionBar = FancyActionBar;
 
 FancyActionBar.variableVersion = 1;
 
-FancyActionBar.defaultCharacter = {
+FancyActionBar.defaultCharacter =
+{
   -- for character specific ability tracking
   useAccountWide = true;
 
@@ -22,7 +23,8 @@ FancyActionBar.defaultCharacter = {
   noTargetAlpha = 90;
   debuffConfigUpgraded = false;
 };
-FancyActionBar.defaultSettings = {
+FancyActionBar.defaultSettings =
+{
   variablesValidated = false;
   -- ability tracking
 
@@ -60,11 +62,11 @@ FancyActionBar.defaultSettings = {
   showHotkeys = true;
   showHotkeysUltGP = true;
   showHighlight = true;
-  highlightColor = { 0; 1; 0; 0.7 };
+  highlightColor = { 0, 1, 0, 0.7 };
   highlightExpire = false;
-  highlightExpireColor = { 1; 0; 0; 0.7 };
+  highlightExpireColor = { 1, 0, 0, 0.7 };
   toggledHighlight = false;
-  toggledColor = { 1; 1; 1; 0.7 };
+  toggledColor = { 1, 1, 1, 0.7 };
   -- back bar visibility
   alphaInactive = 20;
   desaturationInactive = 50;
@@ -75,26 +77,26 @@ FancyActionBar.defaultSettings = {
   showDecimalStart = 2;
   showExpire = true;
   showExpireStart = 2;
-  expireColor = { 1; 1; 0 };
+  expireColor = { 1, 1, 0 };
   -- keyboard UI visuals
   -- duration
   fontNameKB = "Univers 67";
   fontSizeKB = 24;
   fontTypeKB = "thick-outline";
   timeYKB = 0;
-  timeColorKB = { 1; 1; 1 };
+  timeColorKB = { 1, 1, 1 };
   -- stacks
   fontNameStackKB = "Univers 67";
   fontSizeStackKB = 20;
   fontTypeStackKB = "thick-outline";
   stackXKB = 37;
-  stackColorKB = { 1; 0.8; 0 };
+  stackColorKB = { 1, 0.8, 0 };
   -- targets
   fontNameTargetKB = "Univers 67";
   fontSizeTargetKB = 20;
   fontTypeTargetKB = "thick-outline";
   targetXKB = 37;
-  targetColorKB = { 1; 0.8; 0 };
+  targetColorKB = { 1, 0.8, 0 };
   -- ult duration
   ultShowKB = true;
   ultNameKB = "Univers 67";
@@ -102,7 +104,7 @@ FancyActionBar.defaultSettings = {
   ultTypeKB = "thick-outline";
   ultXKB = 37;
   ultYKB = 0;
-  ultColorKB = { 1; 1; 1 };
+  ultColorKB = { 1, 1, 1 };
   -- ult value
   ultValueEnableKB = false;
   ultValueModeKB = 1;
@@ -111,7 +113,7 @@ FancyActionBar.defaultSettings = {
   ultValueTypeKB = "outline";
   ultValueXKB = -2;
   ultValueYKB = -5;
-  ultValueColorKB = { 1; 1; 1 };
+  ultValueColorKB = { 1, 1, 1 };
   -- companion
   ultValueEnableCompanionKB = true;
   ultValueModeCompanionKB = 1;
@@ -124,26 +126,26 @@ FancyActionBar.defaultSettings = {
   qsTypeKB = "outline";
   qsXKB = 0;
   qsYKB = 10;
-  qsColorKB = { 1; 0.5; 0.2 };
+  qsColorKB = { 1, 0.5, 0.2 };
   -- gamepad UI visuals
   -- duration
   fontNameGP = "Univers 67";
   fontSizeGP = 34;
   fontTypeGP = "thick-outline";
   timeYGP = 0;
-  timeColorGP = { 1; 1; 1 };
+  timeColorGP = { 1, 1, 1 };
   -- stacks
   fontNameStackGP = "Univers 67";
   fontSizeStackGP = 22;
   fontTypeStackGP = "thick-outline";
   stackXGP = 37;
-  stackColorGP = { 1; 0.8; 0 };
+  stackColorGP = { 1, 0.8, 0 };
   -- targets
   fontNameTargetGP = "Univers 67";
   fontSizeTargetGP = 22;
   fontTypeTargetGP = "thick-outline";
   targetXGP = 37;
-  targetColorGP = { 1; 0.8; 0 };
+  targetColorGP = { 1, 0.8, 0 };
   -- ult
   ultShowGP = true;
   ultNameGP = "Univers 67";
@@ -151,7 +153,7 @@ FancyActionBar.defaultSettings = {
   ultTypeGP = "thick-outline";
   ultXGP = 25;
   ultYGP = 0;
-  ultColorGP = { 1; 1; 1 };
+  ultColorGP = { 1, 1, 1 };
   -- ult value
   ultValueEnableGP = false;
   ultValueModeGP = 1;
@@ -160,7 +162,7 @@ FancyActionBar.defaultSettings = {
   ultValueTypeGP = "outline";
   ultValueXGP = 0;
   ultValueYGP = 0;
-  ultValueColorGP = { 1; 1; 1 };
+  ultValueColorGP = { 1, 1, 1 };
   -- companion
   ultValueEnableCompanionGP = true;
   ultValueModeCompanionGP = 1;
@@ -173,37 +175,40 @@ FancyActionBar.defaultSettings = {
   qsTypeGP = "outline";
   qsXGP = 10;
   qsYGP = 0;
-  qsColorGP = { 1; 0.5; 0.2 };
+  qsColorGP = { 1, 0.5, 0.2 };
   -- both
   ultFlash = true;
   -- frames for keyboard UI
   showFrames = true;
-  frameColor = { 0; 0; 0; 1 };
+  frameColor = { 0, 0, 0, 1 };
   hideDefaultFrames = false;
   -- arrow and quick slot display style
   showArrow = true;
-  arrowColor = { 0; 1; 0; 1 };
+  arrowColor = { 0, 1, 0, 1 };
   moveQS = true;
   -- enemy markers
   showMarker = false;
   markerSize = 26;
   -- global cooldown tracker
-  gcd = {
+  gcd =
+  {
     enable = false;
     combatOnly = false;
     x = 1000;
     y = 1000;
     sizeX = 50;
     sizeY = 50;
-    fillColor = { 0.2; 0.6; 1; 1 };
-    frameColor = { 0; 0; 0; 1 };
+    fillColor = { 0.2, 0.6, 1, 1 };
+    frameColor = { 0, 0, 0, 1 };
   };
   -- action bar scale and position
-  abScaling = {
+  abScaling =
+  {
     kb = { enable = false; scale = 100 };
     gp = { enable = false; scale = 100 };
   };
-  abMove = {                                                       -- y = -(default + adjusted) anchor offset
+  abMove =
+  {                                                                -- y = -(default + adjusted) anchor offset
     kb = { enable = false; x = 0; y = -22; prevX = 0; prevY = 0 }; -- y =      -( 0 + 22)
     gp = { enable = false; x = 0; y = -75; prevX = 0; prevY = 0 }; -- y =      -(25 + 52)
   };
@@ -215,7 +220,8 @@ FancyActionBar.defaultSettings = {
   debugAll = false;
   debugVerbose = false;
 };
-FancyActionBar.strings = {
+FancyActionBar.strings =
+{
   --outdated and mostly unused. will make settings more managable eventually.
 
   -- submenu names
@@ -348,30 +354,36 @@ function FancyActionBar:UpdateContants(mode, vars, style)
   local c = {};
 
   if mode == 1 then
-    local kb = {
-      duration = {
+    local kb =
+    {
+      duration =
+      {
         font = SV.fontNameKB;
         size = SV.fontSizeKB;
         outline = SV.fontTypeKB;
         y = SV.timeYKB;
         color = SV.timeColorKB;
       };
-      stacks = {
+      stacks =
+      {
         font = SV.fontNameStackKB;
         size = SV.fontSizeStackKB;
         outline = SV.fontTypeStackKB;
         x = SV.stackXKB;
         color = SV.stackColorKB;
       };
-      targets = {
+      targets =
+      {
         font = SV.fontNameTargetKB;
         size = SV.fontSizeTargetKB;
         outline = SV.fontTypeTargetKB;
         x = SV.targetXKB;
         color = SV.targetColorKB;
       };
-      ult = {
-        duration = {
+      ult =
+      {
+        duration =
+        {
           show = SV.ultShowKB;
           font = SV.ultNameKB;
           size = SV.ultSizeKB;
@@ -380,7 +392,8 @@ function FancyActionBar:UpdateContants(mode, vars, style)
           y = SV.ultYKB;
           color = SV.ultColorKB;
         };
-        value = {
+        value =
+        {
           show = SV.ultValueEnableKB;
           mode = SV.ultValueModeKB;
           font = SV.ultValueNameKB;
@@ -390,14 +403,16 @@ function FancyActionBar:UpdateContants(mode, vars, style)
           y = SV.ultValueYKB;
           color = SV.ultValueColorKB;
         };
-        companion = {
+        companion =
+        {
           show = SV.ultValueEnableCompanionKB;
           mode = SV.ultValueModeCompanionKB;
           x = SV.ultValueCompanionXKB;
           y = SV.ultValueCompanionYKB;
         };
       };
-      qs = {
+      qs =
+      {
         show = SV.qsTimerEnableKB;
         font = SV.qsNameKB;
         size = SV.qsSizeKB;
@@ -406,11 +421,13 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         y = SV.qsYKB;
         color = SV.qsColorKB;
       };
-      abScale = {
+      abScale =
+      {
         enable = SV.abScaling.kb.enable;
         scale = SV.abScaling.kb.scale;
       };
-      move = {
+      move =
+      {
         enable = SV.abMove.kb.enable;
         x = SV.abMove.kb.x;
         y = SV.abMove.kb.y;
@@ -419,30 +436,36 @@ function FancyActionBar:UpdateContants(mode, vars, style)
     };
     c = kb;
   else
-    local gp = {
-      duration = {
+    local gp =
+    {
+      duration =
+      {
         font = SV.fontNameGP;
         size = SV.fontSizeGP;
         outline = SV.fontTypeGP;
         y = SV.timeYGP;
         color = SV.timeColorGP;
       };
-      stacks = {
+      stacks =
+      {
         font = SV.fontNameStackGP;
         size = SV.fontSizeStackGP;
         outline = SV.fontTypeStackGP;
         x = SV.stackXGP;
         color = SV.stackColorGP;
       };
-      targets = {
+      targets =
+      {
         font = SV.fontNameTargetGP;
         size = SV.fontSizeTargetGP;
         outline = SV.fontTypeTargetGP;
         x = SV.targetXGP;
         color = SV.targetColorGP;
       };
-      ult = {
-        duration = {
+      ult =
+      {
+        duration =
+        {
           show = SV.ultShowGP;
           font = SV.ultNameGP;
           size = SV.ultSizeGP;
@@ -451,7 +474,8 @@ function FancyActionBar:UpdateContants(mode, vars, style)
           y = SV.ultYGP;
           color = SV.ultColorGP;
         };
-        value = {
+        value =
+        {
           show = SV.ultValueEnableGP;
           mode = SV.ultValueModeGP;
           font = SV.ultValueNameGP;
@@ -461,14 +485,16 @@ function FancyActionBar:UpdateContants(mode, vars, style)
           y = SV.ultValueYGP;
           color = SV.ultValueColorGP;
         };
-        companion = {
+        companion =
+        {
           show = SV.ultValueEnableCompanionGP;
           mode = SV.ultValueModeCompanionGP;
           x = SV.ultValueCompanionXGP;
           y = SV.ultValueCompanionYGP;
         };
       };
-      qs = {
+      qs =
+      {
         show = SV.qsTimerEnableGP;
         font = SV.qsNameGP;
         size = SV.qsSizeGP;
@@ -477,11 +503,13 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         y = SV.qsYGP;
         color = SV.qsColorGP;
       };
-      abScale = {
+      abScale =
+      {
         enable = SV.abScaling.gp.enable;
         scale = SV.abScaling.gp.scale;
       };
-      move = {
+      move =
+      {
         enable = SV.abMove.gp.enable;
         x = SV.abMove.gp.x;
         y = SV.abMove.gp.y;

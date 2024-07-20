@@ -46,7 +46,8 @@ end;
 
 local darkShade;
 
-FancyActionBar.abilityConfig = {
+FancyActionBar.abilityConfig =
+{
   --[[  [slot_id] = config:
     - { effect_id } = timer will start when the effect is fired
     - false = ignore this slot
@@ -725,21 +726,23 @@ FancyActionBar.abilityConfig = {
   [193558] = { 193559 }; -- resonating glyphic
 };
 
-FancyActionBar.stackMap = {
+FancyActionBar.stackMap =
+{
   -- [stackId] = {stackId, abilityId_1, abilityId_2, ...}
 
   [38747] = { 38747 }; -- Carve (2H)
   [38802] = { 38802 }; -- rally
 
   -- Spell Orb
-  [103879] = {
-    103879; -- spell orb
-    103483; -- imbue weapon
-    103571; -- elemental weapon
-    103623; -- crushing weapon
-    103503; -- accelerate
-    103706; -- channeled acceleration
-    103710; -- race against time
+  [103879] =
+  {
+    103879, -- spell orb
+    103483, -- imbue weapon
+    103571, -- elemental weapon
+    103623, -- crushing weapon
+    103503, -- accelerate
+    103706, -- channeled acceleration
+    103710, -- race against time
   };
 
   [106208] = { 106208 }; -- mist form fatigue
@@ -756,9 +759,10 @@ FancyActionBar.stackMap = {
   [122586] = { 61919 };  -- Merciless Resolve
   [122587] = { 61927 };  -- Relentless Focus
 
-  [203447] = {
-    24165;  -- Bound Armaments
-    203447; -- Bound Armaments Stacks
+  [203447] =
+  {
+    24165,  -- Bound Armaments
+    203447, -- Bound Armaments Stacks
   };
 
   [51392] = { 51392 };   -- Streak Fatigue
@@ -774,51 +778,57 @@ FancyActionBar.stackMap = {
   [184220] = { 184220 }; -- crux
 
   -- Healing Springs Mag Recovey
-  [40062] = {
-    40062; -- Healing Springs
-    40060; -- Healing Springs
-    99781; -- Grand Rejuviantion
+  [40062] =
+  {
+    40062, -- Healing Springs
+    40060, -- Healing Springs
+    99781, -- Grand Rejuviantion
   };
 
   -- Echoing Vigor
-  [61506] = {
-    61506; -- Echoing Vigor
-    61503; -- Echoing Vigor
-    61504; -- Echoing Vigor
-    61505; -- Echoing Vigor
+  [61506] =
+  {
+    61506, -- Echoing Vigor
+    61503, -- Echoing Vigor
+    61504, -- Echoing Vigor
+    61505, -- Echoing Vigor
   };
 
 };
 
-FancyActionBar.debuffStackMap = {
+FancyActionBar.debuffStackMap =
+{
   -- [134336] = 134336;  -- Stone Giant (stacks on target)
   -- Taunt Counter
-  [52790] = {
-    52790;  -- taunt counter
-    38254;  -- taunt
-    39475;  -- inner fire
-    42056;  -- inner rage
-    42062;  -- inner beast
-    38989;  -- frost clench
-    28306;  -- puncture (taunt)
-    38250;  -- pierce armor (taunt)
-    38256;  -- ransack (taunt)
-    183165; -- runic jolt
-    183430; -- runic sunder
-    187742; -- runic sunder (armor steal)
-    186531; -- runic embrace
-    222966; -- goading throw (scribing) (taunt)
-    216674; -- goading valult (scribing) (taunt)
-    217180; -- goading smash (Scribing?) (taunt)
-    219972; -- goading smash (scribing) (taunt)
+  [52790] =
+  {
+    52790,  -- taunt counter
+    38254,  -- taunt
+    39475,  -- inner fire
+    42056,  -- inner rage
+    42062,  -- inner beast
+    38989,  -- frost clench
+    28306,  -- puncture (taunt)
+    38250,  -- pierce armor (taunt)
+    38256,  -- ransack (taunt)
+    183165, -- runic jolt
+    183430, -- runic sunder
+    187742, -- runic sunder (armor steal)
+    186531, -- runic embrace
+    222966, -- goading throw (scribing) (taunt)
+    216674, -- goading valult (scribing) (taunt)
+    217180, -- goading smash (Scribing?) (taunt)
+    219972, -- goading smash (scribing) (taunt)
   };
 };
 
-FancyActionBar.allowExternalStacks = {
+FancyActionBar.allowExternalStacks =
+{
   [52790] = true; -- taunt counter
 };
 
-FancyActionBar.debuffIds = {
+FancyActionBar.debuffIds =
+{
   -- Two Handed
   [38814] = { 131562 }; -- dizzying swing (off-balance)
   [38745] = { 38747 };  -- carve bleed
@@ -1020,7 +1030,8 @@ FancyActionBar.debuffIds = {
   [183267] = { 145975 }; -- rune of the colorless pool (minor brittle)
 };
 
-FancyActionBar.specialIds = {
+FancyActionBar.specialIds =
+{
   -- abilities that require a separate function to update correctly.
   [16536] = true;  -- meteor called
   [63430] = true;  -- meteor aoe
@@ -1043,7 +1054,8 @@ FancyActionBar.specialIds = {
 };
 
 -- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
-FancyActionBar.tauntSkills = {
+FancyActionBar.tauntSkills =
+{
   [38989] = "Frost Clench";     -- Frost Clench Ice Staff
   [20496] = "Unrelenting Grip"; -- Unrelenting Dragonknight
 
@@ -1076,7 +1088,8 @@ function FancyActionBar.IsAbilityTaunt(abilityId)
   end;
 end;
 
-FancyActionBar.fakeClassEffects = {
+FancyActionBar.fakeClassEffects =
+{
   --[[
   scuffed way of updating certain abilities; but updates as intended without much work.
   abilities that can't be tracked in EVENT_EFFECT_CHANGED alone.
@@ -1086,7 +1099,8 @@ FancyActionBar.fakeClassEffects = {
   needs to be given specific duration to update correctly.
 ]]
   -- Dragonknight
-  [1] = {
+  [1] =
+  {
     [31841] = { duration = 2.5; id = 31841 }; -- inhale
     [32788] = { duration = 2.5; id = 32788 }; -- draw essence
     [32796] = { duration = 2.5; id = 32796 }; -- deep breath
@@ -1106,7 +1120,8 @@ FancyActionBar.fakeClassEffects = {
   --[4] = {};
 
   -- Necromancer
-  [5] = {
+  [5] =
+  {
     [115924] = { duration = 20; id = 116445 }; -- Shocking Siphon
     [118008] = { duration = 20; id = 118009 }; -- Mystic Siphon
     [118763] = { duration = 20; id = 118764 }; -- Detonating Siphon
@@ -1116,7 +1131,8 @@ FancyActionBar.fakeClassEffects = {
   };
 
   -- Templar
-  [6] = {
+  [6] =
+  {
     [22265] = { duration = GetAbilityDuration(22265) / 1000; id = 22265 }; -- Cleansing Ritual
     [22259] = { duration = GetAbilityDuration(22259) / 1000; id = 22259 }; -- Ritual of Retribution
     [22262] = { duration = GetAbilityDuration(22262) / 1000; id = 22262 }; -- Extended Ritual
@@ -1133,7 +1149,9 @@ FancyActionBar.fakeClassEffects = {
 -- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
-FancyActionBar.specialEffects = {
+--- @type table<number, {  id: number,  stackId: number,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  isReflect?: boolean  }>
+FancyActionBar.specialEffects =
+{
   [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
   [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
   [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
@@ -1151,11 +1169,11 @@ FancyActionBar.specialEffects = {
 
   [38317] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
   [38324] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
-
 };
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
-FancyActionBar.specialEffectProcs = {
+FancyActionBar.specialEffectProcs =
+{
   [35750] = { [1] = { id = 35750; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; }; }; -- Trap Beast Placed
   [35756] = { [1] = { id = 35750; stacks = 0; procs = 1; hasProced = 0; isDebuff = true; }; };  -- Trap Beast DOT
   [40372] = { [1] = { id = 40372; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; }; }; -- Lightweight Trap Placed
@@ -1167,15 +1185,18 @@ FancyActionBar.specialEffectProcs = {
 };
 
 -- Class Specific Effects Processed through the FancyActionBar.HandleSpecial function
-FancyActionBar.specialClassEffects = {
+FancyActionBar.specialClassEffects =
+{
   --- effects tracked through the HandleSpecial function
   -- Sorcerer
-  [2] = {
+  [2] =
+  {
     [24330] = { id = 24330; stackId = 24330; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
     [89491] = { id = 24330; stackId = 24330; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
   };
   -- Warden
-  [4] = {
+  [4] =
+  {
     [86009] = { id = 86009; stackId = 86009; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
     [178020] = { id = 86009; stackId = 86009; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
     [86019] = { id = 86019; stackId = 86019; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
@@ -1189,22 +1210,26 @@ FancyActionBar.specialClassEffects = {
 
   };
   -- Arcanist
-  [117] = {
+  [117] =
+  {
     -- Priority level will be used instead of stacks, shorter durations should have a higher priority
     --[184258] = { id = 182988; stackId = 182988; procs = 1; hasProced = 0; isSpecialDebuff = true; priority = 1; allowRecast = false }; -- Fulminating Rune Explosion
     --[182989] = { id = 182988; stackId = 182988; procs = 1; hasProced = 0; isDebuff = true; priority = 0; }; -- Fulminating Rune DOT
   }
 };
 
-FancyActionBar.specialClassEffectProcs = {
+FancyActionBar.specialClassEffectProcs =
+{
   --- Effect updates for ability completion conditions keyed by abilityId then procs number
   -- Sorcerer
-  [2] = {
+  [2] =
+  {
     [24330] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
     [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
   };
   -- Warden
-  [4] = {
+  [4] =
+  {
     [86009] = { [1] = { id = 86009; stacks = 0; procs = 1; hasProced = 0 }; };
     [178020] = { [1] = { id = 86009; stacks = 0; procs = 1; hasProced = 0 } };
     [86019] = { [1] = { id = 86019; stacks = 0; procs = 1; hasProced = 0 }; };
@@ -1213,19 +1238,22 @@ FancyActionBar.specialClassEffectProcs = {
     [178028] = { [1] = { id = 86015; stacks = 0; procs = 1; hasProced = 0 } };
   };
   -- Arcanist
-  [117] = {
+  [117] =
+  {
     --[184258] = { [1] = { id = 182988; stacks = 0; procs = 1; hasProced = 0 } };
     --[182989] = { [1] = { id = 182988; stacks = 0; procs = 1; hasProced = 0 }; };
   };
 };
 
-FancyActionBar.needCombatEvent = {
+FancyActionBar.needCombatEvent =
+{
   [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- momentum
   [38794] = { duration = GetAbilityDuration(38794) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- forward momentum
   --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- rally
 };
 
-FancyActionBar.toggled = {
+FancyActionBar.toggled =
+{
   -- effects with no duration are discarded for tracking.
   -- add exceptions for toggles here.
   -- Werewolf
@@ -1264,39 +1292,45 @@ FancyActionBar.toggled = {
   -- [24804] = true; -- Power Overload
 };
 
-FancyActionBar.graveLordSacrifice = {
+FancyActionBar.graveLordSacrifice =
+{
   id = 117749;
   eventId = 117757;
   duration = 20;
 };
 
-FancyActionBar.guard = {
+FancyActionBar.guard =
+{
   -- to help identify and update overlays as the slotted id changes depending on link state.
   link = 81420;
   slot1 = nil;
   slot2 = nil;
-  ids = {
+  ids =
+  {
     [61511] = true; -- guard
     [61529] = true; -- stalwart guard
     [61536] = true; -- mystic guard
   };
 };
 
-FancyActionBar.meteor = {
+FancyActionBar.meteor =
+{
   -- same as traps; maybe combine both eventually.
   [63430] = 16536; -- meteor
   [63456] = 40489; -- ice comet
   [63473] = 40493; -- shooting star
 };
 
-FancyActionBar.frozen = {
+FancyActionBar.frozen =
+{
   -- for tracking active portals.
   [86175] = true; -- frozen gate
   [86179] = true; -- frozen device
   [86183] = true; -- frozen retreat
 };
 
-FancyActionBar.ignore = {
+FancyActionBar.ignore =
+{
   -- filter for debugging.
   [63601] = true;  -- ESO Plus
   [160197] = true; -- ward master
@@ -1305,20 +1339,21 @@ FancyActionBar.ignore = {
   [114716] = true; -- crystal frags
 };
 
-FancyActionBar.dontFade = {
+FancyActionBar.dontFade =
+{
   -- don't reset duration when effect fades until function to update corretly is in place.
   -- buffs
-  [61665] = true;  -- major brutality
-  [76518] = true;  -- major brutality
-  [61687] = true;  -- major sorcery
-  [92503] = true;  -- major sorcery
-  [61694] = true;  -- major resolve
-  [88758] = true;  -- major resolve
+  [61665] = true; -- major brutality
+  [76518] = true; -- major brutality
+  [61687] = true; -- major sorcery
+  [92503] = true; -- major sorcery
+  [61694] = true; -- major resolve
+  [88758] = true; -- major resolve
   -- [106754] = true; -- major vuln
   -- [61743] = true;  -- major breach
-  [61704] = true;  -- minor endurance
-  [61706] = true;  -- minor intellect
-  [61697] = true;  -- minor fortitude
+  [61704] = true; -- minor endurance
+  [61706] = true; -- minor intellect
+  [61697] = true; -- minor fortitude
   -- [61723] = true;  -- minor maim
   -- [61742] = true;  -- minor breach
   [86304] = true;  -- minor lifesteal
@@ -1327,7 +1362,7 @@ FancyActionBar.dontFade = {
   -- [145975] = true; -- minor brittle
   -- [61504] = true;  -- vigor
   -- [61506] = true;  -- echoing vigor
-  [61737] = true;  -- empower
+  [61737] = true; -- empower
   -- [34733] = true;  -- off-balance
   -- [25256] = true;  -- off-balance
   -- [45834] = true;  -- off-balance
@@ -1451,7 +1486,8 @@ FancyActionBar.dontFade = {
   -- [182989] = true; -- fulminating rune (fulminating rune)
 };
 
-FancyActionBar.removeInstantly = {
+FancyActionBar.removeInstantly =
+{
   -- 'proc' effects seem to clutter more when '0.0' is being displayed after use.
   -- few other effects gave same impression. will add options.
   --[35756] = true; -- trap best
@@ -1484,7 +1520,8 @@ FancyActionBar.removeInstantly = {
   [51392] = true;  -- Streak Fatigue
 };
 
-FancyActionBar.allowedChanneled = {
+FancyActionBar.allowedChanneled =
+{
   -- all channeled abilities are set to be untracked; unless added here.
   [103492] = true; -- Meditate
   [103652] = true; -- Deep Thoughts
@@ -1509,7 +1546,8 @@ FancyActionBar.allowedChanneled = {
   [198537] = true; -- curative surge
 };
 
-FancyActionBar.soloTarget = {
+FancyActionBar.soloTarget =
+{
   -- abilities that are removed from target when cast before it expires.
   [28025] = true; -- encase
   [28308] = true; -- shattering prison
@@ -1519,7 +1557,8 @@ FancyActionBar.soloTarget = {
   [24328] = true; -- Daedric Prey
 };
 
-FancyActionBar.multiTarget = {
+FancyActionBar.multiTarget =
+{
   -- Universal Abilities
   [126890] = true; -- Soul Trap
   [126895] = true; -- Soul Splitting Trap
@@ -1590,16 +1629,18 @@ FancyActionBar.multiTarget = {
 };
 
 
-FancyActionBar.stackableBuff = {
+FancyActionBar.stackableBuff =
+{
   -- Echoing Vigor
-    [61503] = 61506;
-    [61504] = 61506;
-    [61505] = 61506;
-    [61506] = 61506;
-    
+  [61503] = 61506;
+  [61504] = 61506;
+  [61505] = 61506;
+  [61506] = 61506;
+
 };
 
-FancyActionBar.confirmBuffFade = {
+FancyActionBar.confirmBuffFade =
+{
 
 };
 
@@ -1607,7 +1648,8 @@ local WEAPONTYPE_NONE = WEAPONTYPE_NONE;
 local WEAPONTYPE_FIRE_STAFF = WEAPONTYPE_FIRE_STAFF;
 local WEAPONTYPE_FROST_STAFF = WEAPONTYPE_FROST_STAFF;
 local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF;
-FancyActionBar.destroSkills = {
+FancyActionBar.destroSkills =
+{
   [28858] = { type = 1; morph = 1 }; -- wall of elements
   [28807] = { type = 1; morph = 1 }; -- fire
   [28849] = { type = 1; morph = 1 }; -- ice
@@ -1668,81 +1710,98 @@ FancyActionBar.destroSkills = {
   [85128] = { type = 4; morph = 3 }; -- ice
   [85130] = { type = 4; morph = 3 }; -- shock
 };
-FancyActionBar.idsForStaff = {
-  [1] = {   -- wall morphs
-    [1] = { -- wall of elements
+FancyActionBar.idsForStaff =
+{
+  [1] =
+  {   -- wall morphs
+    [1] =
+    { -- wall of elements
       [WEAPONTYPE_NONE] = 28858;
       [WEAPONTYPE_FIRE_STAFF] = 28807;
       [WEAPONTYPE_FROST_STAFF] = 28849;
       [WEAPONTYPE_LIGHTNING_STAFF] = 28854;
     };
-    [2] = { -- elemental blockade
+    [2] =
+    { -- elemental blockade
       [WEAPONTYPE_NONE] = 39011;
       [WEAPONTYPE_FIRE_STAFF] = 39012;
       [WEAPONTYPE_FROST_STAFF] = 39028;
       [WEAPONTYPE_LIGHTNING_STAFF] = 39018;
     };
-    [3] = { -- unstable wall of elements
+    [3] =
+    { -- unstable wall of elements
       [WEAPONTYPE_NONE] = 39052;
       [WEAPONTYPE_FIRE_STAFF] = 39053;
       [WEAPONTYPE_FROST_STAFF] = 39067;
       [WEAPONTYPE_LIGHTNING_STAFF] = 39073;
     };
   };
-  [2] = { -- touch / reach / clench
-    [1] = {
+  [2] =
+  { -- touch / reach / clench
+    [1] =
+    {
       [WEAPONTYPE_NONE] = 29091;
       [WEAPONTYPE_FIRE_STAFF] = 29073;
       [WEAPONTYPE_FROST_STAFF] = 29078;
       [WEAPONTYPE_LIGHTNING_STAFF] = 29089;
     };
-    [2] = {
+    [2] =
+    {
       [WEAPONTYPE_NONE] = 38937;
       [WEAPONTYPE_FIRE_STAFF] = 38944;
       [WEAPONTYPE_FROST_STAFF] = 38970;
       [WEAPONTYPE_LIGHTNING_STAFF] = 38978;
     };
-    [3] = {
+    [3] =
+    {
       [WEAPONTYPE_NONE] = 38984;
       [WEAPONTYPE_FIRE_STAFF] = 38985;
       [WEAPONTYPE_FROST_STAFF] = 38989;
       [WEAPONTYPE_LIGHTNING_STAFF] = 38993;
     };
   };
-  [3] = { -- impulse / ring / pulsar
-    [1] = {
+  [3] =
+  { -- impulse / ring / pulsar
+    [1] =
+    {
       [WEAPONTYPE_NONE] = 28800;
       [WEAPONTYPE_FIRE_STAFF] = 28794;
       [WEAPONTYPE_FROST_STAFF] = 28798;
       [WEAPONTYPE_LIGHTNING_STAFF] = 28799;
     };
-    [2] = {
+    [2] =
+    {
       [WEAPONTYPE_NONE] = 39143;
       [WEAPONTYPE_FIRE_STAFF] = 39145;
       [WEAPONTYPE_FROST_STAFF] = 39146;
       [WEAPONTYPE_LIGHTNING_STAFF] = 39147;
     };
-    [3] = {
+    [3] =
+    {
       [WEAPONTYPE_NONE] = 39161;
       [WEAPONTYPE_FIRE_STAFF] = 39162;
       [WEAPONTYPE_FROST_STAFF] = 39163;
       [WEAPONTYPE_LIGHTNING_STAFF] = 39167;
     };
   };
-  [4] = { -- storm / eye / rage
-    [1] = {
+  [4] =
+  { -- storm / eye / rage
+    [1] =
+    {
       [WEAPONTYPE_NONE] = 83619;
       [WEAPONTYPE_FIRE_STAFF] = 83625;
       [WEAPONTYPE_FROST_STAFF] = 83628;
       [WEAPONTYPE_LIGHTNING_STAFF] = 85130;
     };
-    [2] = {
+    [2] =
+    {
       [WEAPONTYPE_NONE] = 83642;
       [WEAPONTYPE_FIRE_STAFF] = 83682;
       [WEAPONTYPE_FROST_STAFF] = 83684;
       [WEAPONTYPE_LIGHTNING_STAFF] = 83686;
     };
-    [3] = {
+    [3] =
+    {
       [WEAPONTYPE_NONE] = 84434;
       [WEAPONTYPE_FIRE_STAFF] = 85126;
       [WEAPONTYPE_FROST_STAFF] = 85128;

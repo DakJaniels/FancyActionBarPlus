@@ -45,7 +45,7 @@ max_line_length = unset
 end_of_line = auto
 
 #  none/ comma / semicolon / only_kv_colon
-table_separator_style = semicolon
+table_separator_style = only_kv_colon
 
 #optional keep/never/always/smart
 trailing_table_separator = keep
@@ -53,7 +53,7 @@ trailing_table_separator = keep
 # keep/remove/remove_table_only/remove_string_only
 call_arg_parentheses = keep
 
-detect_end_of_line = false
+detect_end_of_line = true
 
 # this will check text end with new line
 insert_final_newline = true
@@ -178,7 +178,7 @@ break_all_list_when_line_exceed = false
 
 auto_collapse_lines = false
 
-break_before_braces = false
+break_before_braces = true
 
 # [preference]
 ignore_space_after_colon = false

@@ -27,7 +27,8 @@ local FAB_NO_FRAME_DOWN = "/FancyActionBar+/texture/abilitynoframe64_down.dds";
 local FAB_BLANK = "/FancyActionBar+/texture/blank.dds";
 local FAB_MARKER = "/FancyActionBar+/texture/redarrow.dds";
 local FAB_BG = "/FancyActionBar+/texture/button_bg.dds";
-local FAB_Fonts = {
+local FAB_Fonts =
+{
   ["ProseAntique"] = "$(ANTIQUE_FONT)";
   ["Consolas"] = "/EsoUI/Common/Fonts/consola.slug";
   ["Futura Condensed"] = "$(GAMEPAD_MEDIUM_FONT)";
@@ -39,12 +40,14 @@ local FAB_Fonts = {
   ["Univers 57"] = "$(MEDIUM_FONT)";
   ["Univers 67"] = "$(BOLD_FONT)";
 };
-local decimalOptions = {
+local decimalOptions =
+{
   ["Always"] = true;
   ["Expire"] = true;
   ["Never"] = false;
 };
-local ultModeOptions = {
+local ultModeOptions =
+{
   ["Current"] = 1;
   ["Current / Cost (dynamic)"] = 2;
   ["Current / Cost (static)"] = 3;
@@ -55,13 +58,15 @@ local effectToTrackID = 0;
 local effectToTrackName = "";
 local skillEditType = -1;
 local skillEditChoice = "";
-local skillEditTypes = {
+local skillEditTypes =
+{
   [-1] = "";
   [0] = "Disable";
   [1] = "Reset";
   [2] = "New ID";
 };
-local skillEditValues = {
+local skillEditValues =
+{
   [""] = -1;
   ["Disable"] = 0;
   ["Reset"] = 1;
@@ -113,17 +118,26 @@ end;
 -------------------------------------------------------------------------------
 -----------------------------[   Local Functions   ]---------------------------
 -------------------------------------------------------------------------------
+
+---
+---@param id string|number
+---@return boolean
 local function IsValidId(id)
-  local abilityId = 0;
+  ---@type string|number?
+  local abilityId;
   if type(id) == "string" then
     abilityId = tonumber(id);
   elseif type(id) == "number" then
     abilityId = id;
   end;
 
-  if abilityId == 0 or type(abilityId) ~= "number" then return false; end;
+  if abilityId == 0 or type(abilityId) ~= "number" then
+    return false;
+  end;
 
-  if not DoesAbilityExist(abilityId) then return false; end;
+  if not DoesAbilityExist(abilityId) then
+    return false;
+  end;
 
   if abilityId == 133027 then
     Chat("Please use id |cffffff13816|r instead of |cffffff" .. abilityId .. "|r");
@@ -868,31 +882,61 @@ end;
 local function DisplayUltimateSlotTimer(durationControl, duration, timerColor)
   local t = ultDisplayTime - GetFrameTimeSeconds();
 
-  for i in pairs(FancyActionBar.ultOverlays) do
-    local d = FancyActionBar.ultOverlays[i]:GetNamedChild("Duration");
+  -- Ensure duration is not nil and has a default value if not provided
+  duration = duration or 0.01;
 
-    if t <= 0 then
-      d:SetText("");
-      EM:UnregisterForUpdate(FancyActionBar.GetName() .. "UltTimer");
-    else
-      if (SV.showDecimal and SV.showDecimalStart and SV.showExpireStart) and (SV.showDecimal ~= "Never" and (duration <= SV.showDecimalStart)) then
-        durationControl:SetText(string.format("%0.1f", zo_max(0, duration)));
-      else
-        durationControl:SetText(zo_max(0, zo_ceil(duration)));
+  -- Ensure settings variables have default values if they are nil
+  local showDecimalStart = SV.showDecimalStart or 0;
+  local showExpireStart = SV.showExpireStart or 0;
+  local expireColor = SV.expireColor or { 1, 1, 1, 1 }; -- Default to white color if not set
+
+  -- Retrieve durationControl using GetControl if it's not already a valid UI element
+  if type(durationControl) ~= "userdata" or not durationControl.SetText then
+    durationControl = GetControl("UltimateButtonOverlay8", "Duration");
+  end;
+
+  for i, overlay in pairs(FancyActionBar.ultOverlays) do
+    if overlay then -- Check if overlay is not nil
+      local d = overlay:GetNamedChild("Duration");
+      if not d then
+        d = FancyActionBar.CreateUltOverlay(i);
       end;
-      if (duration <= SV.showExpireStart) then
-        if (SV.showExpire) then durationControl:SetColor(unpack(SV.expireColor)); end;
-      else
-        durationControl:SetColor(unpack(timerColor));
+
+      if d then -- Check if d is not nil
+        if t <= 0 then
+          d:SetText("");
+          EM:UnregisterForUpdate(FancyActionBar.GetName() .. "UltTimer");
+        else
+          -- Check if durationControl is an object with a SetText method
+          if durationControl and durationControl.SetText then
+            if SV.showDecimal and SV.showDecimal ~= "Never" and duration <= showDecimalStart then
+              durationControl:SetText(string.format("%0.1f", zo_max(0, duration)));
+            else
+              durationControl:SetText(zo_max(0, zo_ceil(duration)));
+            end;
+
+            if duration <= showExpireStart then
+              if SV.showExpire then
+                durationControl:SetColor(unpack(expireColor));
+              end;
+            else
+              durationControl:SetColor(unpack(timerColor or { 1, 1, 1, 1 })); -- Default to white color if timerColor is nil
+            end;
+          else
+            -- Handle the case where durationControl is not a valid UI element
+            error("Invalid durationControl: Expected a UI element, got " .. type(durationControl));
+          end;
+
+          d:SetText(string.format("%0.0f", t));
+        end;
       end;
-      d:SetText(string.format("%0.0f", t));
     end;
   end;
 end;
 
 local function DisplayUltimateLabelChanges()
   EM:UnregisterForUpdate(FancyActionBar.GetName() .. "UltTimer");
-  ultDisplayTime = GetFrameTimeSeconds() + 5;
+  ultDisplayTime = GetFrameTimeSeconds() + 30.00;
   DisplayUltimateSlotTimer();
   EM:RegisterForUpdate(FancyActionBar.GetName() .. "UltTimer", 100, DisplayUltimateSlotTimer);
 end;
@@ -972,7 +1016,7 @@ end;
 ----------------------------------------------
 local framesHidden = false;
 local function SetDefaultAbilityFrame()
-  local f = { "/esoui/art/actionbar/abilityframe64_up.dds"; "/esoui/art/actionbar/abilityframe64_down.dds"; FAB_BLANK; FAB_NO_FRAME_DOWN };
+  local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
   if SV.hideDefaultFrames then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
@@ -1008,7 +1052,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
   SV = sv;
   CV = cv;
   local name = FancyActionBar.GetName() .. "Menu";
-  local panel = {
+  local panel =
+  {
     type = "panel";
     name = "Fancy Action Bar+";
     displayName = "Fancy Action Bar+";
@@ -1033,7 +1078,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     WINDOW_MANAGER:GetControlByName("FAB_AB_Toggle").button:SetText(l);
   end;
 
-  local options = {
+  local options =
+  {
     {
       type = "button";
       name = "Hide Actionbar";
@@ -1041,25 +1087,26 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
       func = function () ToggleActionBarInMenu(ACTION_BAR:IsHidden()); end;
       width = "full";
       reference = "FAB_AB_Toggle";
-    };
+    },
 
     --===========[	Actionbar Scaling	]===================
     {
       type = "submenu";
       name = "|cFFFACDActionbar Size & Position|r";
-      controls = {
+      controls =
+      {
 
         {
           type = "description";
           title = "This section is still undergoing test for compatibility with other addons, so think carefully before enabling";
           width = "full";
-        };
+        },
 
         {
           type = "description";
           title = "[ |cffdf80Keyboard UI|r ]";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Enable Actionbar Resize";
@@ -1073,7 +1120,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             end;
           end;
           width = "half";
-        };
+        },
         {
           type = "slider";
           name = "Actionbar Size";
@@ -1090,7 +1137,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             end;
           end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Enable Actionbar Reposition";
@@ -1098,15 +1145,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return GetMovable(1); end;
           setFunc = function (value) AllowMovable(1, value); end;
           width = "full";
-        };
+        },
 
-        { type = "divider" };
+        { type = "divider" },
 
         {
           type = "description";
           title = "[ |cffdf80Gamepad UI|r ]";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Enable Actionbar Resize";
@@ -1120,7 +1167,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             end;
           end;
           width = "half";
-        };
+        },
         {
           type = "slider";
           name = "Actionbar Size";
@@ -1137,9 +1184,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             end;
           end;
           width = "half";
-        };
+        },
 
-        { type = "divider" };
+        { type = "divider" },
 
         {
           type = "checkbox";
@@ -1148,9 +1195,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return GetMovable(2); end;
           setFunc = function (value) AllowMovable(2, value); end;
           width = "full";
-        };
+        },
 
-        { type = "divider" };
+        { type = "divider" },
 
         {
           type = "button";
@@ -1162,20 +1209,21 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
           reference = "FAB_AB_Move";
-        };
+        },
         -- {	type = 'button',        name = 'Undo Last Move',
         --   func = function() FancyActionBar.UndoMove() end,
         --   disabled = function() return not wasMoved end,
         --   width = 'half'
         -- }
       };
-    };
+    },
 
     --===========[    General    ]===================
     {
       type = "submenu";
       name = "|cFFFACDGeneral|r";
-      controls = {
+      controls =
+      {
 
         --============[	Font/Back Bar Settings	]===============
         {
@@ -1183,7 +1231,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Front & Back Bars Position|r ]";
           text = "All changes will take effect after doing a weapon swap.";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Static bar positions";
@@ -1195,7 +1243,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.UpdateBarSettings();
           end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Front bar on top (only for static bars)";
@@ -1207,7 +1255,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.frontBarTop = value or false;
           end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Active bar on top (not for static bars)";
@@ -1219,7 +1267,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.activeBarTop = value or false;
           end;
           width = "half";
-        };
+        },
         -- { type = 'checkbox', 			name = 'Hide inactive back bar buttons (not for static bars)',
         -- 	tooltip = 'ON = Inactive back bar buttons WILL be hidden.\nOFF = Inactive back bar buttons WONT be hidden.',
         -- 	disabled = function() return SV.staticBars end,
@@ -1237,7 +1285,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Back Bar Visibility|r ]";
           text = "";
           width = "full";
-        };
+        },
         {
           type = "slider";
           name = "Inactive bar alpha";
@@ -1248,7 +1296,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.alphaInactive; end;
           setFunc = function (value) FancyActionBar.ApplyAlphaInactive(value); end;
           width = "half";
-        };
+        },
         {
           type = "slider";
           name = "Inactive bar desaturation";
@@ -1261,8 +1309,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyDesaturationInactiveInactive(value);
           end;
           width = "half";
-        };
-        { type = "description"; text = ""; width = "full" };
+        },
+        { type = "description"; text = ""; width = "full" },
 
         --============[	Keybinds On / Off	]===================
         {
@@ -1270,7 +1318,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Hotkey Text|r ]";
           text = "";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Show hotkeys";
@@ -1282,16 +1330,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.HideHotkeys(not SV.showHotkeys);
           end;
           width = "half";
-        };
-        { type = "description"; text = ""; width = "half" };
+        },
+        { type = "description"; text = ""; width = "half" },
       };
-    };
+    },
 
     --============[	UI Customization	]===================
     {
       type = "submenu";
       name = "|cFFFACDUI Customization|r";
-      controls = {
+      controls =
+      {
 
         --============[	Buttom Frames	]=======================
         {
@@ -1299,7 +1348,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Button Frames|r ]";
           text = "Only for keyboard UI.";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Show frames";
@@ -1312,7 +1361,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ConfigureFrames();
           end;
           width = "half";
-        };
+        },
         {
           type = "colorpicker";
           name = "Frame color";
@@ -1320,11 +1369,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           disabled = function () return (FancyActionBar.style == 2 --[[IsInGamepadPreferredMode()]] or (not SV.showFrames)); end;
           getFunc = function () return unpack(SV.frameColor); end;
           setFunc = function (r, g, b, a)
-            SV.frameColor = { r; g; b; a };
+            SV.frameColor = { r, g, b, a };
             FancyActionBar.SetFrameColor();
           end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Hide default frames";
@@ -1337,8 +1386,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SetDefaultAbilityFrame();
           end;
           width = "half";
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --============[	Active Highlight	]===================
         {
@@ -1346,7 +1395,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Active Ability Highlight|r ]";
           text = "";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Show highlight";
@@ -1358,7 +1407,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             UpdateHiglightSettings();
           end;
           width = "half";
-        };
+        },
         {
           type = "colorpicker";
           name = "Highlight color";
@@ -1366,11 +1415,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           disabled = function () return not SV.showHighlight; end;
           getFunc = function () return unpack(SV.highlightColor); end;
           setFunc = function (r, g, b, a)
-            SV.highlightColor = { r; g; b; a };
+            SV.highlightColor = { r, g, b, a };
           end;
           width = "half";
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --============[   Toggled Highlight  ]===================
         {
@@ -1378,7 +1427,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Toggled Ability Highlight|r ]";
           text = "If a toggled ability is activated you can choose to have the highlight display a different color by setting the following option to <On>. Toggled abilities will also be highlighted regardless of the <Show highlight> option if <Toggled highlight> is enabled. If disabled, the highlight will use your settings from above.";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Toggled highlight";
@@ -1389,7 +1438,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             UpdateHiglightSettings();
           end;
           width = "half";
-        };
+        },
         {
           type = "colorpicker";
           name = "Toggled highlight color";
@@ -1397,11 +1446,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           disabled = function () return not SV.toggledHighlight; end;
           getFunc = function () return unpack(SV.toggledColor); end;
           setFunc = function (r, g, b, a)
-            SV.toggledColor = { r; g; b; a };
+            SV.toggledColor = { r, g, b, a };
           end;
           width = "half";
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --============[  Active Bar Arrow  ]=====================
         {
@@ -1409,7 +1458,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Active Bar Arrow|r ]";
           text = "Weapon swap once after clicking the Show arrow button to make the change take effect.";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Show arrow";
@@ -1423,7 +1472,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.AdjustUltimateSpacing();
           end;
           width = "half";
-        };
+        },
         {
           type = "colorpicker";
           name = "Arrow color";
@@ -1431,12 +1480,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           disabled = function () return not SV.showArrow; end;
           getFunc = function () return unpack(SV.arrowColor); end;
           setFunc = function (r, g, b, a)
-            SV.arrowColor = { r; g; b; a };
+            SV.arrowColor = { r, g, b, a };
             FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor));
           end;
           width = "half";
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --=============[  Quickslot Position  ]==================
         {
@@ -1451,7 +1500,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.AdjustUltimateSpacing();
           end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Show gamepad ult hotkeys";
@@ -1465,8 +1514,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
           width = "half";
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
         --=============[  Skill Styles  ]==================
         {
           type = "checkbox";
@@ -1478,39 +1527,43 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyAbilityFxOverrides(true);
           end;
           width = "full";
-        };
+        },
       };
-    };
+    },
 
     --=============[  Timer Display  ]=======================
     {
       type = "submenu";
       name = "|cFFFACDTimer Display|r";
-      controls = {
+      controls =
+      {
 
         {
           type = "submenu";
           name = "|cFFFACDInfo|r";
-          controls = {
+          controls =
+          {
             {
               type = "description";
               text = FancyActionBar.strings.subTimerDesc;
               width = "full";
-            };
+            },
           };
-        };
+        },
 
         --============[ Keyboard UI ]=========================
         {
           type = "submenu";
           name = "|cFFFACDKeyboard UI|r";
-          controls = {
+          controls =
+          {
 
             --============[ Keyboard Duration ]====================
             {
               type = "submenu";
               name = "|cFFFACDTimer Display Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "dropdown";
                   name = "Timer font";
@@ -1528,7 +1581,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontNameKB;
-                };
+                },
                 {
                   type = "slider";
                   name = "Timer font size";
@@ -1545,12 +1598,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontSizeKB;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Timer font style";
                   tooltip = "Select which effect to display the timer font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.fontTypeKB; end;
                   setFunc = function (value)
@@ -1562,18 +1615,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontTypeKB;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Timer color";
                   default = ZO_ColorDef:New(unpack(defaults.timeColorKB));
                   getFunc = function () return unpack(SV.timeColorKB); end;
                   setFunc = function (r, g, b)
-                    SV.timeColorKB = { r; g; b };
+                    SV.timeColorKB = { r, g, b };
                     if FancyActionBar.style == 1 then FancyActionBar.constants.duration.color = SV.timeColorKB; end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Adjust timer hight";
@@ -1591,15 +1644,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[ Keyboard Stacks ]======================
             {
               type = "submenu";
               name = "|cFFFACDStacks Display Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "dropdown";
                   name = "Stacks font";
@@ -1617,7 +1671,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontNameStackKB;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Stacks font size";
@@ -1634,12 +1688,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontSizeStackKB;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Stack font style";
                   tooltip = "Select which effect to display the stacks font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.fontTypeStackKB; end;
                   setFunc = function (value)
@@ -1651,18 +1705,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontTypeStackKB;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Stack color";
                   default = ZO_ColorDef:New(unpack(defaults.stackColorKB));
                   getFunc = function () return unpack(SV.stackColorKB); end;
                   setFunc = function (r, g, b)
-                    SV.stackColorKB = { r; g; b };
+                    SV.stackColorKB = { r, g, b };
                     if FancyActionBar.style == 1 then FancyActionBar.constants.stacks.color = SV.stackColorKB; end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Adjust stacks position";
@@ -1680,15 +1734,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[ Keyboard Targets ]======================
             {
               type = "submenu";
               name = "|cFFFACDTargets Display Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "dropdown";
                   name = "Targets font";
@@ -1706,7 +1761,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontNameTargetKB;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Targets font size";
@@ -1723,12 +1778,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontSizeTargetKB;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Target font style";
                   tooltip = "Select which effect to display the targets font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.fontTypeTargetKB; end;
                   setFunc = function (value)
@@ -1740,18 +1795,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontTypeTargetKB;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Target color";
                   default = ZO_ColorDef:New(unpack(defaults.targetColorKB));
                   getFunc = function () return unpack(SV.targetColorKB); end;
                   setFunc = function (r, g, b)
-                    SV.targetColorKB = { r; g; b };
+                    SV.targetColorKB = { r, g, b };
                     if FancyActionBar.style == 1 then FancyActionBar.constants.targets.color = SV.targetColorKB; end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Adjust targets position";
@@ -1769,15 +1824,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --==========[ Keyboard Ultimate Duration ]=============
             {
               type = "submenu";
               name = "|cFFFACDUltimate Timer Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "checkbox";
                   name = "Display ultimate Timer";
@@ -1791,8 +1847,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
-                { type = "description"; text = ""; width = "full" };
+                },
+                { type = "description"; text = ""; width = "full" },
                 {
                   type = "dropdown";
                   name = "Ultimate timer font";
@@ -1810,7 +1866,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultNameKB;
-                };
+                },
                 {
                   type = "slider";
                   name = "Ultimate timer font size";
@@ -1827,12 +1883,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultSizeKB;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Ultimate timer font style";
                   tooltip = "Select which effect to display the timer font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.ultTypeKB; end;
                   setFunc = function (value)
@@ -1844,18 +1900,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultTypeKB;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Ultimate timer color";
                   default = ZO_ColorDef:New(unpack(defaults.ultColorKB));
                   getFunc = function () return unpack(SV.ultColorKB); end;
                   setFunc = function (r, g, b)
-                    SV.ultColorKB = { r; g; b };
+                    SV.ultColorKB = { r, g, b };
                     if FancyActionBar.style == 1 then FancyActionBar.constants.ult.duration.color = SV.ultColorKB; end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -1873,7 +1929,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -1891,15 +1947,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --===========[ Keyboard Ultimate Value ]===============
             {
               type = "submenu";
               name = "|cFFFACDUltimate Value Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "checkbox";
                   name = "Display ultimate number";
@@ -1913,7 +1970,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Display Mode";
@@ -1928,7 +1985,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Ultimate value font";
@@ -1946,7 +2003,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultValueNameKB;
-                };
+                },
                 {
                   type = "slider";
                   name = "Ultimate value font size";
@@ -1963,12 +2020,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultValueSizeKB;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Ultimate value font style";
                   tooltip = "Select which effect to display the value font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.ultValueTypeKB; end;
                   setFunc = function (value)
@@ -1980,21 +2037,21 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultValueTypeKB;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Ultimate value color";
                   default = ZO_ColorDef:New(unpack(defaults.ultValueColorKB));
                   getFunc = function () return unpack(SV.ultValueColorKB); end;
                   setFunc = function (r, g, b)
-                    SV.ultValueColorKB = { r; g; b };
+                    SV.ultValueColorKB = { r, g, b };
                     if FancyActionBar.style == 1 then
                       FancyActionBar.constants.ult.value.color = SV.ultValueColorKB;
                       FancyActionBar.ApplyUltValueColor();
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2012,7 +2069,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2030,15 +2087,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 { type = "divider";
-                };
+                },
                 {
                   type = "description";
                   title = "Companion Ultimate";
                   text = "Companion ultimate value will inherit font and size of the player ultimate value.\nAdjust position below.";
                   width = "full";
-                };
+                },
                 {
                   type = "checkbox";
                   name = "Display ultimate number for companion";
@@ -2052,7 +2109,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "full";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2070,7 +2127,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2088,15 +2145,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[ Keyboard Quick Slot ]==================
             {
               type = "submenu";
               name = "|cFFFACDQuick Slot Display Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "checkbox";
                   name = "Quick Slot cooldown duration";
@@ -2110,9 +2168,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "full";
-                };
+                },
                 { type = "description"; text = ""; width = "full";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Quick Slot timer font";
@@ -2131,7 +2189,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.qsNameKB;
-                };
+                },
                 {
                   type = "slider";
                   name = "Quick Slot timer font size";
@@ -2149,12 +2207,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.qsSizeKB;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Quick Slot timer font style";
                   tooltip = "Select which effect to display the timer font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.qsTypeKB; end;
                   setFunc = function (value)
@@ -2167,22 +2225,22 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.qsTypeKB;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Quick Slot timer color";
                   default = ZO_ColorDef:New(unpack(defaults.qsColorKB));
                   getFunc = function () return unpack(SV.qsColorKB); end;
                   setFunc = function (r, g, b)
-                    SV.qsColorKB = { r; g; b };
+                    SV.qsColorKB = { r, g, b };
                     if FancyActionBar.style == 1 then
-                      FancyActionBar.constants.qs.color = { r; g; b };
+                      FancyActionBar.constants.qs.color = { r, g, b };
                       FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetColor(unpack(SV.qsColorKB));
                       DisplayQuickSlotLabelChanges();
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2201,7 +2259,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2220,24 +2278,26 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
           };
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --============[	Gamepad UI	]=========================
         {
           type = "submenu";
           name = "|cFFFACDGamepad UI|r";
-          controls = {
+          controls =
+          {
 
             --============[	Gamepad Duration	]===================
             {
               type = "submenu";
               name = "|cFFFACDTimer Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "dropdown";
                   name = "Timer font";
@@ -2255,7 +2315,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontNameGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Timer font size";
@@ -2272,12 +2332,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontSizeGP;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Font style";
                   tooltip = "Select which effect to display the timer font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.fontTypeGP; end;
                   setFunc = function (value)
@@ -2289,7 +2349,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontTypeGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Adjust timer hight";
@@ -2307,28 +2367,29 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Timer color";
                   default = ZO_ColorDef:New(unpack(defaults.timeColorGP));
                   getFunc = function () return unpack(SV.timeColorGP); end;
                   setFunc = function (r, g, b)
-                    SV.timeColorGP = { r; g; b };
+                    SV.timeColorGP = { r, g, b };
                     if FancyActionBar.style == 2 then
-                      FancyActionBar.constants.duration.color = { r; g; b };
+                      FancyActionBar.constants.duration.color = { r, g, b };
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[	Gamepad Stacks	]======================
             {
               type = "submenu";
               name = "|cFFFACDstacks display settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "dropdown";
                   name = "Stacks font";
@@ -2346,7 +2407,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontNameStackGP;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Stacks font size";
@@ -2363,12 +2424,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontSizeStackGP;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Stack font style";
                   tooltip = "Select which effect to display the stacks font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.fontTypeStackGP; end;
                   setFunc = function (value)
@@ -2380,7 +2441,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontTypeStackGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Adjust stacks position";
@@ -2398,28 +2459,29 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Stack color";
                   default = ZO_ColorDef:New(unpack(defaults.stackColorGP));
                   getFunc = function () return unpack(SV.stackColorGP); end;
                   setFunc = function (r, g, b)
-                    SV.stackColorGP = { r; g; b };
+                    SV.stackColorGP = { r, g, b };
                     if FancyActionBar.style == 2 then
-                      FancyActionBar.constants.stacks.color = { r; g; b };
+                      FancyActionBar.constants.stacks.color = { r, g, b };
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[	Gamepad Targets	]======================
             {
               type = "submenu";
               name = "|cFFFACDtargets display settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "dropdown";
                   name = "Targets font";
@@ -2437,7 +2499,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontNameTargetGP;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Targets font size";
@@ -2454,12 +2516,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   default = defaults.fontSizeTargetGP;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Target font style";
                   tooltip = "Select which effect to display the targets font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.fontTypeTargetGP; end;
                   setFunc = function (value)
@@ -2471,7 +2533,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.fontTypeTargetGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Adjust targets position";
@@ -2489,28 +2551,29 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Target color";
                   default = ZO_ColorDef:New(unpack(defaults.targetColorGP));
                   getFunc = function () return unpack(SV.targetColorGP); end;
                   setFunc = function (r, g, b)
-                    SV.targetColorGP = { r; g; b };
+                    SV.targetColorGP = { r, g, b };
                     if FancyActionBar.style == 2 then
-                      FancyActionBar.constants.targets.color = { r; g; b };
+                      FancyActionBar.constants.targets.color = { r, g, b };
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[ Gamepad Ultimate  ]====================
             {
               type = "submenu";
               name = "|cFFFACDultimate display settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "checkbox";
                   name = "Display ultimate Timer";
@@ -2524,8 +2587,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
-                { type = "description"; text = ""; width = "full" };
+                },
+                { type = "description"; text = ""; width = "full" },
                 {
                   type = "dropdown";
                   name = "Ultimate timer font";
@@ -2543,7 +2606,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultNameGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Ultimate timer font size";
@@ -2560,12 +2623,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultSizeGP;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Ultimate timer font style";
                   tooltip = "Select which effect to display the timer font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.ultTypeGP; end;
                   setFunc = function (value)
@@ -2577,17 +2640,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultTypeGP;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Ultimate timer color";
                   default = ZO_ColorDef:New(unpack(defaults.ultColorGP));
                   getFunc = function () return unpack(SV.ultColorGP); end;
                   setFunc = function (r, g, b)
-                    SV.ultColorGP = { r; g; b };
+                    SV.ultColorGP = { r, g, b };
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2605,7 +2668,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2623,15 +2686,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --===========[ Gamepad Ultimate Value ]===============
             {
               type = "submenu";
               name = "|cFFFACDUltimate Value Settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "checkbox";
                   name = "Display ultimate number";
@@ -2645,7 +2709,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Display Mode";
@@ -2660,7 +2724,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Ultimate value font";
@@ -2678,7 +2742,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultValueNameGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Ultimate value font size";
@@ -2695,12 +2759,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultValueSizeGP;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Ultimate value font style";
                   tooltip = "Select which effect to display the value font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.ultValueTypeGP; end;
                   setFunc = function (value)
@@ -2712,21 +2776,21 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.ultValueTypeGP;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Ultimate value color";
                   default = ZO_ColorDef:New(unpack(defaults.ultValueColorGP));
                   getFunc = function () return unpack(SV.ultValueColorGP); end;
                   setFunc = function (r, g, b)
-                    SV.ultValueColorGP = { r; g; b };
+                    SV.ultValueColorGP = { r, g, b };
                     if FancyActionBar.style == 2 then
-                      FancyActionBar.constants.ult.value.color = { r; g; b };
+                      FancyActionBar.constants.ult.value.color = { r, g, b };
                       FancyActionBar.ApplyUltValueColor();
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2744,7 +2808,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2762,15 +2826,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 { type = "divider";
-                };
+                },
                 {
                   type = "description";
                   title = "Companion Ultimate";
                   text = "Companion ultimate value will inherit font and size of the player ultimate value.\nAdjust position below.";
                   width = "full";
-                };
+                },
                 {
                   type = "checkbox";
                   name = "Display ultimate number for companion";
@@ -2784,7 +2848,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "full";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2802,7 +2866,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2820,15 +2884,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
 
             --============[	Gamepad Quick Slot	]==================
             {
               type = "submenu";
               name = "|cFFFACDQuick slot display settings|r";
-              controls = {
+              controls =
+              {
                 {
                   type = "checkbox";
                   name = "Quick Slot cooldown duration";
@@ -2842,9 +2907,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "full";
-                };
+                },
                 { type = "description"; text = ""; width = "full";
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Quick Slot timer font";
@@ -2863,7 +2928,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.qsNameGP;
-                };
+                },
                 {
                   type = "slider";
                   name = "Quick Slot timer font size";
@@ -2881,12 +2946,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.qsSizeGP;
-                };
+                },
                 {
                   type = "dropdown";
                   name = "Quick Slot timer font style";
                   tooltip = "Select which effect to display the timer font in.";
-                  choices = { "normal"; "outline"; "shadow"; "soft-shadow-thick"; "soft-shadow-thin"; "thick-outline" };
+                  choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
                   getFunc = function () return SV.qsTypeGP; end;
                   setFunc = function (value)
@@ -2899,27 +2964,27 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                   default = defaults.qsTypeGP;
-                };
+                },
                 {
                   type = "colorpicker";
                   name = "Quick Slot timer color";
                   default = ZO_ColorDef:New(unpack(defaults.qsColorGP));
                   getFunc = function () return unpack(SV.qsColorGP); end;
                   setFunc = function (r, g, b)
-                    SV.qsColorGP = { r; g; b };
+                    SV.qsColorGP = { r, g, b };
                     if FancyActionBar.style == 2 then
-                      FancyActionBar.constants.qs.color = { r; g; b };
+                      FancyActionBar.constants.qs.color = { r, g, b };
                       FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetColor(unpack(SV.qsColorGP));
                       DisplayQuickSlotLabelChanges();
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "description";
                   text = "Adjust position";
                   width = "full";
-                };
+                },
                 {
                   type = "slider";
                   name = "Vertical";
@@ -2938,7 +3003,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
                 {
                   type = "slider";
                   name = "Horizontal";
@@ -2957,25 +3022,26 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
-                };
+                },
               };
-            };
+            },
           };
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --============[	Expiration Settings	]=================
         {
           type = "submenu";
           name = "|cFFFACDKeyboard & Gamepad Shared|r";
-          controls = {
+          controls =
+          {
 
             --============[  Timer Fade Delay  ]==================
             {
               type = "description";
               title = "[ |cffdf80Timer Fade|r ]";
               width = "full";
-            };
+            },
             {
               type = "checkbox";
               name = "Delay timer fade";
@@ -2984,7 +3050,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.delayFade; end;
               setFunc = function (value) SV.delayFade = value or false; end;
               width = "half";
-            };
+            },
             {
               type = "slider";
               name = "Fade delay";
@@ -2999,15 +3065,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.fadeDelay; end;
               setFunc = function (value) SV.fadeDelay = value; end;
               width = "half";
-            };
-            { type = "description"; text = ""; width = "full" };
+            },
+            { type = "description"; text = ""; width = "full" },
 
             --============[  Timer Decimals  ]====================
             {
               type = "description";
               title = "[ |cffdf80Duration Display Decimals|r ]";
               width = "full";
-            };
+            },
             {
               type = "dropdown";
               name = "Enable timer decimals";
@@ -3020,7 +3086,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.RefreshUpdateConfiguration();
               end;
               width = "half";
-            };
+            },
             {
               type = "slider";
               name = "Decimals threshold";
@@ -3038,15 +3104,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.RefreshUpdateConfiguration();
               end;
               width = "half";
-            };
-            { type = "description"; text = ""; width = "full" };
+            },
+            { type = "description"; text = ""; width = "full" },
 
             --============[  Expiring Effect Start  ]=============
             {
               type = "description";
               title = "[ |cffdf80Display Changes For Expiring Effects|r ]";
               width = "full";
-            };
+            },
             {
               type = "slider";
               name = "Expiring timer threshold";
@@ -3062,11 +3128,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 SV.showExpireStart = value;
               end;
               width = "half";
-            };
+            },
 
             --============[	Expiring Timer Color	]=============
             { type = "description"; title = "[ |cffdf80Timer Text|r ]"; width = "full";
-            };
+            },
             {
               type = "checkbox";
               name = "Change expiring timer text color";
@@ -3077,7 +3143,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 SV.showExpire = value or false;
               end;
               width = "full";
-            };
+            },
             {
               type = "colorpicker";
               name = "Select timer text color for expiring effect";
@@ -3085,15 +3151,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               disabled = function () return (not SV.showExpire); end;
               getFunc = function () return unpack(SV.expireColor); end;
               setFunc = function (r, g, b)
-                SV.expireColor = { r; g; b };
+                SV.expireColor = { r, g, b };
               end;
               width = "full";
-            };
-            { type = "description"; text = ""; width = "full" };
+            },
+            { type = "description"; text = ""; width = "full" },
 
             --============[	Expiring Highlight Color	]=========
             { type = "description"; title = "[ |cffdf80HighLight|r ]"; width = "full";
-            };
+            },
             {
               type = "checkbox";
               name = "Change expiring timer highlight color";
@@ -3104,7 +3170,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 SV.highlightExpire = value or false;
               end;
               width = "full";
-            };
+            },
             {
               type = "colorpicker";
               name = "Select highlight color for expiring effects";
@@ -3112,26 +3178,28 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               disabled = function () return (not SV.highlightExpireColor); end;
               getFunc = function () return unpack(SV.highlightExpireColor); end;
               setFunc = function (r, g, b, a)
-                SV.highlightExpireColor = { r; g; b; a };
+                SV.highlightExpireColor = { r, g, b, a };
               end;
               width = "full";
-            };
+            },
           };
-        };
+        },
       };
-    };
-    { type = "divider" };
+    },
+    { type = "divider" },
 
     --==============[  Ability Config  ]=====================
     {
       type = "submenu";
       name = "|cFFFACDAbility Configuration|r";
-      controls = {
+      controls =
+      {
 
         {
           type = "submenu";
           name = "|cFFFACDCurrently Slotted Ability IDs|r";
-          controls = {
+          controls =
+          {
 
             {
               type = "description";
@@ -3139,37 +3207,39 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               text = function () return GetCurrentFrontBarInfo(); end;
               width = "half";
               reference = "Front_Bar_List";
-            };
+            },
             {
               type = "description";
               title = "Back Bar";
               text = function () return GetCurrentBackBarInfo(); end;
               width = "half";
               reference = "Back_Bar_List";
-            };
+            },
           };
-        };
+        },
 
         {
           type = "submenu";
           name = "|cFFFACDTracked Effects|r";
-          controls = {
+          controls =
+          {
 
             {
               type = "submenu";
               name = "Info";
-              controls = {
+              controls =
+              {
 
                 {
                   type = "description";
                   title = "";
                   text = "Here you can edit which effect you want the timer for a specific skill to track.\nTo track a different effect, make sure to enter the ID of the skill and the ID of the new effect, before clicking the button to confirm.\nThis function is still in early testing stage and errors are likely to occur for some skills, but you can always reset any skill you altered and it will be working as it used to.";
                   width = "full";
-                };
+                },
               };
-            };
+            },
 
-            { type = "divider" };
+            { type = "divider" },
 
             {
               type = "checkbox";
@@ -3180,9 +3250,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               setFunc = function (value) CV.useAccountWide = value or false; end;
               requiresReload = true;
               width = "half";
-            };
+            },
 
-            { type = "divider" };
+            { type = "divider" },
 
             {
               type = "dropdown";
@@ -3194,9 +3264,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               reference = "Saved_Changes_Dropdown";
               default = "== Select a Skill ==";
               width = "half";
-            };
+            },
 
-            { type = "description"; text = ""; width = "half" };
+            { type = "description"; text = ""; width = "half" },
 
             {
               type = "editbox";
@@ -3209,14 +3279,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               isMultiline = false;
               isExtraWide = false;
               width = "half";
-            };
+            },
             {
               type = "description";
               title = "Selected Skill:";
               text = function () return GetSkillToEditName(); end;
               width = "half";
               reference = "SkillToEditTitle";
-            };
+            },
             {
               type = "dropdown";
               name = "Change Type";
@@ -3227,9 +3297,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               width = "half";
               reference = "Change_Type_Dropdown";
               default = "";
-            };
+            },
 
-            { type = "description"; text = ""; width = "half" };
+            { type = "description"; text = ""; width = "half" },
 
             {
               type = "editbox";
@@ -3242,14 +3312,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               isMultiline = false;
               isExtraWide = false;
               width = "half";
-            };
+            },
             {
               type = "description";
               title = "Selected Effect:";
               text = function () return GetEffectToTrackName(); end;
               width = "half";
               reference = "EffectToTrackTitle";
-            };
+            },
 
             {
               type = "button";
@@ -3257,7 +3327,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               width = "full";
               func = function () ValidateSkillChange(); end;
               disabled = function () return IsChangePossible(); end;
-            };
+            },
             -- {	type = 'checkbox', 			name = 'Only Update Used Skill',
             --   tooltip = 'Only update the timer for the button used to cast the effect.',
             --   getFunc = function() return GetUpdateUsedButtonOnly() end,
@@ -3266,24 +3336,26 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             --   width = 'half'
             -- }
           };
-        };
+        },
         -- {	type = 'divider'  },
 
         --==============[  External Buff Tracking  ]==============
         {
           type = "submenu";
           name = "|cFFFACDBuffs Gained From others|r";
-          controls = {
+          controls =
+          {
 
             {
               type = "submenu";
               name = "Info";
-              controls = {
+              controls =
+              {
 
                 { type = "description"; text = "Here you can enable the ability timers to track the duration if their tracked effect is gained from an ally.\nYou can also select which effects you do not want to have tracked if you are not the source.";
-                };
+                },
               };
-            };
+            },
 
             {
               type = "checkbox";
@@ -3295,8 +3367,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.SetExternalBuffTracking();
               end;
               width = "half";
-            };
-            { type = "description"; width = "half" };
+            },
+            { type = "description"; width = "half" },
 
             {
               type = "editbox";
@@ -3309,16 +3381,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               isMultiline = false;
               isExtraWide = false;
               width = "half";
-            };
+            },
             {
               type = "description";
               title = "Selected Buff:";
               text = function () return GetSkillToBlacklistName(); end;
               width = "half";
               reference = "SkillToBlacklistTitle";
-            };
+            },
 
-            { type = "description"; width = "half" };
+            { type = "description"; width = "half" },
 
             {
               type = "button";
@@ -3327,9 +3399,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               func = function () BlacklistId(); end;
               disabled = function () return not CanBlacklistId(); end;
               reference = "SkillToBlacklist_Button";
-            };
+            },
 
-            { type = "description"; width = "full" };
+            { type = "description"; width = "full" },
 
             {
               type = "dropdown";
@@ -3340,7 +3412,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               reference = "Blacklist_Dropdown";
               -- default = '== Select a Skill ==',
               width = "half";
-            };
+            },
 
             {
               type = "button";
@@ -3349,16 +3421,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               func = function () ClearBlacklistId(); end;
               disabled = function () return not CanClearBlacklistId(); end;
               reference = "BlacklistToClear_Button";
-            };
+            },
           };
-        };
+        },
         -- {	type = 'divider'  },
 
         --==================[  Target Debuffs  ]==================
         {
           type = "submenu";
           name = "|cFFFACDDebuffs on Target|r";
-          controls = {
+          controls =
+          {
 
             {
               type = "checkbox";
@@ -3370,7 +3443,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 SV.advancedDebuff = value or false;
                 FancyActionBar:UpdateDebuffTracking();
               end;
-            };
+            },
 
             {
               type = "checkbox";
@@ -3380,7 +3453,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.keepLastTarget; end;
               setFunc = function (value) SV.keepLastTarget = value or false; end;
               disabled = function () return not SV.advancedDebuff; end;
-            };
+            },
 
             {
               type = "checkbox";
@@ -3390,13 +3463,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.showOvertauntStacks; end;
               setFunc = function (value) SV.showOvertauntStacks = value or false; end;
               disabled = function () return not SV.advancedDebuff; end;
-            };
+            },
 
             {
               type = "description";
               text = "More options to come.";
               width = "full";
-            };
+            },
 
             -- { type = 'checkbox',      name = 'Hide timers if not on target',
             --   tooltip = 'This will determine if the timers for active debuffs should be hidden if they are not active on your current target.\nThis setting will apply to all debuffs that has not been added to individual settings below, and will be ignored for the ones that has.',
@@ -3471,14 +3544,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             --   reference = 'DebuffToClear_Button'
             -- }
           };
-        };
+        },
         -- {	type = 'divider'  },
 
         --============[  Additional Tracking Options  ]===========
         {
           type = "submenu";
           name = "|cFFFACDAdditional Tracking Options|r";
-          controls = {
+          controls =
+          {
 
 
             -- { type = 'divider'	},
@@ -3488,7 +3562,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               title = "[ |cffdf80Effect Duration Thresholds|r ]";
               text = "Set the limits for when to ignore effects based on their duration.";
               width = "full";
-            };
+            },
             {
               type = "slider";
               name = "Minimum";
@@ -3502,7 +3576,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               end;
               width = "half";
               default = defaults.durationMin;
-            };
+            },
             {
               type = "slider";
               name = "Maximum";
@@ -3516,8 +3590,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               end;
               width = "half";
               default = defaults.durationMax;
-            };
-            { type = "divider" };
+            },
+            { type = "divider" },
             {
               type = "checkbox";
               name = "Show Instance Counter";
@@ -3525,7 +3599,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               default = defaults.showTargetCount;
               getFunc = function () return SV.showTargetCount; end;
               setFunc = function (value) SV.showTargetCount = value or false; end;
-            };
+            },
             {
               type = "checkbox";
               name = "Show Instance Count with One Active Instance";
@@ -3534,18 +3608,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.showSingleTargetInstance; end;
               setFunc = function (value) SV.showSingleTargetInstance = value or false; end;
               disabled = function () return not SV.showTargetCount; end;
-            };
+            },
           };
-        };
+        },
       };
-    };
-    { type = "divider" };
+    },
+    { type = "divider" },
 
     --============[	Miscellaneous	]=======================
     {
       type = "submenu";
       name = "|cFFFACDMiscellaneous|r";
-      controls = {
+      controls =
+      {
 
         {
           type = "checkbox";
@@ -3559,7 +3634,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyDeathStateOption();
           end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Prevent casting in trade";
@@ -3568,7 +3643,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.lockInTrade; end;
           setFunc = function (value) SV.lockInTrade = value or false; end;
           width = "half";
-        };
+        },
         {
           type = "checkbox";
           name = "Enable Perfect Weave";
@@ -3578,8 +3653,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           setFunc = function (value) SV.perfectWeave = value or false; end;
           requiresReload = true;
           width = "half";
-        };
-        { type = "description"; text = ""; width = "half" };
+        },
+        { type = "description"; text = ""; width = "half" },
 
         --============[	Enemy Markers	]=======================
         {
@@ -3587,7 +3662,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Enemy Markers|r ]";
           text = "yes.. I completely stole this from Untaunted.";
           width = "full";
-        };
+        },
         {
           type = "checkbox";
           name = "Show Enemy Markers";
@@ -3598,7 +3673,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.showMarker = value or false;
           end;
           width = "half";
-        };
+        },
         {
           type = "slider";
           name = "Enemy Marker Size";
@@ -3611,19 +3686,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.SetMarker(value);
           end;
           width = "half";
-        };
-        { type = "divider" };
+        },
+        { type = "divider" },
 
         --===============[  GCD Tracker  ]======================
         {
           type = "submenu";
           name = "|cFFFACDGlobal Cooldown Tracker|r";
-          controls = {
+          controls =
+          {
             {
               type = "description";
               title = "Early BETA version\nWorks fine but is not very pretty";
               width = "full";
-            };
+            },
             {
               type = "checkbox";
               name = "Enable GCD";
@@ -3634,7 +3710,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.ToggleGCD();
               end;
               width = "half";
-            };
+            },
             {
               type = "checkbox";
               name = "Only in combat";
@@ -3645,9 +3721,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.ToggleGCD();
               end;
               width = "half";
-            };
+            },
 
-            { type = "divider" };
+            { type = "divider" },
 
             {
               type = "slider";
@@ -3661,7 +3737,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.UpdateGCDSize();
               end;
               width = "half";
-            };
+            },
             {
               type = "slider";
               name = "Width";
@@ -3674,35 +3750,35 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.UpdateGCDSize();
               end;
               width = "half";
-            };
+            },
             {
               type = "colorpicker";
               name = "Fill color";
               default = ZO_ColorDef:New(unpack(defaults.gcd.fillColor));
               getFunc = function () return unpack(SV.gcd.fillColor); end;
               setFunc = function (r, g, b, a)
-                SV.gcd.fillColor = { r; g; b; a };
+                SV.gcd.fillColor = { r, g, b, a };
                 FAB_GCD.fill:SetCenterColor(unpack(SV.gcd.fillColor));
                 FAB_GCD.fill:SetEdgeColor(unpack(SV.gcd.fillColor));
               end;
               width = "half";
-            };
+            },
             {
               type = "colorpicker";
               name = "Edge color";
               default = ZO_ColorDef:New(unpack(defaults.gcd.frameColor));
               getFunc = function () return unpack(SV.gcd.frameColor); end;
               setFunc = function (r, g, b, a)
-                SV.gcd.frameColor = { r; g; b; a };
+                SV.gcd.frameColor = { r, g, b, a };
                 FAB_GCD.frame:SetColor(unpack(SV.gcd.frameColor));
               end;
               width = "half";
-            };
+            },
           };
-        };
+        },
       };
-    };
-    { type = "divider" };
+    },
+    { type = "divider" },
 
     --===============[  Debugging  ]========================
     {
@@ -3710,7 +3786,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
       title = "[ |cffdf80Debugging|r ]";
       text = "";
       width = "full";
-    };
+    },
     {
       type = "checkbox";
       name = "Debug mode";
@@ -3722,15 +3798,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         FancyActionBar.SetDebugMode(value or false);
         SV.debug = value or false;
       end;
-    };
+    },
 
-    { type = "divider" };
+    { type = "divider" },
 
     {
       type = "description";
       text = FancyActionBar.strings.disclaimer;
       width = "full";
-    };
+    },
   };
 
   LAM:RegisterOptionControls(name, options);
@@ -4150,13 +4226,10 @@ function FancyActionBar.AdjustUltTimer(sample)
       durationControl:ClearAnchors();
       durationControl:SetAnchor(CENTER, overlay, CENTER, x, y);
       local effect = overlay.effect;
-      if inMenu then
+      if inMenu and sample then
+        DisplayUltimateLabelChanges();
       end;
     end;
-  end;
-
-  if sample then -- display label when changes are made
-    DisplayUltimateLabelChanges();
   end;
 end;
 
@@ -4168,7 +4241,9 @@ function FancyActionBar.ApplyUltFont(sample)
 
   local name, size, type = GetCurrentUltFont();
 
-  if name == "" then name = "$(BOLD_FONT)"; end;
+  if name == "" then
+    name = "$(BOLD_FONT)";
+  end;
 
   for i, overlay in pairs(FancyActionBar.ultOverlays) do
     overlay = FancyActionBar.ultOverlays[i];
@@ -4249,7 +4324,9 @@ function FancyActionBar.ApplyUltValueColor()
   local color = FancyActionBar.constants.ult.value.color;
 
   for i, overlay in pairs(FancyActionBar.ultOverlays) do
-    if FancyActionBar.ultOverlays[i] then FancyActionBar.ultOverlays[i]:GetNamedChild("Value"):SetColor(unpack(color)); end;
+    if FancyActionBar.ultOverlays[i] then
+      FancyActionBar.ultOverlays[i]:GetNamedChild("Value"):SetColor(unpack(color));
+    end;
   end;
 end;
 
@@ -4296,7 +4373,9 @@ end;
 function FancyActionBar.ToggleGCD()
   local function OnStateChanged(oldState, newState)
     if (newState == SCENE_SHOWN and SV.gcd.enable) then
-      if (not FancyActionBar.inCombat and SV.gcd.combatOnly) then return; end;
+      if (not FancyActionBar.inCombat and SV.gcd.combatOnly) then
+        return;
+      end;
       FAB_GCD:SetHidden(false);
     else
       FAB_GCD:SetHidden(true);
@@ -4479,6 +4558,7 @@ end;
 function FancyActionBar.ApplyDeathStateOption()
   -- ZO_PreHookHandler(ZO_Death, 'OnShow', PlayerDeath)
 
+  ---@diagnostic disable-next-line: missing-parameter
   DEATH_FRAGMENT:UnregisterCallback("StateChange");
 
   if SV.showDeath then
