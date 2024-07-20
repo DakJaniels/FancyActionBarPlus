@@ -7,7 +7,6 @@ local SM = SCENE_MANAGER;
 local NAME;
 local SV;
 local time = GetFrameTimeSeconds;
-local currentTarget = { name = ""; id = 0 };
 local activeTargetDebuffs = {};
 
 ---@param msg string
@@ -137,8 +136,6 @@ function FancyActionBar.HasEnemyTarget()
     if FancyActionBar.IsEnemy(tag, nil) then return true; end;
   end;
   return false;
-
-  -- return (currentTarget.name == '') and false or true
 end;
 
 ---------------------------------
@@ -317,8 +314,6 @@ local function OnReticleTargetChanged()
     local tId = 0;
     local keep = {};
 
-    currentTarget.name = name;
-
     local debuffs, debuffNum = GetTargetEffects();
 
     if debuffNum > 0 then
@@ -367,7 +362,6 @@ local function OnReticleTargetChanged()
     end;
     -- OnNewTarget()
   else
-    currentTarget = { name = ""; id = 0 };
     if SV.keepLastTarget == false then
       ClearDebuffsIfNotOnTarget();
     end;
