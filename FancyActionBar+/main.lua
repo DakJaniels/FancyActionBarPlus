@@ -1249,7 +1249,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
       durationControl:SetText("");
     end;
   end;
-  FancyActionBar.SetActionButtonAbilityFxOverride(index);
+  if SV.applyActionBarSkillStyles then FancyActionBar.SetActionButtonAbilityFxOverride(index); end;
 end;
 
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
@@ -3107,7 +3107,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.UpdateUltimateCost();
       end;
       FancyActionBar.UpdateSlottedSkillsDecriptions();
-      FancyActionBar.SetActionButtonAbilityFxOverride(n);
+      if SV.applyActionBarSkillStyles then FancyActionBar.SetActionButtonAbilityFxOverride(n); end;
     end;
     -- Chat('Slot ' .. tostring(n) .. ' changed')
   end;
