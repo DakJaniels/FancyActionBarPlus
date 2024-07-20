@@ -269,7 +269,7 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
           break;
         end;
       end;
-      if unitId ~= unitUpdating then return; end;
+      if unitId ~= unitUpdating and #activeDebuffs > 1 then return; end;
     end;
   end;
 
