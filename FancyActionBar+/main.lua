@@ -1110,7 +1110,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     if effect and not effect.ignore and effect.id > 0 then
       FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index);
     else
-      FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl);
+      FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl);
     end;
   end;
 end;
@@ -1159,10 +1159,11 @@ function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime
   end;
 end;
 
-function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl)
+function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
   durationControl:SetText("");
   bgControl:SetHidden(true);
   stacksControl:SetText("");
+  targetsControl:SetText("");
 end;
 
 function FancyActionBar.UpdateStacks(index) -- stacks label.
