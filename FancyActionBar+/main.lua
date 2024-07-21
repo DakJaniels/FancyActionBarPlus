@@ -3712,6 +3712,9 @@ function FancyActionBar.Initialize()
   --   Chat('ActionButton' .. slotNum .. ' pressed.')
   --   return false
   -- end)
+
+  SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_BACK_ROW, "false");
+  SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false");
 end;
 
 function FancyActionBar.OnAddOnLoaded(event, addonName)
