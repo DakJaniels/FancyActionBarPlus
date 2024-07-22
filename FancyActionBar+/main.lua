@@ -2197,7 +2197,7 @@ local configureFillAnimationsAndFrames = function (style)
 
   -- Check if controls are retrieved successfully
   if not leftFill or not rightFill or not leftFillC or not rightFillC or not gpFrame or not gpFrameC then
-    Chat("One or more controls are nil");
+    --Chat("One or more controls are nil");
     return;
   end;
 
