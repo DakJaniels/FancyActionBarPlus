@@ -2140,9 +2140,9 @@ local repositionUltimateSlot = function (style, weaponSwapControl)
 end;
 
 local setFlipCardDimensions = function (style)
-  local c8 = GetControl("ActionButton8", "FlipCard");
-  local c9 = GetControl("ActionButton9", "FlipCard");
-  local c38 = GetControl("CompanionUltimateButton", "FlipCard");
+  local c8 = GetControl("ActionButton8FlipCard");
+  local c9 = GetControl("ActionButton9FlipCard");
+  local c38 = GetControl("CompanionUltimateButtonFlipCard");
 
   if c8 then
     c8:SetDimensions(style.ultFlipCardSize, style.ultFlipCardSize);
@@ -2180,65 +2180,78 @@ end;
 ---@param fill Control
 local hideFillAnimation = function (fill)
   if fill then
+    fill:ClearAnchors();
     fill:SetHidden(true);
   end;
 end;
 
 local configureFillAnimationsAndFrames = function (style)
-  local leftFill = GetControl("ActionButton8", "FillAnimationLeft");
-  local rightFill = GetControl("ActionButton8", "FillAnimationRight");
-  local leftFillC = GetControl("CompanionUltimateButton", "partialFillAnimationLeft");
-  local rightFillC = GetControl("CompanionUltimateButton", "FillAnimationRight");
-  local gpFrame = GetControl("ActionButton8", "Frame");
-  local gpFrameC = GetControl("CompanionUltimateButton", "Frame");
+  local leftFill = GetControl("ActionButton8FillAnimationLeft");
+  local rightFill = GetControl("ActionButton8FillAnimationRight");
+  local leftFillC = GetControl("CompanionUltimateButtonPartialFillAnimationLeft");
+  local rightFillC = GetControl("CompanionUltimateButtonFillAnimationRight");
+  local gpFrame = GetControl("ActionButton8Frame");
+  local gpFrameC = GetControl("CompanionUltimateButtonFrame");
+  local actionbutton8backdrop = GetControl("ActionButton8Backdrop");
+  local companionultimatebuttonbackdrop = GetControl("CompanionUltimateButtonBackdrop");
 
-  if FancyActionBar.style == 2 then
-    configureFillAnimation(leftFill, ActionButton8Backdrop, -24, 24);
-    configureFillAnimation(rightFill, ActionButton8Backdrop, -24, 24);
-    configureFillAnimation(leftFillC, CompanionUltimateButtonBackdrop, -24, 24);
-    configureFillAnimation(rightFillC, CompanionUltimateButtonBackdrop, -24, 24);
-    if gpFrame then
-      gpFrame:SetHidden(false);
-    end;
-    if gpFrameC then
-      gpFrameC:SetHidden(false);
-    end;
+  -- Check if controls are retrieved successfully
+  if not leftFill or not rightFill or not leftFillC or not rightFillC or not gpFrame or not gpFrameC then
+    Chat("One or more controls are nil");
+    return;
+  end;
+
+  local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, ACTION_BAR:GetHotbarCategory());
+  local isGamepad = IsInGamepadPreferredMode();
+
+  if FancyActionBar.style == 2 and isSlotUsed then
+    -- Show fill bar if platform appropriate
+    gpFrame:SetHidden(false);
+    gpFrameC:SetHidden(false);
+    leftFill:SetHidden(not isGamepad);
+    rightFill:SetHidden(not isGamepad);
+    leftFillC:SetHidden(not isGamepad);
+    rightFillC:SetHidden(not isGamepad);
+
+    -- Set fill animations
+    configureFillAnimation(leftFill, actionbutton8backdrop, -24, 24);
+    configureFillAnimation(rightFill, actionbutton8backdrop, -24, 48);
+    configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -24, 24);
+    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 24);
   else
+    -- Hide fill animations and frames
     hideFillAnimation(leftFill);
     hideFillAnimation(rightFill);
     hideFillAnimation(leftFillC);
     hideFillAnimation(rightFillC);
-    if gpFrame then
-      gpFrame:SetHidden(true);
-    end;
-    if gpFrameC then
-      gpFrameC:SetHidden(true);
-    end;
+    gpFrame:SetHidden(true);
+    gpFrameC:SetHidden(true);
   end;
 end;
+
 local createOverlays = function (style, weaponSwapControl, QSB)
-  -- front bar ult
+  local function setupOverlay(overlay, anchorControl)
+    overlay:SetAnchor(TOPLEFT, anchorControl, TOPLEFT, 0, 0);
+    overlay:SetAnchor(BOTTOMRIGHT, anchorControl, BOTTOMRIGHT, 0, 0);
+    overlay.value = overlay:GetNamedChild("Value");
+  end;
+  local actionbutton8 = GetControl("ActionButton8");
+  local companionultimatebutton = GetControl("CompanionUltimateButton");
+  -- Front bar ultimate overlay
   local u1 = FancyActionBar.CreateUltOverlay(ULT_INDEX);
-  u1:SetAnchor(TOPLEFT, ActionButton8, TOPLEFT, 0, 0);
-  u1:SetAnchor(BOTTOMRIGHT, ActionButton8, BOTTOMRIGHT, 0, 0);
-  u1.value = u1:GetNamedChild("Value");
+  setupOverlay(u1, actionbutton8);
 
-  -- back bar ult
+  -- Back bar ultimate overlay
   local u2 = FancyActionBar.CreateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET);
-  u2:SetAnchor(TOPLEFT, ActionButton8, TOPLEFT, 0, 0);
-  u2:SetAnchor(BOTTOMRIGHT, ActionButton8, BOTTOMRIGHT, 0, 0);
-  u2.value = u2:GetNamedChild("Value");
+  setupOverlay(u2, actionbutton8);
 
-  -- companion ult
+  -- Companion ultimate overlay
   local u3 = FancyActionBar.CreateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET);
-  u3:SetAnchor(TOPLEFT, CompanionUltimateButton, TOPLEFT, 0, 0);
-  u3:SetAnchor(BOTTOMRIGHT, CompanionUltimateButton, BOTTOMRIGHT, 0, 0);
-  u3.value = u3:GetNamedChild("Value");
+  setupOverlay(u3, companionultimatebutton);
 
-  -- quickslot
+  -- Quickslot overlay
   local QO = FancyActionBar.CreateQuickSlotOverlay(QUICK_SLOT);
-  QO:SetAnchor(TOPLEFT, QSB, TOPLEFT, 0, 0);
-  QO:SetAnchor(BOTTOMRIGHT, QSB, BOTTOMRIGHT, 0, 0);
+  setupOverlay(QO, QSB);
   QO.timer = QO:GetNamedChild("Duration");
   QO.timer:SetColor(unpack(IsInGamepadPreferredMode() and SV.qsColorGP or SV.qsColorKB));
 
@@ -3601,6 +3614,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
     uiModeChanged = true;
     FancyActionBar.UpdateBarSettings();
+    ReloadUI("ingame");
   end);
 
   EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
