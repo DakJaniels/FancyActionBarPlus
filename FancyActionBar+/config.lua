@@ -1620,8 +1620,6 @@ FancyActionBar.multiTarget =
   [145975] = true; -- Minor Brittle
   [78867] = true;  -- Minor Cowardice
   [61723] = true;  -- Minor Maim
-  [61693] = true;  -- Minor Resolve
-  [61744] = true;  -- Minor Berserk
 
   -- Unique Debuffs
   [38254] = true;  -- Taunt
