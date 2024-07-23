@@ -1123,14 +1123,15 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration);
   local bc = duration > 0 and FancyActionBar.GetHighlightColor(isFading) or nil;
 
-  FancyActionBar.UpdateStacksControl(effect, stacksControl);
+  FancyActionBar.UpdateStacksControl(effect, stacksControl, duration);
   FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime);
   FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
   FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index);
 end;
 
-function FancyActionBar.UpdateStacksControl(effect, stacksControl)
-  if effect.stackId then
+function FancyActionBar.UpdateStacksControl(effect, stacksControl, duration)
+  if duration > 0 then return end
+    if effect.stackId then
     if effect.forceExpireStacks or effect.isSpecialDebuff or (effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId]) then
       effect.stacks = 0;
       FancyActionBar.stacks[effect.stackId] = 0;
