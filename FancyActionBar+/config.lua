@@ -1371,6 +1371,7 @@ FancyActionBar.dontFade =
   -- [137257] = true; -- off-balance
   -- [137312] = true; -- off-balance
   -- [130129] = true; -- off-balance
+  [147417] = true; -- minor courage
 
   -- Two Handed
   -- [38747] = true; -- carve
