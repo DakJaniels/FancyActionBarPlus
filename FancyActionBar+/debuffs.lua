@@ -205,20 +205,19 @@ end;
 local function ClearDebuffs(keep)
   -- Implement ability to keep certain debuffs with specialEffect properties
   ClearTargetEffects();
-
   -- Iterate over all debuffs
-  for id, debuff in pairs(FancyActionBar.debuffs) do
-    -- Check if the debuff has specialEffect properties and should be kept
-    if FancyActionBar.specialEffects[debuff.id] and keep[debuff.id] then
-      -- Retain the debuff
-      FancyActionBar.debuffs[debuff.id] = debuff;
-    else
-      -- Remove the debuff
-      FancyActionBar.debuffs[debuff.id] = nil;
-    end;
-  end;
-
+  -- for id, debuff in pairs(FancyActionBar.debuffs) do
+  -- Check if the debuff has specialEffect properties and should be kept
+  -- if FancyActionBar.specialEffects[debuff.id] and keep[debuff.id] then
+  -- Retain the debuff
+  --   FancyActionBar.debuffs[debuff.id] = debuff;
+  -- else
+  -- Remove the debuff
+  --     FancyActionBar.debuffs[debuff.id] = nil;
+  --   end;
+  -- end;
   activeTargetDebuffs = {};
+  FancyActionBar.debuffs = {};
 end;
 
 local numEffects = 0;
