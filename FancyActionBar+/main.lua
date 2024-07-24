@@ -226,6 +226,10 @@ local updateRate = 100;         -- overlay update interval
 
 local class = 0;                -- player class for tracking problematic abilities
 local lastButton = 0;           -- for repositioning of skill buttons
+local channeledAbilityUsed;     -- for tracking channeling abilities
+local isChanneling = false;     -- for tracking channeling abilities
+local wasBlockActive = false;   -- for tracking block state
+local mountDelay = 0;           -- Delay value to use when dismounting to cast a channeled ability
 local uiModeChanged = false;    -- don't change configuration if not needed
 local hideCompanionUlt = false; -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
 
@@ -738,7 +742,7 @@ end;
 --- @param instantFade boolean Flag to indicate if the effect should fade instantly.
 --- @param dontFade boolean Flag to prevent fading of the effect.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade)
+function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade, castDuration)
   ---@alias effect table
   local effect = FancyActionBar.effects[id] or
     {
@@ -753,6 +757,7 @@ function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFa
       instantFade = instantFade;
       dontFade = dontFade;
       faded = true;
+      castDuration = castDuration,
     };
 
   if not FancyActionBar.effects[id] and config then
@@ -1118,6 +1123,24 @@ end;
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index)
   local currentTime = time();
   local duration = (effect.toggled or effect.passive) and 0 or effect.endTime - currentTime;
+
+  if effect.castDuration then
+    local isBlockActive = IsBlockActive();
+    if not isBlockActive then wasBlockActive = false; end;
+    if (duration > 0) then
+      if ((isChanneling == false) or (isBlockActive and wasBlockActive == false)) then
+        effect.endTime = currentTime
+        channeledAbilityUsed = nil;
+        wasBlockActive = false;
+        duration = 0;
+      end
+      if isChanneling and not (duration > 0) then
+        wasBlockActive = false;
+        isChanneling = false;
+      end;
+    end;
+  end
+
   local isFading = duration <= SV.showExpireStart and SV.showExpire;
 
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration);
@@ -1339,7 +1362,8 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     FancyActionBar.UnslotEffect(index);
     return;
   end;
-  if (GetAbilityCastInfo(abilityId, overrideRank, casterUnitTag) and not FancyActionBar.allowedChanneled[abilityId]) then
+  local isChanneled, castDuration = GetAbilityCastInfo(abilityId, overrideRank, casterUnitTag);
+  if (isChanneled and not FancyActionBar.allowedChanneled[abilityId]) then
     FancyActionBar.UnslotEffect(index);
     return;
   end;
@@ -1392,8 +1416,8 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   else
     duration = 0;
   end;
-
-  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade); -- FancyActionBar.effects[effectId]
+  castDuration = castDuration and (castDuration > (FancyActionBar.durationMin * 1000) ) and (castDuration / 1000) or nil
+  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade, castDuration); -- FancyActionBar.effects[effectId]
 
   if stackId then
     effect.stackId = stackId;
@@ -2969,7 +2993,7 @@ function FancyActionBar.RefreshEffects()
     local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
 
     if not castByPlayer then
-      if SV.externalBuffs then
+      if SV.externalBuffs then --[[and not SV.externalBlackList[abilityId] then]]
         local effect = FancyActionBar.effects[abilityId];
         if effect then
           if beginTime == endTime then
@@ -3133,8 +3157,15 @@ function FancyActionBar.Initialize()
       btn:UpdateState();
       --FancyActionBar.SetActionButtonAbilityFxOverride(n);
     end;
+    if channeledAbilityUsed then
+      local effect = FancyActionBar.effects[channeledAbilityUsed];
+      channeledAbilityUsed = nil;
+      isChanneling = true;
+      effect.endTime = effect.castDuration + mountDelay + time();
+      mountDelay = 0;
+    end;
   end;
-
+  
   -- Any skill swapped. Setup buttons and slot effects.
   local function OnAllHotbarsUpdated()
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
@@ -3167,7 +3198,8 @@ function FancyActionBar.Initialize()
 
   local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
-      --g_activeWeaponSwapInProgress = true;
+            --g_activeWeaponSwapInProgress = true;
+      if isChanneling then isChanneling = false; end;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls();
       FancyActionBar.ApplyAbilityFxOverrides();
@@ -3234,6 +3266,14 @@ function FancyActionBar.Initialize()
               FancyActionBar.HandleStackUpdate(effect.id);
             end;
           else
+            if effect.castDuration then
+              wasBlockActive = IsBlockActive();
+              channeledAbilityUsed = id;
+              isChanneling = false;
+            else
+              channeledAbilityUsed = nil;
+              isChanneling = false;
+            end
             if fakes[id] then activeFakes[id] = true; end;
             dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
           end;
@@ -3255,6 +3295,11 @@ function FancyActionBar.Initialize()
     local _;
     local t = time();
 
+    if isChanneling and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then
+      channeledAbilityUsed = nil;
+      isChanneling = false;
+    end;
+    
     local specialEffect = FancyActionBar.specialEffects[abilityId]
       and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]);
     local isSpecial = specialEffect or FancyActionBar.specialIds[abilityId];
@@ -3507,7 +3552,10 @@ function FancyActionBar.Initialize()
 
   local function OnDeath(eventCode, unitTag, isDead)
     if not isDead or not AreUnitsEqual("player", unitTag) then return; end;
-
+    if isChanneling then
+      channeledAbilityUsed = nil;
+      isChanneling = false;
+    end;
     FancyActionBar.RefreshEffects();
     FancyActionBar.EffectCheck();
     FancyActionBar:UpdateDebuffTracking();
@@ -3605,14 +3653,17 @@ function FancyActionBar.Initialize()
   EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTIVE_COMPANION_STATE_CHANGED);
 
   EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionStateChanged);
+  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function () FancyActionBar.ApplyAbilityFxOverrides(); end);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
-  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed);
   EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player");
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
-  EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
+  EM:RegisterForEvent(NAME, EVENT_MOUNTED_STATE_CHANGED, function(_, mounted)
+    if mounted == false then mountDelay = 0.5 else mountDelay = 0; end;
+  end);
+  EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function()
     uiModeChanged = true;
     FancyActionBar.UpdateBarSettings();
     ReloadUI("ingame");

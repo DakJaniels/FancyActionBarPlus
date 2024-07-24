@@ -661,12 +661,12 @@ FancyActionBar.abilityConfig =
   [188787] = { 184220 }; -- writhing runeblades
   [182977] = { 184220 }; -- escalating runeblades
   [188780] = { 184220 }; -- escalating runeblades
-  [185805] = { 184220 }; -- fatecarver
-  [193331] = { 184220 }; -- fatecarver
-  [183122] = { 184220 }; -- exhausting fatecarver
-  [193397] = { 184220 }; -- exhausting fatecarver
-  [186366] = { 184220 }; -- pragmatic fatecarver
-  [193398] = { 184220 }; -- pragmatic fatecarver
+  [185805] = { 185805 }; -- fatecarver
+  [193331] = { 193331 }; -- fatecarver
+  [183122] = { 183122 }; -- exhausting fatecarver
+  [193397] = { 193397 }; -- exhausting fatecarver
+  [186366] = { 186366 }; -- pragmatic fatecarver
+  [193398] = { 193398 }; -- pragmatic fatecarver
   [185817] = { 185818 }; -- abyssal impact
   [183006] = { 183008 }; -- cephaliarch's flail
   [185823] = { 185825 }; -- tentacular dread
@@ -703,12 +703,12 @@ FancyActionBar.abilityConfig =
   [198288] = { 184220 }; -- evolving runemend
   [186191] = { 184220 }; -- audacious runemend
   [198292] = { 184220 }; -- audacious runemend
-  [183537] = { 184220 }; -- remedy cascade
-  [198309] = { 184220 }; -- remedy cascade
-  [186193] = { 184220 }; -- cascading fortune
-  [198330] = { 184220 }; -- cascading fortune
-  [186200] = { 184220 }; -- curative surge
-  [198537] = { 184220 }; -- curative surge
+  [183537] = { 183537 }; -- remedy cascade
+  [198309] = { 198309 }; -- remedy cascade
+  [186193] = { 186193 }; -- cascading fortune
+  [198330] = { 198330 }; -- cascading fortune
+  [186200] = { 186200 }; -- curative surge
+  [198537] = { 198537 }; -- curative surge
   [183447] = { 184220 }; -- chakram shields
   [198563] = { 184220 }; -- chakram shields
   [186207] = { 184220 }; -- chakram of destiny
@@ -774,9 +774,41 @@ FancyActionBar.stackMap =
   [117638] = { 117638 }; -- Ricochet Skull
   [117625] = { 117625 }; -- venom skull
   [125749] = { 125750 }; -- ruinous scythe
-
-  [184220] = { 184220 }; -- crux
-
+  
+  [184220] = {
+    184220, -- crux
+    185794, -- runeblades
+    188658, -- runeblades
+    185803, -- writhing runeblades
+    188787, -- writhing runeblades
+    182977, -- escalating runeblades
+    188780, -- escalating runeblades
+    185805, -- fatecarver
+    193331, -- fatecarver
+    183122, -- exhausting fatecarver
+    193397, -- exhausting fatecarver
+    186366, -- pragmatic fatecarver
+    193398, -- pragmatic fatecarver
+    183261, -- runemend
+    198282, -- runemend
+    186189, -- evolving runemend
+    198288, -- evolving runemend
+    186191, -- audacious runemend
+    198292, -- audacious runemend
+    183537, -- remedy cascade
+    198309, -- remedy cascade
+    186193, -- cascading fortune
+    198330, -- cascading fortune
+    186200, -- curative surge
+    198537, -- curative surge
+    183447, -- chakram shields
+    198563, -- chakram shields
+    186207, -- chakram of destiny
+    198564, -- chakram of destiny
+    186209, -- tidal chakram
+    198567, -- tidal chakram
+  };
+  
   -- Healing Springs Mag Recovey
   [40062] =
   {
