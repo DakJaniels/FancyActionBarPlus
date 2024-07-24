@@ -1616,12 +1616,7 @@ FancyActionBar.multiTarget =
   [85182] = true;  -- Thrive in Chaos
 
   [38747] = true;  -- Carve
-
-  [61506] = true;  -- Echoing Vigor
-  [40079] = true;  -- Radiating Regeneration
-  [99781] = true;  -- Grand Rejuviantion
-  [217654] = true; -- Healing Contingency (Damage Reduction)
-
+  
   -- Class Abilities
   [25493] = true;  -- Lotus Fan
 
@@ -1657,6 +1652,14 @@ FancyActionBar.multiTarget =
   [38254] = true;  -- Taunt
   [183008] = true; -- Abyssal Ink
   [182989] = true; -- Fulminating Rune DOT
+  
+  -- Buffs
+  [61694] = true,  -- major resolve
+  [61506] = true,  -- Echoing Vigor
+  [40079] = true;   -- Radiating Regeneration
+  [99781] = true;   -- Grand Rejuviantion
+  [217654] = true;  -- Healing Contingency (Damage Reduction)
+  [147417] = true;  -- minor courage
 };
 
 

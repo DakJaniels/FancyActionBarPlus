@@ -2995,7 +2995,7 @@ function FancyActionBar.RefreshEffects()
     if not castByPlayer then
       if SV.externalBuffs then --[[and not SV.externalBlackList[abilityId] then]]
         local effect = FancyActionBar.effects[abilityId];
-        if effect then
+        if effect and not SV.externalBlackList[abilityId] then
           if beginTime == endTime then
             FancyActionBar.UpdatePassiveEffect(effect.id, true);
           else
@@ -3446,7 +3446,7 @@ function FancyActionBar.Initialize()
 
         if (effectType == DEBUFF or abilityId == 38791) then return; end; -- (FancyActionBar.dontFade[abilityId]) then return end
 
-        if (not SV.externalBuffs) and effect.dontFade and FancyActionBar.CheckForActiveEffect(effect.id) then return; end;
+        if ((not SV.externalBuffs) or SV.externalBlackList[effect.id]) and effect.dontFade and FancyActionBar.CheckForActiveEffect(effect.id) then return; end;
 
         if FancyActionBar.activeCasts[effect.id] then
           if abilityType == GROUND_EFFECT then -- prevent effect from fading if event is from previous cast of the ability when reapplied before it had expired
