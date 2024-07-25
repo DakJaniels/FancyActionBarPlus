@@ -3668,6 +3668,59 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.showTargetCount; end;
               setFunc = function (value) SV.showTargetCount = value or false; end;
             },
+            -- {
+            --   type = "editbox",
+            --   name = "Add to Target Instance Counter Blacklist",
+            --   tooltip =
+            --   "Enter the ID of the skill you dont want to track multiple target instances of.",
+            --   -- default = '',
+            --   getFunc = function() return GetMultitargetSkillToBlacklistID(); end,
+            --   setFunc = function(value) SetMultitargetSkillToBlacklistID(value); end,
+            --   reference = "MultitargetSkillToBlacklistID_Editbox",
+            --   isMultiline = false,
+            --   isExtraWide = false,
+            --   width = "half",
+            -- },
+            -- {
+            --   type = "description",
+            --   title = "Selected Skill:",
+            --   text = function() return GetMultitargetSkillToBlacklistName(); end,
+            --   width = "half",
+            --   reference = "MultitargetSkillToBlacklistTitle",
+            -- },
+
+            -- { type = "description", width = "half" },
+
+            -- {
+            --   type = "button",
+            --   name = "Confirm Blacklist",
+            --   width = "half",
+            --   func = function() BlacklistMultitargetId(); end,
+            --   disabled = function() return not CanBlacklistMultitargetId(); end,
+            --   reference = "MultitargetSkillToBlacklist_Button",
+            -- },
+
+            -- { type = "description", width = "full" },
+
+            -- {
+            --   type = "dropdown",
+            --   name = "Blacklisted IDs",
+            --   choices = GetBlacklistedSkills(),
+            --   getFunc = function() GetSelectedMultitargetBlacklist(); end,
+            --   setFunc = function(value) SetSelectedMultitargetBlacklist(value); end,
+            --   reference = "MultitargetBlacklist_Dropdown",
+            --   -- default = '== Select a Skill ==',
+            --   width = "half",
+            -- },
+
+            -- {
+            --   type = "button",
+            --   name = "Remove From Blacklist",
+            --   width = "half",
+            --   func = function() ClearMultitargetBlacklistId(); end,
+            --   disabled = function() return not CanClearMultitargetBlacklistId(); end,
+            --   reference = "MultitargetBlacklistToClear_Button",
+            -- },
             {
               type = "checkbox";
               name = "Show Instance Count with One Active Instance";
