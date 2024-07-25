@@ -154,6 +154,8 @@ FancyActionBar.defaultSettings =
   ultXGP = 25;
   ultYGP = 0;
   ultColorGP = { 1, 1, 1 };
+  ultimateSlotCustomXOffset = 0;
+  ultimateSlotCustomYOffset = 0;
   -- ult value
   ultValueEnableGP = false;
   ultValueModeGP = 1;
@@ -176,6 +178,8 @@ FancyActionBar.defaultSettings =
   qsXGP = 10;
   qsYGP = 0;
   qsColorGP = { 1, 0.5, 0.2 };
+  quickSlotCustomXOffset = 0,
+  quickSlotCustomYOffset = 0,
   -- both
   ultFlash = true;
   -- frames for keyboard UI

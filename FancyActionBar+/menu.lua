@@ -1215,6 +1215,74 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         --   disabled = function() return not wasMoved end,
         --   width = 'half'
         -- }
+        { type = "divider" },
+        {
+          type = "description",
+          title = "[ |cffdf80Adjust Quickslot Slot Position|r ]",
+          width = "full",
+        },
+        {
+          type = "slider",
+          name = "Horizontal (X) Position",
+          default = defaults.quickSlotCustomXOffset,
+          min = -1200,
+          max = 1200,
+          getFunc = function() return SV.quickSlotCustomXOffset; end,
+          setFunc = function(value)
+            SV.quickSlotCustomXOffset = value;
+            FancyActionBar.AdjustQuickSlotSpacing();
+            --FancyActionBar.ApplySettings();
+          end,
+          width = "half",
+        },
+        {
+          type = "slider",
+          name = "Vertical (Y) Position",
+          default = defaults.quickSlotCustomYOffset,
+          min = -600,
+          max = 600,
+          getFunc = function() return SV.quickSlotCustomYOffset; end,
+          setFunc = function(value)
+            SV.quickSlotCustomYOffset = value;
+            FancyActionBar.AdjustQuickSlotSpacing();
+            --FancyActionBar.ApplySettings();
+          end,
+          width = "half",
+        },
+        { type = "divider" },
+        {
+          type = "description";
+          title = "[ |cffdf80Adjust Ultimate Slot Position|r ]";
+          width = "full";
+        },
+        {
+          type = "slider";
+          name = "Horizontal (X) Position";
+          default = defaults.ultimateSlotCustomXOffset;
+          min = -1200,
+          max = 1200,
+          getFunc = function () return SV.ultimateSlotCustomXOffset; end;
+          setFunc = function (value)
+            SV.ultimateSlotCustomXOffset = value;
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
+        {
+          type = "slider";
+          name = "Vertical (Y) Position";
+          default = defaults.ultimateSlotCustomYOffset;
+          min = -600,
+          max = 600,
+          getFunc = function () return SV.ultimateSlotCustomYOffset; end;
+          setFunc = function (value)
+            SV.ultimateSlotCustomYOffset = value;
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
       };
     },
 
@@ -2479,7 +2547,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             --============[	Gamepad Targets	]======================
             {
               type = "submenu";
-              name = "|cFFFACDtargets display settings|r";
+              name = "|cFFFACDTargets Display Settings|r";
               controls =
               {
                 {
@@ -2511,8 +2579,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     SV.fontSizeTargetGP = value;
                     if FancyActionBar.style == 2 then
                       FancyActionBar.constants.targets.size = value;
+                      FancyActionBar.ApplyTargetFont();
                     end;
-                    FancyActionBar.ApplyTargetFont();
                   end;
                   default = defaults.fontSizeTargetGP;
                   width = "half";
