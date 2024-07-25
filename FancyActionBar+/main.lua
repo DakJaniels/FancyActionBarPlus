@@ -3162,7 +3162,7 @@ function FancyActionBar.Initialize()
     if channeledAbilityUsed then
       local effect = FancyActionBar.effects[channeledAbilityUsed];
       local adjustFatecarver = (channeledAbilityUsed == 183122 or channeledAbilityUsed == 193397);
-      local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338);
+      local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338) or 0;
       effect.endTime = effect.castDuration + adjust + mountDelay + time();
       channeledAbilityUsed = nil;
       isChanneling = true;
