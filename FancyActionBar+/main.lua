@@ -742,7 +742,7 @@ end;
 --- @param instantFade boolean Flag to indicate if the effect should fade instantly.
 --- @param dontFade boolean Flag to prevent fading of the effect.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade, castDuration)
+function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade)
   ---@alias effect table
   local effect = FancyActionBar.effects[id] or
     {
@@ -757,7 +757,6 @@ function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFa
       instantFade = instantFade;
       dontFade = dontFade;
       faded = true;
-      castDuration = castDuration,
     };
 
   if not FancyActionBar.effects[id] and config then
@@ -1124,13 +1123,12 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local currentTime = time();
   local duration = (effect.toggled or effect.passive) and 0 or effect.endTime - currentTime;
 
-  if effect.castDuration and not (channeledAbilityUsed == effect.id)then
+  if effect.castDuration and not channeledAbilityUsed then
     local isBlockActive = IsBlockActive();
     if not isBlockActive then wasBlockActive = false; end;
     if (duration > 0) then
       if ((isChanneling == false) or (isBlockActive and wasBlockActive == false)) then
         effect.endTime = currentTime
-        channeledAbilityUsed = nil;
         wasBlockActive = false;
         duration = 0;
       end
@@ -1416,8 +1414,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   else
     duration = 0;
   end;
-  castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil
-  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade, castDuration); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade); -- FancyActionBar.effects[effectId]
 
   if stackId then
     effect.stackId = stackId;
@@ -3205,7 +3202,6 @@ function FancyActionBar.Initialize()
             --g_activeWeaponSwapInProgress = true;
       if isChanneling then
         isChanneling = false;
-        channeledAbilityUsed = nil;
       end;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls();
@@ -3256,11 +3252,15 @@ function FancyActionBar.Initialize()
           if e then
             if fakes[i] then activeFakes[i] = true; end;
             dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
-            if e.castDuration then
+            local isChanneled, castDuration = GetAbilityCastInfo(id);
+            castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
+            if castDuration then
+              effect.castDuration = castDuration;
               wasBlockActive = IsBlockActive();
               channeledAbilityUsed = e.id;
               isChanneling = false;
             else
+              effect.castDuration = nil;
               channeledAbilityUsed = nil;
               isChanneling = false;
             end;
@@ -3284,11 +3284,15 @@ function FancyActionBar.Initialize()
             if fakes[id] then activeFakes[id] = true; end;
             dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
           end;
-          if effect.castDuration then
+          local isChanneled, castDuration = GetAbilityCastInfo(effect.id);
+          castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
+          if castDuration then
+            effect.castDuration = castDuration;
             wasBlockActive = IsBlockActive();
             channeledAbilityUsed = effect.id;
             isChanneling = false;
           else
+            effect.castDuration = nil;
             channeledAbilityUsed = nil;
             isChanneling = false;
           end;
@@ -3311,7 +3315,6 @@ function FancyActionBar.Initialize()
     local t = time();
 
     if isChanneling and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then
-      channeledAbilityUsed = nil;
       isChanneling = false;
     end;
     
