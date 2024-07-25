@@ -3252,7 +3252,7 @@ function FancyActionBar.Initialize()
           if e then
             if fakes[i] then activeFakes[i] = true; end;
             dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
-            local isChanneled, castDuration = GetAbilityCastInfo(id);
+            local isChanneled, castDuration = GetAbilityCastInfo(e.id == e.stackId and e.id or id);
             castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
             if castDuration then
               effect.castDuration = castDuration;
