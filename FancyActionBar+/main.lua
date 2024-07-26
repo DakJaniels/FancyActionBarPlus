@@ -3884,6 +3884,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
   if (not SV.multiTargetBlackListRun) or (SV.multiTargetBlackListRun == false) then
     SV.multiTargetBlacklist =
     {
+      [40229] = "Siege Weapon Shield";
       [24326] = "Daedric Curse";
       [24330] = "Haunting Curse";
       [24328] = "Daedric Prey";

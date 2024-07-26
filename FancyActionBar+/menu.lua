@@ -3811,8 +3811,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             {
               type = "checkbox";
-              name = "Show Instance Count for Buffs with One Active Instance";
-              tooltip = "Show the target instance counter if only one instance of the effect is active. Note that this only applies to Buffs not Debuffs.";
+              name = "Show Instance Count for One Active Instance";
+              tooltip = "Show the target instance counter if only one instance of the effect is active. Note that this does not apply to debuffs when 'Debuffs on target' mode is enabled.";
               default = defaults.showSingleTargetInstance;
               getFunc = function () return SV.showSingleTargetInstance; end;
               setFunc = function (value) SV.showSingleTargetInstance = value or false; end;
