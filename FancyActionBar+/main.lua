@@ -495,6 +495,12 @@ function FancyActionBar.GetExternalBlacklist()
 end;
 
 ---
+---@return table
+function FancyActionBar.GetMultiTargetBlacklist()
+  return SV.multiTargetBlacklist;
+end;
+
+---
 ---@return table var
 ---@return table def
 function FancyActionBar:GetMovableVarsForUI()
@@ -741,8 +747,9 @@ end;
 --- @param ignore boolean Flag to ignore certain conditions.
 --- @param instantFade boolean Flag to indicate if the effect should fade instantly.
 --- @param dontFade boolean Flag to prevent fading of the effect.
+--- @param isChanneled boolean Flag to indicate if the effect is channeled.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade)
+function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFade, dontFade, isChanneled)
   ---@alias effect table
   local effect = FancyActionBar.effects[id] or
     {
@@ -757,6 +764,7 @@ function FancyActionBar.GetEffect(id, config, custom, toggled, ignore, instantFa
       instantFade = instantFade;
       dontFade = dontFade;
       faded = true;
+      isChanneled = isChanneled;
     };
 
   if not FancyActionBar.effects[id] and config then
@@ -1121,18 +1129,23 @@ end;
 
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index)
   local currentTime = time();
-  local duration = (effect.toggled or effect.passive) and 0 or effect.endTime - currentTime;
+
+ -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
+  if effect.castEndTme and ((effect.isChanneled and (not effect.instantFade) and SV.delayFade and SV.fadeDelay or 0) + effect.castEndTme) < currentTime then
+    effect.castEndTme = nil;
+  end;
+  local duration = (effect.toggled or effect.passive) and 0 or ((effect.castEndTme or effect.endTime) - currentTime);
 
   if effect.castDuration and not channeledAbilityUsed then
     local isBlockActive = IsBlockActive();
     if not isBlockActive then wasBlockActive = false; end;
     if (duration > 0) then
       if ((isChanneling == false) or (isBlockActive and wasBlockActive == false)) then
-        effect.endTime = currentTime
+        effect.castEndTme = effect.isChanneled and (not effect.instantFade) and SV.delayFade and currentTime or nil;
         wasBlockActive = false;
-        duration = 0;
+        --duration = 0;
       end
-      if isChanneling and not (duration > 0) then
+      if isChanneling and not effect.castDuration then --[[(duration > 0) then]]
         wasBlockActive = false;
         isChanneling = false;
       end;
@@ -1414,7 +1427,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   else
     duration = 0;
   end;
-  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled); -- FancyActionBar.effects[effectId]
 
   if stackId then
     effect.stackId = stackId;
@@ -3158,9 +3171,9 @@ function FancyActionBar.Initialize()
     end;
     if channeledAbilityUsed then
       local effect = FancyActionBar.effects[channeledAbilityUsed];
-      local adjustFatecarver = (channeledAbilityUsed == 183122 or channeledAbilityUsed == 193397);
+      local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
       local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338) or 0;
-      effect.endTime = effect.castDuration + adjust + mountDelay + time();
+      effect.castEndTme = effect.castDuration + adjust + mountDelay + time();
       channeledAbilityUsed = nil;
       isChanneling = true;
       mountDelay = 0;
@@ -3252,15 +3265,17 @@ function FancyActionBar.Initialize()
           if e then
             if fakes[i] then activeFakes[i] = true; end;
             dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
-            local isChanneled, castDuration = GetAbilityCastInfo(e.id == e.stackId and e.id or id);
+            local isChanneled, castDuration = GetAbilityCastInfo(id); --[[(e.id == e.stackId and e.id or id);]]
             castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
             if castDuration then
               effect.castDuration = castDuration;
+              effect.channeledId = id;
               wasBlockActive = IsBlockActive();
               channeledAbilityUsed = e.id;
               isChanneling = false;
             else
               effect.castDuration = nil;
+              effect.channeledId = nil;
               channeledAbilityUsed = nil;
               isChanneling = false;
             end;
@@ -3288,11 +3303,13 @@ function FancyActionBar.Initialize()
           castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
           if castDuration then
             effect.castDuration = castDuration;
+            effect.channeledId = effect.id;
             wasBlockActive = IsBlockActive();
             channeledAbilityUsed = effect.id;
             isChanneling = false;
           else
             effect.castDuration = nil;
+            effect.channeledId = nil;
             channeledAbilityUsed = nil;
             isChanneling = false;
           end;
@@ -3385,7 +3402,7 @@ function FancyActionBar.Initialize()
           FancyActionBar.stacks[stackableBuffId] = stackCount;
         end;
 
-        if FancyActionBar.multiTarget[effect.id] then
+        if not SV.multiTargetBlacklist[effect.id] then
           --d("Targeted ability: " .. abilityId);
           --d("EndTime: " .. endTime);
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
@@ -3826,7 +3843,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
   end;
 
 
-  if SV.externalBlackListRun == false then
+  if (not SV.externalBlackListRun) or (SV.externalBlackListRun == false) then
     SV.externalBlackList =
     { -- just add all resto staff skills by default and player can take it from there.
       [61504] = "Vigor";
@@ -3862,6 +3879,21 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     };
 
     SV.externalBlackListRun = true;
+  end;
+
+  if (not SV.multiTargetBlackListRun) or (SV.multiTargetBlackListRun == false) then
+    SV.multiTargetBlacklist =
+    {
+      [24326] = "Daedric Curse";
+      [24330] = "Haunting Curse";
+      [24328] = "Daedric Prey";
+      [18746] = "Mages' Fury";
+      [19118] = "Endless Fury";
+      [19125] = "Mages' Wrath";
+      [51392] = "Bolt Escape Fatigue";
+    };
+
+    SV.multiTargetBlackListRun = true;
   end;
 
   -- if SV.debuffConfigUpgraded == false then

@@ -35,6 +35,9 @@ FancyActionBar.defaultSettings =
   externalBlackList = {};
   externalBlackListRun = false;
 
+  multiTargetBlackListRun = false;
+  multiTargetBlacklist = {};
+
   advancedDebuff = false;
   keepLastTarget = true;
   debuffConfigUpgraded = false;

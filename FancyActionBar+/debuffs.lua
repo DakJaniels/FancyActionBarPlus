@@ -398,7 +398,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
   end;
 
   if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
-    if FancyActionBar.multiTarget[debuff.id] then
+    if not SV.multiTargetBlacklist[debuff.id] then
       FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId);
     end;
     return;
@@ -434,7 +434,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     debuff.duration = endTime - beginTime;
     FancyActionBar.debuffs[debuff.id] = debuff;
 
-    if FancyActionBar.multiTarget[debuff.id] then
+    if not SV.multiTargetBlacklist[debuff.id] then
       local targetData = FancyActionBar.targets[debuff.id] or { targetCount = 0; maxEndTime = 0; times = {} };
       if change == EFFECT_RESULT_GAINED and not targetData.times[unitId] then
         targetData.targetCount = (targetData.targetCount + 1);

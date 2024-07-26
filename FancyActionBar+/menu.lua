@@ -82,6 +82,12 @@ local blacklistedSkillNames = {};
 local blacklistedSkillIds = {};
 local selectedBlacklist = 0;
 
+local multiTargetSkillToBlacklistID = 0;
+local multiTargetSkillToBlacklistName = "";
+local blacklistedMultiTargetSkillNames = {};
+local blacklistedMultiTargetSkillIds = {};
+local selectedMultiTargetBlacklist = 0;
+
 local debuffToEditID = 0;
 local debuffToEditName = "";
 local debuffNames = {};
@@ -273,6 +279,135 @@ local function ClearBlacklistId()
     WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(nil);
   end;
 end;
+
+----------------------------------------------
+------------[ MultiTarget Effects ]-----------
+----------------------------------------------
+local function ParseMultiTargetBlacklist()
+  for id, name in pairs(SV.multiTargetBlacklist) do
+    blacklistedMultiTargetSkillIds[id] = name;
+    blacklistedMultiTargetSkillNames[name] = id;
+  end;
+end;
+
+local function CanBlacklistMultiTargetId()
+  local possible = true;
+  if multiTargetSkillToBlacklistID == 0 or SV.multiTargetBlacklist[multiTargetSkillToBlacklistID] ~= nil then
+    possible = false;
+  end;
+  return possible;
+end;
+
+local function CanClearBlacklistMultiTargetId()
+  local possible = true;
+  if selectedMultiTargetBlacklist == 0 or SV.multiTargetBlacklist[selectedMultiTargetBlacklist] == nil then
+    possible = false;
+  end;
+  return possible;
+end;
+
+local function GetMultiTargetSkillToBlacklistID()
+  local id = "";
+  if multiTargetSkillToBlacklistID > 0 then
+    id = tostring(multiTargetSkillToBlacklistID);
+  end;
+  return id;
+end;
+
+local function GetMultiTargetSkillToBlacklistName()
+  local name = "";
+  if multiTargetSkillToBlacklistID > 0 then
+    name = "|cffa31a" .. GetAbilityName(multiTargetSkillToBlacklistID) .. "|r";
+  end;
+  return name;
+end;
+
+local function SetMultiTargetSkillToBlacklistID(id)
+  if not IsValidId(id) then
+    Chat("|cffffff" .. id .. " is not a valid ID.");
+    multiTargetSkillToBlacklistID = 0;
+    multiTargetSkillToBlacklistName = "";
+    WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("");
+    return;
+  end;
+
+  if tonumber(id) then
+    multiTargetSkillToBlacklistID = tonumber(id);
+    multiTargetSkillToBlacklistName = GetAbilityName(multiTargetSkillToBlacklistID);
+    FancyActionBar:dbg("Skill to blacklist updated to: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")");
+    WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText(multiTargetSkillToBlacklistName);
+  end;
+end;
+
+local function GetSelectedMultiTargetBlacklist()
+  if blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist] then
+    return blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist];
+  end;
+end;
+
+local function SetSelectedMultiTargetBlacklist(string)
+  if string == "== Select a Skill ==" or string == "" or string == nil then return; end;
+  if blacklistedMultiTargetSkillNames[string] then
+    local id = blacklistedMultiTargetSkillNames[string];
+    if type(id) == "string" then
+      id = tonumber(id);
+    end;
+    if SV.multiTargetBlacklist[id] then
+      selectedMultiTargetBlacklist = id;
+      FancyActionBar:dbg("selected " .. string .. " (" .. selectedMultiTargetBlacklist .. ")");
+    end;
+  end;
+end;
+
+local function GetBlacklistedMultiTargetSkills()
+  local list = {};
+  local default = "== Select a Skill ==";
+  table.insert(list, default);
+
+  for id, name in pairs(SV.multiTargetBlacklist) do
+    -- blacklistedMultiTargetSkillIds[id]     = name
+    -- blacklistedMultiTargetSkillNames[name] = id
+    table.insert(list, name);
+  end;
+  return list;
+end;
+
+local function BlacklistMultiTargetId()
+  if CanBlacklistMultiTargetId() then
+    SV.multiTargetBlacklist[multiTargetSkillToBlacklistID] = multiTargetSkillToBlacklistName;
+
+    multiTargetSkillToBlacklistID = 0;
+    multiTargetSkillToBlacklistName = "";
+
+    ParseMultiTargetBlacklist();
+
+    WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("");
+    WM:GetControlByName("MultiTargetSkillToBlacklistID_Editbox").editbox:SetText("");
+    WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills());
+    WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedMultiTargetBlacklist());
+  else
+    Chat("failed to blacklist: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")");
+  end;
+end;
+
+local function ClearMultiTargetBlacklistId()
+  if SV.multiTargetBlacklist[selectedMultiTargetBlacklist] then
+    -- if CanClearBlacklistMultiTargetId() then
+    SV.multiTargetBlacklist[selectedMultiTargetBlacklist] = nil;
+
+    blacklistedMultiTargetSkillNames[blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist]] = nil;
+    blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist] = nil;
+
+    -- Chat(selectedMultiTargetBlacklist .. ' clear')
+    selectedMultiTargetBlacklist = 0;
+
+    ParseMultiTargetBlacklist();
+
+    WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills());
+    WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(nil);
+  end;
+end;
+
 ----------------------------------------------
 -----------[   Debuff Config   ]--------------
 ----------------------------------------------
@@ -1217,37 +1352,37 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         -- }
         { type = "divider" },
         {
-          type = "description",
-          title = "[ |cffdf80Adjust Quickslot Slot Position|r ]",
-          width = "full",
+          type = "description";
+          title = "[ |cffdf80Adjust Quickslot Slot Position|r ]";
+          width = "full";
         },
         {
-          type = "slider",
-          name = "Horizontal (X) Position",
-          default = defaults.quickSlotCustomXOffset,
-          min = -1200,
-          max = 1200,
-          getFunc = function() return SV.quickSlotCustomXOffset; end,
-          setFunc = function(value)
+          type = "slider";
+          name = "Horizontal (X) Position";
+          default = defaults.quickSlotCustomXOffset;
+          min = -1200;
+          max = 1200;
+          getFunc = function () return SV.quickSlotCustomXOffset; end;
+          setFunc = function (value)
             SV.quickSlotCustomXOffset = value;
             FancyActionBar.AdjustQuickSlotSpacing();
             --FancyActionBar.ApplySettings();
-          end,
-          width = "half",
+          end;
+          width = "half";
         },
         {
-          type = "slider",
-          name = "Vertical (Y) Position",
-          default = defaults.quickSlotCustomYOffset,
-          min = -600,
-          max = 600,
-          getFunc = function() return SV.quickSlotCustomYOffset; end,
-          setFunc = function(value)
+          type = "slider";
+          name = "Vertical (Y) Position";
+          default = defaults.quickSlotCustomYOffset;
+          min = -600;
+          max = 600;
+          getFunc = function () return SV.quickSlotCustomYOffset; end;
+          setFunc = function (value)
             SV.quickSlotCustomYOffset = value;
             FancyActionBar.AdjustQuickSlotSpacing();
             --FancyActionBar.ApplySettings();
-          end,
-          width = "half",
+          end;
+          width = "half";
         },
         { type = "divider" },
         {
@@ -1259,8 +1394,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           type = "slider";
           name = "Horizontal (X) Position";
           default = defaults.ultimateSlotCustomXOffset;
-          min = -1200,
-          max = 1200,
+          min = -1200;
+          max = 1200;
           getFunc = function () return SV.ultimateSlotCustomXOffset; end;
           setFunc = function (value)
             SV.ultimateSlotCustomXOffset = value;
@@ -1273,8 +1408,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           type = "slider";
           name = "Vertical (Y) Position";
           default = defaults.ultimateSlotCustomYOffset;
-          min = -600,
-          max = 600,
+          min = -600;
+          max = 600;
           getFunc = function () return SV.ultimateSlotCustomYOffset; end;
           setFunc = function (value)
             SV.ultimateSlotCustomYOffset = value;
@@ -3661,6 +3796,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             { type = "divider" },
             {
+              type = "description";
+              title = "[ |cffdf80Multitarget Effect Tracking Options|r ]";
+              text = "Options for configuring the behavior and tracked abilities for the Target Instance Counter.";
+              width = "full";
+            },
+            {
               type = "checkbox";
               name = "Show Instance Counter";
               tooltip = "Abilities that track an effect that can be applied to multiple targets simultaneously will show an instance counter on the top left of the ability icon.";
@@ -3668,67 +3809,68 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.showTargetCount; end;
               setFunc = function (value) SV.showTargetCount = value or false; end;
             },
-            -- {
-            --   type = "editbox",
-            --   name = "Add to Target Instance Counter Blacklist",
-            --   tooltip =
-            --   "Enter the ID of the skill you dont want to track multiple target instances of.",
-            --   -- default = '',
-            --   getFunc = function() return GetMultitargetSkillToBlacklistID(); end,
-            --   setFunc = function(value) SetMultitargetSkillToBlacklistID(value); end,
-            --   reference = "MultitargetSkillToBlacklistID_Editbox",
-            --   isMultiline = false,
-            --   isExtraWide = false,
-            --   width = "half",
-            -- },
-            -- {
-            --   type = "description",
-            --   title = "Selected Skill:",
-            --   text = function() return GetMultitargetSkillToBlacklistName(); end,
-            --   width = "half",
-            --   reference = "MultitargetSkillToBlacklistTitle",
-            -- },
-
-            -- { type = "description", width = "half" },
-
-            -- {
-            --   type = "button",
-            --   name = "Confirm Blacklist",
-            --   width = "half",
-            --   func = function() BlacklistMultitargetId(); end,
-            --   disabled = function() return not CanBlacklistMultitargetId(); end,
-            --   reference = "MultitargetSkillToBlacklist_Button",
-            -- },
-
-            -- { type = "description", width = "full" },
-
-            -- {
-            --   type = "dropdown",
-            --   name = "Blacklisted IDs",
-            --   choices = GetBlacklistedSkills(),
-            --   getFunc = function() GetSelectedMultitargetBlacklist(); end,
-            --   setFunc = function(value) SetSelectedMultitargetBlacklist(value); end,
-            --   reference = "MultitargetBlacklist_Dropdown",
-            --   -- default = '== Select a Skill ==',
-            --   width = "half",
-            -- },
-
-            -- {
-            --   type = "button",
-            --   name = "Remove From Blacklist",
-            --   width = "half",
-            --   func = function() ClearMultitargetBlacklistId(); end,
-            --   disabled = function() return not CanClearMultitargetBlacklistId(); end,
-            --   reference = "MultitargetBlacklistToClear_Button",
-            -- },
             {
               type = "checkbox";
-              name = "Show Instance Count with One Active Instance";
-              tooltip = "Show the target instance counter if only one instance of the effect is active.";
+              name = "Show Instance Count for Buffs with One Active Instance";
+              tooltip = "Show the target instance counter if only one instance of the effect is active. Note that this only applies to Buffs not Debuffs.";
               default = defaults.showSingleTargetInstance;
               getFunc = function () return SV.showSingleTargetInstance; end;
               setFunc = function (value) SV.showSingleTargetInstance = value or false; end;
               disabled = function () return not SV.showTargetCount; end;
+            },
+            { type = "divider" },
+            {
+              type = "editbox",
+              name = "Add to Blacklist",
+              tooltip =
+              "Enter the ID of the skill you dont want to track multiple target instances of.",
+              -- default = '',
+              getFunc = function() return GetMultiTargetSkillToBlacklistID(); end,
+              setFunc = function(value) SetMultiTargetSkillToBlacklistID(value); end,
+              reference = "MultiTargetSkillToBlacklistID_Editbox",
+              isMultiline = false,
+              isExtraWide = false,
+              width = "half",
+            },
+            {
+              type = "description",
+              title = "Selected Skill:",
+              text = function() return GetMultiTargetSkillToBlacklistName(); end,
+              width = "half",
+              reference = "MultiTargetSkillToBlacklistTitle",
+            },
+
+            { type = "description", width = "half" },
+
+            {
+              type = "button",
+              name = "Confirm Blacklist",
+              width = "half",
+              func = function() BlacklistMultiTargetId(); end,
+              disabled = function() return not CanBlacklistMultiTargetId(); end,
+              reference = "MultiTargetSkillToBlacklist_Button",
+            },
+
+            { type = "description", width = "full" },
+
+            {
+              type = "dropdown",
+              name = "Blacklisted IDs",
+              choices = GetBlacklistedMultiTargetSkills(),
+              getFunc = function() GetSelectedMultiTargetBlacklist(); end,
+              setFunc = function(value) SetSelectedMultiTargetBlacklist(value); end,
+              reference = "MultiTargetBlacklist_Dropdown",
+              -- default = '== Select a Skill ==',
+              width = "half",
+            },
+
+            {
+              type = "button",
+              name = "Remove From Blacklist",
+              width = "half",
+              func = function() ClearMultiTargetBlacklistId(); end,
+              disabled = function () return not CanClearBlacklistMultiTargetId(); end;
+              reference = "MultiTargetBlacklistToClear_Button",
             },
           };
         },
@@ -3962,6 +4104,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
   end);
 
   ParseExternalBlacklist();
+  ParseMultiTargetBlacklist();
 end;
 
 -------------------------------------------------------------------------------
