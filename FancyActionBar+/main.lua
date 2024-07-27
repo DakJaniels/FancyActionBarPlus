@@ -3439,7 +3439,6 @@ function FancyActionBar.Initialize()
           
           if not effect.duraton then
             local duration = beginTime and endTime and ((endTime - beginTime) / 1000) or nil;
-            d(duration);
             effect.duration = duration;
           end;
 
