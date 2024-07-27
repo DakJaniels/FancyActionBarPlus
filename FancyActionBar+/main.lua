@@ -1153,9 +1153,6 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
       wasBlockActive = false;
       isChanneling = false;
     end;
-    if isChanneling and channeledAbilityUsed and channeledAbilityUsed == effect.id then
-        channeledAbilityUsed = nil;
-    end
   end;
 
   local isFading = duration <= SV.showExpireStart and SV.showExpire;
@@ -3174,20 +3171,20 @@ function FancyActionBar.Initialize()
     if btn then
       btn:UpdateState();
       --FancyActionBar.SetActionButtonAbilityFxOverride(n);
-    end;
-    if channeledAbilityUsed then
-      local effect = FancyActionBar.effects[channeledAbilityUsed];
-      if effect.castEndTime and (time() < (effect.castEndTime + 0.125)) then
+      if channeledAbilityUsed then
+        local effect = FancyActionBar.effects[channeledAbilityUsed];
+        if effect.castEndTime and (time() < (effect.castEndTime + 0.1)) then
+          channeledAbilityUsed = nil;
+          return;
+        end;
+        local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
+        local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338) or 0;
+        effect.castEndTime = effect.castDuration + adjust + mountDelay + time();
+        wasBlockActive = IsBlockActive();
         channeledAbilityUsed = nil;
-        return;
+        isChanneling = true;
+        mountDelay = 0;
       end;
-      local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
-      local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338) or 0;
-      effect.castEndTime = effect.castDuration + adjust + mountDelay + time();
-      wasBlockActive = IsBlockActive();
-      channeledAbilityUsed = nil;
-      isChanneling = true;
-      mountDelay = 0;
     end;
   end;
 
