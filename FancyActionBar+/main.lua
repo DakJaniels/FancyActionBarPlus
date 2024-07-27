@@ -2511,8 +2511,13 @@ end;
 function FancyActionBar.DetermineBarAndHide()
   if currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
     if SV.staticBars then
-      ApplyBarPosition(ActionButton23, ActionButton3, SV.frontBarTop);
-      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop);
+      if SV.allowStaticBarSwap then
+        ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop);
+        ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.frontBarTop);
+      else
+        ApplyBarPosition(ActionButton23, ActionButton3, SV.frontBarTop);
+        ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop);
+      end;
     else
       ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop);
       ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.activeBarTop);
@@ -2520,8 +2525,13 @@ function FancyActionBar.DetermineBarAndHide()
     return 0, true;
   else
     if SV.staticBars then
-      ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop);
-      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop);
+      if SV.allowStaticBarSwap then
+        ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop);
+        ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.frontBarTop);
+      else
+        ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop);
+        ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop);
+      end;
     else
       ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop);
       ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.activeBarTop);

@@ -1461,6 +1461,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
         {
           type = "checkbox";
+          name = "Barswap with Static Bar Positions";
+          tooltip = "ON = Top and bottom bar will swap without changing action bar position.\nOFF = Bar positions will not swap.";
+          default = defaults.allowStaticBarSwap;
+          disabled = function () return not SV.staticBars; end;
+          getFunc = function () return SV.allowStaticBarSwap; end;
+          setFunc = function (value)
+            SV.allowStaticBarSwap = value or false;
+            FancyActionBar.UpdateBarSettings();
+          end;
+          width = "half";
+        },
+        {
+          type = "checkbox";
           name = "Active bar on top (not for static bars)";
           tooltip = "ON = Active bar on top.\nOFF = Active bar on bottom.";
           default = defaults.activeBarTop;
