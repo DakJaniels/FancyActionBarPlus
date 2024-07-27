@@ -1998,6 +1998,9 @@ function FancyActionBar.ApplySettings() -- apply all UI settings for current UI 
   FancyActionBar.ApplyStackFont();
   FancyActionBar.AdjustStackX();
 
+  FancyActionBar.ApplyTargetFont();
+  FancyActionBar.AdjustTargetX();
+
   FancyActionBar.AdjustUltTimer(false);
   FancyActionBar.ApplyUltFont(false);
 
