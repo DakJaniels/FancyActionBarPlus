@@ -1131,21 +1131,27 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local currentTime = time();
 
  -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
+  local hasDuration = true;
   local duration = 0;
   if not effect.toggled and not effect.passive then
-    if effect.castEndTime then
+    if SV.showCastDuration and effect.castDuration then
       if effect.castEndTime >= currentTime then
         duration = effect.castEndTime - currentTime;
-      else
+      elseif effect.duration then
         duration = effect.endTime - currentTime;
+      else
+        effect.endTime = -1;
+        hasDuration = false;
       end;
-    else
+    elseif effect.duration then
       duration = effect.endTime - currentTime;
+    else
+      effect.endTime = -1;
+      hasDuration = false;
     end;
   end;
-
   
-  if effect.castDuration then
+  if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
     if (isChanneling == false) or (isBlockActive and wasBlockActive == false) then
       local updateCastEndTime = (isBlockActive and not wasBlockActive) and 0 or (effect.castEndTime and (effect.castEndTime > currentTime and 0 or effect.castEndTime) or 0);
@@ -1155,7 +1161,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     end;
   end;
 
-  local isFading = duration <= SV.showExpireStart and SV.showExpire;
+  local isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
 
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration);
   local bc = duration > 0 and FancyActionBar.GetHighlightColor(isFading) or nil;
@@ -1377,10 +1383,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     return;
   end;
   local isChanneled, castDuration = GetAbilityCastInfo(abilityId, overrideRank, casterUnitTag);
-  if (isChanneled and not FancyActionBar.allowedChanneled[abilityId]) then
-    FancyActionBar.UnslotEffect(index);
-    return;
-  end;
+  -- if (isChanneled and not FancyActionBar.allowedChanneled[abilityId]) then
+  --   FancyActionBar.UnslotEffect(index);
+  --   return;
+  -- end;
 
   local overlay = FancyActionBar.GetOverlay(index);
   if not overlay then return; end;
@@ -3221,9 +3227,8 @@ function FancyActionBar.Initialize()
   local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
             --g_activeWeaponSwapInProgress = true;
-      if isChanneling then
-        isChanneling = false;
-      end;
+      channeledAbilityUsed = nil;
+      isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls();
       FancyActionBar.ApplyAbilityFxOverrides();
@@ -3273,16 +3278,20 @@ function FancyActionBar.Initialize()
           if e then
             if fakes[i] then activeFakes[i] = true; end;
             dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
-            local isChanneled, castDuration = GetAbilityCastInfo(id); --[[(e.id == e.stackId and e.id or id);]]
-            castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
-            if castDuration then
-              e.castDuration = castDuration;
-              e.channeledId = id;
-              channeledAbilityUsed = e.id;
-            else
-              e.castDuration = nil;
-              e.channeledId = nil;
-              channeledAbilityUsed = nil;
+            local duration = (GetAbilityDuration(e.id) or 0) / 1000;
+            e.duration = duration > 0 and duration or nil;
+            if SV.showCastDuration then
+              local isChanneled, castDuration = GetAbilityCastInfo(id); --[[(e.id == e.stackId and e.id or id);]]
+              castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
+              if castDuration then
+                e.castDuration = castDuration;
+                e.channeledId = id;
+                channeledAbilityUsed = e.id;
+              else
+                e.castDuration = nil;
+                e.channeledId = nil;
+                channeledAbilityUsed = nil;
+              end;
             end;
           end;
         else
@@ -3304,16 +3313,18 @@ function FancyActionBar.Initialize()
             if fakes[id] then activeFakes[id] = true; end;
             dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
           end;
-          local isChanneled, castDuration = GetAbilityCastInfo(effect.id);
-          castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
-          if castDuration then
-            effect.castDuration = castDuration;
-            effect.channeledId = effect.id;
-            channeledAbilityUsed = effect.id;
-          else
-            effect.castDuration = nil;
-            effect.channeledId = nil;
-            channeledAbilityUsed = nil;
+          if SV.showCastDuration then
+            local isChanneled, castDuration = GetAbilityCastInfo(effect.id);
+            castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
+            if castDuration then
+              effect.castDuration = castDuration;
+              effect.channeledId = effect.id;
+              channeledAbilityUsed = effect.id;
+            else
+              effect.castDuration = nil;
+              effect.channeledId = nil;
+              channeledAbilityUsed = nil;
+            end;
           end;
         end;
       elseif FancyActionBar.effects[i] then
@@ -3425,6 +3436,13 @@ function FancyActionBar.Initialize()
 
         -- Ignore abilities which will end in less than min or longer than max (seconds).
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
+          
+          if not effect.duraton then
+            local duration = beginTime and endTime and ((endTime - beginTime) / 1000) or nil;
+            d(duration);
+            effect.duration = duration;
+          end;
+
           if abilityType == GROUND_EFFECT then -- make sure to only track duration of the most recent cast of the ground ability.
             lastAreaTargets[abilityId] = unitId;
             if abilityId == 117805 then        -- unnerving boneyard sometimes updates to 25s duration, not sure why..
@@ -3589,10 +3607,8 @@ function FancyActionBar.Initialize()
 
   local function OnDeath(eventCode, unitTag, isDead)
     if not isDead or not AreUnitsEqual("player", unitTag) then return; end;
-    if isChanneling then
-      channeledAbilityUsed = nil;
-      isChanneling = false;
-    end;
+    channeledAbilityUsed = nil;
+    isChanneling = false;
     FancyActionBar.RefreshEffects();
     FancyActionBar.EffectCheck();
     FancyActionBar:UpdateDebuffTracking();
@@ -4042,6 +4058,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showTargetCount == nil then SV.showTargetCount = d.showTargetCount; end;
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
     if SV.applyActionBarSkillStyles == nil then SV.applyActionBarSkillStyles = d.applyActionBarSkillStyles; end;
+    if SV.showCastDuration == nil then SV.showCastDuration = d.showCastDuration; end;
 
     SV.variablesValidated = true;
   end;

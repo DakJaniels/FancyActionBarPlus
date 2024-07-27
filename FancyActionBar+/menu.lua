@@ -3796,6 +3796,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             { type = "divider" },
             {
+              type = "checkbox";
+              name = "Show Cast/Channel Times on Action Slots";
+              tooltip = "If abilities that have a cast or channel time will display that duration on the slot while the ability is being cast/channeled.";
+              default = defaults.showCastDuration;
+              getFunc = function () return SV.showCastDuration; end;
+              setFunc = function (value) SV.showCastDuration = value or false; end;
+            },
+            { type = "divider" },
+            {
               type = "description";
               title = "[ |cffdf80Multitarget Effect Tracking Options|r ]";
               text = "Options for configuring the behavior and tracked abilities for the Target Instance Counter.";
