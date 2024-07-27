@@ -3186,7 +3186,7 @@ function FancyActionBar.Initialize()
       --FancyActionBar.SetActionButtonAbilityFxOverride(n);
       if channeledAbilityUsed then
         local currentTime = time();
-        local latency = GetLatency();
+        local latency = zo_min(GetLatency(), 0.15);
         local isBlockActive = IsBlockActive();
         local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
         local effect = FancyActionBar.effects[channeledAbilityUsed];
