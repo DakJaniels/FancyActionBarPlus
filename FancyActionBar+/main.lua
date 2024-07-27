@@ -1153,12 +1153,16 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
-    if (isChanneling == false) or (isBlockActive and wasBlockActive == false) then
-      local updateCastEndTime = (isBlockActive and not wasBlockActive) and 0 or (effect.castEndTime and (effect.castEndTime > currentTime and 0 or effect.castEndTime) or 0);
+    local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
+    wasBlockActive = isBlockActive;
+    if (isChanneling == false) or blockCancelled then
+      local updateCastEndTime = (blockCancelled and 0) or (effect.castEndTime and ((effect.castEndTime > currentTime) and 0) or effect.castEndTime) or 0;
       effect.castEndTime = updateCastEndTime;
-      wasBlockActive = false;
       isChanneling = false;
     end;
+    if channeledAbilityUsed and (effect.castEndTime >= currentTime) then
+      channeledAbilityUsed = nil;
+    end
   end;
 
   local isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
@@ -3181,15 +3185,21 @@ function FancyActionBar.Initialize()
       btn:UpdateState();
       --FancyActionBar.SetActionButtonAbilityFxOverride(n);
       if channeledAbilityUsed then
+        local currentTime = time();
+        local latency = GetLatency();
+        local isBlockActive = IsBlockActive();
+        local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
         local effect = FancyActionBar.effects[channeledAbilityUsed];
-        if effect.castEndTime and (time() < (effect.castEndTime + 0.1)) then
+        if (blockCancelled) or (effect.castEndTime and (effect.castEndTime > (currentTime + latency))) then
+          effect.castEndTime = 0;
+          wasBlockActive = isBlockActive;
           channeledAbilityUsed = nil;
           return;
         end;
         local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
         local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338) or 0;
         effect.castEndTime = effect.castDuration + adjust + mountDelay + time();
-        wasBlockActive = IsBlockActive();
+        wasBlockActive = isBlockActive;
         channeledAbilityUsed = nil;
         isChanneling = true;
         mountDelay = 0;
@@ -3284,6 +3294,7 @@ function FancyActionBar.Initialize()
             local duration = (GetAbilityDuration(e.id) or 0) / 1000;
             e.duration = duration > 0 and duration or nil;
             if SV.showCastDuration then
+              wasBlockActive = IsBlockActive();
               local isChanneled, castDuration = GetAbilityCastInfo(id); --[[(e.id == e.stackId and e.id or id);]]
               castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
               if castDuration then
@@ -3317,6 +3328,7 @@ function FancyActionBar.Initialize()
             dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
           end;
           if SV.showCastDuration then
+            wasBlockActive = IsBlockActive();
             local isChanneled, castDuration = GetAbilityCastInfo(effect.id);
             castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
             if castDuration then
