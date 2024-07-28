@@ -229,7 +229,6 @@ local lastButton = 0;           -- for repositioning of skill buttons
 local channeledAbilityUsed;     -- for tracking channeling abilities
 local isChanneling = false;     -- for tracking channeling abilities
 local wasBlockActive = false;   -- for tracking block state
-local mountDelay = 0;           -- Delay value to use when dismounting to cast a channeled ability
 local uiModeChanged = false;    -- don't change configuration if not needed
 local hideCompanionUlt = false; -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
 
@@ -1134,22 +1133,23 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local hasDuration = true;
   local duration = 0;
   if not effect.toggled and not effect.passive then
-    if SV.showCastDuration and effect.castDuration then
+    if SV.showCastDuration and effect.castEndTime then
       if effect.castEndTime >= currentTime then
         duration = effect.castEndTime - currentTime;
-      elseif effect.duration or effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
+      elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
         duration = effect.endTime - currentTime;
       else
         effect.endTime = -1;
         hasDuration = false;
       end;
-    elseif effect.duration or effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
+    elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
       duration = effect.endTime - currentTime;
     else
       effect.endTime = -1;
       hasDuration = false;
     end;
   end;
+
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
     local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
@@ -3201,11 +3201,10 @@ function FancyActionBar.Initialize()
         end;
         local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
         local adjust = adjustFatecarver and (effect.stackId == 184220) and ((FancyActionBar.stacks[effect.stackId] or 0) * .338) or 0;
-        effect.castEndTime = effect.castDuration + adjust + mountDelay + time();
+        effect.castEndTime = effect.castDuration + adjust + time();
         wasBlockActive = isBlockActive;
         channeledAbilityUsed = nil;
         isChanneling = true;
-        mountDelay = 0;
       end;
     end;
   end;
@@ -3728,10 +3727,8 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
   EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player");
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
-  EM:RegisterForEvent(NAME, EVENT_MOUNTED_STATE_CHANGED, function(_, mounted)
-    if mounted == false then mountDelay = 0.5 else mountDelay = 0; end;
-  end);
-  EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function()
+  EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
+  EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
     uiModeChanged = true;
     FancyActionBar.UpdateBarSettings();
     ReloadUI("ingame");
