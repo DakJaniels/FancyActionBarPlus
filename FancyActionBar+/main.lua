@@ -1081,12 +1081,12 @@ function FancyActionBar.ResolveLabelAlphaForDebuff(debuff)
   return alpha;
 end;
 
-function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, duration)
+function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, duration, currentTime)
   local timer, color = "", nil;
   if duration <= 0 then
-    if (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > time()) and (SV.keepLastTarget == false))) then
+    if (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))) then
       -- adding or (effect.isDebuff and SV.keepLastTarget == false) is to try to prevent a flicker of 0 on reticleover when a debuff isn't active
-      local delayEnd = (effect.endTime + SV.fadeDelay) - time();
+      local delayEnd = (effect.endTime + SV.fadeDelay) - currentTime;
       if delayEnd > 0 then
         timer = tostring(zo_max(0, zo_ceil(assert(tonumber(duration)))));
       end;
@@ -1137,20 +1137,19 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     if SV.showCastDuration and effect.castDuration then
       if effect.castEndTime >= currentTime then
         duration = effect.castEndTime - currentTime;
-      elseif effect.duration then
+      elseif effect.duration or effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
         duration = effect.endTime - currentTime;
       else
         effect.endTime = -1;
         hasDuration = false;
       end;
-    elseif effect.duration then
+    elseif effect.duration or effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
       duration = effect.endTime - currentTime;
     else
       effect.endTime = -1;
       hasDuration = false;
     end;
   end;
-  
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
     local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
@@ -1167,7 +1166,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 
   local isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
 
-  local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration);
+  local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration, currentTime);
   local bc = duration > 0 and FancyActionBar.GetHighlightColor(isFading) or nil;
 
   FancyActionBar.UpdateStacksControl(effect, stacksControl, duration);
@@ -1440,6 +1439,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   else
     duration = 0;
   end;
+
   local effect = FancyActionBar.GetEffect(effectId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled); -- FancyActionBar.effects[effectId]
 
   if stackId then
@@ -3294,8 +3294,6 @@ function FancyActionBar.Initialize()
           if e then
             if fakes[i] then activeFakes[i] = true; end;
             dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
-            local duration = (GetAbilityDuration(e.id) or 0) / 1000;
-            e.duration = duration > 0 and duration or nil;
             if SV.showCastDuration then
               wasBlockActive = IsBlockActive();
               local isChanneled, castDuration = GetAbilityCastInfo(id); --[[(e.id == e.stackId and e.id or id);]]
@@ -3447,9 +3445,9 @@ function FancyActionBar.Initialize()
         -- Ignore abilities which will end in less than min or longer than max (seconds).
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
           
-          if not effect.duraton then
-            local duration = beginTime and endTime and ((endTime - beginTime) / 1000) or nil;
-            effect.duration = duration;
+          local duration = beginTime and endTime and (endTime - beginTime) or nil;
+          if not effect.duraton or effect.duration ~= duration then
+            effect.duration = duration > 0 and duration or nil;
           end;
 
           if abilityType == GROUND_EFFECT then -- make sure to only track duration of the most recent cast of the ground ability.
@@ -3563,6 +3561,7 @@ function FancyActionBar.Initialize()
   ---@param abilityId integer
   local function OnStackChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
     if (SV.advancedDebuff and effectType == DEBUFF) then return; end; -- is handled by debuff.lua
+
     local c = "";
     if change == EFFECT_RESULT_FADED then
       c = "faded";
@@ -3612,7 +3611,7 @@ function FancyActionBar.Initialize()
       EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
     end;
   end;
-  
+
   local function OnEquippedWeaponsChanged(eventCode, bagId, slotId, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange)
     if bagId ~= BAG_WORN then return; end;
     if slotId == EQUIP_SLOT_MAIN_HAND or slotId == EQUIP_SLOT_BACKUP_MAIN then
@@ -4075,6 +4074,13 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
     if SV.applyActionBarSkillStyles == nil then SV.applyActionBarSkillStyles = d.applyActionBarSkillStyles; end;
     if SV.showCastDuration == nil then SV.showCastDuration = d.showCastDuration; end;
+
+    -- This corrects a bug in v2.6.3, remove in 2.6.5
+    if SV.targetXFix == nil then
+      SV.targetXKB = d.targetXKB;
+      SV.targetXGP = d.targetXGP;
+      SV.targetXFix = true;
+    end;
 
     SV.variablesValidated = true;
   end;
