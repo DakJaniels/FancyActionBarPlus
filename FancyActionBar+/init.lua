@@ -62,7 +62,6 @@ FancyActionBar.defaultSettings =
   staticBars = true;
   frontBarTop = true;
   activeBarTop = false;
-  allowStaticBarSwap = false;
   -- hideInactive									= false,
   showHotkeys = true;
   showHotkeysUltGP = true;
