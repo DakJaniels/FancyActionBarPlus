@@ -774,8 +774,9 @@ FancyActionBar.stackMap =
   [117638] = { 117638 }; -- Ricochet Skull
   [117625] = { 117625 }; -- venom skull
   [125749] = { 125750 }; -- ruinous scythe
-  
-  [184220] = {
+
+  [184220] =
+  {
     184220, -- crux
     185794, -- runeblades
     188658, -- runeblades
@@ -808,7 +809,7 @@ FancyActionBar.stackMap =
     186209, -- tidal chakram
     198567, -- tidal chakram
   };
-  
+
   -- Healing Springs Mag Recovey
   [40062] =
   {
@@ -826,6 +827,74 @@ FancyActionBar.stackMap =
     61505, -- Echoing Vigor
   };
 
+  -- Ulfsild's Contingency
+  [222285] =
+  {
+    222285, -- Ulfsild's Contingency
+    221185, -- Arcanist's Contingency
+    217611, -- Binding Contingency
+    221354, -- Binding Contingency
+    221392, -- Contingency
+    221155, -- Dragonknight's Contingency
+    221156, -- Dragonknight's Contingency
+    221157, -- Dragonknight's Contingency
+    221158, -- Dragonknight's Contingency
+    217655, -- Growing Contingency
+    217613, -- Healing Contingency
+    217621, -- Lingering Contingency
+    217605, -- Magical Contingency
+    221179, -- Necromancer's Contingency
+    221180, -- Necromancer's Contingency
+    221181, -- Necromancer's Contingency
+    221182, -- Necromancer's Contingency
+    221183, -- Necromancer's Contingency
+    221184, -- Necromancer's Contingency
+    221169, -- Nightblade's Contingency
+    221170, -- Nightblade's Contingency
+    221171, -- Nightblade's Contingency
+    221172, -- Nightblade's Contingency
+    217656, -- Opportunistic Contingency
+    217652, -- Remedying Contingency
+    217609, -- Repelling Contingency
+    217610, -- Repelling Contingency
+    221356, -- Repelling Contingency
+    218340, -- Snaring Contingency
+    221166, -- Sorcerer's Contingency
+    221167, -- Sorcerer's Contingency
+    221168, -- Sorcerer's Contingency
+    221159, -- Templar's Contingency
+    221160, -- Templar's Contingency
+    221161, -- Templar's Contingency
+    217654, -- Tenacious Contingency
+    217528, -- Ulfsild's Contingency
+    217604, -- Ulfsild's Contingency
+    217616, -- Ulfsild's Contingency
+    217618, -- Ulfsild's Contingency
+    217653, -- Ulfsild's Contingency
+    217657, -- Ulfsild's Contingency
+    217659, -- Ulfsild's Contingency
+    218341, -- Ulfsild's Contingency
+    219662, -- Ulfsild's Contingency
+    221189, -- Ulfsild's Contingency
+    221352, -- Ulfsild's Contingency
+    221353, -- Ulfsild's Contingency
+    221355, -- Ulfsild's Contingency
+    221734, -- Ulfsild's Contingency
+    222364, -- Ulfsild's Contingency
+    222678, -- Ulfsild's Contingency
+    221173, -- Warden's Contingency
+    221174, -- Warden's Contingency
+    221175, -- Warden's Contingency
+    221176, -- Warden's Contingency
+    221177, -- Warden's Contingency
+    217608, -- Warding Contingency
+  };
+
+};
+
+FancyActionBar.fixedStacks =
+{
+  [222285] = "¤"
 };
 
 FancyActionBar.debuffStackMap =

@@ -1183,7 +1183,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, duration)
       effect.stacks = 0;
       FancyActionBar.stacks[effect.stackId] = 0;
       stacksControl:SetText("");
-    elseif FancyActionBar.stacks[effect.stackId] > 0 then
+    elseif FancyActionBar.stacks[effect.stackId] ~= 0 then
       stacksControl:SetText(FancyActionBar.stacks[effect.stackId]);
     else
       stacksControl:SetText("");
@@ -1221,7 +1221,7 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
     local effect = overlay.effect;
     if effect then
       local stackCount = FancyActionBar.stacks[effect.stackId or effect.id];
-      if stackCount and stackCount > 0 then
+      if stackCount and stackCount ~= 0 then
         stacksControl:SetText(stackCount);
         stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color));
         return;
@@ -3052,6 +3052,9 @@ function FancyActionBar.RefreshEffects()
       end;
     else
       if FancyActionBar.stackMap[abilityId] then
+        if FancyActionBar.fixedStacks[abilityId] then 
+            stackCount = FancyActionBar.fixedStacks[abilityId];
+        end;
         for id, effect in pairs(FancyActionBar.effects) do
           if effect.stackId and (abilityId == effect.stackId) then
             FancyActionBar.stacks[abilityId] = stackCount or 0;
@@ -3395,14 +3398,6 @@ function FancyActionBar.Initialize()
     end;
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
-      local stackMap = FancyActionBar.stackMap;
-      for stackId, stackSources in pairs(stackMap) do
-        for i = 1, #stackSources do
-          if stackSources[i] == effect.id then
-            effect.stackId = stackId;
-          end;
-        end;
-      end;
 
       if effect.toggled then -- update the highlight of toggled abilities.
         if change == EFFECT_RESULT_FADED
@@ -3479,6 +3474,9 @@ function FancyActionBar.Initialize()
           effect.endTime = endTime;
           for id, effect in pairs(FancyActionBar.effects) do
             if effect.stackId and (abilityId == effect.stackId) and (effectType ~= DEBUFF) then
+              if FancyActionBar.fixedStacks[abilityId] then
+                stackCount = FancyActionBar.fixedStacks[abilityId];
+              end;
               FancyActionBar.stacks[abilityId] = stackCount or 0;
               FancyActionBar.HandleStackUpdate(id);
             end;
@@ -3575,7 +3573,7 @@ function FancyActionBar.Initialize()
   ---@param abilityId integer
   local function OnStackChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
     if (SV.advancedDebuff and effectType == DEBUFF) then return; end; -- is handled by debuff.lua
-
+    d(abilityId)
     local c = "";
     if change == EFFECT_RESULT_FADED then
       c = "faded";
@@ -3591,6 +3589,11 @@ function FancyActionBar.Initialize()
       local _;
       _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
     end;
+
+    if FancyActionBar.fixedStacks[abilityId] then 
+      stackCount = FancyActionBar.fixedStacks[abilityId];
+      if change == EFFECT_RESULT_FADED then stackCount = 0; end;
+    end
 
     FancyActionBar.stacks[abilityId] = stackCount;
 
@@ -3613,14 +3616,14 @@ function FancyActionBar.Initialize()
     EM:RegisterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, OnStackChanged);
     EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, abilityId);
     EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
-    for i = 1, #stackAbilities do
-      if not FancyActionBar.stackMap[abilityId] then
-        EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, stackAbilities[i]);
-        EM:AddFilterForEvent(NAME .. stackAbilities[i], EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
-      end;
+  end;
+  for abilityId, stackAbilities in pairs(FancyActionBar.stackableBuff) do
+    if not FancyActionBar.stackMap[abilityId] then
+      EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, abilityId);
+      EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
     end;
   end;
-
+  
   local function OnEquippedWeaponsChanged(eventCode, bagId, slotId, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange)
     if bagId ~= BAG_WORN then return; end;
     if slotId == EQUIP_SLOT_MAIN_HAND or slotId == EQUIP_SLOT_BACKUP_MAIN then

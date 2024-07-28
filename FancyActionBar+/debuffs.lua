@@ -53,7 +53,7 @@ local function PostReticleTargetInfo(uName, eName, gain, fade, eSlot, stacks, ic
     dur = 0;
   end;
 
-  if (stacks and stacks > 0)
+  if (stacks and stacks ~= 0)
   then
     s = " x" .. ts(stacks) .. ".";
   else
