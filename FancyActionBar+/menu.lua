@@ -4419,13 +4419,13 @@ function FancyActionBar.AdjustTargetX()
     local target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
-    target:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
+    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, x, 0);
 
     overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
     target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
-    target:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
+    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, x, 0);
   end;
 end;
 
