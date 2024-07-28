@@ -100,7 +100,7 @@ FancyActionBar.defaultSettings =
   fontNameTargetKB = "Univers 67";
   fontSizeTargetKB = 20;
   fontTypeTargetKB = "thick-outline";
-  targetXKB = 37;
+  targetXKB = 3;
   targetColorKB = { 1, 0.8, 0 };
   -- ult duration
   ultShowKB = true;
@@ -149,7 +149,7 @@ FancyActionBar.defaultSettings =
   fontNameTargetGP = "Univers 67";
   fontSizeTargetGP = 22;
   fontTypeTargetGP = "thick-outline";
-  targetXGP = 37;
+  targetXGP = 3;
   targetColorGP = { 1, 0.8, 0 };
   -- ult
   ultShowGP = true;
