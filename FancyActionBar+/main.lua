@@ -4056,7 +4056,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.fontNameTargetKB == nil then SV.fontNameTargetKB = d.fontNameTargetKB; end;
     if SV.fontSizeTargetKB == nil then SV.fontSizeTargetKB = d.fontSizeTargetKB; end;
     if SV.fontTypeTargetKB == nil then SV.fontTypeTargetKB = d.fontTypeTargetKB; end;
-    if SV.targetXKB == nil then SV.targetX = d.targetXKB; end;
+    if SV.targetXKB == nil then SV.targetXKB = d.targetXKB; end;
     if SV.fontNameTargetGP == nil then SV.fontNameTargetGP = d.fontNameTargetGP; end;
     if SV.fontSizeTargetGP == nil then SV.fontSizeTargetGP = d.fontSizeTargetGP; end;
     if SV.fontTypeTargetGP == nil then SV.fontTypeTargetGP = d.fontTypeTargetGP; end;
