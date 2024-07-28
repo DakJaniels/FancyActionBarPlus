@@ -3573,7 +3573,6 @@ function FancyActionBar.Initialize()
   ---@param abilityId integer
   local function OnStackChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
     if (SV.advancedDebuff and effectType == DEBUFF) then return; end; -- is handled by debuff.lua
-    d(abilityId)
     local c = "";
     if change == EFFECT_RESULT_FADED then
       c = "faded";
