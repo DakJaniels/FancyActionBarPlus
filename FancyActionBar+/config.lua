@@ -726,6 +726,68 @@ FancyActionBar.abilityConfig =
   [193558] = { 193559 }; -- resonating glyphic
 };
 
+FancyActionBar.contingency =
+{
+  221185, -- Arcanist's Contingency
+  217611, -- Binding Contingency
+  221354, -- Binding Contingency
+  221392, -- Contingency
+  221155, -- Dragonknight's Contingency
+  221156, -- Dragonknight's Contingency
+  221157, -- Dragonknight's Contingency
+  221158, -- Dragonknight's Contingency
+  217655, -- Growing Contingency
+  217613, -- Healing Contingency
+  217621, -- Lingering Contingency
+  217605, -- Magical Contingency
+  221179, -- Necromancer's Contingency
+  221180, -- Necromancer's Contingency
+  221181, -- Necromancer's Contingency
+  221182, -- Necromancer's Contingency
+  221183, -- Necromancer's Contingency
+  221184, -- Necromancer's Contingency
+  221169, -- Nightblade's Contingency
+  221170, -- Nightblade's Contingency
+  221171, -- Nightblade's Contingency
+  221172, -- Nightblade's Contingency
+  217656, -- Opportunistic Contingency
+  217652, -- Remedying Contingency
+  217609, -- Repelling Contingency
+  217610, -- Repelling Contingency
+  221356, -- Repelling Contingency
+  218340, -- Snaring Contingency
+  221166, -- Sorcerer's Contingency
+  221167, -- Sorcerer's Contingency
+  221168, -- Sorcerer's Contingency
+  221159, -- Templar's Contingency
+  221160, -- Templar's Contingency
+  221161, -- Templar's Contingency
+  217654, -- Tenacious Contingency
+  217528, -- Ulfsild's Contingency
+  217604, -- Ulfsild's Contingency
+  217616, -- Ulfsild's Contingency
+  217618, -- Ulfsild's Contingency
+  217653, -- Ulfsild's Contingency
+  217657, -- Ulfsild's Contingency
+  217659, -- Ulfsild's Contingency
+  218341, -- Ulfsild's Contingency
+  219662, -- Ulfsild's Contingency
+  221189, -- Ulfsild's Contingency
+  221352, -- Ulfsild's Contingency
+  221353, -- Ulfsild's Contingency
+  221355, -- Ulfsild's Contingency
+  221734, -- Ulfsild's Contingency
+  222285, -- Ulfsild's Contingency
+  222364, -- Ulfsild's Contingency
+  222678, -- Ulfsild's Contingency
+  221173, -- Warden's Contingency
+  221174, -- Warden's Contingency
+  221175, -- Warden's Contingency
+  221176, -- Warden's Contingency
+  221177, -- Warden's Contingency
+  217608, -- Warding Contingency
+};
+
 FancyActionBar.stackMap =
 {
   -- [stackId] = {stackId, abilityId_1, abilityId_2, ...}
@@ -828,73 +890,17 @@ FancyActionBar.stackMap =
   };
 
   -- Ulfsild's Contingency
-  [222285] =
-  {
-    222285, -- Ulfsild's Contingency
-    221185, -- Arcanist's Contingency
-    217611, -- Binding Contingency
-    221354, -- Binding Contingency
-    221392, -- Contingency
-    221155, -- Dragonknight's Contingency
-    221156, -- Dragonknight's Contingency
-    221157, -- Dragonknight's Contingency
-    221158, -- Dragonknight's Contingency
-    217655, -- Growing Contingency
-    217613, -- Healing Contingency
-    217621, -- Lingering Contingency
-    217605, -- Magical Contingency
-    221179, -- Necromancer's Contingency
-    221180, -- Necromancer's Contingency
-    221181, -- Necromancer's Contingency
-    221182, -- Necromancer's Contingency
-    221183, -- Necromancer's Contingency
-    221184, -- Necromancer's Contingency
-    221169, -- Nightblade's Contingency
-    221170, -- Nightblade's Contingency
-    221171, -- Nightblade's Contingency
-    221172, -- Nightblade's Contingency
-    217656, -- Opportunistic Contingency
-    217652, -- Remedying Contingency
-    217609, -- Repelling Contingency
-    217610, -- Repelling Contingency
-    221356, -- Repelling Contingency
-    218340, -- Snaring Contingency
-    221166, -- Sorcerer's Contingency
-    221167, -- Sorcerer's Contingency
-    221168, -- Sorcerer's Contingency
-    221159, -- Templar's Contingency
-    221160, -- Templar's Contingency
-    221161, -- Templar's Contingency
-    217654, -- Tenacious Contingency
-    217528, -- Ulfsild's Contingency
-    217604, -- Ulfsild's Contingency
-    217616, -- Ulfsild's Contingency
-    217618, -- Ulfsild's Contingency
-    217653, -- Ulfsild's Contingency
-    217657, -- Ulfsild's Contingency
-    217659, -- Ulfsild's Contingency
-    218341, -- Ulfsild's Contingency
-    219662, -- Ulfsild's Contingency
-    221189, -- Ulfsild's Contingency
-    221352, -- Ulfsild's Contingency
-    221353, -- Ulfsild's Contingency
-    221355, -- Ulfsild's Contingency
-    221734, -- Ulfsild's Contingency
-    222364, -- Ulfsild's Contingency
-    222678, -- Ulfsild's Contingency
-    221173, -- Warden's Contingency
-    221174, -- Warden's Contingency
-    221175, -- Warden's Contingency
-    221176, -- Warden's Contingency
-    221177, -- Warden's Contingency
-    217608, -- Warding Contingency
-  };
+  [217528] = FancyActionBar.contingency;
+  [222285] = FancyActionBar.contingency;
+  [222678] = FancyActionBar.contingency;
 
 };
 
 FancyActionBar.fixedStacks =
 {
-  [222285] = "¤"
+  [217528] = "¤";
+  [222285] = "¤";
+  [222678] = "¤";
 };
 
 FancyActionBar.debuffStackMap =
@@ -1250,26 +1256,26 @@ FancyActionBar.fakeClassEffects =
 -- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
---- @type table<number, {  id: number,  stackId: number,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  isReflect?: boolean  }>
+--- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  isReflect?: boolean  }>
 FancyActionBar.specialEffects =
 {
-  [35750] = { id = 35750; stackId = 35750; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
-  [35756] = { id = 35750; stackId = 35750; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
-  [40372] = { id = 40372; stackId = 40372; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
-  [40375] = { id = 40372; stackId = 40372; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Lightweight Trap DOT
-  [40382] = { id = 40382; stackId = 40382; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
-  [40385] = { id = 40382; stackId = 40382; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Barbed Trap DOT
-  [40465] = { id = 40465; stackId = 40465; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
-  [40468] = { id = 40465; stackId = 40465; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Scalding Rune DOT
+  [35750] = { id = 35750; stackId = {35750}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
+  [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
+  [40372] = { id = 40372; stackId = {40372}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
+  [40375] = { id = 40372; stackId = {40372}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Lightweight Trap DOT
+  [40382] = { id = 40382; stackId = {40382}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
+  [40385] = { id = 40382; stackId = {40382}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Barbed Trap DOT
+  [40465] = { id = 40465; stackId = {40465}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
+  [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Scalding Rune DOT
 
-  [28727] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive posture
-  [126604] = { id = 28727; stackId = 28727; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive posture
+  [28727] = { id = 28727; stackId = {28727}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive posture
+  [126604] = { id = 28727; stackId = {28727}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive posture
 
-  [38312] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive stance
-  [126608] = { id = 38312; stackId = 38312; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive stance
+  [38312] = { id = 38312; stackId = {38312}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive stance
+  [126608] = { id = 38312; stackId = {38312}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive stance
 
-  [38317] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
-  [38324] = { id = 38317; stackId = 38317; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
+  [38317] = { id = 38317; stackId = {38317}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
+  [38324] = { id = 38317; stackId = {38317}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
 };
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
@@ -1292,30 +1298,30 @@ FancyActionBar.specialClassEffects =
   -- Sorcerer
   [2] =
   {
-    [24330] = { id = 24330; stackId = 24330; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
-    [89491] = { id = 24330; stackId = 24330; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
+    [24330] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
+    [89491] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
   };
   -- Warden
   [4] =
   {
-    [86009] = { id = 86009; stackId = 86009; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
-    [178020] = { id = 86009; stackId = 86009; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
-    [86019] = { id = 86019; stackId = 86019; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
-    [146919] = { id = 86019; stackId = 86019; fixedTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
-    [86015] = { id = 86015; stackId = 86015; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = 86015; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
+    [86009] = { id = 86009; stackId = {86009}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
+    [178020] = { id = 86009; stackId = {86009}; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
+    [86019] = { id = 86019; stackId = {86019}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
+    [146919] = { id = 86019; stackId = {86019}; fixedTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
+    [86015] = { id = 86015; stackId = {86015}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
+    [178028] = { id = 86015; stackId = {86015}; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
 
-    [86135] = { id = 86135; stackId = 86135; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized shield
-    [86139] = { id = 86139; stackId = 86139; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized slab
-    [86143] = { id = 86143; stackId = 86143; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- shimmering shield
+    [86135] = { id = 86135; stackId = {86135}; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized shield
+    [86139] = { id = 86139; stackId = {86139}; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized slab
+    [86143] = { id = 86143; stackId = {86143}; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- shimmering shield
 
   };
   -- Arcanist
   [117] =
   {
     -- Priority level will be used instead of stacks, shorter durations should have a higher priority
-    --[184258] = { id = 182988; stackId = 182988; procs = 1; hasProced = 0; isSpecialDebuff = true; priority = 1; allowRecast = false }; -- Fulminating Rune Explosion
-    --[182989] = { id = 182988; stackId = 182988; procs = 1; hasProced = 0; isDebuff = true; priority = 0; }; -- Fulminating Rune DOT
+    --[184258] = { id = 182988; stackId = {182988}; procs = 1; hasProced = 0; isSpecialDebuff = true; priority = 1; allowRecast = false }; -- Fulminating Rune Explosion
+    --[182989] = { id = 182988; stackId = {182988}; procs = 1; hasProced = 0; isDebuff = true; priority = 0; }; -- Fulminating Rune DOT
   }
 };
 

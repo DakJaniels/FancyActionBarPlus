@@ -150,8 +150,8 @@ local function ClearTargetEffects()
       doStackUpdate = true;
     end;
 
-    if FancyActionBar.debuffStackMap[debuff.stackId] and FancyActionBar.stacks[debuff.stackId] then
-      FancyActionBar.stacks[debuff.stackId] = 0;
+    if FancyActionBar.debuffStackMap[debuff.stackId[1]] and FancyActionBar.stacks[debuff.stackId[1]] then
+      FancyActionBar.stacks[debuff.stackId[1]] = 0;
       doStackUpdate = true;
     end;
 
@@ -180,13 +180,13 @@ local function ClearDebuffsIfNotOnTarget()
         doStackUpdate = true;
       end;
 
-      if FancyActionBar.debuffStackMap[debuff.stackId] and FancyActionBar.stacks[debuff.stackId] then
-        FancyActionBar.stacks[debuff.stackId] = 0;
+      if FancyActionBar.debuffStackMap[debuff.stackId[1]] and FancyActionBar.stacks[debuff.stackId[1]] then
+        FancyActionBar.stacks[debuff.stackId[1]] = 0;
         doStackUpdate = true;
       end;
 
       for id, effect in pairs(FancyActionBar.effects) do
-        if effect.stackId and effect.stackId == debuff.id then
+        if effect.stackId and effect.stackId[1] == debuff.id then
           doStackUpdate = true;
         end;
         if debuff.id == effect.id then
@@ -283,11 +283,12 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
 
   if not debuff then return; end;
   local t = time();
-  debuff.stackId = debuff.stackId or debuff.id;
-  if FancyActionBar.debuffStackMap[debuff.stackId] or (debuff.isSpecialDebuff and stacks) then
+
+  debuff.stackId = (debuff.stackId and debuff.stackId) or { debuff.id };
+  if FancyActionBar.debuffStackMap[debuff.stackId[1]] or (debuff.isSpecialDebuff and stacks) then
     if (not SV.showOvertauntStacks) and debuff.id == 52790 then
     else
-      FancyActionBar.stacks[debuff.stackId] = stacks;
+      FancyActionBar.stacks[debuff.stackId[1]] = stacks;
     end;
   end;
 
@@ -326,7 +327,8 @@ local function OnReticleTargetChanged()
         for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
           for t = 1, #targetIds do
             if targetIds[t] == debuff.id then
-              debuff.stackId = stackSourceId;
+              debuff.stackId = { stackSourceId };
+              break;
             end;
           end;
         end;
@@ -340,7 +342,7 @@ local function OnReticleTargetChanged()
           end;
           keep[debuff.id] = true; -- keep the debuff.id after pushing all the special effect properties
         else
-          debuff.stacks = FancyActionBar.stacks[debuff.stackId] or debuff.stacks;
+          debuff.stacks = (debuff.stackId and FancyActionBar.stacks[debuff.stackId[1]]) or debuff.stacks;
         end;
 
         debuff.duration = debuff.endTime - debuff.beginTime;
@@ -407,7 +409,8 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
   for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
     for i = 1, #targetIds do
       if targetIds[i] == abilityId then
-        debuff.stackId = stackSourceId;
+        debuff.stackId = { stackSourceId };
+        break;
       end;
     end;
   end;
@@ -421,12 +424,17 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       if specialEffect.stacks then
         stackCount = specialEffect.stacks;
       else
-        if debuff.id == debuff.stackId then
-          stackCount = stackCount or 1;
+        if debuff.stackId then
+          for i = 1, #debuff.stackId do
+            if debuff.stackId[i] == debuff.id then
+              stackCount = stackCount or 1;
+              break;
+            end;
+          end;
         end;
       end;
     else
-      stackCount = FancyActionBar.stacks[debuff.stackId] or stackCount;
+      stackCount = (debuff.stackId and FancyActionBar.stacks[debuff.stackId[1]]) or stackCount;
     end;
 
     debuff.beginTime = (beginTime and beginTime ~= 0 and beginTime) or t;
@@ -477,7 +485,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         stackCount = debuff.stacks or stackCount;
       end;
     else
-      stackCount = math.max((FancyActionBar.stacks[debuff.stackId] or 1) - stackCount, 0);
+      stackCount = ((debuff.stackId and FancyActionBar.fixedStacks[debuff.stackId[1]]) and 0) or zo_max(((debuff.stackId and FancyActionBar.stacks[debuff.stackId[1]]) or 1) - stackCount, 0);
     end;
     if debuff.instantFade then
       debuff.endTime = 0;
@@ -491,8 +499,13 @@ local function OnDebuffStacksChanged(_, change, _, _, unitTag, _, _, stackCount,
   if (not SV.showOvertauntStacks) and abilityId == 52790 then return; end;
 
   for debuffId, debuff in pairs(FancyActionBar.debuffs) do
-    if abilityId == debuff.stackId then
-      UpdateDebuff(debuff, stackCount or 0, unitId, false);
+    if debuff.stackId then
+      for i = 1, #debuff.stackId do
+        if debuff.stackId[i] == abilityId then
+          UpdateDebuff(debuff, stackCount or 0, unitId, false);
+          break;
+        end;
+      end;
     end;
   end;
 end;
