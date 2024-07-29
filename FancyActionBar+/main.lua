@@ -1129,7 +1129,7 @@ end;
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index)
   local currentTime = time();
 
- -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
+  -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
   local hasDuration = true;
   local duration = 0;
   if not effect.toggled and not effect.passive then
@@ -1161,7 +1161,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     end;
     if channeledAbilityUsed and (effect.castEndTime >= currentTime) then
       channeledAbilityUsed = nil;
-    end
+    end;
   end;
 
   local isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
@@ -1176,8 +1176,8 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 end;
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, duration)
-  if duration > 0 then return end
-    if effect.stackId then
+  if duration > 0 then return; end;
+  if effect.stackId then
     if effect.forceExpireStacks or effect.isSpecialDebuff or (effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId]) then
       effect.stacks = 0;
       FancyActionBar.stacks[effect.stackId] = 0;
@@ -1932,7 +1932,7 @@ function FancyActionBar.AdjustQuickSlotSpacing() -- quickslot placement and arro
       if not FancyActionBar.style == 1 then
         QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -((2 + SV.quickSlotCustomXOffset) + (SLOT_COUNT * (style.abilitySlotOffsetX * scale))), (-2 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
       else
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -((5 + SV.quickSlotCustomXOffset) + (style.abilitySlotOffsetX * scale)), (-2 + SV.quickSlotCustomYOffset)* scale, QSB:GetResizeToFitConstrains());
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -((5 + SV.quickSlotCustomXOffset) + (style.abilitySlotOffsetX * scale)), (-2 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
       end;
     else
       QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + SV.quickSlotCustomXOffset), (-2 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
@@ -2198,12 +2198,15 @@ local setFlipCardDimensions = function (style)
   local c38 = GetControl("CompanionUltimateButtonFlipCard");
 
   if c8 then
+    c8:ClearDimensions();
     c8:SetDimensions(style.ultFlipCardSize, style.ultFlipCardSize);
   end;
   if c9 then
+    c9:ClearDimensions();
     c9:SetDimensions(style.flipCardSize, style.flipCardSize);
   end;
   if c38 then
+    c38:ClearDimensions();
     c38:SetDimensions(style.ultFlipCardSize, style.ultFlipCardSize);
   end;
 end;
@@ -2222,6 +2225,7 @@ end;
 ---@param offset2 integer
 local configureFillAnimation = function (fill, backdrop, offset1, offset2)
   if fill then
+    fill:ClearDimensions();
     fill:ClearAnchors();
     fill:SetAnchor(TOPRIGHT, backdrop, TOP, 0, offset1, fill:GetResizeToFitConstrains());
     fill:SetAnchor(BOTTOMLEFT, backdrop, BOTTOMLEFT, offset1, offset2, fill:GetResizeToFitConstrains());
@@ -2531,12 +2535,11 @@ function FancyActionBar.DetermineBarAndHide()
 end;
 
 function FancyActionBar.SetBarPositions(bar)
+  bar = bar or GetActiveHotbarCategory();
   for i = MIN_INDEX, MAX_INDEX do
-    local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i or i + SLOT_INDEX_OFFSET;
-    local btnBack = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET];
     FancyActionBar.UpdateInactiveBarIcon(i, bar);
 
-    local btnMain = ZO_ActionBar_GetButton(i);
+    local btnMain = ZO_ActionBar_GetButton(i, bar);
     btnMain:HandleSlotChanged();
   end;
 end;
@@ -2598,20 +2601,23 @@ end;
 --------------------------------------------------------------------------------
 local origApplySwapAnimationStyle = ActionButton["ApplySwapAnimationStyle"];
 local swapSize;
-local function ApplySwapAnimationStyle(self, button)
-  local timeline = self.button.hotbarSwapAnimation;
-  if timeline then
-    local width, height = self.flipCard:GetDimensions();
+local function ApplySwapAnimationStyle(button)
+  local timeline = button.hotbarSwapAnimation;
+
+  if (timeline) then
+    -- local size = FancyActionBar.style == 2 and 67 or 47
+    -- local size = function() return GetUltimateFlipCardSize() end
+    -- local size, _ = button.flipCard:GetDimensions()
+
     local firstAnimation = timeline:GetFirstAnimation();
     local lastAnimation = timeline:GetLastAnimation();
 
-    firstAnimation:SetStartAndEndWidth(width, width);
-    firstAnimation:SetStartAndEndHeight(height, 0);
-    lastAnimation:SetStartAndEndWidth(width, width);
-    lastAnimation:SetStartAndEndHeight(0, height);
+    firstAnimation:SetStartAndEndWidth(swapSize, swapSize);
+    firstAnimation:SetStartAndEndHeight(swapSize, 0);
+    lastAnimation:SetStartAndEndWidth(swapSize, swapSize);
+    lastAnimation:SetStartAndEndHeight(0, swapSize);
   end;
 end;
-ActionButton["ApplySwapAnimationStyle"] = ApplySwapAnimationStyle;
 
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"];
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
@@ -2721,7 +2727,7 @@ function FancyActionBar.UpdateStyle()
 
   local offsetY = FancyActionBar.style == 2 and -75 or -22;
   FAB_Default_Bar_Position:ClearAnchors();
-  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, 0, offsetY, FAB_Default_Bar_Position:GetResizeToFitConstrains());
+  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, 0, offsetY);
 
   FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style);
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
@@ -3042,8 +3048,8 @@ function FancyActionBar.RefreshEffects()
       end;
     else
       if FancyActionBar.stackMap[abilityId] then
-        if FancyActionBar.fixedStacks[abilityId] then 
-            stackCount = FancyActionBar.fixedStacks[abilityId];
+        if FancyActionBar.fixedStacks[abilityId] then
+          stackCount = FancyActionBar.fixedStacks[abilityId];
         end;
         for id, effect in pairs(FancyActionBar.effects) do
           if effect.stackId and (abilityId == effect.stackId) then
@@ -3241,7 +3247,7 @@ function FancyActionBar.Initialize()
 
   local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
-            --g_activeWeaponSwapInProgress = true;
+      --g_activeWeaponSwapInProgress = true;
       channeledAbilityUsed = nil;
       isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
@@ -3362,7 +3368,7 @@ function FancyActionBar.Initialize()
     if isChanneling and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then
       isChanneling = false;
     end;
-    
+
     local specialEffect = FancyActionBar.specialEffects[abilityId]
       and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]);
     local isSpecial = specialEffect or FancyActionBar.specialIds[abilityId];
@@ -3385,7 +3391,6 @@ function FancyActionBar.Initialize()
     end;
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
-
       if effect.toggled then -- update the highlight of toggled abilities.
         if change == EFFECT_RESULT_FADED
         then
@@ -3443,7 +3448,6 @@ function FancyActionBar.Initialize()
 
         -- Ignore abilities which will end in less than min or longer than max (seconds).
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
-          
           local duration = beginTime and endTime and (endTime - beginTime) or nil;
           if not effect.duraton or effect.duration ~= duration then
             effect.duration = duration > 0 and duration or nil;
@@ -3577,10 +3581,10 @@ function FancyActionBar.Initialize()
       _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
     end;
 
-    if FancyActionBar.fixedStacks[abilityId] then 
+    if FancyActionBar.fixedStacks[abilityId] then
       stackCount = FancyActionBar.fixedStacks[abilityId];
       if change == EFFECT_RESULT_FADED then stackCount = 0; end;
-    end
+    end;
 
     FancyActionBar.stacks[abilityId] = stackCount;
 
@@ -3723,7 +3727,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
-  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function () FancyActionBar.ApplyAbilityFxOverrides(); end);
+  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, FancyActionBar.ApplyAbilityFxOverrides);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
   EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player");
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
@@ -3742,7 +3746,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ApplyAbilityFxOverrides();
     EM:UnregisterForUpdate(NAME .. "Update");
     EM:RegisterForUpdate(NAME .. "Update", updateRate, Update);
-    EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, Update);
+    EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED);
   end);
 
   local function ActionBarActivated(eventCode, initial)
