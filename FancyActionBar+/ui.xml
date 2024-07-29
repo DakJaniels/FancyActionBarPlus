@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://sir.insidi.at/or/schema/esoui.xsd">
+<GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://sir.insidi.at/or/schema/esoui.xsd">
   <Controls>
-    <!-- Misc Templates -->
-    <!-- Proc -->
-    <Texture name="FAB_ReadyBurst" blendMode="ADD" textureFile="EsoUI/Art/ActionBar/coolDown_completeEFX.dds" hidden="true" level="2" virtual="true" />
-    <!-- Frame -->
-    <Texture name="FAB_KB_Frame" alpha="1" tier="HIGH" level="6" textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inheritAlpha="false" hidden="true" virtual="true">
+    <!-- Templates -->
+    <Texture name="FAB_ReadyBurst" blendMode="ADD"
+      textureFile="EsoUI/Art/ActionBar/coolDown_completeEFX.dds" hidden="true" level="2"
+      virtual="true" />
+    <Texture name="FAB_KB_Frame" alpha="1" tier="HIGH" level="6"
+      textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inheritAlpha="false"
+      hidden="true" virtual="true">
       <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
       <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
     </Texture>
@@ -19,150 +22,193 @@
       <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" relativeTo="$(parent)" offsetX="-1" />
       <Edge edgeSize="1" />
     </Backdrop>
+
     <!-- Main Control -->
     <Control name="FAB_ActionBar" inheritAlpha="false">
       <OnInitialized>
-        FancyActionBar.OnActionBarInitialized(self)
-			</OnInitialized>
+        <![CDATA[FancyActionBar.OnActionBarInitialized(self)]]>
+      </OnInitialized>
       <Controls>
-        <Texture name="$(parent)Arrow" textureFile="esoui/art/buttons/large_rightarrow_up.dds" color="00FF00">
+        <Texture name="$(parent)Arrow" textureFile="esoui/art/buttons/large_rightarrow_up.dds"
+          color="00FF00">
           <Dimensions x="64" y="64" />
           <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="ActionButton3" offsetX="5" />
         </Texture>
-        <Texture name="$(parent)FakeQS" textureFile="esoui/art/buttons/large_rightarrow_up.dds" hidden="true">
+        <Texture name="$(parent)FakeQS" textureFile="esoui/art/buttons/large_rightarrow_up.dds"
+          hidden="true">
           <Dimensions x="64" y="64" />
           <Anchor point="LEFT" relativePoint="LEFT" relativeTo="ZO_ActionBar1" offsetX="0" />
         </Texture>
       </Controls>
     </Control>
-    <TopLevelControl name="FAB_Default_Bar_Position" hidden="true" mouseEnabled="false" movable="false">
+
+    <TopLevelControl name="FAB_Default_Bar_Position" hidden="true" mouseEnabled="false"
+      movable="false">
       <Dimensions x="1" y="1" />
       <Anchor point="BOTTOM" relativePoint="BOTTOM" relativeTo="GuiRoot" offsetY="-22" />
     </TopLevelControl>
-    <!-- Quick Slot Keyboard -->
-    <Control name="FAB_QuickSlotOverlay_Keyboard_Template" virtual="true" tier="HIGH" inheritAlpha="false">
-      <Dimensions x="50" y="50" />
+
+    <!-- QuickSlot Templates -->
+    <Control name="FAB_QuickSlotOverlay_Template" virtual="true" tier="HIGH" inheritAlpha="false">
       <Controls>
-        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6" textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inheritAlpha="false" hidden="true">
+        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6"
+          textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inheritAlpha="false"
+          hidden="true">
           <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
         </Texture>
-        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_24)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="CENTER" horizontalAlignment="RIGHT" hidden="false" text="">
-          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="0" offsetY="0" />
+        <Label name="$(parent)Duration" tier="HIGH" level="5" wrapMode="TRUNCATE"
+          inheritAlpha="false" verticalAlignment="CENTER" horizontalAlignment="RIGHT" text="" />
+      </Controls>
+    </Control>
+
+    <Control name="FAB_QuickSlotOverlay_Keyboard_Template" inherits="FAB_QuickSlotOverlay_Template"
+      virtual="true">
+      <Dimensions x="50" y="50" />
+      <Controls>
+        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_24)|thick-outline" override="true">
+          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" />
         </Label>
       </Controls>
     </Control>
-    <!-- Quick Slot Gamepad -->
-    <Control name="FAB_QuickSlotOverlay_Gamepad_Template" virtual="true" tier="HIGH" inheritAlpha="false">
+
+    <Control name="FAB_QuickSlotOverlay_Gamepad_Template" inherits="FAB_QuickSlotOverlay_Template"
+      virtual="true">
       <Dimensions x="67" y="67" />
       <Controls>
-        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_34)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="true" verticalAlignment="CENTER" horizontalAlignment="RIGHT" text="">
-          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="-5" offsetY="-3" />
+        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_34)|thick-outline"
+          inheritAlpha="true" override="true">
+          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="-5"
+            offsetY="-3" />
         </Label>
       </Controls>
     </Control>
-    <!-- Ultimate Keyboard -->
-    <Control name="FAB_UltimateButtonOverlay_Keyboard_Template" virtual="true" tier="HIGH" inheritAlpha="false">
-      <Dimensions x="50" y="50" />
+
+    <!-- Button Templates -->
+    <Control name="FAB_ButtonOverlay_Template" virtual="true" tier="HIGH" inheritAlpha="false">
       <Controls>
-        <Texture name="$(parent)BG" alpha="1" tier="HIGH" level="4" textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" inheritAlpha="false" hidden="true">
+        <Texture name="$(parent)BG" alpha="1" tier="HIGH" level="4"
+          textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" inheritAlpha="false"
+          hidden="true" override="true">
           <AnchorFill />
         </Texture>
-        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6" textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inherits="ZO_ActionButton_FlipCardControl" inheritAlpha="false" hidden="true">
+        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6"
+          textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inheritAlpha="false"
+          hidden="true" override="true">
           <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
         </Texture>
-        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_24)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="CENTER" horizontalAlignment="CENTER" hidden="false" text="">
-          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="-5" offsetY="-3" />
+        <Label name="$(parent)Duration" tier="HIGH" level="5" wrapMode="TRUNCATE"
+          inheritAlpha="false" override="true" />
+        <Label name="$(parent)Stacks" color="FFCC00" tier="HIGH" level="5" wrapMode="TRUNCATE"
+          inheritAlpha="false" override="true">
+          <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3"
+            offsetY="-1" />
         </Label>
-        <Label name="$(parent)Stacks" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
-          <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
-        </Label>
-        <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
-          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
-        </Label>
-        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_20)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="ZO_ActionButton_FlipCardControl" text="">
-          <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="0" />
+        <Label name="$(parent)Targets" color="FFCC00" tier="HIGH" level="5" wrapMode="TRUNCATE"
+          inheritAlpha="false" override="true">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3"
+            offsetY="-1" />
         </Label>
       </Controls>
     </Control>
-    <!-- Ultimate Gamepad -->
-    <Control name="FAB_UltimateButtonOverlay_Gamepad_Template" virtual="true" tier="HIGH" inheritAlpha="false">
+
+    <Control name="FAB_UltimateButtonOverlay_Keyboard_Template"
+      inherits="FAB_ButtonOverlay_Template" virtual="true">
+      <Dimensions x="50" y="50" />
+      <Controls>
+        <Texture name="$(parent)Frame" inherits="ZO_ActionButton_FlipCardControl"
+          blendMode="COLOR_DODGE" override="true" />
+        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_24)|thick-outline"
+          verticalAlignment="CENTER" horizontalAlignment="CENTER" override="true">
+          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="-5"
+            offsetY="-3" />
+        </Label>
+        <Label name="$(parent)Stacks" font="$(BOLD_FONT)|$(KB_20)|thick-outline" override="true" />
+        <Label name="$(parent)Targets" font="$(BOLD_FONT)|$(KB_20)|thick-outline" override="true" />
+        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_20)|outline"
+          verticalAlignment="BOTTOM" horizontalAlignment="RIGHT"
+          inherits="ZO_ActionButton_FlipCardControl" override="true">
+          <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
+        </Label>
+      </Controls>
+    </Control>
+
+    <Control name="FAB_UltimateButtonOverlay_Gamepad_Template" inherits="FAB_ButtonOverlay_Template"
+      virtual="true">
       <Dimensions x="67" y="67" />
       <Controls>
-        <Texture name="$(parent)BG" alpha="1" tier="HIGH" level="4" textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" inheritAlpha="false" hidden="true">
-          <AnchorFill />
-        </Texture>
-        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_34)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="true" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="">
-          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="-5" offsetY="-3" />
+        <Control name="$(parent)FlipCard" override="true">
+          <Dimensions x="ZO_GAMEPAD_ULTIMATE_BUTTON_SIZE" y="ZO_GAMEPAD_ULTIMATE_BUTTON_SIZE" />
+        </Control>
+        <Texture name="$(parent)Frame" inherits="ZO_ActionButton_FlipCardControl"
+          blendMode="COLOR_DODGE" override="true" />
+        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_34)|thick-outline"
+          verticalAlignment="CENTER" horizontalAlignment="CENTER" inheritAlpha="true"
+          override="true">
+          <Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" offsetX="-5"
+            offsetY="-3" />
         </Label>
-        <Label name="$(parent)Stacks" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
-          <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
-        </Label>
-        <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
-          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
-        </Label>
-        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_22)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="ZO_ActionButton_FlipCardControl" text="">
-          <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="0" />
+        <Label name="$(parent)Stacks" font="$(BOLD_FONT)|$(KB_20)|thick-outline" override="true" />
+        <Label name="$(parent)Targets" font="$(BOLD_FONT)|$(KB_20)|thick-outline" override="true" />
+        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_22)|outline"
+          verticalAlignment="BOTTOM" horizontalAlignment="RIGHT"
+          inherits="ZO_ActionButton_FlipCardControl" override="true">
+          <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
         </Label>
       </Controls>
     </Control>
-    <!-- Action Button Keyboard -->
-    <Control name="FAB_ActionButtonOverlay_Keyboard_Template" virtual="true">
+
+    <Control name="FAB_ActionButtonOverlay_Keyboard_Template" inherits="FAB_ButtonOverlay_Template"
+      virtual="true">
       <Dimensions x="50" y="50" />
       <Controls>
-        <!-- "EsoUI/Art/ActionBar/actionBar_mouseOver.dds" -->
-        <Texture name="$(parent)BG" alpha="1" tier="HIGH" level="4" textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" inheritAlpha="false" hidden="true">
-          <AnchorFill />
-        </Texture>
-        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6" textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inheritAlpha="false" hidden="true">
-          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
-          <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
-        </Texture>
-        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_24)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" horizontalAlignment="CENTER" verticalAlignment="BOTTOM" text="">
+        <Label name="$(parent)Duration" font="$(BOLD_FONT)|$(KB_24)|thick-outline"
+          horizontalAlignment="CENTER" verticalAlignment="BOTTOM" override="true">
           <Anchor point="BOTTOM" relativeTo="$(parent)" relativePoint="BOTTOM" />
         </Label>
-        <Label name="$(parent)Stacks" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
-          <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
-        </Label>
-        <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
-          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
-        </Label>
+        <Label name="$(parent)Stacks" font="$(BOLD_FONT)|$(KB_22)|thick-outline" override="true" />
+        <Label name="$(parent)Targets" font="$(BOLD_FONT)|$(KB_22)|thick-outline" override="true" />
       </Controls>
     </Control>
-    <!-- Action Button Gamepad -->
-    <Control name="FAB_ActionButtonOverlay_Gamepad_Template" virtual="true">
+
+    <Control name="FAB_ActionButtonOverlay_Gamepad_Template" inherits="FAB_ButtonOverlay_Template"
+      virtual="true">
       <Dimensions x="64" y="64" />
       <Controls>
-        <Texture name="$(parent)BG" color="00FF00" alpha="1" tier="HIGH" textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" hidden="true">
-          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="-1" offsetY="-1" />
+        <Texture name="$(parent)BG" color="00FF00" hidden="true" override="true">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="-1"
+            offsetY="-1" />
           <Dimensions x="67" y="67" />
         </Texture>
-        <Label name="$(parent)Duration" tier="HIGH" font="$(GAMEPAD_MEDIUM_FONT)|$(GP_34)|thick-outline" wrapMode="TRUNCATE" inheritAlpha="true" text="">
+        <Label name="$(parent)Duration" font="$(GAMEPAD_MEDIUM_FONT)|$(GP_34)|thick-outline"
+          inheritAlpha="true" override="true">
           <Anchor point="BOTTOM" relativeTo="$(parent)" relativePoint="BOTTOM" />
         </Label>
-        <Label name="$(parent)Stacks" tier="HIGH" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" wrapMode="TRUNCATE" inheritAlpha="true" text="">
-          <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-3" offsetY="-1" />
-        </Label>
-        <Label name="$(parent)Targets" tier="HIGH" color="FFCC00" font="$(BOLD_FONT)|$(KB_22)|thick-outline" wrapMode="TRUNCATE" inheritAlpha="true" text="">
-          <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
-        </Label>
+        <Label name="$(parent)Stacks" font="$(BOLD_FONT)|$(KB_22)|thick-outline" inheritAlpha="true"
+          override="true" />
+        <Label name="$(parent)Targets" font="$(BOLD_FONT)|$(KB_22)|thick-outline"
+          inheritAlpha="true" override="true" />
       </Controls>
     </Control>
+
     <!-- GCD Tracker -->
-    <TopLevelControl name="FAB_GCD" tier="HIGH" inheritScale="false" resizeToFitConstrains="XY">
+    <TopLevelControl name="FAB_GCD" tier="HIGH" inheritScale="false" resizeToFitConstrains="XY"
+      allowBringToTop="true">
       <Dimensions x="100" y="100" />
       <OnMoveStop>
-				FancyActionBar.SaveGCDPosition()
-			</OnMoveStop>
+        <![CDATA[FancyActionBar.SaveGCDPosition()]]>
+      </OnMoveStop>
     </TopLevelControl>
+
     <!-- Actionbar Mover -->
-    <TopLevelControl name="FAB_Mover" hidden="true" alpha="1" resizeToFitConstrains="XY" movable="false" mouseEnabled="false" tier="HIGH">
+    <TopLevelControl name="FAB_Mover" hidden="true" alpha="1" resizeToFitConstrains="XY"
+      movable="false" mouseEnabled="false" tier="HIGH" allowBringToTop="true">
       <Dimensions x="1" y="1" />
       <Anchor point="BOTTOM" relativeTo="ZO_ActionBar1" relativePoint="BOTTOM" />
       <OnMoveStop>
-				FancyActionBar.SaveMoverPosition()
-			</OnMoveStop>
+        <![CDATA[FancyActionBar.SaveMoverPosition()]]>
+      </OnMoveStop>
       <Controls>
         <Backdrop name="$(parent)BG" inherits="FAB_BG" />
       </Controls>
