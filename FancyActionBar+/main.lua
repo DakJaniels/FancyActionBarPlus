@@ -3731,7 +3731,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
     uiModeChanged = true;
     FancyActionBar.UpdateBarSettings();
-    ReloadUI("ingame");
+    --ReloadUI("ingame");
   end);
 
   EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
