@@ -1670,13 +1670,13 @@ function FancyActionBar.UpdateQuickSlotOverlay() -- from LUI. update every 500ms
   if (duration > 5000) then
     t:SetHidden(false);
     if remain > 86400000 then    -- more then 1 day
-      t:SetText(string.format("%d d", math.floor(remain / 86400000)));
+      t:SetText(string.format("%d d", zo_floor(remain / 86400000)));
     elseif remain > 6000000 then -- over 100 minutes - display XXh
-      t:SetText(string.format("%dh", math.floor(remain / 3600000)));
+      t:SetText(string.format("%dh", zo_floor(remain / 3600000)));
     elseif remain > 600000 then  -- over 10 minutes - display XXm
-      t:SetText(string.format("%dm", math.floor(remain / 60000)));
+      t:SetText(string.format("%dm", zo_floor(remain / 60000)));
     elseif remain > 60000 then
-      local m = math.floor(remain / 60000);
+      local m = zo_floor(remain / 60000);
       local s = remain / 1000 - 60 * m;
       t:SetText(string.format("%d:%.2d", m, s));
     else
@@ -3530,11 +3530,9 @@ function FancyActionBar.Initialize()
           --d("Targeted ability: " .. abilityId);
           --d("EndTime: " .. endTime);
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
-          if change == EFFECT_RESULT_GAINED and not targetData.times[unitId] then
-            targetData.targetCount = (targetData.targetCount + 1);
-          end;
-          targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
+          targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
           targetData.times[unitId] = { beginTime = beginTime; endTime = endTime };
+          targetData.targetCount = #targetData.times;
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
         end;
@@ -3582,8 +3580,8 @@ function FancyActionBar.Initialize()
       elseif (change == EFFECT_RESULT_FADED) then
         if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].times[unitId] then
           local targetData = FancyActionBar.targets[effect.id];
-          targetData.targetCount = (targetData.targetCount - 1);
           targetData.times[unitId] = nil;
+          targetData.targetCount = #targetData.times;
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
           if targetData.targetCount >= 1 then

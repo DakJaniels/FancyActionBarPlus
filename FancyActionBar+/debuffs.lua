@@ -473,7 +473,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       if change == EFFECT_RESULT_GAINED and not targetData.times[unitId] then
         targetData.targetCount = (targetData.targetCount + 1);
       end;
-      targetData.maxEndTime = math.max(endTime, targetData.maxEndTime);
+      targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
       targetData.times[unitId] = { beginTime = debuff.beginTime; endTime = endTime };
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
