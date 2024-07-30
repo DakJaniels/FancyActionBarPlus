@@ -150,9 +150,11 @@ local function ClearTargetEffects()
       doStackUpdate = true;
     end;
 
-    if FancyActionBar.debuffStackMap[debuff.stackId[1]] and FancyActionBar.stacks[debuff.stackId[1]] then
-      FancyActionBar.stacks[debuff.stackId[1]] = 0;
-      doStackUpdate = true;
+    for i = 1, #debuff.stackId do
+      if FancyActionBar.debuffStackMap[debuff.stackId[i]] and FancyActionBar.stacks[debuff.stackId[i]] then
+        FancyActionBar.stacks[debuff.stackId[i]] = 0;
+        doStackUpdate = true;
+      end;
     end;
 
     for effectId, effect in pairs(FancyActionBar.effects) do
@@ -180,15 +182,19 @@ local function ClearDebuffsIfNotOnTarget()
         doStackUpdate = true;
       end;
 
-      if FancyActionBar.debuffStackMap[debuff.stackId[1]] and FancyActionBar.stacks[debuff.stackId[1]] then
-        FancyActionBar.stacks[debuff.stackId[1]] = 0;
-        doStackUpdate = true;
+      for i = 1, #debuff.stackId do
+        if FancyActionBar.debuffStackMap[debuff.stackId[i]] and FancyActionBar.stacks[debuff.stackId[i]] then
+          FancyActionBar.stacks[debuff.stackId[i]] = 0;
+          doStackUpdate = true;
+        end;
       end;
 
       for id, effect in pairs(FancyActionBar.effects) do
-        if effect.stackId and effect.stackId[1] == debuff.id then
-          doStackUpdate = true;
-        end;
+        for i = 1, #effect.stackId do
+          if effect.stackId[i] == debuff.id then
+            doStackUpdate = true;
+          end;
+        end
         if debuff.id == effect.id then
           for i, x in pairs(debuff) do effect[i] = x; end;
           effect.endTime = time();
@@ -284,19 +290,26 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
   if not debuff then return; end;
   local t = time();
 
-  debuff.stackId = (debuff.stackId and debuff.stackId) or { debuff.id };
-  if FancyActionBar.debuffStackMap[debuff.stackId[1]] or (debuff.isSpecialDebuff and stacks) then
-    if (not SV.showOvertauntStacks) and debuff.id == 52790 then
-    else
-      FancyActionBar.stacks[debuff.stackId[1]] = stacks;
-    end;
+  debuff.stackId = debuff.stackId or {};
+  if #debuff.stackId == 0 then
+    debuff.stackId = { debuff.id };
   end;
+
+  if debuff.isSpecialDebuff and stacks then
+    if debuff.id == 52790 and SV.showOvertauntStacks then
+      FancyActionBar.stacks[debuff.id] = stacks;
+    else
+      for i = 1, #debuff.stackId do
+        FancyActionBar.stacks[debuff.stackId[i]] = stacks;
+      end;
+    end;
+  end
 
   for id, effect in pairs(FancyActionBar.effects) do
     if effect.id == debuff.id then
       for dId, dEffect in pairs(debuff) do effect[dId] = dEffect; end;
       FancyActionBar.effects[id] = effect;
-      if effect.stackId then
+      if #effect.stackId ~= 0 then
         FancyActionBar.HandleStackUpdate(id);
       end;
       FancyActionBar.UpdateEffect(effect);
@@ -342,9 +355,17 @@ local function OnReticleTargetChanged()
           end;
           keep[debuff.id] = true; -- keep the debuff.id after pushing all the special effect properties
         else
-          debuff.stacks = (debuff.stackId and FancyActionBar.stacks[debuff.stackId[1]]) or debuff.stacks;
+          local stackCounts = {};
+          for s = 1, #debuff.stackId do
+            local stackId = debuff.stackId[s];
+            local currentStacks = FancyActionBar.stacks[stackId];
+            table.insert(stackCounts, currentStacks);
+          end;
+          table.insert(stackCounts, debuff.stacks);
+          local maxStacks = FancyActionBar.getStackValue(stackCounts);
+          debuff.stacks = maxStacks;
         end;
-
+        
         debuff.duration = debuff.endTime - debuff.beginTime;
         FancyActionBar.debuffs[debuff.id] = debuff;
         FancyActionBar.debuffs[debuff.id].activeOnTarget = true;

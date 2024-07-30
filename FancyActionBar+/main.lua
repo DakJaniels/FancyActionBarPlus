@@ -394,7 +394,7 @@ function FancyActionBar.GetStackIdForAbilityId(abilityId)
 end;
 
 ---
----@param stackValues integer
+---@param stackValues table
 function FancyActionBar.getStackValue(stackValues)
     local maxStacks = nil
     for _, stacks in ipairs(stackValues) do
