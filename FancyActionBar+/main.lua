@@ -3258,6 +3258,13 @@ function FancyActionBar.Initialize()
 
   -- Button (usable) state changed.
   local function OnSlotStateChanged(_, n)
+    local isBlockActive = IsBlockActive();
+    local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
+    if blockCancelled then
+      channeledAbilityUsed = nil;
+      isChanneling = false;
+    end;
+
     local btn = ZO_ActionBar_GetButton(n);
     if btn then
       btn:UpdateState();
@@ -3265,13 +3272,12 @@ function FancyActionBar.Initialize()
       if channeledAbilityUsed then
         local currentTime = time();
         local latency = zo_min(GetLatency(), 150);
-        local isBlockActive = IsBlockActive();
-        local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
         local effect = FancyActionBar.effects[channeledAbilityUsed];
-        if (blockCancelled) or (effect.castEndTime and (effect.castEndTime > (currentTime + latency))) then
+        if effect.castEndTime and (effect.castEndTime > (currentTime + latency)) then
           effect.castEndTime = 0;
           wasBlockActive = isBlockActive;
           channeledAbilityUsed = nil;
+          isChanneling = false;
           return;
         end;
         local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
