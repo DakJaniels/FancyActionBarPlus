@@ -396,18 +396,18 @@ end;
 ---
 ---@param stackValues table
 function FancyActionBar.getStackValue(stackValues)
-    local maxStacks = nil
-    for _, stacks in ipairs(stackValues) do
-        if type(stacks) == "string" then
-            return stacks
-        elseif type(stacks) == "number" then
-            if maxStacks == nil or stacks > maxStacks then
-                maxStacks = stacks
-            end
-        end
-    end
-    return maxStacks or 0
-end
+  local maxStacks = nil;
+  for _, stacks in ipairs(stackValues) do
+    if type(stacks) == "string" then
+      return stacks;
+    elseif type(stacks) == "number" then
+      if maxStacks == nil or stacks > maxStacks then
+        maxStacks = stacks;
+      end;
+    end;
+  end;
+  return maxStacks or 0;
+end;
 
 ---
 ---@param index number
@@ -789,7 +789,7 @@ function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, 
       faded = true;
       isChanneled = isChanneled;
     };
-  
+
   -- Portions of the effect table that should always be updated
   effect.stackId = stackId;
 
@@ -996,36 +996,58 @@ end;
 --------------
 -- abilities
 --------------
+---Resets the duration, background, stacks, and targets of an overlay
+---@param overlay table The overlay to reset
 function FancyActionBar.ResetOverlayDuration(overlay)
-  if overlay then
-    local durationControl = overlay:GetNamedChild("Duration");
-    local bgControl = overlay:GetNamedChild("BG");
-    local stacksControl = overlay:GetNamedChild("Stacks");
-    local targetsControl = overlay:GetNamedChild("Targets");
+  if not overlay then return; end;
 
-    if durationControl then durationControl:SetText(""); end;
-    if bgControl then bgControl:SetHidden(true); end;
-    if stacksControl then stacksControl:SetText(""); end;
-    if targetsControl then targetsControl:SetText(""); end;
+  local controls =
+  {
+    Duration = true;
+    BG = true;
+    Stacks = true;
+    Targets = true
+  };
 
-    if overlay.effect then
-      if overlay.effect.stackId then
-        local stacks;
-        local stackCounts = {};
-        local stackIds = overlay.effect.stackId;
-        for i = 1, #stackIds do
-          local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackIds[i]);
-          FancyActionBar.stacks[stackIds[i]] = stackCount;
-          table.insert(stackCounts, currentStacks);
-        end;
-        FancyActionBar.HandleStackUpdate(overlay.effect.id);
+  for controlName, shouldReset in pairs(controls) do
+    local control = overlay:GetNamedChild(controlName);
+    if control then
+      if controlName == "BG" then
+        control:SetHidden(shouldReset);
+      else
+        control:SetText("");
       end;
-      if FancyActionBar.targets[overlay.effect.id] then
-        FancyActionBar.HandleTargetUpdate(overlay.effect.id, true);
-      end;
-      -- else
     end;
   end;
+
+  if overlay.effect then
+    FancyActionBar.ResetEffectData(overlay.effect);
+    --FancyActionBar.FadeEffect(overlay.effect) --Should we use this here?
+  end;
+end;
+
+---Resets the effect data for stacks and targets
+---@param effect table The effect to reset
+function FancyActionBar.ResetEffectData(effect)
+  if effect.stackId then
+    FancyActionBar.ResetStackData(effect);
+  end;
+
+  if FancyActionBar.targets[effect.id] then
+    FancyActionBar.HandleTargetUpdate(effect.id, true);
+  end;
+end;
+
+---Resets the stack data for an effect
+---@param effect table The effect to reset stack data for
+function FancyActionBar.ResetStackData(effect)
+  local stackCounts = {};
+  for _, stackId in ipairs(effect.stackId) do
+    local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackId);
+    FancyActionBar.stacks[stackId] = currentStacks;
+    table.insert(stackCounts, currentStacks);
+  end;
+  FancyActionBar.HandleStackUpdate(effect.id);
 end;
 
 function FancyActionBar.FadeEffect(effect) -- reset effect variables and make sure overlay is cleared
@@ -1509,7 +1531,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       stackId = FancyActionBar.GetStackIdForAbilityId(abilityId);
       FancyActionBar.stackIds[abilityId] = #stackId > 0 and stackId or nil;
     end;
-  end
+  end;
 
   local effect = FancyActionBar.GetEffect(effectId, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled); -- FancyActionBar.effects[effectId]
 
@@ -1573,7 +1595,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   if FancyActionBar.stacks[effect.id] then
     FancyActionBar.UpdateOverlay(index);
     FancyActionBar.UpdateStacks(index);
-  end
+  end;
   for i = 1, #effect.stackId do
     if FancyActionBar.stacks[effect.stackId[i]] then
       FancyActionBar.UpdateOverlay(index);
@@ -1581,7 +1603,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       break;
     end;
   end;
-  
+
   return effect;
 end;
 
@@ -1649,7 +1671,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
     FancyActionBar.stacks[effect.id] = stacks;
   end;
   if effect.stackId and not effect.stackId[effect.id] then
-      -- WARNING: This will infinite loop if effect.stackId == effect.id
+    -- WARNING: This will infinite loop if effect.stackId == effect.id
     for id, stackEffect in pairs(FancyActionBar.effects) do
       for i = 1, #effect.stackId do
         local currentStackId = effect.stackId[i];
@@ -2343,7 +2365,7 @@ local configureFillAnimationsAndFrames = function (style)
     return;
   end;
 
-  local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, ACTION_BAR:GetHotbarCategory());
+  local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, currentHotbarCategory);
   local isGamepad = IsInGamepadPreferredMode();
 
   if FancyActionBar.style == 2 and isSlotUsed then
@@ -3307,7 +3329,7 @@ function FancyActionBar.Initialize()
             stacks = FancyActionBar.stacks[184220] or 0;
             break;
           end;
-        end
+        end;
         local adjust = adjustFatecarver and (stacks * .338) or 0;
         effect.castEndTime = effect.castDuration + adjust + time();
         wasBlockActive = isBlockActive;
@@ -3403,7 +3425,7 @@ function FancyActionBar.Initialize()
             dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000);
             if SV.showCastDuration then
               wasBlockActive = IsBlockActive();
-              local isChanneled, castDuration = GetAbilityCastInfo(id); --[[(e.id == e.stackId and e.id or id);]]
+              local isChanneled, castDuration = GetAbilityCastInfo(id, nil, "player"); --[[(e.id == e.stackId and e.id or id);]]
               castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
               if castDuration then
                 e.castDuration = castDuration;
@@ -3437,7 +3459,7 @@ function FancyActionBar.Initialize()
           end;
           if SV.showCastDuration then
             wasBlockActive = IsBlockActive();
-            local isChanneled, castDuration = GetAbilityCastInfo(effect.id);
+            local isChanneled, castDuration = GetAbilityCastInfo(effect.id, nil, "player");
             castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil;
             if castDuration then
               effect.castDuration = castDuration;
