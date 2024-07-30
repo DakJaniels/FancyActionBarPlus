@@ -2052,25 +2052,27 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
   ActionButton8:ClearAnchors();
   CompanionUltimateButton:ClearAnchors();
 
-  local ultX = 10 + (10 * scale);
-  local ultC = 20 + (10 * scale);
+  local ultX = 10 + SV.ultimateSlotCustomXOffset + (10 * scale);
+  local ultY = 0 + SV.ultimateSlotCustomYOffset;
+  local ultCX = 20 + (10 * scale);
+  local ultCY = 0;
   local u = 65 * scale;
   local f1 = (style.abilitySlotWidth + style.abilitySlotOffsetX);
   local f2 = f1 * SLOT_COUNT;
 
   if SV.showHotkeysUltGP then
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u, 0, ActionButton8:GetResizeToFitConstrains());
-    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultC, 0, CompanionUltimateButton:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffset, 0 + SV.ultimateSlotCustomYOffset, ActionButton8:GetResizeToFitConstrains());
+    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains());
     return;
   end;
 
   if SV.moveQS == true then
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + ultX, 0, ActionButton8:GetResizeToFitConstrains());
-    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, 20 + ultX, 0, CompanionUltimateButton:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + ultX, ultY, ActionButton8:GetResizeToFitConstrains());
+    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, 10 + ultCX, 0, CompanionUltimateButton:GetResizeToFitConstrains());
   else
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u, 0, ActionButton8:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffset, 0 + SV.ultimateSlotCustomYOffset, ActionButton8:GetResizeToFitConstrains());
     -- ActionButton8:SetAnchor(RIGHT, ZO_ActionBar1, RIGHT, 40 * scale, 0)
-    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultC, 0, CompanionUltimateButton:GetResizeToFitConstrains());
+    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains());
   end;
 end;
 
