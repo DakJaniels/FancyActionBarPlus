@@ -1440,7 +1440,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   local overlay = FancyActionBar.GetOverlay(index);
   if not overlay then return; end;
 
-  local effectId, duration, custom, toggled, passive, instantFade, dontFade;
+  local effectId, stackId, duration, custom, toggled, passive, instantFade, dontFade;
 
   local cfg = abilityConfig[abilityId];
   local ignore = false;
@@ -1484,22 +1484,20 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     duration = 0;
   end;
 
-  local stackId;
   if FancyActionBar.stackIds[effectId] then
     stackId = FancyActionBar.stackIds[effectId];
   else
     stackId = FancyActionBar.GetStackIdForAbilityId(effectId);
-    FancyActionBar.stackIds[effectId] = stackId;
+    FancyActionBar.stackIds[effectId] = #stackId > 0 and stackId or nil;
   end;
 
   -- If the slotted effect doesn't have stacks to track then check if the parent ability does
   if #stackId == 0 and effectId ~= abilityId then
     if FancyActionBar.stackIds[abilityId] then
       stackId = FancyActionBar.stackIds[abilityId];
-      stackId = FancyActionBar.GetStackIdForAbilityId(abilityId);
     else
-      stackId = FancyActionBar.GetStackIdForAbilityId(effectId);
-      FancyActionBar.stackIds[abilityId] = stackId;
+      stackId = FancyActionBar.GetStackIdForAbilityId(abilityId);
+      FancyActionBar.stackIds[abilityId] = #stackId > 0 and stackId or nil;
     end;
   end
 
