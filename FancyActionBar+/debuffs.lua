@@ -296,11 +296,6 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
   if not debuff then return; end;
   local t = time();
 
-  debuff.stackId = debuff.stackId or {};
-  if #debuff.stackId == 0 then
-    debuff.stackId = { debuff.id };
-  end;
-
   if debuff.isSpecialDebuff and stacks then
     if debuff.id == 52790 and SV.showOvertauntStacks then
       FancyActionBar.stacks[debuff.id] = stacks;
