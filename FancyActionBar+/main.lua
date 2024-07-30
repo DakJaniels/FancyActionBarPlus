@@ -1016,8 +1016,6 @@ function FancyActionBar.ResetOverlayDuration(overlay)
           FancyActionBar.stacks[stackIds[i]] = stackCount;
           table.insert(stackCounts, currentStacks);
         end;
-        stacks = FancyActionBar.getStackValue(stackCounts);
-        FancyActionBar.stacks[overlay.effect.stackId] = stacks;
         FancyActionBar.HandleStackUpdate(overlay.effect.id);
       end;
       if FancyActionBar.targets[overlay.effect.id] then
@@ -1514,14 +1512,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
     if effect.stackId then
       local _, stackCount;
-      local stackCounts = {};
       for i = 1, #effect.stackId do
         _, _, stackCount = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
         FancyActionBar.stacks[effect.stackId[i]] = stackCount;
-        table.insert(stackCounts, stackCount);
       end;
-      stacks = FancyActionBar.getStackValue(stackCounts);
-      FancyActionBar.stacks[effect.id] = stacks;
     else
       FancyActionBar.stacks[effect.id] = stacks;
     end;
@@ -1560,15 +1554,15 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   if FancyActionBar.stacks[effect.id] then
     FancyActionBar.UpdateOverlay(index);
     FancyActionBar.UpdateStacks(index);
-  else
-    for i = 1, #effect.stackId do
-      if FancyActionBar.stacks[effect.stackId[i]] then
-        FancyActionBar.UpdateOverlay(index);
-        FancyActionBar.UpdateStacks(index);
-        break;
-      end;
-    end
+  end
+  for i = 1, #effect.stackId do
+    if FancyActionBar.stacks[effect.stackId[i]] then
+      FancyActionBar.UpdateOverlay(index);
+      FancyActionBar.UpdateStacks(index);
+      break;
+    end;
   end;
+  
   return effect;
 end;
 
@@ -1599,26 +1593,24 @@ end;
 function FancyActionBar.EffectCheck()
   local checkTime = time();
   for id, effect in pairs(FancyActionBar.effects) do
+    local doStackUpdate = false;
     if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
       zo_callLater(function () FancyActionBar.ReCheckSpecialEffect(effect); end, (effect.endTime - checkTime) * 1000);
     else
       local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
+      doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks > 0 and true;
       if hasEffect then
         effect.endTime = checkTime + duration;
       end;
       FancyActionBar.stacks[effect.id] = stacks;
-      if effect.stackId then
-        local stackCounts = {};
-        for i = 1, #effect.stackId do
-          local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
-          FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
-          table.insert(stackCounts, mappedStacks);
-        end;
-        stacks = FancyActionBar.getStackValue(stackCounts);
-        FancyActionBar.stacks[effect.id] = stacks;
+      for i = 1, #effect.stackId do
+        local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
+        FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
+        doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks > 0 and true;
       end;
-      FancyActionBar.UpdateEffect(effect);
-      FancyActionBar.HandleStackUpdate(effect.id);
+      if doStackUpdate then
+        FancyActionBar.HandleStackUpdate(effect.id);
+      end;
     end;
   end;
 end;
