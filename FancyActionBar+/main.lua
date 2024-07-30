@@ -777,7 +777,6 @@ function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, 
   local effect = FancyActionBar.effects[id] or
     {
       id = id;
-      stackId = stackId;
       endTime = 0;
       custom = custom;
       toggled = toggled;
@@ -790,6 +789,9 @@ function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, 
       faded = true;
       isChanneled = isChanneled;
     };
+  
+  -- Portions of the effect table that should always be updated
+  effect.stackId = stackId;
 
   if not FancyActionBar.effects[id] and config then
     FancyActionBar.effects[id] = effect;
