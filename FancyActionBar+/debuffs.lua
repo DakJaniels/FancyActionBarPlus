@@ -470,11 +470,9 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
     if not SV.multiTargetBlacklist[debuff.id] then
       local targetData = FancyActionBar.targets[debuff.id] or { targetCount = 0; maxEndTime = 0; times = {} };
-      if change == EFFECT_RESULT_GAINED and not targetData.times[unitId] then
-        targetData.targetCount = (targetData.targetCount + 1);
-      end;
       targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
       targetData.times[unitId] = { beginTime = debuff.beginTime; endTime = endTime };
+      targetData.targetCount = #targetData.times;
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
     end;
@@ -490,8 +488,8 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
   elseif (change == EFFECT_RESULT_FADED) then
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
-      targetData.targetCount = (targetData.targetCount - 1);
       targetData.times[unitId] = nil;
+      targetData.targetCount = #targetData.times;
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
       if targetData.targetCount >= 1 then
