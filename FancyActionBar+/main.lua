@@ -1010,13 +1010,10 @@ function FancyActionBar.ResetOverlayDuration(overlay)
 
     if overlay.effect then
       if overlay.effect.stackId then
-        local stacks;
-        local stackCounts = {};
         local stackIds = overlay.effect.stackId;
         for i = 1, #stackIds do
           local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackIds[i]);
-          FancyActionBar.stacks[stackIds[i]] = stackCounts;
-          table.insert(stackCounts, currentStacks);
+          FancyActionBar.stacks[stackIds[i]] = currentStacks;
         end;
         FancyActionBar.HandleStackUpdate(overlay.effect.id);
       end;
