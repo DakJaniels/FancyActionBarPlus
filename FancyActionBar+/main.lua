@@ -1212,9 +1212,17 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, duration)
   if duration > 0 then return; end;
   if effect.stackId then
     if effect.forceExpireStacks or effect.isSpecialDebuff or (effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId[1]]) then
-      effect.stacks = 0;
-      FancyActionBar.stacks[effect.stackId[1]] = 0;
-      stacksControl:SetText("");
+      for i = 1, #effect.stackId do
+        if effect.forceExpireStacks or effect.isSpecialDebuff then
+          effect.stacks = 0;
+          FancyActionBar.stacks[effect.stackId[1]] = 0;
+          stacksControl:SetText("");
+        elseif effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId[i]] then
+          effect.stacks = 0;
+          FancyActionBar.stacks[effect.stackId[1]] = 0;
+          stacksControl:SetText("");
+        end;
+      end;
     else
       local stacks, maxStacks;
       local stackCounts = {};
