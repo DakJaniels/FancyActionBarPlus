@@ -996,58 +996,36 @@ end;
 --------------
 -- abilities
 --------------
----Resets the duration, background, stacks, and targets of an overlay
----@param overlay table The overlay to reset
 function FancyActionBar.ResetOverlayDuration(overlay)
-  if not overlay then return; end;
+  if overlay then
+    local durationControl = overlay:GetNamedChild("Duration");
+    local bgControl = overlay:GetNamedChild("BG");
+    local stacksControl = overlay:GetNamedChild("Stacks");
+    local targetsControl = overlay:GetNamedChild("Targets");
 
-  local controls =
-  {
-    Duration = true;
-    BG = true;
-    Stacks = true;
-    Targets = true
-  };
+    if durationControl then durationControl:SetText(""); end;
+    if bgControl then bgControl:SetHidden(true); end;
+    if stacksControl then stacksControl:SetText(""); end;
+    if targetsControl then targetsControl:SetText(""); end;
 
-  for controlName, shouldReset in pairs(controls) do
-    local control = overlay:GetNamedChild(controlName);
-    if control then
-      if controlName == "BG" then
-        control:SetHidden(shouldReset);
-      else
-        control:SetText("");
+    if overlay.effect then
+      if overlay.effect.stackId then
+        local stacks;
+        local stackCounts = {};
+        local stackIds = overlay.effect.stackId;
+        for i = 1, #stackIds do
+          local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackIds[i]);
+          FancyActionBar.stacks[stackIds[i]] = stackCounts;
+          table.insert(stackCounts, currentStacks);
+        end;
+        FancyActionBar.HandleStackUpdate(overlay.effect.id);
       end;
+      if FancyActionBar.targets[overlay.effect.id] then
+        FancyActionBar.HandleTargetUpdate(overlay.effect.id, true);
+      end;
+      -- else
     end;
   end;
-
-  if overlay.effect then
-    FancyActionBar.ResetEffectData(overlay.effect);
-    --FancyActionBar.FadeEffect(overlay.effect) --Should we use this here?
-  end;
-end;
-
----Resets the effect data for stacks and targets
----@param effect table The effect to reset
-function FancyActionBar.ResetEffectData(effect)
-  if effect.stackId then
-    FancyActionBar.ResetStackData(effect);
-  end;
-
-  if FancyActionBar.targets[effect.id] then
-    FancyActionBar.HandleTargetUpdate(effect.id, true);
-  end;
-end;
-
----Resets the stack data for an effect
----@param effect table The effect to reset stack data for
-function FancyActionBar.ResetStackData(effect)
-  local stackCounts = {};
-  for _, stackId in ipairs(effect.stackId) do
-    local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackId);
-    FancyActionBar.stacks[stackId] = currentStacks;
-    table.insert(stackCounts, currentStacks);
-  end;
-  FancyActionBar.HandleStackUpdate(effect.id);
 end;
 
 function FancyActionBar.FadeEffect(effect) -- reset effect variables and make sure overlay is cleared
