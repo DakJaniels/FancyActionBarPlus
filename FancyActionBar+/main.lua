@@ -1492,6 +1492,17 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     FancyActionBar.stackIds[effectId] = stackId;
   end;
 
+  -- If the slotted effect doesn't have stacks to track then check if the parent ability does
+  if #stackId == 0 and effectId ~= abilityId then
+    if FancyActionBar.stackIds[abilityId] then
+      stackId = FancyActionBar.stackIds[abilityId];
+      stackId = FancyActionBar.GetStackIdForAbilityId(abilityId);
+    else
+      stackId = FancyActionBar.GetStackIdForAbilityId(effectId);
+      FancyActionBar.stackIds[abilityId] = stackId;
+    end;
+  end
+
   local effect = FancyActionBar.GetEffect(effectId, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled); -- FancyActionBar.effects[effectId]
 
 
