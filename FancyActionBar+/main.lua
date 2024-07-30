@@ -545,7 +545,7 @@ end;
 ---
 ---@return table
 function FancyActionBar.GetContants()
-  if not FancyActionBar.initialized then
+  if uiModeChanged or (not FancyActionBar.initialized) then
     FancyActionBar.style = IsInGamepadPreferredMode() and 2 or 1;
     local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
@@ -2613,7 +2613,7 @@ function FancyActionBar.SetBarPositions(bar)
   for i = MIN_INDEX, MAX_INDEX do
     FancyActionBar.UpdateInactiveBarIcon(i, bar);
 
-    local btnMain = ZO_ActionBar_GetButton(i, bar);
+    local btnMain = ZO_ActionBar_GetButton(i);
     btnMain:HandleSlotChanged();
   end;
 end;
@@ -2705,8 +2705,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
   local ultimateFillFrame = GetControl(self.slot, "Frame");
 
   local isGamepad = false;
-  if FancyActionBar.style == 2 then isGamepad = true; end;
-
+  if IsInGamepadPreferredMode() then isGamepad = true; end;
   if isSlotUsed then
     -- Show fill bar if platform appropriate
     ultimateFillFrame:SetHidden(not isGamepad);
@@ -2770,7 +2769,7 @@ function FancyActionBar.UpdateStyle()
   local style = {};
   local mode;
 
-  if FancyActionBar.initialSetup then
+  if FancyActionBar.initialSetup or uiModeChanged then
     mode = IsInGamepadPreferredMode() and 2 or 1;
   else
     if ADCUI then
@@ -3828,6 +3827,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
     uiModeChanged = true;
     FancyActionBar.UpdateBarSettings();
+    uiModeChanged = false;
     --ReloadUI("ingame");
   end);
 
