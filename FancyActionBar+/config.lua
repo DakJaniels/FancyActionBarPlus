@@ -290,7 +290,7 @@ FancyActionBar.abilityConfig =
   [42012] = { 42012 }; -- tangling webs
   [39475] = { 38254 }; -- inner fire (taunt)
   [42056] = { 38254 }; -- inner rage (taunt)
-  [42060] = { 42062 }; -- inner beast
+  [42060] = { 38254 }; -- inner beast (taunt)
   [39369] = { 39369 }; -- bone shield
   [42138] = { 42138 }; -- spiked bone shield
   [42176] = { 42176 }; -- bone surge
@@ -913,7 +913,7 @@ FancyActionBar.debuffStackMap =
     38254,  -- taunt
     39475,  -- inner fire
     42056,  -- inner rage
-    42062,  -- inner beast
+    42060,  -- inner beast
     38989,  -- frost clench
     28306,  -- puncture (taunt)
     38250,  -- pierce armor (taunt)
@@ -1040,7 +1040,7 @@ FancyActionBar.debuffIds =
   [104059] = { 104078 }; -- borrowed time shield absorb
 
   -- Undaunted
-  [42060] = { 42062 }; -- inner beast
+  [42060] = { 38254 }; -- inner beast (taunt)
   [39475] = { 38254 }; -- inner fire (taunt)
   [42056] = { 38254 }; -- inner rage (taunt)
 
@@ -1530,7 +1530,6 @@ FancyActionBar.dontFade =
 
   -- Undaunted
   -- [38254] = true; -- taunt
-  -- [42062] = true; -- inner beast
 
   -- Dragonknight
   -- [44363] = true; -- searing strike
