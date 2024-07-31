@@ -826,8 +826,13 @@ FancyActionBar.stackMap =
     106209, -- elusive mist fatigue
     38963,  -- elusive mist
   };
-
-  [49247] = { 49247 }; -- blood mist fatigue
+  
+  -- blood mist fatigue
+  [49247] =
+  {
+    49247, -- blood mist fatigue
+    38965, -- blood mist
+   }; 
 
   -- blood frenzy stacks
   [172418] =
