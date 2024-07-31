@@ -888,12 +888,14 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
   local buffBeginTimes = {};
   for i = 1, GetNumBuffs("player") do
     local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
-    if (id == FancyActionBar.stackableBuff[id]) and FancyActionBar.stackableBuff[abilityId] then
-      buffBeginTimes[beginTime] = true;
-      currentStacks = currentStacks + 1;
-      if abilityId == id then
-        hasEffect = true;
-        duration = endTime - time();
+    if FancyActionBar.stackableBuff[id] then
+      if FancyActionBar.stackableBuff[abilityId] then
+        buffBeginTimes[beginTime] = true;
+        currentStacks = currentStacks + 1;
+        if abilityId == id then
+          hasEffect = true;
+          duration = endTime - time();
+        end;
       end;
     elseif --[[not castByPlayer and]] abilityId == id then
       currentStacks = FancyActionBar.fixedStacks[id] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].stacks) or stackCount or 0;
