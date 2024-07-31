@@ -826,7 +826,7 @@ FancyActionBar.stackMap =
     106209, -- elusive mist fatigue
     38963,  -- elusive mist
   };
-  
+
   -- blood mist fatigue
   [49247] =
   {
