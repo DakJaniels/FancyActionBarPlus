@@ -399,8 +399,8 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endT
   if (change == EFFECT_RESULT_FADED) then
     if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then
       local targetData = FancyActionBar.targets[debuff.id];
-      targetData.targetCount = (targetData.targetCount - 1);
       targetData.times[unitId] = nil;
+      targetData.targetCount = #targetData.times;
       FancyActionBar.targets[debuff.id] = targetData;
       FancyActionBar.HandleTargetUpdate(debuff.id);
       if targetData.targetCount >= 1 then

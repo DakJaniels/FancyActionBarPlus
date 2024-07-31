@@ -1007,18 +1007,18 @@ function FancyActionBar.ResetOverlayDuration(overlay)
     if bgControl then bgControl:SetHidden(true); end;
     if stacksControl then stacksControl:SetText(""); end;
     if targetsControl then targetsControl:SetText(""); end;
-
     if overlay.effect then
-      if overlay.effect.stackId then
-        local stackIds = overlay.effect.stackId;
-        for i = 1, #stackIds do
-          local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackIds[i]);
-          FancyActionBar.stacks[stackIds[i]] = currentStacks;
+      local effect = overlay.effect;
+      if overlay.stacks and effect.stackId then
+        local stackId = effect.stackId;
+        for i = 1, #stackId do
+          local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackId[i]);
+          FancyActionBar.stacks[stackId[i]] = currentStacks;
         end;
-        FancyActionBar.HandleStackUpdate(overlay.effect.id);
+        FancyActionBar.HandleStackUpdate(effect.id);
       end;
-      if FancyActionBar.targets[overlay.effect.id] then
-        FancyActionBar.HandleTargetUpdate(overlay.effect.id, true);
+      if FancyActionBar.targets[effect.id] then
+        FancyActionBar.HandleTargetUpdate(effect.id, true);
       end;
       -- else
     end;
@@ -1143,20 +1143,21 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
   local overlay = FancyActionBar.overlays[index];
   if overlay then
     local effect = overlay.effect;
+    local allowStacks = overlay.stacks;
     local durationControl = overlay:GetNamedChild("Duration");
     local bgControl = overlay:GetNamedChild("BG");
     local stacksControl = overlay:GetNamedChild("Stacks");
     local targetsControl = overlay:GetNamedChild("Targets");
 
     if effect and not effect.ignore and effect.id > 0 then
-      FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index);
+      FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks);
     else
       FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl);
     end;
   end;
 end;
 
-function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index)
+function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks)
   local currentTime = time();
 
   -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
@@ -1199,39 +1200,24 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration, currentTime);
   local bc = duration > 0 and FancyActionBar.GetHighlightColor(isFading) or nil;
 
-  FancyActionBar.UpdateStacksControl(effect, stacksControl, duration);
+  FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks);
   FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime);
   FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
   FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index);
 end;
 
-function FancyActionBar.UpdateStacksControl(effect, stacksControl, duration)
-  if duration > 0 then return; end;
-  if effect.stackId then
-    if effect.forceExpireStacks or effect.isSpecialDebuff or (effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId[1]]) then
-      for i = 1, #effect.stackId do
-        if effect.forceExpireStacks or effect.isSpecialDebuff then
-          effect.stacks = 0;
-          FancyActionBar.stacks[effect.stackId[1]] = 0;
-          stacksControl:SetText("");
-        elseif effect.isDebuff and FancyActionBar.debuffStackMap[effect.stackId[i]] then
-          effect.stacks = 0;
-          FancyActionBar.stacks[effect.stackId[1]] = 0;
-          stacksControl:SetText("");
-        end;
-      end;
-    else
-      local stacks, maxStacks;
-      local stackCounts = {};
-      for i = 1, #effect.stackId do
-        local stackId = effect.stackId[i];
-        local currentStacks = FancyActionBar.stacks[stackId];
-        table.insert(stackCounts, currentStacks);
-      end;
-      maxStacks = FancyActionBar.getStackValue(stackCounts);
-      stacks = maxStacks and maxStacks ~= 0 and maxStacks or "";
-      stacksControl:SetText(stacks);
+function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks)
+  if allowStacks and effect.stackId then
+    local stacks, maxStacks;
+    local stackCounts = {};
+    for i = 1, #effect.stackId do
+      local stackId = effect.stackId[i];
+      local currentStacks = FancyActionBar.stacks[stackId];
+      table.insert(stackCounts, currentStacks);
     end;
+    maxStacks = FancyActionBar.getStackValue(stackCounts);
+    stacks = maxStacks and maxStacks ~= 0 and maxStacks or "";
+    stacksControl:SetText(stacks);
   else
     stacksControl:SetText("");
   end;
@@ -1262,14 +1248,15 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
   local overlay = FancyActionBar.overlays[index];
   if overlay then
     local stacksControl = overlay:GetNamedChild("Stacks");
-    local effect = overlay.effect;
-    if effect then
+    if overlay.effect and overlay.stacks then
+      local effect = overlay.effect;
+      local stackId = effect.stackId;
       local stacks, stackCount;
       local stackCounts = {};
       stackCount = FancyActionBar.stacks[effect.id];
       table.insert(stackCounts, stackCount);
-      for i = 1, #effect.stackId do
-        stackCount = FancyActionBar.stacks[effect.stackId[i]];
+      for i = 1, #stackId do
+        stackCount = FancyActionBar.stacks[stackId[i]];
         table.insert(stackCounts, stackCount);
       end;
       stacks = FancyActionBar.getStackValue(stackCounts);
@@ -1350,6 +1337,22 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     end;
   end;
   if SV.applyActionBarSkillStyles then FancyActionBar.SetActionButtonAbilityFxOverride(index); end;
+end;
+
+function FancyActionBar.IsValidStackId(effectStackIds, abilityStackIds)
+  local found = false;
+  for _, aStackId in ipairs(abilityStackIds) do
+    for _, eStackId in ipairs(effectStackIds) do
+      if aStackId == eStackId then
+        found = true;
+        break;
+      end;
+    end;
+    if found then
+      break;
+    end;
+  end;
+  return found;
 end;
 
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
@@ -1491,22 +1494,28 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     duration = 0;
   end;
 
+  local effectStackId = {};
+  local abilityStackId = {};
   if FancyActionBar.stackIds[effectId] then
-    stackId = FancyActionBar.stackIds[effectId];
+    effectStackId = FancyActionBar.stackIds[effectId];
   else
-    stackId = FancyActionBar.GetStackIdForAbilityId(effectId);
-    FancyActionBar.stackIds[effectId] = #stackId > 0 and stackId or nil;
+    effectStackId = FancyActionBar.GetStackIdForAbilityId(effectId);
+    FancyActionBar.stackIds[effectId] = #effectStackId > 0 and effectStackId or nil;
   end;
 
   -- If the slotted effect doesn't have stacks to track then check if the parent ability does
-  if #stackId == 0 and effectId ~= abilityId then
+  if effectId ~= abilityId then
     if FancyActionBar.stackIds[abilityId] then
-      stackId = FancyActionBar.stackIds[abilityId];
+      abilityStackId = FancyActionBar.stackIds[abilityId];
     else
-      stackId = FancyActionBar.GetStackIdForAbilityId(abilityId);
-      FancyActionBar.stackIds[abilityId] = #stackId > 0 and stackId or nil;
+      abilityStackId = FancyActionBar.GetStackIdForAbilityId(abilityId);
+      FancyActionBar.stackIds[abilityId] = #abilityStackId > 0 and abilityStackId or nil;
     end;
+  else
+    abilityStackId = effectStackId;
   end;
+
+  stackId = #effectStackId > 0 and effectStackId or #abilityStackId > 0 and abilityStackId or {};
 
   local effect = FancyActionBar.GetEffect(effectId, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled); -- FancyActionBar.effects[effectId]
 
@@ -1562,20 +1571,25 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   end;
   -- Assign effect to overlay.
   if overlay then overlay.effect = effect; end;
+  
+  local validStacksForOverlay = ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId);
+  if overlay then overlay.stacks = validStacksForOverlay; end;
 
   if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then
     FancyActionBar.UpdateTargets(index);
   end;
 
-  if FancyActionBar.stacks[effect.id] then
-    FancyActionBar.UpdateOverlay(index);
-    FancyActionBar.UpdateStacks(index);
-  end;
-  for i = 1, #effect.stackId do
-    if FancyActionBar.stacks[effect.stackId[i]] then
+  if overlay.stacks then
+    if FancyActionBar.stacks[effect.id] then
       FancyActionBar.UpdateOverlay(index);
       FancyActionBar.UpdateStacks(index);
-      break;
+    end;
+    for i = 1, #effect.stackId do
+      if FancyActionBar.stacks[effect.stackId[i]] then
+        FancyActionBar.UpdateOverlay(index);
+        FancyActionBar.UpdateStacks(index);
+        break;
+      end;
     end;
   end;
 
@@ -3529,8 +3543,6 @@ function FancyActionBar.Initialize()
         end;
 
         if not SV.multiTargetBlacklist[effect.id] then
-          --d("Targeted ability: " .. abilityId);
-          --d("EndTime: " .. endTime);
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
           targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
           targetData.times[unitId] = { beginTime = beginTime; endTime = endTime };

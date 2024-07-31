@@ -1188,11 +1188,7 @@ FancyActionBar.tauntSkills =
 };
 
 function FancyActionBar.IsAbilityTaunt(abilityId)
-  if FancyActionBar.tauntSkills[abilityId] ~= nil then
-    return false;
-  else
-    return true;
-  end;
+  return FancyActionBar.tauntSkills[abilityId] ~= nil;
 end;
 
 FancyActionBar.fakeClassEffects =
