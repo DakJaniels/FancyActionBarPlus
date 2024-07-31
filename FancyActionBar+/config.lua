@@ -792,7 +792,13 @@ FancyActionBar.stackMap =
 {
   -- [stackId] = {stackId, abilityId_1, abilityId_2, ...}
 
-  [38747] = { 38747 }; -- Carve (2H)
+  -- carve bleed
+  [38747] =
+  {
+    38747, -- carve bleed
+    38745, -- Carve (2H)
+  };
+   
   [38802] = { 38802 }; -- rally
 
   -- Spell Orb
@@ -807,34 +813,93 @@ FancyActionBar.stackMap =
     103710, -- race against time
   };
 
-  [106208] = { 106208 }; -- mist form fatigue
-  [106209] = { 106209 }; -- elusive mist fatigue
-  [49247] = { 49247 };   -- blood mist fatigue
-  [172418] = { 172418 }; -- blood frenzy stacks
-  [134166] = { 134166 }; -- simmering frenzy stacks
-  [172648] = { 172648 }; -- sated fury stacks
+  -- mist form fatigue
+  [106208] =
+  {
+    106208, -- mist form fatigue
+    32986, -- mist form
+  };
 
-  [100306] = { 100306 }; -- force pulse (vAS destro)
-  [100474] = { 100474 }; -- chaotic whirlwind (vAS dw)
+  -- elusive mist fatigue
+  [106209] =
+  {
+    106209, -- elusive mist fatigue
+    38963,  -- elusive mist
+  };
+
+  [49247] = { 49247 }; -- blood mist fatigue
+
+  -- blood frenzy stacks
+  [172418] =
+  {
+    172418, -- blood frenzy stacks
+    132141  -- blood frenzy
+  };
+
+  -- simmering frenzy stacks
+  [134166] =
+  {
+    134166, -- simmering frenzy stacks
+    134160,  -- simmering frenzy
+  };
+
+  -- sated fury stacks
+  [172648] =
+  {
+    172648, -- sated fury stacks
+    135841, -- sated fury
+  }; 
+
+  -- force pulse (vAS destro)
+  [100306] =
+  {
+    100306, -- force pulse (vAS destro)
+    46340,  -- force shock
+    46348,  -- crushing shock
+    46356,   -- force pulse
+  };
+
+  -- chaotic whirlwind (vAS dw)
+  [100474] =
+  {
+    100474, -- chaotic whirlwind (vAS dw)
+    28591,  -- whirlwind
+    38891,  -- whirling blades
+    38861,  -- steel tornado
+   };
 
   [122585] = { 61902 };  -- Grim Focus
   [122586] = { 61919 };  -- Merciless Resolve
   [122587] = { 61927 };  -- Relentless Focus
 
+  -- Bound Armaments
   [203447] =
   {
-    24165,  -- Bound Armaments
     203447, -- Bound Armaments Stacks
+    24165,  -- Bound Armaments
   };
 
-  [51392] = { 51392 };   -- Streak Fatigue
+  -- Streak Fatigue
+  [51392] =
+  {
+    51392, -- Streak Fatigue
+    23234, -- Bolt Escape
+    23236, -- Streak
+    23277, -- Ball of Lightning
+  };
 
   [29032] = { 29032 };   -- Stone Fist (stacks on self)
-  [31816] = { 31816 };   -- Stone Giant (stacks on self)
-  [122658] = { 122658 }; -- Seething Fury
+  [31816] = { 31816 }; -- Stone Giant (stacks on self)
 
-  [117638] = { 117638 }; -- Ricochet Skull
-  [117625] = { 117625 }; -- venom skull
+  -- Seething Fury
+  [122658] =
+  {
+    122658, -- show seething fury on the molten whip icon
+    20805,  -- molten whip
+  };
+
+  [117638] = { 117638, 117637, 123718, 123719 }; -- Ricochet Skull
+  [117625] = { 117625, 117624, 123699, 123704 }; -- venom skull
   [125749] = { 125750 }; -- ruinous scythe
 
   [184220] =
