@@ -3557,7 +3557,7 @@ function FancyActionBar.Initialize()
           FancyActionBar.stacks[stackableBuffId] = stackCount;
         end;
 
-        if not SV.multiTargetBlacklist[effect.id] and not abilityType == GROUND_EFFECT then
+        if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) then
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
           targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
           targetData.times[unitId] = { beginTime = beginTime; endTime = endTime };
