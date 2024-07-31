@@ -909,7 +909,7 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
   if FancyActionBar.targets[id] then
     local currentTime = time();
     local targetData = FancyActionBar.targets[id];
-    if (targetData.maxEndTime <= currentTime) or (targetData.targetCount == 0) then
+    if targetData.maxEndTime <= currentTime then
       FancyActionBar.targets[id].targetCount = 0;
       FancyActionBar.targets[id].maxEndTime = 0;
       FancyActionBar.targets[id].times = {};
@@ -1370,6 +1370,7 @@ end;
 
 function FancyActionBar.HandleTargetUpdate(targetId, singleEffect) -- find overlays for a specific effect and update stacks.
   if SV.showTargetCount == false then return; end;
+  FancyActionBar.CheckTargetEndtimes(targetId);
   if singleEffect then
     local effect = FancyActionBar.effects[targetId];
     if effect then
@@ -3546,7 +3547,6 @@ function FancyActionBar.Initialize()
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
           targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
           targetData.times[unitId] = { beginTime = beginTime; endTime = endTime };
-          targetData.targetCount = #targetData.times;
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
         end;
