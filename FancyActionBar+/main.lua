@@ -379,6 +379,13 @@ function FancyActionBar.GetStackIdForAbilityId(abilityId)
   local stackIds = {};
   local seenStackIds = {};
   if not abilityId or abilityId == "" then return stackIds; end;
+  if FancyActionBar.specialEffects[abilityId] then
+    local specialEffect = FancyActionBar.specialEffects[abilityId];
+    if specialEffect.stackId then
+      return specialEffect.stackId;
+    end;
+  end;
+
   local stackMap = FancyActionBar.stackMap;
   for stackId, abilityIds in pairs(stackMap) do
     for i = 1, #abilityIds do
@@ -1654,6 +1661,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
   if not FancyActionBar.specialEffects[effect.id] then return; end;
   ---@type specialEffects_table
   local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[effect.id]);
+  if specialEffect and specialEffect.isReflect then return; end;
   if SV.advancedDebuff and specialEffect.isSpecialDebuff then return; end;
   local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
   if (stacks > 0) or (specialEffect.stacks and specialEffect.stacks > 0) then
@@ -3818,21 +3826,22 @@ function FancyActionBar.Initialize()
       Chat("===================");
     end;
 
-    local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[aId]);
+    local specialEffect = FancyActionBar.specialEffects[aId];
     if not specialEffect.isReflect then return; end;
+    local reflectStacks = specialEffect.stackId[1];
 
     if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
-      FancyActionBar.stacks[specialEffect.stackId[1]] = specialEffect.stacks;
+      FancyActionBar.stacks[reflectStacks] = specialEffect.stacks;
       doStackUpdate = true;
     end;
 
-    if result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.stacks[specialEffect.stackId] and FancyActionBar.stacks[specialEffect.stackId[1]] > 0 then
-      FancyActionBar.stacks[specialEffect.stackId[1]] = FancyActionBar.stacks[specialEffect.stackId[1]] - 1;
+    if result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.stacks[reflectStacks] and FancyActionBar.stacks[reflectStacks] > 0 then
+      FancyActionBar.stacks[reflectStacks] = FancyActionBar.stacks[reflectStacks] - 1;
       doStackUpdate = true;
     end;
 
     if (result == ACTION_RESULT_EFFECT_FADED) then
-      FancyActionBar.stacks[specialEffect.stackId[1]] = 0;
+      FancyActionBar.stacks[reflectStacks] = 0;
       doStackUpdate = true;
     end;
 
