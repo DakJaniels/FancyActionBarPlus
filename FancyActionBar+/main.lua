@@ -3609,7 +3609,6 @@ function FancyActionBar.Initialize()
         if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].times[unitId] then
           local targetData = FancyActionBar.targets[effect.id];
           targetData.times[unitId] = nil;
-          targetData.targetCount = #targetData.times;
           FancyActionBar.targets[effect.id] = targetData;
           FancyActionBar.HandleTargetUpdate(effect.id);
           if targetData.targetCount >= 1 then
