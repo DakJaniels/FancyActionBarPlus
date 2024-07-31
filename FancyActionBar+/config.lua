@@ -959,6 +959,16 @@ FancyActionBar.stackMap =
   [222285] = FancyActionBar.contingency;
   [222678] = FancyActionBar.contingency;
 
+  -- StackMap for Old Special Effect System
+  [40465] = { 40465 };
+  [46331] = { 46331 }; -- crystal weapon
+  [37475] = { 37475 };
+  [86175] = { 86175 };
+  [86179] = { 86179 };
+  [86183] = { 86183 };
+  [63430] = { 63430, 16536 }; -- meteor
+  [63456] = { 63456, 40489 };   -- ice comet
+  [63473] = { 63473, 40493 };   -- shooting star
 };
 
 FancyActionBar.fixedStacks =
