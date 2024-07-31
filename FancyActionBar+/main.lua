@@ -3046,13 +3046,10 @@ end;
 function FancyActionBar.GetOldSystemEffect(id, change, updateTime, beginTime, endTime)
   local effect, update = nil, true;
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-    if id == 40465 then
+    if id == 46331 then
       effect = FancyActionBar.effects[id];
       effect.stackId = { id };
-      update = false;
-    elseif id == 46331 then
-      effect = FancyActionBar.effects[id];
-      effect.stackId = { id };
+      effect.endTime = endTime;
       FancyActionBar.stacks[effect.id] = 2;
     elseif FancyActionBar.meteor[id] then
       effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
@@ -3067,6 +3064,13 @@ function FancyActionBar.GetOldSystemEffect(id, change, updateTime, beginTime, en
       elseif effect.endTime <= updateTime + 1 then
         FancyActionBar.stacks[id] = 0;
       end;
+    end;
+  elseif change == EFFECT_RESULT_FADED then
+    if id == 46331 then
+      effect = FancyActionBar.effects[id];
+      effect.stackId = { id };
+      effect.endTime = updateTime;
+      FancyActionBar.stacks[effect.id] = 0;
     end;
   end;
   return effect, update;
