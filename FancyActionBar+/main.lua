@@ -3016,7 +3016,7 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime)
     for i, x in pairs(procValues) do
       effect[i] = x;
     end;
-    if effect.stacks then
+    if effect.stacks and effect.stackId and #effect.stackId > 0 then
       FancyActionBar.stacks[effect.stackId[1]] = effect.stacks;
     end;
     FancyActionBar.effects[effect.id] = effect;

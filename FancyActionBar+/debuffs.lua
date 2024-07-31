@@ -460,7 +460,14 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         end;
       end;
     else
-      stackCount = (debuff.stackId and FancyActionBar.stacks[debuff.stackId[1]]) or stackCount;
+      if debuff.stackId then
+        for i = 1, #debuff.stackId do
+          if debuff.stackId[i] == debuff.id then
+            stackCount = FancyActionBar.stacks[debuff.stackId[i]] or stackCount;
+            break;
+          end;
+        end;
+      end;
     end;
 
     debuff.beginTime = (beginTime and beginTime ~= 0 and beginTime) or t;
@@ -506,9 +513,17 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         for i, x in pairs(procValues) do debuff[i] = x; end;
         stackCount = debuff.stacks or stackCount;
       end;
-    else
-      stackCount = ((debuff.stackId and FancyActionBar.fixedStacks[debuff.stackId[1]]) and 0) or zo_max(((debuff.stackId and FancyActionBar.stacks[debuff.stackId[1]]) or 1) - stackCount, 0);
-    end;
+    elseif debuff.stackId then
+      for i = 1, #debuff.stackId do
+        if FancyActionBar.fixedStacks[debuff.stackId[i]] then
+          stackCount = 0
+          break;
+        elseif FancyActionBar.stacks[debuff.stackId[i]] then
+          stackCount = zo_max(FancyActionBar.stacks[debuff.stackId[i]] - stackCount, 0);
+          break;
+        end
+      end;
+    end
     if debuff.instantFade then
       debuff.endTime = 0;
     end;
