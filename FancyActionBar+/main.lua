@@ -3099,14 +3099,6 @@ function FancyActionBar.GetOldSystemEffect(id, change, updateTime, beginTime, en
     if FancyActionBar.meteor[id] then
       effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
       effect.stackId = { FancyActionBar.meteor[id] };
-    elseif id == 37475 then
-      effect = FancyActionBar.effects[id];
-      effect.stackId = { id };
-      if effect.endTime - updateTime > 1 and FancyActionBar.stacks[id] > 0 then
-        return nil, false;
-      elseif effect.endTime <= updateTime + 1 then
-        FancyActionBar.stacks[id] = 0;
-      end;
     end;
   elseif change == EFFECT_RESULT_FADED then
   end;

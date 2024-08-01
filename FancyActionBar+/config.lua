@@ -965,7 +965,6 @@ FancyActionBar.stackMap =
   [222678] = FancyActionBar.contingency;
 
   -- StackMap for Old Special Effect System
-  [37475] = { 37475 };
   [63430] = { 63430, 16536 }; -- meteor
   [63456] = { 63456, 40489 };   -- ice comet
   [63473] = { 63473, 40493 };   -- shooting star
@@ -1221,8 +1220,6 @@ FancyActionBar.specialIds =
   [63456] = true;  -- ice comet aoe
   [40493] = true;  -- shooting star called
   [63473] = true;  -- shooting star aoe
-  [37475] = true;  -- manifestation of terror placed
-  [76634] = true;  -- manifestation of terror triggered
 };
 
 -- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
@@ -1363,6 +1360,13 @@ FancyActionBar.specialClassEffects =
     [89491] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
     [46331] = { id = 46331; stackId = {46331}; stacks = 2; procs = 1; hasProced = 0}; -- Crystal Weapon
   };
+  -- Nightblade
+  [3] =
+  {
+    [37475] = { id = 37475; stackId = {37475}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- manifestation of terror
+    [76639] = { id = 37475; stackId = {37475}; fixedTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (fear)
+    --[147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (major cowardice)
+  };
   -- Warden
   [4] =
   {
@@ -1399,6 +1403,13 @@ FancyActionBar.specialClassEffectProcs =
     [24330] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
     [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false } };
     [46331] = { [1] = { id = 46331; stacks = 0; procs = 1; hasProced = 0} };
+  };
+  -- Nightblade
+  [3] = 
+  {
+    [37475] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; } };
+    [76639] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = true } };
+    --[147643] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = true } };
   };
   -- Warden
   [4] =
