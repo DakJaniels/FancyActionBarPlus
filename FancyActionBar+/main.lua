@@ -3642,7 +3642,7 @@ function FancyActionBar.Initialize()
         end;
         FancyActionBar.UpdateEffect(effect);
       elseif (change == EFFECT_RESULT_FADED) then
-        if FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].times[unitId] then
+        if FancyActionBar.targets[effect.id] then
           local targetData = FancyActionBar.targets[effect.id];
           targetData.times[unitId] = nil;
           FancyActionBar.targets[effect.id] = targetData;
