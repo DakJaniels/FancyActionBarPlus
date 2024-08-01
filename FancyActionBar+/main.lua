@@ -1813,7 +1813,8 @@ end;
 function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
   if not FancyActionBar.constants.ult.value.show then return; end;
 
-  local function ResolveUltCost(id, overrideRank, casterUnitTag)
+  local function ResolveUltCost(id,  overrideActiveRank, overrideCasterUnitTag)
+		overrideCasterUnitTag = overrideCasterUnitTag or "player"
     local incap = 113105;
     local cost = 0;
     if id > 0 then
@@ -1821,7 +1822,7 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
       then
         cost = 70;
       else
-        cost = GetAbilityCost(id, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag);
+        cost = GetAbilityCost(id, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideActiveRank, overrideCasterUnitTag);
       end;
     end;
     return cost;
@@ -1848,7 +1849,7 @@ function FancyActionBar.GetUltimateValueColor(current, hotbar)
     then
       ultAbilityid = 70;
     else
-      cost = GetAbilityCost(ultAbilityid, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag);
+      cost = GetAbilityCost(ultAbilityid, COMBAT_MECHANIC_FLAGS_ULTIMATE, nil, "player");
     end;
   else
     return baseColor;
@@ -3556,7 +3557,7 @@ function FancyActionBar.Initialize()
           FancyActionBar.stacks[stackableBuffId] = stackCount;
         end;
 
-        local targetType = GetAbilityTargetDescription(effect.id);
+        local targetType = GetAbilityTargetDescription(effect.id, nil, unitTag);
         if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
           targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
