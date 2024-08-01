@@ -3521,7 +3521,6 @@ function FancyActionBar.Initialize()
     end;
     local _;
     local t = time();
-
     if isChanneling and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then
       isChanneling = false;
     end;
@@ -3584,7 +3583,8 @@ function FancyActionBar.Initialize()
           FancyActionBar.stacks[stackableBuffId] = stackCount;
         end;
 
-        if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) then
+        local targetType = GetAbilityTargetDescription(effect.id);
+        if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
           local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
           targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
           targetData.times[unitId] = { beginTime = beginTime; endTime = endTime };
