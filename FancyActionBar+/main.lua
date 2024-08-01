@@ -923,6 +923,7 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
       FancyActionBar.targets[id].targetCount = 0;
       FancyActionBar.targets[id].maxEndTime = 0;
       FancyActionBar.targets[id].times = {};
+      return 0;
     else
       local activeTargets = 0;
       for unitId, times in pairs(targetData.times) do
@@ -934,7 +935,9 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
       end;
       FancyActionBar.targets[id].targetCount = activeTargets;
     end;
+    return activeTargets;
   end;
+  return 0;
 end;
 
 function FancyActionBar.GetIdForDestroSkill(id, bar) -- cause too hard for game to figure out.
@@ -1028,6 +1031,7 @@ function FancyActionBar.ResetOverlayDuration(overlay)
         FancyActionBar.HandleStackUpdate(effect.id);
       end;
       if FancyActionBar.targets[effect.id] then
+        FancyActionBar.CheckTargetEndtimes(effect.id);
         FancyActionBar.HandleTargetUpdate(effect.id, true);
       end;
       -- else
@@ -1386,7 +1390,6 @@ end;
 
 function FancyActionBar.HandleTargetUpdate(targetId, singleEffect) -- find overlays for a specific effect and update stacks.
   if SV.showTargetCount == false then return; end;
-  FancyActionBar.CheckTargetEndtimes(targetId);
   if singleEffect then
     local effect = FancyActionBar.effects[targetId];
     if effect then
@@ -3589,6 +3592,7 @@ function FancyActionBar.Initialize()
           targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
           targetData.times[unitId] = { beginTime = beginTime; endTime = endTime };
           FancyActionBar.targets[effect.id] = targetData;
+          FancyActionBar.CheckTargetEndtimes(effect.id);
           FancyActionBar.HandleTargetUpdate(effect.id);
         end;
 
@@ -3637,8 +3641,9 @@ function FancyActionBar.Initialize()
           local targetData = FancyActionBar.targets[effect.id];
           targetData.times[unitId] = nil;
           FancyActionBar.targets[effect.id] = targetData;
+          local targetCount = FancyActionBar.CheckTargetEndtimes(effect.id);
           FancyActionBar.HandleTargetUpdate(effect.id);
-          if targetData.targetCount >= 1 then
+          if targetCount >= 1 then
             return;
           end;
         end;

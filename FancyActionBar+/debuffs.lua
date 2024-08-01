@@ -401,8 +401,9 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endT
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.times[unitId] = nil;
       FancyActionBar.targets[debuff.id] = targetData;
+      local targetCount = FancyActionBar.CheckTargetEndtimes(debuff.id);
       FancyActionBar.HandleTargetUpdate(debuff.id);
-      if targetData.targetCount >= 1 then
+      if targetCount >= 1 then
         return;
       end;
     end;
@@ -479,6 +480,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
       targetData.times[unitId] = { beginTime = debuff.beginTime; endTime = endTime };
       FancyActionBar.targets[debuff.id] = targetData;
+      FancyActionBar.CheckTargetEndtimes(debuff.id);
       FancyActionBar.HandleTargetUpdate(debuff.id);
     end;
 
@@ -495,8 +497,9 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       local targetData = FancyActionBar.targets[debuff.id];
       targetData.times[unitId] = nil;
       FancyActionBar.targets[debuff.id] = targetData;
+      local targetCount = FancyActionBar.CheckTargetEndtimes(debuff.id);
       FancyActionBar.HandleTargetUpdate(debuff.id);
-      if targetData.targetCount >= 1 then
+      if targetCount >= 1 then
         return;
       end;
     end;
