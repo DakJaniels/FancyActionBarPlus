@@ -4,8 +4,8 @@ local LAM = LibAddonMenu2;
 local EM = GetEventManager();
 local WM = GetWindowManager();
 local SM = SCENE_MANAGER;
-local SV;
-local CV;
+local SV; ---@class FAB_AC_SV
+local CV; ---@class FAB_DC_SV
 local ACTION_BAR = GetControl("ZO_ActionBar1");
 local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position");
 local MIN_INDEX = 3;          -- first ability index
