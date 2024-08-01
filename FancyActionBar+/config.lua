@@ -965,12 +965,7 @@ FancyActionBar.stackMap =
   [222678] = FancyActionBar.contingency;
 
   -- StackMap for Old Special Effect System
-  [40465] = { 40465 };
-  [46331] = { 46331 }; -- crystal weapon
   [37475] = { 37475 };
-  [86175] = { 86175 };
-  [86179] = { 86179 };
-  [86183] = { 86183 };
   [63430] = { 63430, 16536 }; -- meteor
   [63456] = { 63456, 40489 };   -- ice comet
   [63473] = { 63473, 40493 };   -- shooting star
@@ -1226,18 +1221,8 @@ FancyActionBar.specialIds =
   [63456] = true;  -- ice comet aoe
   [40493] = true;  -- shooting star called
   [63473] = true;  -- shooting star aoe
-  [86009] = true;  -- scorch
-  [178020] = true; -- scorch second proc
-  [86015] = true;  -- deep fissure
-  [178028] = true; -- deep fissure second proc
-  [86019] = true;  -- sub assault
-  [146919] = true; -- sub assault second proc
-  [86175] = true;  -- frozen gate
-  [86179] = true;  -- frozen device
-  [86183] = true;  -- frozen retreat
   [37475] = true;  -- manifestation of terror placed
   [76634] = true;  -- manifestation of terror triggered
-  [46331] = true;  -- crystal weapon (to add stacks if tracking duration on self)
 };
 
 -- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
@@ -1332,7 +1317,7 @@ FancyActionBar.fakeClassEffects =
 -- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
---- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  isReflect?: boolean  }>
+--- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  handler?: string  }>
 FancyActionBar.specialEffects =
 {
   [35750] = { id = 35750; stackId = {35750}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
@@ -1376,6 +1361,7 @@ FancyActionBar.specialClassEffects =
   {
     [24330] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
     [89491] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
+    [46331] = { id = 46331; stackId = {46331}; stacks = 2; procs = 1; hasProced = 0}; -- Crystal Weapon
   };
   -- Warden
   [4] =
@@ -1387,10 +1373,13 @@ FancyActionBar.specialClassEffects =
     [86015] = { id = 86015; stackId = {86015}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
     [178028] = { id = 86015; stackId = {86015}; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
 
-    [86135] = { id = 86135; stackId = {86135}; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized shield
-    [86139] = { id = 86139; stackId = {86139}; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- crystallized slab
-    [86143] = { id = 86143; stackId = {86143}; stacks = 3; isReflect = true; onAbilityUsed = true; };                   -- shimmering shield
+    [86135] = { id = 86135; stackId = {86135}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- crystallized shield
+    [86139] = { id = 86139; stackId = {86139}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- crystallized slab
+    [86143] = { id = 86143; stackId = {86143}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- shimmering shield
 
+    [86175] = { id = 86175; stackId = {86175}; handler = "device" };                                                    -- frozen gate
+    [86179] = { id = 86179; stackId = {86179}; handler = "device" };                                                    -- frozen device
+    [86183] = { id = 86183; stackId = {86183}; handler = "device" };                                                    -- frozen retreat
   };
   -- Arcanist
   [117] =
@@ -1408,7 +1397,8 @@ FancyActionBar.specialClassEffectProcs =
   [2] =
   {
     [24330] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
-    [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
+    [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false } };
+    [46331] = { [1] = { id = 46331; stacks = 0; procs = 1; hasProced = 0} };
   };
   -- Warden
   [4] =
@@ -1502,14 +1492,6 @@ FancyActionBar.meteor =
   [63430] = 16536; -- meteor
   [63456] = 40489; -- ice comet
   [63473] = 40493; -- shooting star
-};
-
-FancyActionBar.frozen =
-{
-  -- for tracking active portals.
-  [86175] = true; -- frozen gate
-  [86179] = true; -- frozen device
-  [86183] = true; -- frozen retreat
 };
 
 FancyActionBar.ignore =

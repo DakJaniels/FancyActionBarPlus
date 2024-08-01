@@ -118,6 +118,10 @@ FancyActionBar.defaultSettings =
   ultValueXKB = -2;
   ultValueYKB = -5;
   ultValueColorKB = { 1, 1, 1 };
+  ultValueThresholdKB = 0.9;
+  ultUsableThresholdColorKB = { 1, 0.8, 0 };
+  ultUsableValueColorKB = { 0, 1, 0 };
+  ultMaxValueColorKB = { 1, 0, 0 };
   -- companion
   ultValueEnableCompanionKB = true;
   ultValueModeCompanionKB = 1;
@@ -169,6 +173,10 @@ FancyActionBar.defaultSettings =
   ultValueXGP = 0;
   ultValueYGP = 0;
   ultValueColorGP = { 1, 1, 1 };
+  ultValueThresholdGP = 0.9;
+  ultUsableThresholdColorGP = { 1, 0.8, 0 };
+  ultUsableValueColorGP = { 0, 1, 0 };
+  ultMaxValueColorGP = { 1, 0, 0 };
   -- companion
   ultValueEnableCompanionGP = true;
   ultValueModeCompanionGP = 1;
@@ -410,6 +418,10 @@ function FancyActionBar:UpdateContants(mode, vars, style)
           x = SV.ultValueXKB;
           y = SV.ultValueYKB;
           color = SV.ultValueColorKB;
+          threshold = SV.ultValueThresholdKB;
+          usableThresholdColor = SV.ultUsableThresholdColorKB;
+          usableColor = SV.ultUsableValueColorKB;
+          maxColor = SV.ultMaxValueColorKB;
         };
         companion =
         {
@@ -492,6 +504,10 @@ function FancyActionBar:UpdateContants(mode, vars, style)
           x = SV.ultValueXGP;
           y = SV.ultValueYGP;
           color = SV.ultValueColorGP;
+          threshold = SV.ultValueThresholdGP;
+          usableThresholdColor = SV.ultUsableThresholdColorGP;
+          usableColor = SV.ultUsableValueColorGP;
+          maxColor = SV.ultMaxValueColorGP;
         };
         companion =
         {

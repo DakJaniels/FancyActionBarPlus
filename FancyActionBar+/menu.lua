@@ -1494,8 +1494,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Inactive bar alpha";
           tooltip = "Higher value = more solid.\nLower value = more see through.";
           default = defaults.alphaInactive;
-          min = 10;
-          max = 90;
+          min = 0;
+          max = 100;
           getFunc = function () return SV.alphaInactive; end;
           setFunc = function (value) FancyActionBar.ApplyAlphaInactive(value); end;
           width = "half";
@@ -1505,8 +1505,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Inactive bar desaturation";
           tooltip = "Higher value = more grey.\nLower value = more colors.";
           default = defaults.desaturationInactive;
-          min = 10;
-          max = 90;
+          min = 0;
+          max = 100;
           getFunc = function () return SV.desaturationInactive; end;
           setFunc = function (value)
             FancyActionBar.ApplyDesaturationInactiveInactive(value);
@@ -2242,20 +2242,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.ultValueTypeKB;
                 },
                 {
-                  type = "colorpicker";
-                  name = "Ultimate value color";
-                  default = ZO_ColorDef:New(unpack(defaults.ultValueColorKB));
-                  getFunc = function () return unpack(SV.ultValueColorKB); end;
-                  setFunc = function (r, g, b)
-                    SV.ultValueColorKB = { r, g, b };
-                    if FancyActionBar.style == 1 then
-                      FancyActionBar.constants.ult.value.color = SV.ultValueColorKB;
-                      FancyActionBar.ApplyUltValueColor();
-                    end;
-                  end;
-                  width = "half";
-                },
-                {
                   type = "slider";
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
@@ -2290,6 +2276,77 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
+                },
+                { type = "divider";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult Value Base Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultValueColorKB));
+                  getFunc = function () return unpack(SV.ultValueColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.ultValueColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.ult.value.color = SV.ultValueColorKB;
+                      FancyActionBar.ApplyUltValueColor();
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult Usable Value Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultUsableValueColorKB));
+                  getFunc = function () return unpack(SV.ultUsableValueColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.ultUsableValueColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.ult.usableColor = SV.ultUsableValueColorKB;
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult Max Value Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultMaxValueColorKB));
+                  getFunc = function () return unpack(SV.ultMaxValueColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.ultMaxValueColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.ult.value.maxColor = SV.ultMaxValueColorKB;
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult 'Almost Ready' Value Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultUsableThresholdColorKB));
+                  getFunc = function () return unpack(SV.ultUsableThresholdColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.ultUsableThresholdColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.ult.value.usableThresholdColor = SV.ultUsableThresholdColorKB;
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "slider";
+                  name = "Ult 'Almost Ready' Threshold %";
+                  min = 50;
+                  max = 99;
+                  step = 1;
+                  getFunc = function () return (SV.ultValueThresholdKB * 100); end;
+                  setFunc = function (value)
+                    SV.ultValueSizeKB = (value / 100);
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.ult.value.threshold = value;
+                    end;
+                  end;
+                  width = "half";
+                  default = defaults.ultValueThresholdKB;
                 },
                 { type = "divider";
                 },
@@ -2981,20 +3038,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.ultValueTypeGP;
                 },
                 {
-                  type = "colorpicker";
-                  name = "Ultimate value color";
-                  default = ZO_ColorDef:New(unpack(defaults.ultValueColorGP));
-                  getFunc = function () return unpack(SV.ultValueColorGP); end;
-                  setFunc = function (r, g, b)
-                    SV.ultValueColorGP = { r, g, b };
-                    if FancyActionBar.style == 2 then
-                      FancyActionBar.constants.ult.value.color = { r, g, b };
-                      FancyActionBar.ApplyUltValueColor();
-                    end;
-                  end;
-                  width = "half";
-                },
-                {
                   type = "slider";
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
@@ -3029,6 +3072,77 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end;
                   end;
                   width = "half";
+                },
+                { type = "divider";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult Value Base Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultValueColorGP));
+                  getFunc = function () return unpack(SV.ultValueColorGP); end;
+                  setFunc = function (r, g, b)
+                    SV.ultValueColorGP = { r, g, b };
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.ult.value.color = SV.ultValueColorGP;
+                      FancyActionBar.ApplyUltValueColor();
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult Usable Value Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultUsableValueColorGP));
+                  getFunc = function () return unpack(SV.ultUsableValueColorGP); end;
+                  setFunc = function (r, g, b)
+                    SV.ultUsableValueColorGP = { r, g, b };
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.ult.value.usableColor = SV.ultUsableValueColorGP;
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult Max Value Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultMaxValueColorGP));
+                  getFunc = function () return unpack(SV.ultMaxValueColorGP); end;
+                  setFunc = function (r, g, b)
+                    SV.ultMaxValueColorGP = { r, g, b };
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.ult.value.maxColor = SV.ultMaxValueColorGP;
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Ult 'Almost Ready' Value Color";
+                  default = ZO_ColorDef:New(unpack(defaults.ultUsableThresholdColorGP));
+                  getFunc = function () return unpack(SV.ultUsableThresholdColorGP); end;
+                  setFunc = function (r, g, b)
+                    SV.ultUsableThresholdColorGP = { r, g, b };
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.ult.value.usableThresholdColor = SV.ultUsableThresholdColorGP;
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "slider";
+                  name = "Ult 'Almost Ready' Threshold %";
+                  min = 50;
+                  max = 99;
+                  step = 1;
+                  getFunc = function () return (SV.ultValueThresholdGP * 100); end;
+                  setFunc = function (value)
+                    SV.ultValueSizeGP = (value / 100);
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.ult.value.threshold = value;
+                    end;
+                  end;
+                  width = "half";
+                  default = defaults.ultValueThresholdGP;
                 },
                 { type = "divider";
                 },

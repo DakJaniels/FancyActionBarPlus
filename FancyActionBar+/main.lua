@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.6.5";
+local VERSION = "2.6.6";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -232,6 +232,7 @@ local isChanneling = false;     -- for tracking channeling abilities
 local wasBlockActive = false;   -- for tracking block state
 local uiModeChanged = false;    -- don't change configuration if not needed
 local hideCompanionUlt = false; -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
+local activeUltEndTime = 0;     -- for tracking ultimate duration across barswap
 
 local guardId = 0;              -- sync active id for guard on both bars as active and inactive are different
 local cost1;
@@ -1310,7 +1311,13 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     end;
 
     if effect then
-      local duration = effect.endTime - time();
+      local t = time();
+      local ultEndTime = effect.endTime;
+      if index == ULT_INDEX or index == ULT_INDEX + SLOT_INDEX_OFFSET then
+        activeUltEndTime = (effect.endTime and (effect.endTime > activeUltEndTime) and effect.endTime) or activeUltEndTime;
+        ultEndTime = activeUltEndTime;
+      end;
+      local duration = ultEndTime - t;
       if duration > -2 then
         if duration > 0 then
           if (showDecimal and (duration <= showDecimalStart))
@@ -1327,7 +1334,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
           end;
         else
           if (SV.delayFade and not effect.instantFade) then
-            local delayEnd = (effect.endTime + SV.fadeDelay) - time();
+            local delayEnd = (ultEndTime + SV.fadeDelay) - t;
             if delayEnd > 0
             then
               durationControl:SetText(zo_max(0, zo_ceil(duration)));
@@ -1510,6 +1517,9 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     effectStackId = FancyActionBar.stackIds[effectId];
   else
     effectStackId = FancyActionBar.GetStackIdForAbilityId(effectId);
+    if (effectId == abilityId) and #effectStackId == 0 then
+      effectStackId = { effectId };
+    end
     FancyActionBar.stackIds[effectId] = #effectStackId > 0 and effectStackId or nil;
   end;
 
@@ -1761,9 +1771,11 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
 
     if o1 and o1.value then
       o1.value:SetText(FancyActionBar.GetValueString(modeP, value, cost1));
+      o1.value:SetColor(unpack(FancyActionBar.GetUltimateValueColor(value, HOTBAR_CATEGORY_PRIMARY)));
     end;
     if o2 and o2.value then
       o2.value:SetText(FancyActionBar.GetValueString(modeP, value, cost2));
+      o2.value:SetColor(unpack(FancyActionBar.GetUltimateValueColor(value, HOTBAR_CATEGORY_BACKUP)));
     end;
   else
     local o3 = FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET];
@@ -1819,6 +1831,33 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
   FancyActionBar.UpdateUltimateValueLabels(true, current);
 end;
 
+function FancyActionBar.GetUltimateValueColor(current, hotbar)
+  local baseColor = FancyActionBar.constants.ult.value.color;
+  local thresholdColor = FancyActionBar.constants.ult.value.usableThresholdColor;
+  local usableColor = FancyActionBar.constants.ult.value.usableColor;
+  local maxColor = FancyActionBar.constants.ult.value.maxColor;
+  local threshold = FancyActionBar.constants.ult.value.threshold;
+  local ultAbilityid = FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, hotbar);
+  local incap = 113105;
+  local cost = 0;
+  if ultAbilityid > 0 then
+    if ultAbilityid == incap
+    then
+      ultAbilityid = 70;
+    else
+      cost = GetAbilityCost(ultAbilityid, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag);
+    end;
+  end;
+  if current == 500 then
+    return maxColor;
+  elseif current >= cost then
+    return usableColor;
+  elseif (current / cost) >= threshold then
+    return thresholdColor;
+  else
+    return baseColor;
+  end;
+end;
 --------------------------------------------------------------------------------
 -----------------------------[ 		Configuration    ]----------------------------
 --------------------------------------------------------------------------------
@@ -2975,28 +3014,31 @@ local lastCW = 0; -- track when last crystal weapon debuff was applied
 
 function FancyActionBar.HandleSpecial(id, change, updateTime, beginTime, endTime, unitTag, unitId)
   if FancyActionBar.specialEffects[id] then
-    FancyActionBar.HandleSpecialEffect(id, change, updateTime, endTime);
+    FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, endTime);
   else
     FancyActionBar.HandleOldSystemEffect(id, change, updateTime, beginTime, endTime);
   end;
 end;
 
-function FancyActionBar.HandleSpecialEffect(id, change, updateTime, endTime)
+function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, endTime)
   local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
-  if specialEffect.isReflect then
+  if specialEffect.handler then
+    if specialEffect.handler == "device" then
+      FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime);
+    end;
     return;
   end;
 
   for effectId, effect in pairs(FancyActionBar.effects) do
     if effect.id == specialEffect.id then
-      FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, endTime);
+      FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime);
       FancyActionBar.UpdateEffect(effect);
       FancyActionBar.HandleStackUpdate(effect.id);
     end;
   end;
 end;
 
-function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, endTime)
+function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime)
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     effect.beginTime = updateTime;
     effect.endTime = updateTime + ((specialEffect.fixedTime and specialEffect.duration) or (change == EFFECT_RESULT_GAINED and (GetAbilityDuration(specialEffect.id) / 1000)) or effect.duration or 0);
@@ -3046,16 +3088,9 @@ end;
 function FancyActionBar.GetOldSystemEffect(id, change, updateTime, beginTime, endTime)
   local effect, update = nil, true;
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-    if id == 46331 then
-      effect = FancyActionBar.effects[id];
-      effect.stackId = { id };
-      effect.endTime = endTime;
-      FancyActionBar.stacks[effect.id] = 2;
-    elseif FancyActionBar.meteor[id] then
+    if FancyActionBar.meteor[id] then
       effect = FancyActionBar.effects[FancyActionBar.meteor[id]];
       effect.stackId = { FancyActionBar.meteor[id] };
-    elseif FancyActionBar.frozen[id] then
-      effect = FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime);
     elseif id == 37475 then
       effect = FancyActionBar.effects[id];
       effect.stackId = { id };
@@ -3066,52 +3101,44 @@ function FancyActionBar.GetOldSystemEffect(id, change, updateTime, beginTime, en
       end;
     end;
   elseif change == EFFECT_RESULT_FADED then
-    if id == 46331 then
-      effect = FancyActionBar.effects[id];
-      effect.stackId = { id };
-      effect.endTime = updateTime;
-      FancyActionBar.stacks[effect.id] = 0;
-    end;
   end;
   return effect, update;
 end;
 
 function FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
   local effect = FancyActionBar.effects[id];
-  effect.stackId = { id };
-  if effect.endTime == 0 or not FancyActionBar.stacks[id] then
-    return nil;
-  end;
-
   local faded, fadeTime = 0, 0;
-  for i = 1, #fdStacks do
-    if fdStacks[i] == beginTime then
-      faded = i;
-      fdStacks = 0;
-    else
-      if fdStacks[i] > fadeTime then
-        fadeTime = fdStacks[i];
+  if effect then
+    for i = 1, #fdStacks do
+      if fdStacks[i] == beginTime then
+        faded = i;
+        fdStacks = 0;
+      else
+        if fdStacks[i] > fadeTime then
+          fadeTime = fdStacks[i];
+        end;
+      end;
+      if faded > 0 and i > faded then
+        fdStacks[i - 1] = fdStacks[i];
       end;
     end;
-    if faded > 0 and i > faded then
-      fdStacks[i - 1] = fdStacks[i];
-    end;
-  end;
 
-  fdNum = fdNum - 1;
-  if fdNum >= 1 then
-    if fadeTime + 15.5 > updateTime then
-      effect.endTime = fadeTime + 15.5;
-      FancyActionBar.stacks[id] = fdNum;
+    fdNum = fdNum - 1;
+    if fdNum >= 1 then
+      if fadeTime + 15.5 > updateTime then
+        effect.endTime = fadeTime + 15.5;
+        FancyActionBar.stacks[id] = fdNum;
+      else
+        FancyActionBar.stacks[id] = 0;
+        effect.endTime = endTime;
+      end;
     else
       FancyActionBar.stacks[id] = 0;
       effect.endTime = endTime;
     end;
-  else
-    FancyActionBar.stacks[id] = 0;
-    effect.endTime = endTime;
   end;
-  return effect;
+  FancyActionBar.UpdateEffect(effect);
+  FancyActionBar.HandleStackUpdate(effect.id);
 end;
 
 function FancyActionBar.RefreshEffects()
@@ -3970,7 +3997,7 @@ function FancyActionBar.Initialize()
   end;
 
   for id, effect in pairs(FancyActionBar.specialEffects) do
-    if effect.isReflect then
+    if effect.handler and (effect.handler == "reflect") then
       EM:RegisterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, OnReflect);
       EM:AddFilterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id);
     end;
@@ -4208,7 +4235,15 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
     if SV.applyActionBarSkillStyles == nil then SV.applyActionBarSkillStyles = d.applyActionBarSkillStyles; end;
     if SV.showCastDuration == nil then SV.showCastDuration = d.showCastDuration; end;
-
+    if SV.ultValueThresholdKB == nil then SV.ultValueThresholdKB = d.ultValueThresholdKB; end;
+    if SV.ultUsableThresholdColorKB == nil then SV.ultUsableThresholdColorKB = d.ultUsableThresholdColorKB; end;
+    if SV.ultUsableValueColorKB == nil then SV.ultUsableValueColorKB = d.ultUsableValueColorKB; end;
+    if SV.ultMaxValueColorKB == nil then SV.ultMaxValueColorKB = d.ultMaxValueColorKB; end;
+    if SV.ultValueThresholdGP == nil then SV.ultValueThresholdGP = d.ultValueThresholdGP; end;
+    if SV.ultUsableThresholdColorGP == nil then SV.ultUsableThresholdColorGP = d.ultUsableThresholdColorGP; end;
+    if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
+    if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
+    
     -- This corrects a bug in v2.6.3, remove in 2.6.5
     if SV.targetXFix == nil then
       SV.targetXKB = d.targetXKB;
