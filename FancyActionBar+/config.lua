@@ -260,9 +260,9 @@ FancyActionBar.abilityConfig =
   [31642] = { 48131 };  -- equilibrium (healing debuff)
   [40445] = { 48136 };  -- spell symmetry (healing debuff)
   [40441] = { 61694 };  -- balance (major resolve)
-  [16536] = {};         -- meteor
-  [40489] = {};         -- ice comet
-  [40493] = {};         -- shooting star
+  [16536] = { 63430 };  -- meteor
+  [40489] = { 63456 };  -- ice comet
+  [40493] = { 63473 };  -- shooting star
 
   -- Psijic Order
   [103488] = { 104050 }; -- time stop
@@ -964,7 +964,6 @@ FancyActionBar.stackMap =
   [222285] = FancyActionBar.contingency;
   [222678] = FancyActionBar.contingency;
 
-  -- StackMap for Old Special Effect System
   [63430] = { 63430, 16536 }; -- meteor
   [63456] = { 63456, 40489 };   -- ice comet
   [63473] = { 63473, 40493 };   -- shooting star
@@ -1211,17 +1210,6 @@ FancyActionBar.debuffIds =
   [183267] = { 145975 }; -- rune of the colorless pool (minor brittle)
 };
 
-FancyActionBar.specialIds =
-{
-  -- abilities that require a separate function to update correctly.
-  [16536] = true;  -- meteor called
-  [63430] = true;  -- meteor aoe
-  [40489] = true;  -- ice comet called
-  [63456] = true;  -- ice comet aoe
-  [40493] = true;  -- shooting star called
-  [63473] = true;  -- shooting star aoe
-};
-
 -- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
 FancyActionBar.tauntSkills =
 {
@@ -1317,6 +1305,11 @@ FancyActionBar.fakeClassEffects =
 --- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  handler?: string  }>
 FancyActionBar.specialEffects =
 {
+  [16536] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; };                                                                                                                                -- meteor
+  [63430] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; };                                                                                                                                -- meteor
+  [40489] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; };                                                                                                                                -- ice comet
+  [63456] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; };                                                                                                                                -- ice comet
+
   [35750] = { id = 35750; stackId = {35750}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
   [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
   [40372] = { id = 40372; stackId = {40372}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
@@ -1495,14 +1488,6 @@ FancyActionBar.guard =
     [61529] = true; -- stalwart guard
     [61536] = true; -- mystic guard
   };
-};
-
-FancyActionBar.meteor =
-{
-  -- same as traps; maybe combine both eventually.
-  [63430] = 16536; -- meteor
-  [63456] = 40489; -- ice comet
-  [63473] = 40493; -- shooting star
 };
 
 FancyActionBar.ignore =
