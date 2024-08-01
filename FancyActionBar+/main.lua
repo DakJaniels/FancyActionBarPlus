@@ -934,8 +934,8 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
         end;
       end;
       FancyActionBar.targets[id].targetCount = activeTargets;
+      return activeTargets;
     end;
-    return activeTargets;
   end;
   return 0;
 end;
@@ -1843,14 +1843,19 @@ function FancyActionBar.GetUltimateValueColor(current, hotbar)
   local ultAbilityid = FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, hotbar);
   local incap = 113105;
   local cost = 0;
-  if ultAbilityid > 0 then
+  if ultAbilityid and (ultAbilityid > 0) then
     if ultAbilityid == incap
     then
       ultAbilityid = 70;
     else
       cost = GetAbilityCost(ultAbilityid, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag);
     end;
+  else
+    return baseColor;
   end;
+  if cost == 0 then
+    return baseColor;
+  end
   if current == 500 then
     return maxColor;
   elseif current >= cost then
