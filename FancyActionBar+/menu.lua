@@ -1192,9 +1192,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     type = "panel";
     name = "Fancy Action Bar+";
     displayName = "Fancy Action Bar+";
-    author = "|cFFFF00@andy.s|r - modified by @nogetrandom, @dack_janiels, @Incanus";
+    author = "|cFFFF00@andy.s|r, @nogetrandom\nModified by: @dack_janiels, @Incanus";
     version = string.format("|c00FF00%s|r", FancyActionBar.GetVersion());
-    donation = "https://www.esoui.com/downloads/info2311-HodorReflexes-DPSampUltimateShare.html#donate";
     registerForRefresh = true;
   };
   local FAB_Panel = LAM:RegisterAddonPanel(name, panel);
