@@ -1704,6 +1704,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
+        { type = "divider" },
+        {
+          type = "description";
+          title = "[ |cffdf80Miscellaneous|r ]";
+          text = "Additional Miscellaneous Options.";
+          width = "full";
+        },
         {
           type = "checkbox";
           name = "Show gamepad ult hotkeys";
@@ -1716,9 +1723,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.AdjustUltimateSpacing();
           end;
           disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
-          width = "half";
+          width = "full";
         },
-        { type = "divider" },
         --=============[  Skill Styles  ]==================
         {
           type = "checkbox";
@@ -1820,19 +1826,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.fontTypeKB;
                 },
                 {
-                  type = "colorpicker";
-                  name = "Timer color";
-                  default = ZO_ColorDef:New(unpack(defaults.timeColorKB));
-                  getFunc = function () return unpack(SV.timeColorKB); end;
-                  setFunc = function (r, g, b)
-                    SV.timeColorKB = { r, g, b };
-                    if FancyActionBar.style == 1 then FancyActionBar.constants.duration.color = SV.timeColorKB; end;
-                  end;
-                  width = "half";
-                },
-                {
                   type = "slider";
-                  name = "Adjust timer hight";
+                  name = "Adjust timer height";
                   tooltip = "Move timer [<- down] or [up ->]";
                   default = defaults.timeYKB;
                   min = -15;
@@ -1845,6 +1840,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                       FancyActionBar.constants.duration.y = value;
                       FancyActionBar.AdjustTimerY();
                     end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Timer color";
+                  default = ZO_ColorDef:New(unpack(defaults.timeColorKB));
+                  getFunc = function () return unpack(SV.timeColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.timeColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then FancyActionBar.constants.duration.color = SV.timeColorKB; end;
                   end;
                   width = "half";
                 },
@@ -1910,17 +1916,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.fontTypeStackKB;
                 },
                 {
-                  type = "colorpicker";
-                  name = "Stack color";
-                  default = ZO_ColorDef:New(unpack(defaults.stackColorKB));
-                  getFunc = function () return unpack(SV.stackColorKB); end;
-                  setFunc = function (r, g, b)
-                    SV.stackColorKB = { r, g, b };
-                    if FancyActionBar.style == 1 then FancyActionBar.constants.stacks.color = SV.stackColorKB; end;
-                  end;
-                  width = "half";
-                },
-                {
                   type = "slider";
                   name = "Adjust stacks position";
                   tooltip = "Move stacks [<- left] or [right ->]";
@@ -1935,6 +1930,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                       FancyActionBar.constants.stacks.x = value;
                       FancyActionBar.AdjustStackX();
                     end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "colorpicker";
+                  name = "Stack color";
+                  default = ZO_ColorDef:New(unpack(defaults.stackColorKB));
+                  getFunc = function () return unpack(SV.stackColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.stackColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then FancyActionBar.constants.stacks.color = SV.stackColorKB; end;
                   end;
                   width = "half";
                 },
@@ -2000,17 +2006,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.fontTypeTargetKB;
                 },
                 {
-                  type = "colorpicker";
-                  name = "Target color";
-                  default = ZO_ColorDef:New(unpack(defaults.targetColorKB));
-                  getFunc = function () return unpack(SV.targetColorKB); end;
-                  setFunc = function (r, g, b)
-                    SV.targetColorKB = { r, g, b };
-                    if FancyActionBar.style == 1 then FancyActionBar.constants.targets.color = SV.targetColorKB; end;
-                  end;
-                  width = "half";
-                },
-                {
                   type = "slider";
                   name = "Adjust targets position";
                   tooltip = "Move targets [<- left] or [right ->]";
@@ -2028,6 +2023,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   end;
                   width = "half";
                 },
+                {
+                  type = "colorpicker";
+                  name = "Target color";
+                  default = ZO_ColorDef:New(unpack(defaults.targetColorKB));
+                  getFunc = function () return unpack(SV.targetColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.targetColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then FancyActionBar.constants.targets.color = SV.targetColorKB; end;
+                  end;
+                  width = "half";
+                },
               };
             },
 
@@ -2039,7 +2045,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               {
                 {
                   type = "checkbox";
-                  name = "Display ultimate Timer";
+                  name = "Display Ultimate Timer";
                   default = defaults.ultShowKB;
                   getFunc = function () return SV.ultShowKB; end;
                   setFunc = function (value)
@@ -2612,7 +2618,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Adjust timer hight";
+                  name = "Adjust timer height";
                   tooltip = "Move timer [<- down] or [up ->]";
                   default = defaults.timeYGP;
                   min = -15;
@@ -2831,12 +2837,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             --============[ Gamepad Ultimate  ]====================
             {
               type = "submenu";
-              name = "|cFFFACDultimate display settings|r";
+              name = "|cFFFACUltimate Timer Settings|r";
               controls =
               {
                 {
                   type = "checkbox";
-                  name = "Display ultimate Timer";
+                  name = "Display Ultimate Timer";
                   default = defaults.ultShowGP;
                   getFunc = function () return SV.ultShowGP; end;
                   setFunc = function (value)
@@ -3475,7 +3481,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             { type = "description"; text = ""; width = "full" },
 
             --============[	Expiring Highlight Color	]=========
-            { type = "description"; title = "[ |cffdf80HighLight|r ]"; width = "full";
+            { type = "description"; title = "[ |cffdf80Highlight|r ]"; width = "full";
             },
             {
               type = "checkbox";
@@ -3912,7 +3918,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             {
               type = "checkbox";
               name = "Show Cast/Channel Times on Action Slots";
-              tooltip = "If abilities that have a cast or channel time will display that duration on the slot while the ability is being cast/channeled.";
+              tooltip = "If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled.";
               default = defaults.showCastDuration;
               getFunc = function () return SV.showCastDuration; end;
               setFunc = function (value) SV.showCastDuration = value or false; end;
