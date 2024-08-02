@@ -1434,9 +1434,9 @@ FancyActionBar.toggled =
   -- effects with no duration are discarded for tracking.
   -- add exceptions for toggles here.
   -- Werewolf
-  [32455] = true; -- Werewolf Transformation
-  [39075] = true; -- Pack Leader
-  [39076] = true; -- Werewolf Berserker
+  --[32455] = true; -- Werewolf Transformation
+  --[39075] = true; -- Pack Leader
+  --[39076] = true; -- Werewolf Berserker
 
   -- Vampire
   [132141] = true; -- Blood Frenzy
@@ -1464,9 +1464,9 @@ FancyActionBar.toggled =
   [81420] = true; -- Link active
 
   -- Sorcerer
-  -- [24785] = true; -- Overload
-  -- [24806] = true; -- Energy Overload
-  -- [24804] = true; -- Power Overload
+  [24785] = true; -- Overload
+  [24806] = true; -- Energy Overload
+  [24804] = true; -- Power Overload
 };
 
 FancyActionBar.graveLordSacrifice =

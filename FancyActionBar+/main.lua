@@ -232,7 +232,7 @@ local isChanneling = false;     -- for tracking channeling abilities
 local wasBlockActive = false;   -- for tracking block state
 local uiModeChanged = false;    -- don't change configuration if not needed
 local hideCompanionUlt = false; -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
-local activeUltEndTime = 0;     -- for tracking ultimate duration across barswap
+local activeUlt = {id = 0, endTime = 0};     -- for tracking ultimate duration across barswap
 
 local guardId = 0;              -- sync active id for guard on both bars as active and inactive are different
 local cost1;
@@ -1316,12 +1316,31 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
 
     if effect then
       local t = time();
-      local ultEndTime = effect.endTime;
-      if index == ULT_INDEX or index == ULT_INDEX + SLOT_INDEX_OFFSET then
-        activeUltEndTime = (effect.endTime and (effect.endTime > activeUltEndTime) and effect.endTime) or activeUltEndTime;
-        ultEndTime = activeUltEndTime;
+      local duration, ultEndTime, instantFade;
+
+      -- Update activeUlt table if new effect is longer
+      if (not effect.toggled) and (not effect.passive) and (effect.endTime > t) and (activeUlt.endTime < t) then
+        activeUlt.id = effect.id;
+        activeUlt.endTime = effect.endTime;
+        activeUlt.instantFade = effect.instantFade;
       end;
-      local duration = ultEndTime - t;
+
+      -- Set ultEndTime based on visibility and fade delay conditions
+      if effect.id == activeUlt.id then
+        -- If the effect is the active one, use its end time
+        ultEndTime = effect.endTime;
+        instantFade = effect.instantFade;
+      elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > t - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
+        -- If the effect is not the active one but meets fade delay conditions, use its end time
+        ultEndTime = effect.endTime;
+        instantFade = effect.instantFade;
+      else
+        -- Otherwise, use the activeUlt's end time
+        ultEndTime = activeUlt.endTime;
+        instantFade = activeUlt.instantFade;
+      end;
+
+      duration = ultEndTime - t;
       if duration > -2 then
         if duration > 0 then
           if (showDecimal and (duration <= showDecimalStart))
@@ -1337,7 +1356,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
             durationControl:SetColor(unpack(timerColor));
           end;
         else
-          if (SV.delayFade and not effect.instantFade) then
+          if (SV.delayFade and not instantFade) then
             local delayEnd = (ultEndTime + SV.fadeDelay) - t;
             if delayEnd > 0
             then
@@ -1651,7 +1670,7 @@ function FancyActionBar.EffectCheck()
       zo_callLater(function () FancyActionBar.ReCheckSpecialEffect(effect); end, (effect.endTime - checkTime) * 1000);
     else
       local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
-      doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks > 0 and true;
+      doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true;
       if hasEffect then
         effect.endTime = checkTime + duration;
       end;
@@ -1659,7 +1678,7 @@ function FancyActionBar.EffectCheck()
       for i = 1, #effect.stackId do
         local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
         FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
-        doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks > 0 and true;
+        doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks ~= 0 and true;
       end;
       if doStackUpdate then
         FancyActionBar.HandleStackUpdate(effect.id);
@@ -1677,8 +1696,8 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
   if specialEffect and specialEffect.isReflect then return; end;
   if SV.advancedDebuff and specialEffect.isSpecialDebuff then return; end;
   local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
-  if (stacks > 0) or (specialEffect.stacks and specialEffect.stacks > 0) then
-    stacks = (stacks > 0) and stacks or 0;
+  if (stacks ~= 0) or (specialEffect.stacks and specialEffect.stacks ~= 0) then
+    stacks = (stacks ~= 0) and stacks or 0;
     effect.stacks = stacks;
     effect.endTime = checkTime + duration;
     FancyActionBar.stacks[effect.id] = stacks;
@@ -2927,7 +2946,7 @@ function FancyActionBar.PostEffectUpdate(name, id, change, duration, stacks, whe
     type = "Updated";
   end;
   local stack = ".";
-  if (stacks ~= nil and stacks > 0) then stack = " (x" .. stacks .. ")."; end;
+  if (stacks ~= nil and stacks ~= 0) then stack = " (x" .. stacks .. ")."; end;
   FancyActionBar:dbg("[<<2>> (<<3>>)] <<1>>: <<4>><<5>>", type, name, id, strformat("%0.1fs", duration), stack);
 end;
 
@@ -2970,7 +2989,7 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
     dur = 0;
   end;
 
-  if stacks and stacks > 0
+  if stacks and stacks ~= 0
   then
     s = " x" .. ts(stacks) .. ".";
   else
