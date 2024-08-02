@@ -1317,29 +1317,32 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     if effect then
       local t = time();
       local duration, ultEndTime, instantFade;
+      if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET then
+        -- Update activeUlt table if new effect is longer
+        if (not effect.toggled) and (not effect.passive) and (effect.endTime > t) and (activeUlt.endTime < t) then
+          activeUlt.id = effect.id;
+          activeUlt.endTime = effect.endTime;
+          activeUlt.instantFade = effect.instantFade;
+        end;
 
-      -- Update activeUlt table if new effect is longer
-      if (not effect.toggled) and (not effect.passive) and (effect.endTime > t) and (activeUlt.endTime < t) then
-        activeUlt.id = effect.id;
-        activeUlt.endTime = effect.endTime;
-        activeUlt.instantFade = effect.instantFade;
-      end;
-
-      -- Set ultEndTime based on visibility and fade delay conditions
-      if effect.id == activeUlt.id then
-        -- If the effect is the active one, use its end time
-        ultEndTime = effect.endTime;
-        instantFade = effect.instantFade;
-      elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > t - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
-        -- If the effect is not the active one but meets fade delay conditions, use its end time
-        ultEndTime = effect.endTime;
-        instantFade = effect.instantFade;
+        -- Set ultEndTime based on visibility and fade delay conditions
+        if effect.id == activeUlt.id then
+          -- If the effect is the active one, use its end time
+          ultEndTime = effect.endTime;
+          instantFade = effect.instantFade;
+        elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > t - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
+          -- If the effect is not the active one but meets fade delay conditions, use its end time
+          ultEndTime = effect.endTime;
+          instantFade = effect.instantFade;
+        else
+          -- Otherwise, use the activeUlt's end time
+          ultEndTime = activeUlt.endTime;
+          instantFade = activeUlt.instantFade;
+        end;
       else
-        -- Otherwise, use the activeUlt's end time
-        ultEndTime = activeUlt.endTime;
-        instantFade = activeUlt.instantFade;
+        ultEndTime = effect.endTime;
+        instantFade = effect.instantFade;
       end;
-
       duration = ultEndTime - t;
       if duration > -2 then
         if duration > 0 then
