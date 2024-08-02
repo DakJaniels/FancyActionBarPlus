@@ -232,7 +232,7 @@ local isChanneling = false;     -- for tracking channeling abilities
 local wasBlockActive = false;   -- for tracking block state
 local uiModeChanged = false;    -- don't change configuration if not needed
 local hideCompanionUlt = false; -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
-local activeUlt = {id = 0, endTime = 0};     -- for tracking ultimate duration across barswap
+local activeUlt = {id = 0, endTime = -1};     -- for tracking ultimate duration across barswap
 
 local guardId = 0;              -- sync active id for guard on both bars as active and inactive are different
 local cost1;
@@ -1303,8 +1303,8 @@ end;
 
 function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
   local overlay = FancyActionBar.ultOverlays[index];
-  if overlay then
-    local effect = overlay.effect;
+  if overlay or activeUlt then
+    local effect = overlay.effect or {id = 0, endTime = -1};
     local durationControl = overlay:GetNamedChild("Duration");
     -- local timerColor = IsInGamepadPreferredMode() and SV.ultColorGP or SV.ultColorKB
     local timerColor = FancyActionBar.constants.ult.duration.color;
@@ -1314,65 +1314,60 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
       return;
     end;
 
-    if effect then
-      local t = time();
-      local duration, ultEndTime, instantFade;
-      if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET then
-        -- Update activeUlt table if new effect is longer
-        if (not effect.toggled) and (not effect.passive) and (effect.endTime > t) and (activeUlt.endTime < t) then
-          activeUlt.id = effect.id;
-          activeUlt.endTime = effect.endTime;
-          activeUlt.instantFade = effect.instantFade;
-        end;
+    local t = time();
+    local duration, ultEndTime, instantFade;
+    if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET then
+      -- Update activeUlt table if new effect is longer
+      if (not effect.toggled) and (not effect.passive) and (activeUlt.endTime < effect.endTime) then
+        activeUlt.id = effect.id;
+        activeUlt.endTime = effect.endTime;
+        activeUlt.instantFade = effect.instantFade;
+      end;
 
-        -- Set ultEndTime based on visibility and fade delay conditions
-        if effect.id == activeUlt.id then
-          -- If the effect is the active one, use its end time
-          ultEndTime = effect.endTime;
-          instantFade = effect.instantFade;
-        elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > t - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
-          -- If the effect is not the active one but meets fade delay conditions, use its end time
-          ultEndTime = effect.endTime;
-          instantFade = effect.instantFade;
-        else
-          -- Otherwise, use the activeUlt's end time
-          ultEndTime = activeUlt.endTime;
-          instantFade = activeUlt.instantFade;
-        end;
-      else
+      if effect.id == activeUlt.id then
+        activeUlt.endTime = effect.endTime;
         ultEndTime = effect.endTime;
         instantFade = effect.instantFade;
+      elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > t - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
+        -- If the effect is not the active one but meets fade delay conditions, use its end time
+        ultEndTime = effect.endTime;
+        instantFade = effect.instantFade;
+      else
+        -- Otherwise, use the activeUlt's end time
+        ultEndTime = activeUlt.endTime;
+        instantFade = activeUlt.instantFade;
       end;
-      duration = ultEndTime - t;
-      if duration > -2 then
-        if duration > 0 then
-          if (showDecimal and (duration <= showDecimalStart))
-          then
-            durationControl:SetText(strformat("%0.1f", zo_max(0, duration)));
-          else
-            durationControl:SetText(zo_max(0, zo_ceil(duration)));
-          end;
-
-          if (duration <= SV.showExpireStart) then
-            if (SV.showExpire) then durationControl:SetColor(unpack(SV.expireColor)); end;
-          else
-            durationControl:SetColor(unpack(timerColor));
-          end;
+    else
+      ultEndTime = effect.endTime;
+      instantFade = effect.instantFade;
+    end;
+    duration = ultEndTime - t;
+    if duration > -2 then
+      if duration > 0 then
+        if (showDecimal and (duration <= showDecimalStart))
+        then
+          durationControl:SetText(strformat("%0.1f", zo_max(0, duration)));
         else
-          if (SV.delayFade and not instantFade) then
-            local delayEnd = (ultEndTime + SV.fadeDelay) - t;
-            if delayEnd > 0
-            then
-              durationControl:SetText(zo_max(0, zo_ceil(duration)));
-            else
-              durationControl:SetText("");
-            end;
+          durationControl:SetText(zo_max(0, zo_ceil(duration)));
+        end;
+
+        if (duration <= SV.showExpireStart) then
+          if (SV.showExpire) then durationControl:SetColor(unpack(SV.expireColor)); end;
+        else
+          durationControl:SetColor(unpack(timerColor));
+        end;
+      else
+        if (SV.delayFade and not instantFade) then
+          local delayEnd = (ultEndTime + SV.fadeDelay) - t;
+          if delayEnd > 0
+          then
+            durationControl:SetText(zo_max(0, zo_ceil(duration)));
           else
             durationControl:SetText("");
           end;
+        else
+          durationControl:SetText("");
         end;
-      else
-        durationControl:SetText("");
       end;
     else
       durationControl:SetText("");
@@ -3469,10 +3464,8 @@ function FancyActionBar.Initialize()
             end;
           end;
         else
-          if not effect.custom and effect.duration then
-            effect.endTime = effect.duration + t;
+          if effect.duration and not effect.custom then
             dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000);
-            FancyActionBar.UpdateEffect(effect);
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
             if not specialEffect.onAbilityUsed then return; end;
