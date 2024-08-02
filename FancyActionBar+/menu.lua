@@ -4052,7 +4052,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "description";
           title = "[ |cffdf80Enemy Markers|r ]";
-          text = "yes.. I completely stole this from Untaunted.";
+          text = "This replicates a similar feature found in the Untaunted addon.";
           width = "full";
         },
         {
