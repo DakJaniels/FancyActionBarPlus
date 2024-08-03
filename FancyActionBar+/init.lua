@@ -110,7 +110,7 @@ FancyActionBar.defaultSettings =
   ultYKB = 0;
   ultColorKB = { 1, 1, 1 };
   -- ult value
-  ultValueEnableKB = false;
+  ultValueEnableKB = true;
   ultValueModeKB = 1;
   ultValueNameKB = "Univers 67";
   ultValueSizeKB = 20;
@@ -165,7 +165,7 @@ FancyActionBar.defaultSettings =
   ultimateSlotCustomXOffset = 0;
   ultimateSlotCustomYOffset = 0;
   -- ult value
-  ultValueEnableGP = false;
+  ultValueEnableGP = true;
   ultValueModeGP = 1;
   ultValueNameGP = "Univers 67";
   ultValueSizeGP = 22;
