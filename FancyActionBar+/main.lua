@@ -3848,7 +3848,6 @@ function FancyActionBar.Initialize()
     end;
 
     local specialEffect = FancyActionBar.specialEffects[aId];
-    if not specialEffect.isReflect then return; end;
     local reflectStacks = specialEffect.stackId[1];
 
     if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
