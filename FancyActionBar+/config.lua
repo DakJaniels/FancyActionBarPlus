@@ -585,7 +585,7 @@ FancyActionBar.abilityConfig =
   [36943] = { 36947 };                       -- debilitate
   [36957] = { 36960 };                       -- crippling grasp
   [33319] = { 33319 };                       -- siphoning strikes
-  [36908] = { 36908 };                       -- leeching strikes
+  [36908] = { 215672 };                      -- leeching strikes
   [36935] = { 36935 };                       -- siphoning attacks
   [33316] = { 61665 };                       -- drain power
   [36901] = { 61665 };                       -- power extraction
@@ -907,6 +907,7 @@ FancyActionBar.stackMap =
   [117625] = { 117625, 117624, 123699, 123704 }; -- venom skull
   [125749] = { 125750 }; -- ruinous scythe
 
+  -- Crux
   [184220] =
   {
     184220, -- crux
@@ -940,6 +941,13 @@ FancyActionBar.stackMap =
     198564, -- chakram of destiny
     186209, -- tidal chakram
     198567, -- tidal chakram
+  };
+
+  -- Leeching Strikes
+  [215672] =
+  {
+    215672, -- Leeching Strikes Cost Reduction
+    36908,  -- Leeching Strikes
   };
 
   -- Healing Springs Mag Recovey
