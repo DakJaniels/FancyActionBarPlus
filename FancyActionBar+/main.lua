@@ -3623,6 +3623,7 @@ function FancyActionBar.Initialize()
         end;
         FancyActionBar.UpdateEffect(effect);
       elseif (change == EFFECT_RESULT_FADED) then
+        local hasActiveTargets = false;
         if FancyActionBar.targets[effect.id] then
           local targetData = FancyActionBar.targets[effect.id];
           targetData.times[unitId] = nil;
@@ -3630,13 +3631,11 @@ function FancyActionBar.Initialize()
           local targetCount = FancyActionBar.CheckTargetEndtimes(effect.id);
           FancyActionBar.HandleTargetUpdate(effect.id);
           if targetCount >= 1 then
-            return;
+            hasActiveTargets = true;
           end;
         end;
 
         if FancyActionBar.IsGroupUnit(unitTag) then return; end; -- don't track anything on group members.
-
-
 
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
@@ -3644,6 +3643,8 @@ function FancyActionBar.Initialize()
           FancyActionBar.stacks[stackableBuffId] = stackCount;
           FancyActionBar.HandleStackUpdate(stackableBuffId);
         end;
+
+        if hasActiveTargets then return; end;
 
         if effect.instantFade or FancyActionBar.removeInstantly[effect.id] then -- abilities we want to reset the overlay instantly for when expired.
           effect.endTime = endTime;
