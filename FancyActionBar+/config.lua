@@ -1734,7 +1734,9 @@ FancyActionBar.stackableBuff =
   [61505] = 61506;
   [61506] = 61506;
 
-};
+  -- Radiating Regen
+  [40079] = 40079;
+ };
 
 FancyActionBar.confirmBuffFade =
 {
