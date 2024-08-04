@@ -1927,7 +1927,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Adjust stacks horizonal position";
+                  name = "Horizonal position";
                   tooltip = "Move stacks [<- left] or [right ->]";
                   default = defaults.stackXKB;
                   min = 0;
@@ -1945,7 +1945,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Adjust stacks vertical position";
+                  name = "Vertical position";
                   tooltip = "Move stacks [<- up] or [down ->]";
                   default = defaults.stackYKB;
                   min = 0;
