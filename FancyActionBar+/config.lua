@@ -1327,14 +1327,14 @@ FancyActionBar.specialEffects =
   [40465] = { id = 40465; stackId = {40465}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
   [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Scalding Rune DOT
 
-  [28727] = { id = 28727; stackId = {28727}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive posture
-  [126604] = { id = 28727; stackId = {28727}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive posture
+  [28727] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- defensive posture
+  [126604] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                      -- defensive posture
 
-  [38312] = { id = 38312; stackId = {38312}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- defensive stance
-  [126608] = { id = 38312; stackId = {38312}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                      -- defensive stance
+  [38312] = { id = 38312; stackId = {38312}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- defensive stance
+  [126608] = { id = 38312; stackId = {38312}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                      -- defensive stance
 
-  [38317] = { id = 38317; stackId = {38317}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
-  [38324] = { id = 38317; stackId = {38317}; stacks = 1; isReflect = true; onAbilityUsed = true; };                                                                                                       -- absorb missile
+  [38317] = { id = 38317; stackId = {38317}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- absorb missile
+  [38324] = { id = 38317; stackId = {38317}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- absorb missile
 };
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number

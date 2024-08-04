@@ -3059,7 +3059,7 @@ end;
 function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, unitId, stackCount)
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     effect.beginTime = updateTime;
-    effect.endTime = updateTime + ((specialEffect.fixedTime and specialEffect.duration) or (change == EFFECT_RESULT_GAINED and (GetAbilityDuration(specialEffect.id) / 1000)) or effect.duration or 0);
+    effect.endTime = (specialEffect.fixedTime and (specialEffect.duration + updateTime)) or endTime;
     if specialEffect.stacks then
       FancyActionBar.stacks[specialEffect.stackId[1]] = specialEffect.stacks;
     elseif effect.stackId and #effect.stackId > 0 and stackCount then
