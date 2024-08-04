@@ -365,8 +365,8 @@ FancyActionBar.abilityConfig =
   [32715] = { 61814 };  -- ferocious leap
   -- [31816] = false; -- ignore stone giant
   [29032] = { 29032 };  -- { 133027 }; -- track stagger
-  [31816] = { 31816 };  -- { 133027 }; -- track stagger
-  [133027] = { 31816 }; -- track stone giant
+  -- [31816] = { 31816 };  -- { 133027 }; -- track stagger
+  -- [133027] = { 31816 }; -- track stone giant
   -- [29032] = false; -- don't track stonefist
   -- [31816] = { 134336 }; -- track stagger instead
   -- [133027] = { 134336 }; -- track stagger
@@ -894,7 +894,7 @@ FancyActionBar.stackMap =
   };
 
   [29032] = { 29032 };   -- Stone Fist (stacks on self)
-  [31816] = { 31816 }; -- Stone Giant (stacks on self)
+  [31816] = { 31816, 133027 }; -- Stone Giant (stacks on self)
 
   -- Seething Fury
   [122658] =
@@ -1140,11 +1140,11 @@ FancyActionBar.debuffIds =
   [20245] = { 20527 }; -- dark talons
   [20251] = { 61723 }; -- choking talons (minor maim)
   [20252] = { 31898 }; -- burning talons
-  -- [133027] = {  31816 }; -- track stone giant
+  [133027] = { 31816 }; -- track stone giant
   -- [31816] = { 133027 }; -- track stagger
   [29032] = false;       -- don't track stonefist
-  [31816] = { 134336 };  -- track stagger instead
-  [133027] = { 134336 }; -- track stagger
+  --[31816] = { 134336 };  -- track stagger instead
+  --[133027] = { 134336 }; -- track stagger
   [29037] = {};          -- pretrify
   [32678] = {};          -- shattering rocks
   [32685] = {};          -- fossilize
@@ -1353,7 +1353,13 @@ FancyActionBar.specialEffectProcs =
 -- Class Specific Effects Processed through the FancyActionBar.HandleSpecial function
 FancyActionBar.specialClassEffects =
 {
-  --- effects tracked through the HandleSpecial function
+    --- effects tracked through the HandleSpecial function
+    -- Dragonknight
+    [1] =
+    {
+      --[31816] = { id = 31841; stackId = {31816};}; -- Stone Giant
+      --[133027] = { id = 133027; stackId = {31841};}; -- Stone Giant
+    };
   -- Sorcerer
   [2] =
   {

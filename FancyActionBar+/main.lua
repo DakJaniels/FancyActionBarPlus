@@ -689,20 +689,6 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
     abilityConfig[id] = nil;
   end;
 
-  if id == 31816 then -- configure stone giant
-    abilityConfig[133027] = cfg;
-    if cI == 31816 then
-      FancyActionBar.stackMap[31816] = { 31816, cI };
-      FancyActionBar.stackMap[134336] = nil;
-    elseif cI == 134336 then
-      FancyActionBar.stackMap[31816] = nil;
-      FancyActionBar.stackMap[134336] = { 134336, cI };
-    else
-      FancyActionBar.stackMap[31816] = nil;
-      FancyActionBar.stackMap[134336] = nil;
-    end;
-  end;
-
   local currentSlots = {};
 
   for i = MIN_INDEX, MAX_INDEX + 1 do
@@ -1920,21 +1906,6 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 
   -- for id, cfg in pairs(FancyActionBar.abilityConfig) do
   -- local debuffs = FancyActionBar.constants.hideOnNoTargetList
-
-  if config[31816] then -- configure stone giant
-    config[133027] = config[31816];
-
-    if config[31816][1] == 31816 then
-      FancyActionBar.stackMap[31816] = { 31816, config[31816][1] };
-      FancyActionBar.stackMap[134336] = nil;
-    elseif config == 134336 then
-      FancyActionBar.stackMap[31816] = nil;
-      FancyActionBar.stackMap[134336] = { 134336, config[31816][1] };
-    else
-      FancyActionBar.stackMap[31816] = nil;
-      FancyActionBar.stackMap[134336] = nil;
-    end;
-  end;
 
   local parsedCustomConfig = {};
   for id, cfg in pairs(config) do
@@ -4253,7 +4224,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
     
     -- This corrects a bug in v2.6.8, remove in 2.7.0
-    if SV.alignmentFix == nil then
+    if SV.counterFix == nil then
       SV.stackXKB = d.stackXKB;
       SV.stackYKB = d.stackXKB;
       SV.targetXKB = d.targetXKB;
@@ -4263,7 +4234,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
       SV.targetXGP = d.targetXGP;
       SV.targetYGP = d.targetYGP;
       SV.alignmentFix = true;
-      SV.targetXFix = nil;
+      SV.counterFix = nil;
     end;
 
     SV.variablesValidated = true;

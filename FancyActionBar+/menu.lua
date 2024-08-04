@@ -145,11 +145,6 @@ local function IsValidId(id)
     return false;
   end;
 
-  if abilityId == 133027 then
-    Chat("Please use id |cffffff13816|r instead of |cffffff" .. abilityId .. "|r");
-    return false;
-  end;
-
   return true;
 end;
 ----------------------------------------------
@@ -593,25 +588,6 @@ local function GetChangedSkills()
 
   table.insert(skills, default);
 
-  for id, cfg in pairs(changes) do
-    if id ~= 133027 then -- ignore sencond id for stone giant
-      local str = GetAbilityName(id) .. " (";
-      if type(cfg) == "table" then
-        local a = cfg[1] or id;
-        str = str .. tostring(a) .. ")";
-      elseif cfg == true then
-        str = str .. tostring(id) .. ")";
-      elseif cfg == false then
-        str = str .. "Disabled)";
-      else
-        str = str .. "Not Tracked)";
-      end;
-
-      changedSkillStrings[id] = str;
-      changedSkillIds[str] = id;
-      table.insert(skills, str);
-    end;
-  end;
   return skills;
 end;
 
@@ -751,20 +727,12 @@ local function UpdateEffectForAbility(track, ability, effect)
     else
       CV.configChanges[ability] = config;
     end;
-    if ability == 31816 then
-      FancyActionBar.abilityConfig[133027] = FancyActionBar.abilityConfig[ability] or nil;
-      CV.configChanges[133027] = CV.configChanges[ability] or nil;
-    end;
   else
     SV.configChanges[ability] = config or FancyActionBar.abilityConfig[ability];
     if track == 1 then
       SV.configChanges[ability] = nil;
     else
       SV.configChanges[ability] = config;
-    end;
-    if ability == 31816 then
-      FancyActionBar.abilityConfig[133027] = FancyActionBar.abilityConfig[ability] or nil;
-      SV.configChanges[133027] = SV.configChanges[ability] or nil;
     end;
   end;
 
