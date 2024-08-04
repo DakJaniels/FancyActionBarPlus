@@ -94,12 +94,14 @@ FancyActionBar.defaultSettings =
   fontSizeStackKB = 20;
   fontTypeStackKB = "thick-outline";
   stackXKB = 37;
+  stackYKB = 1;
   stackColorKB = { 1, 0.8, 0 };
   -- targets
   fontNameTargetKB = "Univers 67";
   fontSizeTargetKB = 20;
   fontTypeTargetKB = "thick-outline";
   targetXKB = 3;
+  targetYKB = 1;
   targetColorKB = { 1, 0.8, 0 };
   -- ult duration
   ultShowKB = true;
@@ -147,12 +149,14 @@ FancyActionBar.defaultSettings =
   fontSizeStackGP = 22;
   fontTypeStackGP = "thick-outline";
   stackXGP = 37;
+  stackYGP = 1;
   stackColorGP = { 1, 0.8, 0 };
   -- targets
   fontNameTargetGP = "Univers 67";
   fontSizeTargetGP = 22;
   fontTypeTargetGP = "thick-outline";
   targetXGP = 3;
+  targetYGP = 1;
   targetColorGP = { 1, 0.8, 0 };
   -- ult
   ultShowGP = true;
@@ -386,6 +390,7 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         size = SV.fontSizeStackKB;
         outline = SV.fontTypeStackKB;
         x = SV.stackXKB;
+        y = SV.stackYKB;
         color = SV.stackColorKB;
       };
       targets =
@@ -394,6 +399,7 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         size = SV.fontSizeTargetKB;
         outline = SV.fontTypeTargetKB;
         x = SV.targetXKB;
+        y = SV.targetYKB;
         color = SV.targetColorKB;
       };
       ult =
@@ -472,6 +478,7 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         size = SV.fontSizeStackGP;
         outline = SV.fontTypeStackGP;
         x = SV.stackXGP;
+        y = SV.stackYGP;
         color = SV.stackColorGP;
       };
       targets =
@@ -480,6 +487,7 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         size = SV.fontSizeTargetGP;
         outline = SV.fontTypeTargetGP;
         x = SV.targetXGP;
+        y = SV.targetYGP;
         color = SV.targetColorGP;
       };
       ult =

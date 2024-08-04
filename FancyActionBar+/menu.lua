@@ -1915,8 +1915,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.fontTypeStackKB;
                 },
                 {
+                  type = "colorpicker";
+                  name = "Stack color";
+                  default = ZO_ColorDef:New(unpack(defaults.stackColorKB));
+                  getFunc = function () return unpack(SV.stackColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.stackColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then FancyActionBar.constants.stacks.color = SV.stackColorKB; end;
+                  end;
+                  width = "half";
+                },
+                {
                   type = "slider";
-                  name = "Adjust stacks position";
+                  name = "Adjust stacks horizonal position";
                   tooltip = "Move stacks [<- left] or [right ->]";
                   default = defaults.stackXKB;
                   min = 0;
@@ -1933,13 +1944,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   width = "half";
                 },
                 {
-                  type = "colorpicker";
-                  name = "Stack color";
-                  default = ZO_ColorDef:New(unpack(defaults.stackColorKB));
-                  getFunc = function () return unpack(SV.stackColorKB); end;
-                  setFunc = function (r, g, b)
-                    SV.stackColorKB = { r, g, b };
-                    if FancyActionBar.style == 1 then FancyActionBar.constants.stacks.color = SV.stackColorKB; end;
+                  type = "slider";
+                  name = "Adjust stacks vertical position";
+                  tooltip = "Move stacks [<- up] or [down ->]";
+                  default = defaults.stackYKB;
+                  min = 0;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.stackYKB; end;
+                  setFunc = function (value)
+                    SV.stackXKB = value;
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.stacks.y = value;
+                      FancyActionBar.AdjustStackY();
+                    end;
                   end;
                   width = "half";
                 },
@@ -2005,8 +2023,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   default = defaults.fontTypeTargetKB;
                 },
                 {
+                  type = "colorpicker";
+                  name = "Target color";
+                  default = ZO_ColorDef:New(unpack(defaults.targetColorKB));
+                  getFunc = function () return unpack(SV.targetColorKB); end;
+                  setFunc = function (r, g, b)
+                    SV.targetColorKB = { r, g, b };
+                    if FancyActionBar.style == 1 then FancyActionBar.constants.targets.color = SV.targetColorKB; end;
+                  end;
+                  width = "half";
+                },
+                {
                   type = "slider";
-                  name = "Adjust targets position";
+                  name = "Horizontal position";
                   tooltip = "Move targets [<- left] or [right ->]";
                   default = defaults.targetXKB;
                   min = 0;
@@ -2023,13 +2052,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   width = "half";
                 },
                 {
-                  type = "colorpicker";
-                  name = "Target color";
-                  default = ZO_ColorDef:New(unpack(defaults.targetColorKB));
-                  getFunc = function () return unpack(SV.targetColorKB); end;
-                  setFunc = function (r, g, b)
-                    SV.targetColorKB = { r, g, b };
-                    if FancyActionBar.style == 1 then FancyActionBar.constants.targets.color = SV.targetColorKB; end;
+                  type = "slider";
+                  name = "Vertical position";
+                  tooltip = "Move targets [<- up] or [down ->]";
+                  default = defaults.targetYKB;
+                  min = 0;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.targetYKB; end;
+                  setFunc = function (value)
+                    SV.targetXKB = value;
+                    if FancyActionBar.style == 1 then
+                      FancyActionBar.constants.targets.y = value;
+                      FancyActionBar.AdjustTargetY();
+                    end;
                   end;
                   width = "half";
                 },
@@ -2709,7 +2745,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Adjust stacks position";
+                  name = "Adjust stacks horizonatal position";
                   tooltip = "Move stacks [<- left] or [right ->]";
                   default = defaults.stackXGP;
                   min = 0;
@@ -2721,6 +2757,24 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     if FancyActionBar.style == 2 then
                       FancyActionBar.constants.stacks.x = value;
                       FancyActionBar.AdjustStackX();
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "slider";
+                  name = "Adjust stacks vetrtical position";
+                  tooltip = "Move stacks [<- up] or [down ->]";
+                  default = defaults.stackYGP;
+                  min = 0;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.stackYGP; end;
+                  setFunc = function (value)
+                    SV.stackYGP = value;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.stacks.y = value;
+                      FancyActionBar.AdjustStackY();
                     end;
                   end;
                   width = "half";
@@ -2801,7 +2855,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Adjust targets position";
+                  name = "Horizontal position";
                   tooltip = "Move targets [<- left] or [right ->]";
                   default = defaults.targetXGP;
                   min = 0;
@@ -2813,6 +2867,24 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     if FancyActionBar.style == 2 then
                       FancyActionBar.constants.targets.x = value;
                       FancyActionBar.AdjustTargetX();
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "slider";
+                  name = "Vertical position";
+                  tooltip = "Move targets [<- up] or [down ->]";
+                  default = defaults.targetYGP;
+                  min = 0;
+                  max = 40;
+                  step = 1;
+                  getFunc = function () return SV.targetYGP; end;
+                  setFunc = function (value)
+                    SV.targetXGP = value;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.constants.targets.y = value;
+                      FancyActionBar.AdjustTargetY();
                     end;
                   end;
                   width = "half";
@@ -3405,7 +3477,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.showDecimal; end;
               setFunc = function (value)
                 SV.showDecimal = value;
-                FancyActionBar.RefreshUpdateConfiguration();
+                FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration();
               end;
               width = "half";
             },
@@ -3423,7 +3495,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.showDecimalStart; end;
               setFunc = function (value)
                 SV.showDecimalStart = value;
-                FancyActionBar.RefreshUpdateConfiguration();
+                FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration();
               end;
               width = "half";
             },
@@ -4472,6 +4544,7 @@ end;
 
 function FancyActionBar.AdjustStackX()
   local stackX = FancyActionBar.constants.stacks.x;
+  local stackY = FancyActionBar.constants.stacks.y;
   -- so moving slider in setting will move stack the same direction
   local x = stackX - 40;
 
@@ -4480,13 +4553,34 @@ function FancyActionBar.AdjustStackX()
     local stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
-    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
+    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, stackX, stackY);
 
     overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
     stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
-    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, 0);
+    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, stackX, stackY);
+  end;
+end;
+
+function FancyActionBar.AdjustStackY()
+  local stackX = FancyActionBar.constants.stacks.x;
+  local stackY = FancyActionBar.constants.stacks.y;
+  local x = stackX - 40;
+  -- so moving slider in setting will move stack the same direction
+
+  for i = MIN_INDEX, MAX_INDEX do
+    local overlay = FancyActionBar.overlays[i];
+    local stack = overlay:GetNamedChild("Stacks");
+
+    stack:ClearAnchors();
+    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY);
+
+    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    stack = overlay:GetNamedChild("Stacks");
+
+    stack:ClearAnchors();
+    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY);
   end;
 end;
 
@@ -4517,6 +4611,7 @@ end;
 
 function FancyActionBar.AdjustTargetX()
   local targetX = FancyActionBar.constants.targets.x;
+  local targetY = FancyActionBar.constants.targets.y;
   -- so moving slider in setting will move target the same direction
 
   for i = MIN_INDEX, MAX_INDEX do
@@ -4524,13 +4619,33 @@ function FancyActionBar.AdjustTargetX()
     local target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
-    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, 0);
+    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY);
 
     overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
     target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
-    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, 0);
+    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY);
+  end;
+end;
+
+function FancyActionBar.AdjustTargetY()
+  local targetX = FancyActionBar.constants.targets.x;
+  local targetY = FancyActionBar.constants.targets.y;
+  -- so moving slider in setting will move target the same direction
+
+  for i = MIN_INDEX, MAX_INDEX do
+    local overlay = FancyActionBar.overlays[i];
+    local target = overlay:GetNamedChild("Targets");
+
+    target:ClearAnchors();
+    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY);
+
+    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    target = overlay:GetNamedChild("Targets");
+
+    target:ClearAnchors();
+    target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY);
   end;
 end;
 

@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.6.7";
+local VERSION = "2.6.8";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -198,6 +198,7 @@ FancyActionBar.constants =
     y = 0;
   };
   style = {};
+  update = {}
 };
 -------------------------------------------------------------------------------
 -----------------------------[    Tables    ]----------------------------------
@@ -221,8 +222,6 @@ local CV;                       -- saved variables (character)
 local debug = false;            -- debug mode
 
 local scale;                    -- default or custom scale of the action bar to use
-local showDecimal;              -- setting for decimals from very early versions. TODO: add to constants
-local showDecimalStart;         -- same as above
 local updateRate = 100;         -- overlay update interval
 
 local class = 0;                -- player class for tracking problematic abilities
@@ -1204,7 +1203,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
       effect.castEndTime = updateCastEndTime;
       isChanneling = false;
     end;
-    if channeledAbilityUsed and (effect.castEndTime >= currentTime) then
+    if channeledAbilityUsed and effect.castEndTime and (effect.castEndTime >= currentTime) then
       channeledAbilityUsed = nil;
     end;
   end;
@@ -1214,14 +1213,20 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration, currentTime);
   local bc = duration > 0 and FancyActionBar.GetHighlightColor(isFading) or nil;
 
-  FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks);
+  FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime);
   FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime);
   FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
   FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index);
 end;
 
-function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks)
-  if allowStacks and effect.stackId then
+function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
+  if effect.forceExpireStacks and (effect.endTime <= currentTime) then
+    for i = 1, #effect.stackId do
+      local stackId = effect.stackId[i];
+      FancyActionBar.stacks[stackId] = 0;
+    end
+    stacksControl:SetText("");
+  elseif allowStacks and effect.stackId then
     local stacks, maxStacks;
     local stackCounts = {};
     for i = 1, #effect.stackId do
@@ -1344,7 +1349,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     duration = ultEndTime - t;
     if duration > -2 then
       if duration > 0 then
-        if (showDecimal and (duration <= showDecimalStart))
+        if (FancyActionBar.constants.update.showDecimal and (duration <= FancyActionBar.constants.update.showDecimalStart))
         then
           durationControl:SetText(strformat("%0.1f", zo_max(0, duration)));
         else
@@ -2175,9 +2180,11 @@ function FancyActionBar.ApplySettings() -- apply all UI settings for current UI 
 
   FancyActionBar.ApplyStackFont();
   FancyActionBar.AdjustStackX();
+  FancyActionBar.AdjustStackY();
 
   FancyActionBar.ApplyTargetFont();
   FancyActionBar.AdjustTargetX();
+  FancyActionBar.AdjustTargetY();
 
   FancyActionBar.AdjustUltTimer(false);
   FancyActionBar.ApplyUltFont(false);
@@ -3270,7 +3277,7 @@ function FancyActionBar.Initialize()
   SLASH_COMMANDS[slashCommand] = FancyActionBar.SlashCommand;
 
   FancyActionBar.SetScale();
-  FancyActionBar.RefreshUpdateConfiguration();
+  FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration();
   FancyActionBar.UpdateDurationLimits();
   FancyActionBar:InitializeDebuffs(NAME, SV);
   FancyActionBar.BuildMenu(SV, CV, defaultSettings);
@@ -3470,6 +3477,7 @@ function FancyActionBar.Initialize()
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
             if not specialEffect.onAbilityUsed then return; end;
             for k, v in pairs(specialEffect) do effect[k] = v; end;
+            effect.beginTime = t;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or 0) + t;
             FancyActionBar.UpdateEffect(effect);
             if specialEffect.stacks then
@@ -3839,6 +3847,7 @@ function FancyActionBar.Initialize()
 
   local function OnReflect(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
     if (tType ~= COMBAT_UNIT_TYPE_PLAYER) then return; end;
+    local time = time();
     local doStackUpdate = false;
 
     if SV.debugAll then
@@ -3850,6 +3859,10 @@ function FancyActionBar.Initialize()
 
     local specialEffect = FancyActionBar.specialEffects[aId];
     local reflectStacks = specialEffect.stackId[1];
+    local effect = FancyActionBar.effects[specialEffect.id];
+    if effect.beginTime and (time - effect.beginTime < 0.3) then
+      return;
+    end;
 
     if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
       FancyActionBar.stacks[reflectStacks] = specialEffect.stacks;
@@ -4189,11 +4202,13 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.fontNameStackKB == nil then SV.fontNameStackKB = d.fontNameStackKB; end;
     if SV.fontSizeStackKB == nil then SV.fontSizeStackKB = d.fontSizeStackKB; end;
     if SV.fontTypeStackKB == nil then SV.fontTypeStackKB = d.fontTypeStackKB; end;
-    if SV.stackXKB == nil then SV.stackX = d.stackXKB; end;
+    if SV.stackXKB == nil then SV.stackXKB = d.stackXKB; end;
+    if SV.stackYKB == nil then SV.stackYKB = d.stackXKB; end;
     if SV.fontNameStackGP == nil then SV.fontNameStackGP = d.fontNameStackGP; end;
     if SV.fontSizeStackGP == nil then SV.fontSizeStackGP = d.fontSizeStackGP; end;
     if SV.fontTypeStackGP == nil then SV.fontTypeStackGP = d.fontTypeStackGP; end;
-    if SV.stackGP == nil then SV.stackXGP = d.stackXGP; end;
+    if SV.stackXGP == nil then SV.stackXGP = d.stackXGP; end;
+    if SV.stackYGP == nil then SV.stackYGP = d.stackYGP; end;
     if SV.fontNameTargetKB == nil then SV.fontNameTargetKB = d.fontNameTargetKB; end;
     if SV.fontSizeTargetKB == nil then SV.fontSizeTargetKB = d.fontSizeTargetKB; end;
     if SV.fontTypeTargetKB == nil then SV.fontTypeTargetKB = d.fontTypeTargetKB; end;
@@ -4201,7 +4216,8 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.fontNameTargetGP == nil then SV.fontNameTargetGP = d.fontNameTargetGP; end;
     if SV.fontSizeTargetGP == nil then SV.fontSizeTargetGP = d.fontSizeTargetGP; end;
     if SV.fontTypeTargetGP == nil then SV.fontTypeTargetGP = d.fontTypeTargetGP; end;
-    if SV.targetGP == nil then SV.targetXGP = d.targetXGP; end;
+    if SV.targetXGP == nil then SV.targetXGP = d.targetXGP; end;
+    if SV.targetYGP == nil then SV.targetYGP = d.targetYGP; end;
     if SV.showHotkeys == nil then SV.showHotkeys = d.showHotkeys; end;
     if SV.showHighlight == nil then SV.showHighlight = d.showHighlight; end;
     if SV.highlightColor == nil then SV.highlightColor = d.highlightColor; end;
