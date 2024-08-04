@@ -4252,12 +4252,16 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
     
-    -- This corrects a bug in v2.6.3, remove in 2.6.5
+    -- This corrects a bug in v2.6.8, remove in 2.7.0
     if SV.alignmentFix == nil then
-      SV.stackXGP = d.stackXGP;
-      SV.stackYGP = d.stackYGP;
+      SV.stackXKB = d.stackXKB;
+      SV.stackYKB = d.stackXKB;
       SV.targetXKB = d.targetXKB;
       SV.targetYKB = d.targetYKB;
+      SV.stackXGP = d.stackXGP;
+      SV.stackYGP = d.stackYGP;
+      SV.targetXGP = d.targetXGP;
+      SV.targetYGP = d.targetYGP;
       SV.alignmentFix = true;
       SV.targetXFix = nil;
     end;
