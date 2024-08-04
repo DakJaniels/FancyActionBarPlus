@@ -4213,6 +4213,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.fontSizeTargetKB == nil then SV.fontSizeTargetKB = d.fontSizeTargetKB; end;
     if SV.fontTypeTargetKB == nil then SV.fontTypeTargetKB = d.fontTypeTargetKB; end;
     if SV.targetXKB == nil then SV.targetXKB = d.targetXKB; end;
+    if SV.targetYKB == nil then SV.targetYKB = d.targetYKB; end;
     if SV.fontNameTargetGP == nil then SV.fontNameTargetGP = d.fontNameTargetGP; end;
     if SV.fontSizeTargetGP == nil then SV.fontSizeTargetGP = d.fontSizeTargetGP; end;
     if SV.fontTypeTargetGP == nil then SV.fontTypeTargetGP = d.fontTypeTargetGP; end;
@@ -4252,10 +4253,13 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
     
     -- This corrects a bug in v2.6.3, remove in 2.6.5
-    if SV.targetXFix == nil then
+    if SV.alignmentFix == nil then
+      SV.stackXGP = d.stackXGP;
+      SV.stackYGP = d.stackYGP;
       SV.targetXKB = d.targetXKB;
-      SV.targetXGP = d.targetXGP;
-      SV.targetXFix = true;
+      SV.targetYKB = d.targetYKB;
+      SV.alignmentFix = true;
+      SV.targetXFix = nil;
     end;
 
     SV.variablesValidated = true;

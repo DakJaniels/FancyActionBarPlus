@@ -1953,7 +1953,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   step = 1;
                   getFunc = function () return SV.stackYKB; end;
                   setFunc = function (value)
-                    SV.stackXKB = value;
+                    SV.stackYKB = value;
                     if FancyActionBar.style == 1 then
                       FancyActionBar.constants.stacks.y = value;
                       FancyActionBar.AdjustStackY();
@@ -2061,7 +2061,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   step = 1;
                   getFunc = function () return SV.targetYKB; end;
                   setFunc = function (value)
-                    SV.targetXKB = value;
+                    SV.targetYKB = value;
                     if FancyActionBar.style == 1 then
                       FancyActionBar.constants.targets.y = value;
                       FancyActionBar.AdjustTargetY();
@@ -2881,7 +2881,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   step = 1;
                   getFunc = function () return SV.targetYGP; end;
                   setFunc = function (value)
-                    SV.targetXGP = value;
+                    SV.targetYGP = value;
                     if FancyActionBar.style == 2 then
                       FancyActionBar.constants.targets.y = value;
                       FancyActionBar.AdjustTargetY();
