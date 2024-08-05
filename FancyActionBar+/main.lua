@@ -1678,33 +1678,46 @@ end;
 
 -- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios
 function FancyActionBar.ReCheckSpecialEffect(effect)
-  local checkTime = time();
-  if not FancyActionBar.specialEffects[effect.id] then return; end;
-  ---@type specialEffects_table
-  local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[effect.id]);
-  if specialEffect and specialEffect.isReflect then return; end;
-  if SV.advancedDebuff and specialEffect.isSpecialDebuff then return; end;
-  local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
-  if (stacks ~= 0) or (specialEffect.stacks and specialEffect.stacks ~= 0) then
-    stacks = (stacks ~= 0) and stacks or 0;
-    effect.stacks = stacks;
-    effect.endTime = checkTime + duration;
-    FancyActionBar.stacks[effect.id] = stacks;
-  end;
+  local checkTime = time()
+  local specialEffects = FancyActionBar.specialEffects
+  local effects = FancyActionBar.effects
+  local CheckForActiveEffect = FancyActionBar.CheckForActiveEffect
+  local UpdateEffect = FancyActionBar.UpdateEffect
+  local HandleStackUpdate = FancyActionBar.HandleStackUpdate
+
+  if not specialEffects[effect.id] then return end
+
+  local specialEffect = ZO_DeepTableCopy(specialEffects[effect.id])
+  if specialEffect and (specialEffect.isReflect or (SV.advancedDebuff and specialEffect.isSpecialDebuff)) then
+    return
+  end
+
+  local hasEffect, duration, stacks = CheckForActiveEffect(effect.id)
+  stacks = stacks ~= 0 and stacks or 0
+  if stacks ~= 0 or (specialEffect.stacks and specialEffect.stacks ~= 0) then
+    effect.stacks = stacks
+    effect.endTime = checkTime + duration
+    FancyActionBar.stacks[effect.id] = stacks
+  end
+
   if effect.stackId and not effect.stackId[effect.id] then
-    -- WARNING: This will infinite loop if effect.stackId == effect.id
-    for id, stackEffect in pairs(FancyActionBar.effects) do
+    for id, stackEffect in pairs(effects) do
       for i = 1, #effect.stackId do
-        local currentStackId = effect.stackId[i];
+        local currentStackId = effect.stackId[i]
         if currentStackId ~= effect.id and currentStackId == stackEffect.id then
-          FancyActionBar.ReCheckSpecialEffect(stackEffect);
-        end;
-      end;
-    end;
-  end;
-  FancyActionBar.UpdateEffect(effect);
-  FancyActionBar.HandleStackUpdate(effect.id);
-end;
+          if not stackEffect.processed then
+            stackEffect.processed = true
+            FancyActionBar.ReCheckSpecialEffect(stackEffect)
+            stackEffect.processed = false
+          end
+        end
+      end
+    end
+  end
+
+  UpdateEffect(effect)
+  HandleStackUpdate(effect.id)
+end
 
 --------------
 -- Quick Slot
