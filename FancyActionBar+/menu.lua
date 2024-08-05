@@ -588,9 +588,24 @@ local function GetChangedSkills()
 
   table.insert(skills, default);
 
+  for id, cfg in pairs(changes) do
+    local str = GetAbilityName(id) .. " (";
+    if type(cfg) == "table" then
+      local a = cfg[1] or id;
+      str = str .. tostring(a) .. ")";
+    elseif cfg == true then
+      str = str .. tostring(id) .. ")";
+    elseif cfg == false then
+      str = str .. "Disabled)";
+    else
+      str = str .. "Not Tracked)";
+    end;
+    changedSkillStrings[id] = str;
+    changedSkillIds[str] = id;
+    table.insert(skills, str);
+  end;
   return skills;
 end;
-
 local function GetSkillToEditID()
   local id = "";
   if skillToEditID > 0 then
