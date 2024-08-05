@@ -2255,8 +2255,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
                   default = defaults.ultValueYKB;
-                  min = -50;
-                  max = 50;
+                  min = -150;
+                  max = 150;
                   step = 1;
                   getFunc = function () return SV.ultValueYKB; end;
                   setFunc = function (value)
@@ -2273,8 +2273,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Horizontal";
                   tooltip = "[<- left] or [right ->]";
                   default = defaults.ultValueXKB;
-                  min = -50;
-                  max = 50;
+                  min = -150;
+                  max = 150;
                   step = 1;
                   getFunc = function () return SV.ultValueXKB; end;
                   setFunc = function (value)
