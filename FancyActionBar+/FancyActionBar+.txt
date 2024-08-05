@@ -1,7 +1,7 @@
 ## Title: FancyActionBar+
-## Version: 2.6.8
+## Version: 2.6.9
 ## APIVersion: 101042
-## AddOnVersion: 268
+## AddOnVersion: 269
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage
