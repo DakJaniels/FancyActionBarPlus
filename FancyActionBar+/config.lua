@@ -1446,6 +1446,7 @@ FancyActionBar.needCombatEvent =
   --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- rally
 };
 
+---@type table<integer, boolean>
 FancyActionBar.toggled =
 {
   -- effects with no duration are discarded for tracking.
