@@ -875,30 +875,34 @@ end;
 -------------------------------------------------------------------------------
 
 function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reload.
-  local hasEffect = false;
-  local duration = 0;
-  local currentStacks = 0;
-  local buffBeginTimes = {};
-  for i = 1, GetNumBuffs("player") do
-    local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
-    if FancyActionBar.stackableBuff[id] and not FancyActionBar.fixedStacks[id] then
-      if FancyActionBar.stackableBuff[abilityId] and FancyActionBar.stackableBuff[abilityId] == id then
-        buffBeginTimes[beginTime] = true;
-        currentStacks = currentStacks + 1;
-        if abilityId == id then
-          hasEffect = true;
-          duration = endTime - time();
-        end;
-      end;
-    elseif --[[not castByPlayer and]] abilityId == id then
-      currentStacks = FancyActionBar.fixedStacks[id] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].stacks) or stackCount or 0;
-      hasEffect = true;
-      duration = endTime - time();
-    end;
-  end;
+  local hasEffect = false
+  local duration = 0
+  local currentStacks = 0
+  local GetNumBuffs = GetNumBuffs
+  local GetUnitBuffInfo = GetUnitBuffInfo
+  local stackableBuff = FancyActionBar.stackableBuff
+  local fixedStacks = FancyActionBar.fixedStacks
+  local specialEffects = FancyActionBar.specialEffects
 
-  return hasEffect, duration, currentStacks;
-end;
+  for i = 1, GetNumBuffs("player") do
+    local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
+    if stackableBuff[id] and not fixedStacks[id] then
+      if stackableBuff[abilityId] and stackableBuff[abilityId] == id then
+        currentStacks = currentStacks + 1
+        if abilityId == id then
+          hasEffect = true
+          duration = endTime - time()
+        end
+      end
+    elseif abilityId == id then
+      currentStacks = fixedStacks[id] or (specialEffects[abilityId] and specialEffects[abilityId].stacks) or stackCount or 0
+      hasEffect = true
+      duration = endTime - time()
+    end
+  end
+
+  return hasEffect, duration, currentStacks
+end
 
 function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarget abilities.
   if FancyActionBar.targets[id] then
