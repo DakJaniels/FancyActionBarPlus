@@ -14,6 +14,7 @@ local function GetSummonShade(summonShade)
   return summonShade;
 end;
 
+---@type integer
 local summonShade;
 
 ---@param shadowImage integer
@@ -29,6 +30,7 @@ local function GetShadowImage(shadowImage)
   return shadowImage;
 end;
 
+---@type integer
 local shadowImage;
 
 ---@param darkShade integer
@@ -44,6 +46,7 @@ local function GetDarkShade(darkShade)
   return darkShade;
 end;
 
+---@type integer
 local darkShade;
 
 FancyActionBar.abilityConfig =
