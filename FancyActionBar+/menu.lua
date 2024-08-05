@@ -1242,7 +1242,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
         {
           type = "checkbox";
-          name = "Enable Actionbar Reposition";
+          name = "Enable Actionbar Reposition (Keyboard)";
           default = false;
           getFunc = function () return GetMovable(1); end;
           setFunc = function (value) AllowMovable(1, value); end;
@@ -1287,12 +1287,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
-
-        { type = "divider" },
-
         {
           type = "checkbox";
-          name = "Enable Actionbar Reposition";
+          name = "Enable Actionbar Reposition (Gamepad)";
           default = false;
           getFunc = function () return GetMovable(2); end;
           setFunc = function (value) AllowMovable(2, value); end;
