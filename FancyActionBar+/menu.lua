@@ -4957,16 +4957,16 @@ function FancyActionBar.ToggleMover()
 end;
 
 function FancyActionBar.MoveActionBar()
-  local v, _ = FancyActionBar:GetMovableVarsForUI();
+  local v, d = FancyActionBar:GetMovableVarsForUI();
 
   if v.enable then
-    ACTION_BAR:ClearAnchors();
-    ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y);
+    --ACTION_BAR:ClearAnchors();
+    ACTION_BAR:SetAnchor(BOTTOM, FAB_Default_Bar_Position, BOTTOM, d.x, d.y);
     FancyActionBar.SetMoved(true);
   else
     if FancyActionBar.wasMoved then
-      ACTION_BAR:ClearAnchors();
-      ACTION_BAR:SetAnchor(BOTTOM, FAB_Default_Bar_Position, BOTTOM, 0, 0);
+      --ACTION_BAR:ClearAnchors();
+      ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y);
       FancyActionBar.SetMoved(false);
     end;
   end;

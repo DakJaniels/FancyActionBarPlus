@@ -195,7 +195,7 @@ FancyActionBar.constants =
   {
     enable = false;
     x = 0;
-    y = 0;
+    y = -22;
   };
   style = {};
   update = {}
