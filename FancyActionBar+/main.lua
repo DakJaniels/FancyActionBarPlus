@@ -87,6 +87,7 @@ FancyActionBar.stacks = {};         -- ability id => current stack count
 FancyActionBar.stackIds = {};       -- stack id tables for each effectId
 FancyActionBar.targets = {};        -- ability id => current active target table
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
+---@type table<integer, boolean>
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
 FancyActionBar.debuffs = {};        -- effects for debuffs to update if they are active on target
 FancyActionBar.stashedEffects = {}; -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
@@ -197,46 +198,47 @@ FancyActionBar.constants =
     x = 0;
     y = -22;
   };
+  noTargetAlpha = 90;
   style = {};
   update = {}
 };
 -------------------------------------------------------------------------------
 -----------------------------[    Tables    ]----------------------------------
 -------------------------------------------------------------------------------
-local defaultSettings;      -- default settings variables...
-local abilityConfig = {};   -- parsed FancyActionBar.abilityConfig.
-local specialIds = {};      -- abilities that needs to be updated individually when fired ( cause too special to be tracked by effect changed events, or if I wanna do something more with them )
-local fakes = {};           -- problematic abilities from current class and shared skill lines ( mostly ground AoE's and traps )
-local activeFakes = {};     -- enables OnCombatEvent to update timers with hard coded durations if the button for the effect has been pressed (:4House:)
-local slottedIds = {};      -- to match skills with their tracked effect ( not in use cause I smooth brained the parts that might benefit from this )
-local effectSlots = {};     -- to indentify slots that track the same effect
-local debuffTargets = {};   -- not used, but might be needed when I get better at writing tracking for debuffs on enemies
-local lastAreaTargets = {}; -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
+local defaultSettings = FancyActionBar.defaultSettings; -- default settings variables...
+local abilityConfig = {};                               -- parsed FancyActionBar.abilityConfig.
+local specialIds = {};                                  -- abilities that needs to be updated individually when fired ( cause too special to be tracked by effect changed events, or if I wanna do something more with them )
+local fakes = {};                                       -- problematic abilities from current class and shared skill lines ( mostly ground AoE's and traps )
+local activeFakes = {};                                 -- enables OnCombatEvent to update timers with hard coded durations if the button for the effect has been pressed (:4House:)
+local slottedIds = {};                                  -- to match skills with their tracked effect ( not in use cause I smooth brained the parts that might benefit from this )
+local effectSlots = {};                                 -- to indentify slots that track the same effect
+local debuffTargets = {};                               -- not used, but might be needed when I get better at writing tracking for debuffs on enemies
+local lastAreaTargets = {};                             -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
 -------------------------------------------------------------------------------
 ---------------------------[   Local Variables   ]-----------------------------
 -------------------------------------------------------------------------------
 ---@class FAB_AC_SV
-local SV;                       -- saved variables (accountwide)
+local SV;                                   -- saved variables (accountwide)
 ---@class FAB_DC_SV
-local CV;                       -- saved variables (character)
-local debug = false;            -- debug mode
+local CV;                                   -- saved variables (character)
+local debug = false;                        -- debug mode
 
-local scale;                    -- default or custom scale of the action bar to use
-local updateRate = 100;         -- overlay update interval
+local scale = 100;                          -- default or custom scale of the action bar to use
+local updateRate = 100;                     -- overlay update interval
 
-local class = 0;                -- player class for tracking problematic abilities
-local lastButton = 0;           -- for repositioning of skill buttons
-local channeledAbilityUsed;     -- for tracking channeling abilities
-local isChanneling = false;     -- for tracking channeling abilities
-local wasBlockActive = false;   -- for tracking block state
-local uiModeChanged = false;    -- don't change configuration if not needed
-local hideCompanionUlt = false; -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
-local activeUlt = {id = 0, endTime = -1};     -- for tracking ultimate duration across barswap
+local class = 0;                            -- player class for tracking problematic abilities
+local lastButton = 0;                       -- for repositioning of skill buttons
+local channeledAbilityUsed = nil;           -- for tracking channeling abilities
+local isChanneling = false;                 -- for tracking channeling abilities
+local wasBlockActive = false;               -- for tracking block state
+local uiModeChanged = false;                -- don't change configuration if not needed
+local hideCompanionUlt = false;             -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
+local activeUlt = { id = 0; endTime = -1 }; -- for tracking ultimate duration across barswap
 
-local guardId = 0;              -- sync active id for guard on both bars as active and inactive are different
-local cost1;
-local cost2;
-local cost3;
+local guardId = 0;                          -- sync active id for guard on both bars as active and inactive are different
+local cost1 = 0;
+local cost2 = 0;
+local cost3 = 0;
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE; -- just to make sure the game isn't confused by its own constants. ( not sure why this would even happen, but it does.. )
 local WEAPONTYPE_FIRE_STAFF = WEAPONTYPE_FIRE_STAFF;
 local WEAPONTYPE_FROST_STAFF = WEAPONTYPE_FROST_STAFF;
@@ -250,6 +252,8 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF;
 ---@param ... any
 ---@return nil
 FancyActionBar.Chat = function (msg, ...)
+  ---@class LibChatMessage
+  local LibChatMessage = LibChatMessage;
   if LibChatMessage then
     ---@type LibChatMessage
     local chat = LibChatMessage("FancyActionBar+", "FAB+");
@@ -375,10 +379,15 @@ end;
 
 ---
 ---@param abilityId integer
+---@return table|integer
+---@return integer?
 function FancyActionBar.GetStackIdForAbilityId(abilityId)
   local stackIds = {};
+  ---@type table<integer, boolean>
   local seenStackIds = {};
-  if not abilityId or abilityId == "" then return stackIds; end;
+  if not abilityId or abilityId == "" then
+    return stackIds;
+  end;
   if FancyActionBar.specialEffects[abilityId] then
     local specialEffect = FancyActionBar.specialEffects[abilityId];
     if specialEffect.stackId then
@@ -401,7 +410,8 @@ function FancyActionBar.GetStackIdForAbilityId(abilityId)
 end;
 
 ---
----@param stackValues table
+---@param stackValues {[1]:string , [2]:integer}
+---@return string|integer maxStacks
 function FancyActionBar.getStackValue(stackValues)
   local maxStacks = nil;
   for _, stacks in ipairs(stackValues) do
@@ -437,7 +447,7 @@ function FancyActionBar.PostAbilityConfig()
   local s = FancyActionBar.abilityConfig;
 
   for skill, id in pairs(s) do
-    local v;
+    local v; ---@type string
 
     if type(id) == "table" then
       if id == {} or id[1] == nil
@@ -875,34 +885,34 @@ end;
 -------------------------------------------------------------------------------
 
 function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reload.
-  local hasEffect = false
-  local duration = 0
-  local currentStacks = 0
-  local GetNumBuffs = GetNumBuffs
-  local GetUnitBuffInfo = GetUnitBuffInfo
-  local stackableBuff = FancyActionBar.stackableBuff
-  local fixedStacks = FancyActionBar.fixedStacks
-  local specialEffects = FancyActionBar.specialEffects
+  local hasEffect = false;
+  local duration = 0;
+  local currentStacks = 0;
+  local GetNumBuffs = GetNumBuffs;
+  local GetUnitBuffInfo = GetUnitBuffInfo;
+  local stackableBuff = FancyActionBar.stackableBuff;
+  local fixedStacks = FancyActionBar.fixedStacks;
+  local specialEffects = FancyActionBar.specialEffects;
 
   for i = 1, GetNumBuffs("player") do
-    local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
+    local name, beginTime, endTime, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i);
     if stackableBuff[id] and not fixedStacks[id] then
       if stackableBuff[abilityId] and stackableBuff[abilityId] == id then
-        currentStacks = currentStacks + 1
+        currentStacks = currentStacks + 1;
         if abilityId == id then
-          hasEffect = true
-          duration = endTime - time()
-        end
-      end
+          hasEffect = true;
+          duration = endTime - time();
+        end;
+      end;
     elseif abilityId == id then
-      currentStacks = fixedStacks[id] or (specialEffects[abilityId] and specialEffects[abilityId].stacks) or stackCount or 0
-      hasEffect = true
-      duration = endTime - time()
-    end
-  end
+      currentStacks = fixedStacks[id] or (specialEffects[abilityId] and specialEffects[abilityId].stacks) or stackCount or 0;
+      hasEffect = true;
+      duration = endTime - time();
+    end;
+  end;
 
-  return hasEffect, duration, currentStacks
-end
+  return hasEffect, duration, currentStacks;
+end;
 
 function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarget abilities.
   if FancyActionBar.targets[id] then
@@ -1214,7 +1224,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
     for i = 1, #effect.stackId do
       local stackId = effect.stackId[i];
       FancyActionBar.stacks[stackId] = 0;
-    end
+    end;
     stacksControl:SetText("");
   elseif allowStacks and effect.stackId then
     local stacks, maxStacks;
@@ -1299,7 +1309,7 @@ end;
 function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
   local overlay = FancyActionBar.ultOverlays[index];
   if overlay or activeUlt then
-    local effect = overlay.effect or {id = 0, endTime = -1};
+    local effect = overlay.effect or { id = 0; endTime = -1 };
     local durationControl = overlay:GetNamedChild("Duration");
     -- local timerColor = IsInGamepadPreferredMode() and SV.ultColorGP or SV.ultColorKB
     local timerColor = FancyActionBar.constants.ult.duration.color;
@@ -1534,7 +1544,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     effectStackId = FancyActionBar.GetStackIdForAbilityId(effectId);
     if (effectId == abilityId) and #effectStackId == 0 then
       effectStackId = { effectId };
-    end
+    end;
     FancyActionBar.stackIds[effectId] = #effectStackId > 0 and effectStackId or nil;
   end;
 
@@ -1606,7 +1616,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   end;
   -- Assign effect to overlay.
   if overlay then overlay.effect = effect; end;
-  
+
   local validStacksForOverlay = ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId);
   if overlay then overlay.stacks = validStacksForOverlay; end;
 
@@ -1682,46 +1692,46 @@ end;
 
 -- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios
 function FancyActionBar.ReCheckSpecialEffect(effect)
-  local checkTime = time()
-  local specialEffects = FancyActionBar.specialEffects
-  local effects = FancyActionBar.effects
-  local CheckForActiveEffect = FancyActionBar.CheckForActiveEffect
-  local UpdateEffect = FancyActionBar.UpdateEffect
-  local HandleStackUpdate = FancyActionBar.HandleStackUpdate
+  local checkTime = time();
+  local specialEffects = FancyActionBar.specialEffects;
+  local effects = FancyActionBar.effects;
+  local CheckForActiveEffect = FancyActionBar.CheckForActiveEffect;
+  local UpdateEffect = FancyActionBar.UpdateEffect;
+  local HandleStackUpdate = FancyActionBar.HandleStackUpdate;
 
-  if not specialEffects[effect.id] then return end
+  if not specialEffects[effect.id] then return; end;
 
-  local specialEffect = ZO_DeepTableCopy(specialEffects[effect.id])
+  local specialEffect = ZO_DeepTableCopy(specialEffects[effect.id]);
   if specialEffect and (specialEffect.isReflect or (SV.advancedDebuff and specialEffect.isSpecialDebuff)) then
-    return
-  end
+    return;
+  end;
 
-  local hasEffect, duration, stacks = CheckForActiveEffect(effect.id)
-  stacks = stacks ~= 0 and stacks or 0
+  local hasEffect, duration, stacks = CheckForActiveEffect(effect.id);
+  stacks = stacks ~= 0 and stacks or 0;
   if stacks ~= 0 or (specialEffect.stacks and specialEffect.stacks ~= 0) then
-    effect.stacks = stacks
-    effect.endTime = checkTime + duration
-    FancyActionBar.stacks[effect.id] = stacks
-  end
+    effect.stacks = stacks;
+    effect.endTime = checkTime + duration;
+    FancyActionBar.stacks[effect.id] = stacks;
+  end;
 
   if effect.stackId and not effect.stackId[effect.id] then
     for id, stackEffect in pairs(effects) do
       for i = 1, #effect.stackId do
-        local currentStackId = effect.stackId[i]
+        local currentStackId = effect.stackId[i];
         if currentStackId ~= effect.id and currentStackId == stackEffect.id then
           if not stackEffect.processed then
-            stackEffect.processed = true
-            FancyActionBar.ReCheckSpecialEffect(stackEffect)
-            stackEffect.processed = false
-          end
-        end
-      end
-    end
-  end
+            stackEffect.processed = true;
+            FancyActionBar.ReCheckSpecialEffect(stackEffect);
+            stackEffect.processed = false;
+          end;
+        end;
+      end;
+    end;
+  end;
 
-  UpdateEffect(effect)
-  HandleStackUpdate(effect.id)
-end
+  UpdateEffect(effect);
+  HandleStackUpdate(effect.id);
+end;
 
 --------------
 -- Quick Slot
@@ -1838,8 +1848,8 @@ end;
 function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
   if not FancyActionBar.constants.ult.value.show then return; end;
 
-  local function ResolveUltCost(id,  overrideActiveRank, overrideCasterUnitTag)
-		overrideCasterUnitTag = overrideCasterUnitTag or "player"
+  local function ResolveUltCost(id, overrideActiveRank, overrideCasterUnitTag)
+    overrideCasterUnitTag = overrideCasterUnitTag or "player";
     local incap = 113105;
     local cost = 0;
     if id > 0 then
@@ -1881,7 +1891,7 @@ function FancyActionBar.GetUltimateValueColor(current, hotbar)
   end;
   if cost == 0 then
     return baseColor;
-  end
+  end;
   if current == 500 then
     return maxColor;
   elseif current >= cost then
@@ -1892,6 +1902,7 @@ function FancyActionBar.GetUltimateValueColor(current, hotbar)
     return baseColor;
   end;
 end;
+
 --------------------------------------------------------------------------------
 -----------------------------[ 		Configuration    ]----------------------------
 --------------------------------------------------------------------------------
@@ -4239,7 +4250,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultUsableThresholdColorGP == nil then SV.ultUsableThresholdColorGP = d.ultUsableThresholdColorGP; end;
     if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
-    
+
     -- This corrects a bug in v2.6.8, remove in 2.7.0
     if SV.repairCounter == nil then
       SV.stackXKB = d.stackXKB;
