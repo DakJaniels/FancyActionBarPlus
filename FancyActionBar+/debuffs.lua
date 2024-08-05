@@ -4,7 +4,8 @@ local FancyActionBar = FancyActionBar;
 local EM = GetEventManager();
 local WM = GetWindowManager();
 local SM = SCENE_MANAGER;
-local NAME;
+local NAME = FancyActionBar.GetName();
+---@class FAB_AC_SV
 local SV;
 local time = GetFrameTimeSeconds;
 local activeTargetDebuffs = {};
