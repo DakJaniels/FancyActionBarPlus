@@ -4192,7 +4192,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.fontSizeStackKB == nil then SV.fontSizeStackKB = d.fontSizeStackKB; end;
     if SV.fontTypeStackKB == nil then SV.fontTypeStackKB = d.fontTypeStackKB; end;
     if SV.stackXKB == nil then SV.stackXKB = d.stackXKB; end;
-    if SV.stackYKB == nil then SV.stackYKB = d.stackXKB; end;
+    if SV.stackYKB == nil then SV.stackYKB = d.stackYKB; end;
     if SV.fontNameStackGP == nil then SV.fontNameStackGP = d.fontNameStackGP; end;
     if SV.fontSizeStackGP == nil then SV.fontSizeStackGP = d.fontSizeStackGP; end;
     if SV.fontTypeStackGP == nil then SV.fontTypeStackGP = d.fontTypeStackGP; end;
@@ -4241,19 +4241,6 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
-
-    -- This corrects a bug in v2.6.8, remove in 2.7.0
-    if SV.repairCounter == nil then
-      SV.stackXKB = d.stackXKB;
-      SV.stackYKB = d.stackYKB;
-      SV.targetXKB = d.targetXKB;
-      SV.targetYKB = d.targetYKB;
-      SV.stackXGP = d.stackXGP;
-      SV.stackYGP = d.stackYGP;
-      SV.targetXGP = d.targetXGP;
-      SV.targetYGP = d.targetYGP;
-      SV.repairCounter = true;
-    end;
 
     SV.variablesValidated = true;
   end;
