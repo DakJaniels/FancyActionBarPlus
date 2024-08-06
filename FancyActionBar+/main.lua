@@ -724,23 +724,12 @@ end;
 
 function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
   if not userPreferenceChanged and SV.applyActionBarSkillStyles == false then return; end;
-  if currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY then
-    for i = MIN_INDEX, MAX_INDEX do
-      FancyActionBar.SetActionButtonAbilityFxOverride(i);
-      if userPreferenceChanged then
-        FancyActionBar.UpdateInactiveBarIcon(i, HOTBAR_CATEGORY_BACKUP);
-      end;
-    end;
-    FancyActionBar.SetActionButtonAbilityFxOverride(ULT_INDEX);
-  elseif currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
-    for i = MIN_INDEX, MAX_INDEX do
-      FancyActionBar.SetActionButtonAbilityFxOverride(i);
-      if userPreferenceChanged then
-        FancyActionBar.UpdateInactiveBarIcon(i, HOTBAR_CATEGORY_PRIMARY);
-      end;
-    end;
-    FancyActionBar.SetActionButtonAbilityFxOverride(ULT_INDEX);
+  local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY;
+  for i = MIN_INDEX, MAX_INDEX do
+    FancyActionBar.SetActionButtonAbilityFxOverride(i, currentHotbarCategory);
+    FancyActionBar.UpdateInactiveBarIcon(i, inactiveBar);
   end;
+  FancyActionBar.SetActionButtonAbilityFxOverride(ULT_INDEX, currentHotbarCategory);
 end;
 
 function FancyActionBar.SetActionButtonAbilityFxOverride(index)
