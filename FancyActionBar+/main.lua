@@ -2001,12 +2001,9 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
     _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId);
     FancyActionBar.stacks[stackableBuffId] = stackCount;
     FancyActionBar.HandleStackUpdate(stackableBuffId);
-    for id, effect in pairs(FancyActionBar.effects) do
-      if FancyActionBar.stackableBuff[id] or FancyActionBar.stackableBuff[effect.id] then
-        FancyActionBar.UpdateEffect(effect);
-      end;
-    end;
   end;
+
+  if not SV.externalBuffs then return; end;
 
   local effect = FancyActionBar.effects[abilityId];
   if effect then
@@ -4053,6 +4050,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
       [92503] = "Major Sorcery";
       [40116] = "Quick Siphon";
       [28536] = "Regeneration";
+      [40079] = "Radiating Regeneration";
       [88758] = "Major Resolve";
       [61687] = "Major Sorcery";
       [38552] = "Panacea";
