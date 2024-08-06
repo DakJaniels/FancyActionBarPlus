@@ -3048,6 +3048,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     effect.beginTime = updateTime;
     effect.endTime = (specialEffect.fixedTime and (specialEffect.duration + updateTime)) or endTime;
+
     if specialEffect.stacks then
       FancyActionBar.stacks[specialEffect.stackId[1]] = specialEffect.stacks;
     elseif effect.stackId and #effect.stackId > 0 and stackCount then
@@ -3056,6 +3057,17 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     for k, v in pairs(specialEffect) do
       effect[k] = v;
     end;
+
+    local targetType = GetAbilityTargetDescription(effect.id, nil, unitTag);
+    if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
+      local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
+      targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
+      targetData.times[unitId] = { beginTime = effect.beginTime; endTime = effect.endTime };
+      FancyActionBar.targets[effect.id] = targetData;
+      FancyActionBar.CheckTargetEndtimes(effect.id);
+      FancyActionBar.HandleTargetUpdate(effect.id);
+    end;
+
     FancyActionBar.effects[effect.id] = effect;
     FancyActionBar.activeCasts[effect.id].begin = updateTime;
   elseif change == EFFECT_RESULT_FADED then
@@ -3067,6 +3079,18 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
   if effect.beginTime and (updateTime - effect.beginTime < 0.3) then
     return;
   end;
+
+  if FancyActionBar.targets[specialEffect.id] then
+    local targetData = FancyActionBar.targets[specialEffect.id];
+    targetData.times[unitId] = nil;
+    FancyActionBar.targets[specialEffect.id] = targetData;
+    local targetCount = FancyActionBar.CheckTargetEndtimes(specialEffect.id);
+    FancyActionBar.HandleTargetUpdate(specialEffect.id);
+    if targetCount >= 1 then
+      return;
+    end;
+  end;
+
   if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced > specialEffect.hasProced) then
     return;
   end;
@@ -4091,7 +4115,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
   --   end
   -- end
 
-  if SV.variablesValidated == false or SV.version ~= VERSION then
+  if SV.variablesValidated == false or SV.addonVersion ~= FancyActionBar.GetVersion() then
     if SV.abScaling == nil then SV.abScaling = d.abScaling; end;
     if SV.scaleEnable ~= nil then
       SV.abScaling.kb.enable = SV.scaleEnable;
@@ -4243,7 +4267,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
 
     SV.variablesValidated = true;
-    SV.version = VERSION;
+    SV.addonVersion = FancyActionBar.GetVersion();
   end;
 end;
 
