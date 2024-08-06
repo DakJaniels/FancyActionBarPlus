@@ -369,7 +369,7 @@ FancyActionBar.abilityConfig =
   -- [31816] = false; -- ignore stone giant
   [29032] = { 29032 };  -- { 133027 }; -- track stagger
   -- [31816] = { 31816 };  -- { 133027 }; -- track stagger
-  -- [133027] = { 31816 }; -- track stone giant
+  [133027] = { 31816 }; -- track stone giant
   -- [29032] = false; -- don't track stonefist
   -- [31816] = { 134336 }; -- track stagger instead
   -- [133027] = { 134336 }; -- track stagger
@@ -976,8 +976,10 @@ FancyActionBar.stackMap =
   [222678] = FancyActionBar.contingency;
 
   [63430] = { 63430, 16536 }; -- meteor
-  [63456] = { 63456, 40489 };   -- ice comet
-  [63473] = { 63473, 40493 };   -- shooting star
+  [63456] = { 63456, 40489 }; -- ice comet
+  [63473] = { 63473, 40493 }; -- shooting star
+  
+  --[222370] = { 222370 } -- Anchorite's Potency, to show Soul Gems
 };
 
 FancyActionBar.fixedStacks =
@@ -985,6 +987,7 @@ FancyActionBar.fixedStacks =
   [217528] = "¤";
   [222285] = "¤";
   [222678] = "¤";
+  --[222370] = select(3, GetSoulGemInfo(1, 50, false));
 };
 
 FancyActionBar.debuffStackMap =
@@ -1444,6 +1447,7 @@ FancyActionBar.needCombatEvent =
   [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- momentum
   [38794] = { duration = GetAbilityDuration(38794) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- forward momentum
   --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- rally
+  [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
 };
 
 ---@type table<integer, boolean>

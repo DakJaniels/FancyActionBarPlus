@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.6.8";
+local VERSION = "2.6.9";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -1308,7 +1308,7 @@ end;
 
 function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
   local overlay = FancyActionBar.ultOverlays[index];
-  if overlay or activeUlt then
+  if overlay then
     local effect = overlay.effect or { id = 0; endTime = -1 };
     local durationControl = overlay:GetNamedChild("Duration");
     -- local timerColor = IsInGamepadPreferredMode() and SV.ultColorGP or SV.ultColorKB
@@ -1679,9 +1679,11 @@ function FancyActionBar.EffectCheck()
       end;
       FancyActionBar.stacks[effect.id] = stacks;
       for i = 1, #effect.stackId do
-        local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
-        FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
-        doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks ~= 0 and true;
+        if effect.stackId[i] ~= effect.id then
+          local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
+          doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks ~= 0 and true;
+          FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
+        end;
       end;
       if doStackUpdate then
         FancyActionBar.HandleStackUpdate(effect.id);
@@ -3822,7 +3824,12 @@ function FancyActionBar.Initialize()
       if effect then
         effect.endTime = time() + fakes[aId].duration;
 
-        FancyActionBar.UpdateEffect(effect);
+        -- if effect.stackId and effect.stacks then
+        --   for i = 1, #effect.stackId do
+        --     FancyActionBar.stacks[effect.stackId[i]] = effect.stacks;
+        --     FancyActionBar.HandleStackUpdate(aId);
+        --   end;
+        -- end;
 
         -- effect.faded = false
 
