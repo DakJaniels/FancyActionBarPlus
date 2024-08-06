@@ -1316,22 +1316,22 @@ FancyActionBar.fakeClassEffects =
 -- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
---- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  handler?: string  }>
+--- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  handler?: string, isMultiTarget?: boolean}>
 FancyActionBar.specialEffects =
 {
-  [16536] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; };                                                                                                                                -- meteor
-  [63430] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; };                                                                                                                                -- meteor
-  [40489] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; };                                                                                                                                -- ice comet
-  [63456] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; };                                                                                                                                -- ice comet
+  [16536] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- meteor
+  [63430] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- meteor
+  [40489] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- ice comet
+  [63456] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- ice comet
 
   [35750] = { id = 35750; stackId = {35750}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
-  [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Trap Beast DOT
+  [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Trap Beast DOT
   [40372] = { id = 40372; stackId = {40372}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
-  [40375] = { id = 40372; stackId = {40372}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Lightweight Trap DOT
+  [40375] = { id = 40372; stackId = {40372}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Lightweight Trap DOT
   [40382] = { id = 40382; stackId = {40382}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
-  [40385] = { id = 40382; stackId = {40382}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Barbed Trap DOT
+  [40385] = { id = 40382; stackId = {40382}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Barbed Trap DOT
   [40465] = { id = 40465; stackId = {40465}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
-  [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true };                                                                          -- Scalding Rune DOT
+  [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Scalding Rune DOT
 
   [28727] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- defensive posture
   [126604] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                      -- defensive posture
@@ -1377,7 +1377,7 @@ FancyActionBar.specialClassEffects =
   [3] =
   {
     [37475] = { id = 37475; stackId = {37475}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- manifestation of terror
-    [76639] = { id = 37475; stackId = {37475}; fixedTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (fear)
+    [76639] = { id = 37475; stackId = {37475}; fixedTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true }; -- manifestation of terror (fear)
     --[147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (major cowardice)
   };
   -- Warden

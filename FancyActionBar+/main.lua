@@ -3049,6 +3049,16 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     effect.beginTime = updateTime;
     effect.endTime = (specialEffect.fixedTime and (specialEffect.duration + updateTime)) or endTime;
 
+    local targetType = GetAbilityTargetDescription(effect.id, nil, unitTag);
+    if specialEffect.isMultiTarget and (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
+      local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
+      targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
+      targetData.times[unitId] = { beginTime = effect.beginTime; endTime = effect.endTime };
+      FancyActionBar.targets[effect.id] = targetData;
+      FancyActionBar.CheckTargetEndtimes(effect.id);
+      FancyActionBar.HandleTargetUpdate(effect.id);
+    end;
+
     if specialEffect.stacks then
       FancyActionBar.stacks[specialEffect.stackId[1]] = specialEffect.stacks;
     elseif effect.stackId and #effect.stackId > 0 and stackCount then
@@ -3058,20 +3068,10 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
       effect[k] = v;
     end;
 
-    local targetType = GetAbilityTargetDescription(effect.id, nil, unitTag);
-    if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
-      local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0; maxEndTime = 0; times = {} };
-      targetData.maxEndTime = zo_max(endTime, targetData.maxEndTime);
-      targetData.times[unitId] = { beginTime = effect.beginTime; endTime = effect.endTime };
-      FancyActionBar.targets[effect.id] = targetData;
-      FancyActionBar.CheckTargetEndtimes(effect.id);
-      FancyActionBar.HandleTargetUpdate(effect.id);
-    end;
-
     FancyActionBar.effects[effect.id] = effect;
     FancyActionBar.activeCasts[effect.id].begin = updateTime;
   elseif change == EFFECT_RESULT_FADED then
-    FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime);
+    FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, unitId, stackCount);
   end;
 end;
 
@@ -3080,12 +3080,12 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
     return;
   end;
 
-  if FancyActionBar.targets[specialEffect.id] then
-    local targetData = FancyActionBar.targets[specialEffect.id];
+  if specialEffect.isMultiTarget and FancyActionBar.targets[effect.id] then
+    local targetData = FancyActionBar.targets[effect.id];
     targetData.times[unitId] = nil;
-    FancyActionBar.targets[specialEffect.id] = targetData;
-    local targetCount = FancyActionBar.CheckTargetEndtimes(specialEffect.id);
-    FancyActionBar.HandleTargetUpdate(specialEffect.id);
+    FancyActionBar.targets[effect.id] = targetData;
+    local targetCount = FancyActionBar.CheckTargetEndtimes(effect.id);
+    FancyActionBar.HandleTargetUpdate(effect.id);
     if targetCount >= 1 then
       return;
     end;
