@@ -4516,13 +4516,13 @@ function FancyActionBar.AdjustStackX()
     local stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
-    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, stackX, stackY);
+    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY);
 
     overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
     stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
-    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, stackX, stackY);
+    stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY);
   end;
 end;
 
