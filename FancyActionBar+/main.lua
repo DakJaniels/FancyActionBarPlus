@@ -196,7 +196,7 @@ FancyActionBar.constants =
   {
     enable = false;
     x = 0;
-    y = -22;
+    y = 0;
   };
   noTargetAlpha = 90;
   style = {};
@@ -2759,6 +2759,7 @@ function FancyActionBar.UpdateBarSettings() -- run all UI visual updates when UI
   FancyActionBar.AdjustControlsPositions();
   FancyActionBar.ApplyPosition();
   FancyActionBar.ApplyAbilityFxOverrides();
+  FancyActionBar.MoveActionBar();
 end;
 
 function FancyActionBar.SetScale() -- resize and check for other addons with same function
@@ -2903,12 +2904,11 @@ function FancyActionBar.UpdateStyle()
   end;
   -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
   FancyActionBar.style = mode;
-
-  local offsetY = FancyActionBar.style == 2 and -75 or -22;
-  FAB_Default_Bar_Position:ClearAnchors();
-  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, 0, offsetY);
-
   FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style);
+
+  FAB_Default_Bar_Position:ClearAnchors();
+  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.x);
+
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
   ZO_ActionBar_GetButton(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1):ApplySwapAnimationStyle();
 end;
