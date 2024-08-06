@@ -4091,7 +4091,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
   --   end
   -- end
 
-  if SV.variablesValidated == false then
+  if SV.variablesValidated == false or SV.version ~= VERSION then
     if SV.abScaling == nil then SV.abScaling = d.abScaling; end;
     if SV.scaleEnable ~= nil then
       SV.abScaling.kb.enable = SV.scaleEnable;
@@ -4243,6 +4243,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
 
     SV.variablesValidated = true;
+    SV.version = VERSION;
   end;
 end;
 
