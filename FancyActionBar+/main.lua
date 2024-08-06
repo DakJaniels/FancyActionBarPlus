@@ -3457,6 +3457,7 @@ function FancyActionBar.Initialize()
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
             if not specialEffect.onAbilityUsed then return; end;
+            if FancyActionBar.traps[specialEffect.id] and SV.ignoreTrapPlacement then return; end;
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.beginTime = t;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or 0) + t;
@@ -3507,7 +3508,8 @@ function FancyActionBar.Initialize()
     local specialEffect = FancyActionBar.specialEffects[abilityId]
       and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]);
     local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff;
-    if specialEffect and not useSpecialDebuffTracking then
+    if specialEffect and (not useSpecialDebuffTracking) then
+       if FancyActionBar.traps[specialEffect.id] and SV.ignoreTrapPlacement then return end;
       FancyActionBar.HandleSpecialEffect(abilityId, change, t, beginTime, endTime, unitTag, unitId, stackCount);
       return;
     end;
@@ -4238,6 +4240,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultUsableThresholdColorGP == nil then SV.ultUsableThresholdColorGP = d.ultUsableThresholdColorGP; end;
     if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
+    if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
 
     -- This corrects a bug in v2.6.8, remove in 2.7.0
     if SV.repairCounter == nil then

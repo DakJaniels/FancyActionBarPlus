@@ -245,7 +245,7 @@ FancyActionBar.abilityConfig =
   [40181] = { 40181 };  -- turn evil
   [40169] = { 40169 };  -- ring of preservation
   [35750] = {};         -- trap beast dot
-  [40372] = {};         -- lightweight beast trap
+  [40372] = {};         -- lightweight beast trap dot
   [40382] = {};         -- barbed trap dot
   [40194] = { 40194 };  -- evil hunter
   [40195] = { 61744 };  -- camouflaged hunter (minor berserk)
@@ -1111,9 +1111,9 @@ FancyActionBar.debuffIds =
 
   -- Fighters Guild
   [40336] = { 38254 }; -- silver leash (taunt)
-  [35750] = {};        -- trap beast dot
-  [40372] = {};        -- lightweight beast trap dot
-  [40382] = {};        -- barbed trap dot
+  [35750] = { 35756 }; -- trap beast dot
+  [40372] = { 40375 }; -- lightweight beast trap dot
+  [40382] = { 40385 }; -- barbed trap dot
   [35713] = { 62305 }; -- dawnbreaker
   [40158] = { 62314 }; -- dawnbreaker of smiting
 
@@ -1450,6 +1450,13 @@ FancyActionBar.needCombatEvent =
   [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
 };
 
+FancyActionBar.traps = 
+{
+  [35750] = true; -- trap beast
+  [40372] = true; -- lightweight beast trap
+  [40382] = true; -- barbed trap
+  [40465] = true; -- scalding rune
+};
 ---@type table<integer, boolean>
 FancyActionBar.toggled =
 {

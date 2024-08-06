@@ -3933,15 +3933,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               width = "half";
               default = defaults.durationMax;
             },
-            { type = "divider" },
-            {
-              type = "checkbox";
-              name = "Show Cast/Channel Times on Action Slots";
-              tooltip = "If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled.";
-              default = defaults.showCastDuration;
-              getFunc = function () return SV.showCastDuration; end;
-              setFunc = function (value) SV.showCastDuration = value or false; end;
-            },
+   
             { type = "divider" },
             {
               type = "description";
@@ -4019,6 +4011,29 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               func = function() ClearMultiTargetBlacklistId(); end,
               disabled = function () return not CanClearBlacklistMultiTargetId(); end;
               reference = "MultiTargetBlacklistToClear_Button",
+            },
+            { type = "divider" },
+            {
+              type = "description";
+              title = "[ |cffdf80Miscellaneous Options|r ]";
+              text = "Additional settings for configuring ability tracking.";
+              width = "full";
+            },
+            {
+              type = "checkbox";
+              name = "Show Cast/Channel Times on Action Slots";
+              tooltip = "If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled.";
+              default = defaults.showCastDuration;
+              getFunc = function () return SV.showCastDuration; end;
+              setFunc = function (value) SV.showCastDuration = value or false; end;
+            },
+            {
+              type = "checkbox";
+              name = "Ignore Initial Trap Placement";
+              tooltip = "By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggerd. Toggle ON to only track the DOT";
+              default = defaults.ignoreTrapPlacement;
+              getFunc = function () return SV.ignoreTrapPlacement; end;
+              setFunc = function (value) SV.ignoreTrapPlacement = value or false; end;
             },
           };
         },

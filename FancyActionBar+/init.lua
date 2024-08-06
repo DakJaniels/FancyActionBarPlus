@@ -56,6 +56,7 @@ FancyActionBar.defaultSettings =
   showOvertauntStacks = false;
   showTargetCount = true;
   showSingleTargetInstance = false;
+  ignoreTrapPlacement = false;
 
   -- general
   lockInTrade = true;
