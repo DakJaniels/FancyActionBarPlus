@@ -738,8 +738,8 @@ function FancyActionBar.SetActionButtonAbilityFxOverride(index)
   local id = FancyActionBar.GetSlotBoundAbilityId(index);
   if id > 0 then
     local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
-    if icon then
-      btn.icon:SetTexture(icon);
+  if icon then
+    btn.icon:SetTexture(icon);
     end;
   end;
 end;
@@ -1441,7 +1441,7 @@ function FancyActionBar.UpdatePassiveEffect(id, active) -- passive effect highli
 end;
 
 function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
-  local overlay, effect;
+  local overlay;
 
   if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
     overlay = FancyActionBar.ultOverlays[index];
@@ -1456,14 +1456,8 @@ function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
   end;
 
   if overlay then
-    effect = overlay.effect;
-    if effect then
-      if effect.id then
-        if FancyActionBar.debuffs[effect.id] then FancyActionBar.debuffs[effect.id] = nil; end;
-        FancyActionBar.ResetOverlayDuration(overlay);
-      end;
-      effect = nil;
-    end;
+    overlay.effect = nil;
+    FancyActionBar.ResetOverlayDuration(overlay);
   end;
 end;
 
