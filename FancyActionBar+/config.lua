@@ -14,6 +14,7 @@ local function GetSummonShade(summonShade)
   return summonShade;
 end;
 
+---@type integer
 local summonShade;
 
 ---@param shadowImage integer
@@ -29,6 +30,7 @@ local function GetShadowImage(shadowImage)
   return shadowImage;
 end;
 
+---@type integer
 local shadowImage;
 
 ---@param darkShade integer
@@ -44,6 +46,7 @@ local function GetDarkShade(darkShade)
   return darkShade;
 end;
 
+---@type integer
 local darkShade;
 
 FancyActionBar.abilityConfig =
@@ -1447,6 +1450,7 @@ FancyActionBar.needCombatEvent =
   [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
 };
 
+---@type table<integer, boolean>
 FancyActionBar.toggled =
 {
   -- effects with no duration are discarded for tracking.

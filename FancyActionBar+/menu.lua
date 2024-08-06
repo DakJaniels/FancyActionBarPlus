@@ -1087,42 +1087,19 @@ local function SaveCurrentLocation()
   if FancyActionBar.style == 2 then
     SV.abMove.gp.prevX = x;
     SV.abMove.gp.prevY = y;
+    SV.abMove.gp.enable = true;
   else
     SV.abMove.kb.prevX = x;
     SV.abMove.kb.prevY = y;
+    SV.abMove.kb.enable = true;
   end;
-end;
-
-local function GetMovable(mode)
-  local isKB = mode == 1 and true or false;
-  if isKB
-  then
-    return SV.abMove.kb.enable;
-  else
-    return SV.abMove.gp.enable;
-  end;
-end;
-
-local function AllowMovable(mode, allow)
-  local isKB = mode == 1 and true or false;
-  if isKB
-  then
-    SV.abMove.kb.enable = allow;
-  else
-    SV.abMove.gp.enable = allow;
-  end;
-
-  if mode == FancyActionBar.style then FancyActionBar.constants.move.enable = allow; end;
-  FancyActionBar.MoveActionBar();
-  -- FancyActionBar.UpdateBarSettings()
 end;
 
 local function ReanchorMover()
-  -- FAB_Mover:SetHidden(true)
-  -- FAB_Mover:SetMovable(false)
-  -- FAB_Mover:SetMouseEnabled(false)
+  local x = ACTION_BAR:GetLeft();
+  local y = ACTION_BAR:GetTop();
   FAB_Mover:ClearAnchors();
-  FAB_Mover:SetAnchor(BOTTOM, ACTION_BAR, BOTTOM, 0, 0, FAB_Mover:GetResizeToFitConstrains());
+  FAB_Mover:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y, FAB_Mover:GetResizeToFitConstrains());
 end;
 
 local function RefreshMoverSize()
@@ -1257,10 +1234,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
         {
           type = "checkbox";
-          name = "Enable Actionbar Reposition (Keyboard)";
-          default = false;
-          getFunc = function () return GetMovable(1); end;
-          setFunc = function (value) AllowMovable(1, value); end;
+          name = "Unlock Actionbar Position (Keyboard)";
+          default = unlocked;
+          disabled = function () return FancyActionBar.style == 2; end;
+          getFunc = function (value) FancyActionBar.ToggleMover(value); end;
+          setFunc = function (value) FancyActionBar.ToggleMover(value); end;
           width = "full";
         },
 
@@ -1304,26 +1282,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
         {
           type = "checkbox";
-          name = "Enable Actionbar Reposition (Gamepad)";
-          default = false;
-          getFunc = function () return GetMovable(2); end;
-          setFunc = function (value) AllowMovable(2, value); end;
+          name = "Unlock Actionbar Position (Gamepad)";
+          default = unlocked;
+          disabled = function () return FancyActionBar.style == 1; end;
+          getFunc = function (value) FancyActionBar.ToggleMover(value); end;
+          setFunc = function (value) FancyActionBar.ToggleMover(value); end;
           width = "full";
         },
 
         { type = "divider" },
 
-        {
-          type = "button";
-          name = function () return "Unlock Actionbar"; end;
-          func = function () FancyActionBar.ToggleMover(); end;
-          disabled = function ()
-            local mode = FancyActionBar.style; -- IsInGamepadPreferredMode() and 2 or 1
-            return not GetMovable(mode);
-          end;
-          width = "half";
-          reference = "FAB_AB_Move";
-        },
         -- {	type = 'button',        name = 'Undo Last Move',
         --   func = function() FancyActionBar.UndoMove() end,
         --   disabled = function() return not wasMoved end,
@@ -4953,37 +4921,28 @@ function FancyActionBar.UndoMove()
   FancyActionBar.SetMoved(false);
 end;
 
-function FancyActionBar.ToggleMover()
-  unlocked = not unlocked;
-  if not unlocked then
-    FAB_Mover:SetHidden(true);
-    FAB_Mover:SetMovable(false);
-    FAB_Mover:SetMouseEnabled(false);
-    ReanchorMover();
-  else
+function FancyActionBar.ToggleMover(enableMove)
+  if enableMove == true then
+    unlocked = true
     -- RefreshMoverSize()
     SaveCurrentLocation();
     FAB_Mover:SetHidden(false);
     FAB_Mover:SetMovable(true);
     FAB_Mover:SetMouseEnabled(true);
+  elseif enableMove == false then
+    unlocked = true;
+    FAB_Mover:SetHidden(true);
+    FAB_Mover:SetMovable(false);
+    FAB_Mover:SetMouseEnabled(false);
+    ReanchorMover();
   end;
-  local l = unlocked and "Lock Actionbar" or "Unlock Actionbar";
-  WINDOW_MANAGER:GetControlByName("FAB_AB_Move").button:SetText(l);
 end;
 
 function FancyActionBar.MoveActionBar()
-  local v, _ = FancyActionBar:GetMovableVarsForUI();
-
+  local v, d = FancyActionBar:GetMovableVarsForUI();
   if v.enable then
     ACTION_BAR:ClearAnchors();
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y);
-    FancyActionBar.SetMoved(true);
-  else
-    if FancyActionBar.wasMoved then
-      ACTION_BAR:ClearAnchors();
-      ACTION_BAR:SetAnchor(BOTTOM, FAB_Default_Bar_Position, BOTTOM, 0, 0);
-      FancyActionBar.SetMoved(false);
-    end;
   end;
 end;
 
@@ -4999,12 +4958,15 @@ function FancyActionBar.SaveMoverPosition()
   if FancyActionBar.style == 2
   then
     SV.abMove.gp.x = x; SV.abMove.gp.y = y;
+    SV.abMove.gp.enable = true;
   else
     SV.abMove.kb.x = x; SV.abMove.kb.y = y;
+    SV.abMove.kb.enable = true;
   end;
 
   FancyActionBar.constants.move.x = x;
   FancyActionBar.constants.move.y = y;
+  FancyActionBar.constants.move.enable = true;
 
   if Azurah then
     if ((FancyActionBar.style == 2 and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
