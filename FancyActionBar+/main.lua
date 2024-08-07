@@ -855,8 +855,7 @@ end;
 function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
 
   if (not SV.hideLockedBar) and (not userPreferenceChanged) then return; end;
-  local _, locked = GetActiveWeaponPairInfo();
-  if (not locked) and (not isLocked) and (not wasLocked) then return; end;
+  if (not isLocked) and (not wasLocked) or (isLocked == wasLocked) then return; end;
   --if (not isLocked) and (not wasLocked) then return; end;
   isWeaponSwapLocked = isLocked;
   local doLock;
@@ -868,7 +867,7 @@ function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceCh
   local hideBar = currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY;
   FancyActionBar.ToggleInactiveBar(hideBar, doLock);
   FancyActionBar.AdjustQuickSlotSpacing(doLock);
-  FAB_ActionBarArrow:SetHidden(not SV.showArrow or doLock)
+  FAB_ActionBarArrow:SetHidden(not SV.showArrow or doLock);
 end;
 
 -- ZO_ActionButtons_ToggleShowGlobalCooldown()
@@ -2662,9 +2661,12 @@ end;
 ---@param active object
 ---@param inactive object
 ---@param firstTop boolean
-local function ApplyBarPosition(active, inactive, firstTop)
+local function ApplyBarPosition(active, inactive, firstTop, locked)
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
-  if firstTop then
+  if locked == true then
+    active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
+    inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
+  elseif firstTop then
     active:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4, active:GetResizeToFitConstrains());
     inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
   else
@@ -2673,12 +2675,12 @@ local function ApplyBarPosition(active, inactive, firstTop)
   end;
 end;
 
-function FancyActionBar.SwapControls() -- refresh action bars positions.
+function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
   local style = FancyActionBar.GetContants();
   local hide, bar;
 
   FancyActionBar.ClearAnchors();
-  bar, hide = FancyActionBar.DetermineBarAndHide();
+  bar, hide = FancyActionBar.DetermineBarAndHide(locked);
 
   FancyActionBar.SetBarPositions(bar);
   FancyActionBar.ToggleUltimateOverlays(hide);
@@ -2694,23 +2696,23 @@ function FancyActionBar.ClearAnchors()
   ActionButtonOverlay23:ClearAnchors();
 end;
 
-function FancyActionBar.DetermineBarAndHide()
+function FancyActionBar.DetermineBarAndHide(locked)
   if currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
     if SV.staticBars then
-      ApplyBarPosition(ActionButton23, ActionButton3, SV.frontBarTop);
-      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop);
+      ApplyBarPosition(ActionButton23, ActionButton3, SV.frontBarTop, locked);
+      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop, locked);
     else
-      ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop);
-      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.activeBarTop);
+      ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked);
+      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.activeBarTop, locked);
     end;
     return 0, true;
   else
     if SV.staticBars then
-      ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop);
-      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop);
+      ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop, locked);
+      ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop, locked);
     else
-      ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop);
-      ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.activeBarTop);
+      ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked);
+      ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.activeBarTop, locked);
     end;
     return 1, false;
   end;
@@ -2743,6 +2745,7 @@ function FancyActionBar.ToggleInactiveBar(bar, hide)
       FancyActionBar.overlays[i + hideOffset]:SetHidden(hide);
       local hideButton = FancyActionBar.GetActionButton(i + hideOffset);
       hideButton.slot:SetHidden(hide);
+      FancyActionBar.SwapControls();
     end;
   end;
 end;
@@ -3453,7 +3456,7 @@ function FancyActionBar.Initialize()
       channeledAbilityUsed = nil;
       isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
-      FancyActionBar.SwapControls();
+      FancyActionBar.SwapControls(isWeaponSwapLocked);
       FancyActionBar.ApplyAbilityFxOverrides();
       currentWeaponPair = activeWeaponPair;
     end;
@@ -3956,6 +3959,13 @@ function FancyActionBar.Initialize()
     --ReloadUI("ingame");
   end);
 
+  EM:RegisterForEvent(NAME, EVENT_WEREWOLF_STATE_CHANGED, function (_, value)
+    FancyActionBar.SlotEffects();
+    if SV.hideLockedBar then
+      FancyActionBar.OnWeaponSwapLocked(value, isWeaponSwapLocked);
+    end;
+  end);
+
   EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
   EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged);
     FancyActionBar.ApplyStyle();
@@ -3977,11 +3987,6 @@ function FancyActionBar.Initialize()
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
-  EM:RegisterForEvent(NAME, EVENT_WEAPON_PAIR_LOCK_CHANGED, function ()
-    local _, locked = GetActiveWeaponPairInfo();
-    --if SV.hideLockedBar == false or (locked == isWeaponSwapLocked) then return; end;
-    FancyActionBar.OnWeaponSwapLocked(locked, isWeaponSwapLocked);
-  end);
   EM:RegisterForEvent(NAME, EVENT_COLLECTIBLE_UPDATED, FancyActionBar.SkillStyleCollectibleUpdated);
   EM:RegisterForEvent(NAME, EVENT_EFFECT_CHANGED, OnEffectChanged);
   EM:AddFilterForEvent(NAME, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
