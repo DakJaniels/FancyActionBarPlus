@@ -234,6 +234,7 @@ local wasBlockActive = false;               -- for tracking block state
 local uiModeChanged = false;                -- don't change configuration if not needed
 local hideCompanionUlt = false;             -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
 local activeUlt = { id = 0; endTime = -1 }; -- for tracking ultimate duration across barswap
+local isWeaponSwapLocked = false;           -- for tracking weapon swap lock state
 
 local guardId = 0;                          -- sync active id for guard on both bars as active and inactive are different
 local cost1 = 0;
@@ -849,6 +850,25 @@ function FancyActionBar.HandleCompanionStateChanged() -- prevents quick slot fro
   c:HandleSlotChanged();
   c:UpdateUltimateMeter();
   zo_callLater(function () FancyActionBar.UpdateCompanionOverlayOnChange(); end, 2000);
+end;
+
+function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
+
+  if (not SV.hideLockedBar) and (not userPreferenceChanged) then return; end;
+  local _, locked = GetActiveWeaponPairInfo();
+  if (not locked) and (not isLocked) and (not wasLocked) then return; end;
+  --if (not isLocked) and (not wasLocked) then return; end;
+  isWeaponSwapLocked = isLocked;
+  local doLock;
+  if userPreferenceChanged then
+    doLock = userPreferenceState and isLocked or false;
+  else
+    doLock = isLocked;
+  end;
+  local hideBar = currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY;
+  FancyActionBar.ToggleInactiveBar(hideBar, doLock);
+  FancyActionBar.AdjustQuickSlotSpacing(doLock);
+  FAB_ActionBarArrow:SetHidden(not SV.showArrow or doLock)
 end;
 
 -- ZO_ActionButtons_ToggleShowGlobalCooldown()
@@ -2078,14 +2098,14 @@ function FancyActionBar.AdjustControlsPositions() -- resource bars and default a
   anchor:Set(ZO_PlayerAttribute);
 end;
 
-function FancyActionBar.AdjustQuickSlotSpacing() -- quickslot placement and arrow visibility
+function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and arrow visibility
   local style = FancyActionBar.GetContants();
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   local QSB = GetControl("QuickslotButton");
 
   QSB:ClearAnchors();
 
-  if SV.showArrow == false then
+  if (SV.showArrow == false) or (lock == true) then
     if SV.moveQS == true then
       if not FancyActionBar.style == 1 then
         QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -((2 + SV.quickSlotCustomXOffset) + (SLOT_COUNT * (style.abilitySlotOffsetX * scale))), (-2 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
@@ -2700,9 +2720,30 @@ function FancyActionBar.SetBarPositions(bar)
   bar = bar or GetActiveHotbarCategory();
   for i = MIN_INDEX, MAX_INDEX do
     FancyActionBar.UpdateInactiveBarIcon(i, bar);
-
     local btnMain = ZO_ActionBar_GetButton(i);
     btnMain:HandleSlotChanged();
+  end;
+end;
+
+function FancyActionBar.ToggleInactiveBar(bar, hide)
+  local showOffset = bar == HOTBAR_CATEGORY_PRIMARY and SLOT_INDEX_OFFSET or 0;
+  local hideOffset = bar == HOTBAR_CATEGORY_PRIMARY and 0 or SLOT_INDEX_OFFSET;
+  for i = MIN_INDEX, MAX_INDEX do
+    if hide == true then
+      -- bar to hide
+      FancyActionBar.overlays[i + hideOffset]:SetHidden(hide);
+      local hideButton = FancyActionBar.GetActionButton(i + hideOffset);
+      hideButton.slot:SetHidden(hide);
+      -- bar to show
+      FancyActionBar.overlays[i + showOffset]:SetHidden(not hide);
+      local showButton = FancyActionBar.GetActionButton(i + showOffset);
+      showButton.slot:SetHidden(not hide);
+    else
+      -- show previously hidden bar
+      FancyActionBar.overlays[i + hideOffset]:SetHidden(hide);
+      local hideButton = FancyActionBar.GetActionButton(i + hideOffset);
+      hideButton.slot:SetHidden(hide);
+    end;
   end;
 end;
 
@@ -3909,13 +3950,14 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
     uiModeChanged = true;
+    local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings();
     uiModeChanged = false;
     --ReloadUI("ingame");
   end);
 
   EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
-    EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged);
+  EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged);
     FancyActionBar.ApplyStyle();
     OnAllHotbarsUpdated();
     FancyActionBar.SwapControls();
@@ -3935,6 +3977,11 @@ function FancyActionBar.Initialize()
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
+  EM:RegisterForEvent(NAME, EVENT_WEAPON_PAIR_LOCK_CHANGED, function ()
+    local _, locked = GetActiveWeaponPairInfo();
+    --if SV.hideLockedBar == false or (locked == isWeaponSwapLocked) then return; end;
+    FancyActionBar.OnWeaponSwapLocked(locked, isWeaponSwapLocked);
+  end);
   EM:RegisterForEvent(NAME, EVENT_COLLECTIBLE_UPDATED, FancyActionBar.SkillStyleCollectibleUpdated);
   EM:RegisterForEvent(NAME, EVENT_EFFECT_CHANGED, OnEffectChanged);
   EM:AddFilterForEvent(NAME, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
@@ -4265,6 +4312,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
+    if SV.hideLockedBar == nil then SV.hideLockedBar = d.hideLockedBar; end;
 
     SV.variablesValidated = true;
     SV.addonVersion = FancyActionBar.GetVersion();

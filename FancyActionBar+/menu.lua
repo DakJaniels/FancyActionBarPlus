@@ -1418,16 +1418,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
-        -- { type = 'checkbox', 			name = 'Hide inactive back bar buttons (not for static bars)',
-        -- 	tooltip = 'ON = Inactive back bar buttons WILL be hidden.\nOFF = Inactive back bar buttons WONT be hidden.',
-        -- 	disabled = function() return SV.staticBars end,
-        -- 	default = defaults.hideInactive,
-        -- 	getFunc = function() return SV.hideInactive end,
-        -- 	setFunc = function(value)
-        -- 		SV.hideInactive = value or false
-        -- 	end,
-        -- 	width = 'full'
-        -- },
 
         --============[	Backbar Visuals	]=====================
         {
@@ -1459,6 +1449,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyDesaturationInactiveInactive(value);
           end;
           width = "half";
+        },
+        {
+          type = "checkbox";
+          name = "One Bar Mode";
+          tooltip = "ON = Inactive action bars will be hidden when unable to be swapped to.\nOFF = Inactive action bars won't be hidden when  unable to be swapped to.";
+          default = defaults.hideLockedBar;
+          getFunc = function () return SV.hideLockedBar; end;
+          setFunc = function (value)
+            SV.hideLockedBar = value or false;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar);
+          end;
+          width = "full"
         },
         { type = "description"; text = ""; width = "full" },
 
