@@ -3588,7 +3588,7 @@ function FancyActionBar.Initialize()
 
   local ABILITY_TYPE_DAMAGE = ABILITY_TYPE_DAMAGE;
   local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
-    if true then
+    if SV.debugAll then
       FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType);
     end;
     local _;
