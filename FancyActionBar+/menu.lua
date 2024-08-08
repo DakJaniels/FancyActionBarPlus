@@ -1450,19 +1450,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
-        {
-          type = "checkbox";
-          name = "One Bar Mode";
-          tooltip = "ON = Inactive action bars will be hidden when unable to be swapped to.\nOFF = Inactive action bars won't be hidden when  unable to be swapped to.";
-          default = defaults.hideLockedBar;
-          getFunc = function () return SV.hideLockedBar; end;
-          setFunc = function (value)
-            SV.hideLockedBar = value or false;
-            local _, locked = GetActiveWeaponPairInfo();
-            FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar);
-          end;
-          width = "full"
-        },
         { type = "description"; text = ""; width = "full" },
 
         --============[	Keybinds On / Off	]===================
@@ -1620,7 +1607,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.showArrow; end;
           setFunc = function (value)
             SV.showArrow = value or false;
-            FAB_ActionBarArrow:SetHidden(not SV.showArrow);
             FancyActionBar.AdjustQuickSlotSpacing();
             FancyActionBar.AdjustUltimateSpacing();
           end;
@@ -1639,7 +1625,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           width = "half";
         },
         { type = "divider" },
-
         --=============[  Quickslot Position  ]==================
         {
           type = "checkbox";
@@ -1654,6 +1639,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
+        --=============[  Miscellaneous  ]=================
         { type = "divider" },
         {
           type = "description";
@@ -1674,6 +1660,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
           width = "full";
+        },
+        --=============[  OneBar Mode  ]==================
+        {
+          type = "checkbox";
+          name = "Hide Locked Bars";
+          tooltip = "If enabled, locked, inactive, action bars will be hidden, such when Oakensoul is equipped or the Werewolf transformation is activated.";
+          default = defaults.hideLockedBar;
+          getFunc = function () return SV.hideLockedBar; end;
+          setFunc = function (value)
+            SV.hideLockedBar = value or false;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar);
+          end;
+          width = "full"
         },
         --=============[  Skill Styles  ]==================
         {
