@@ -1194,12 +1194,14 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
 end;
 
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks)
+
+  if effect.toggled or effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
+
   local currentTime = time();
 
   -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
   local hasDuration = true;
   local duration = 0;
-  if not effect.toggled and not effect.passive then
     if SV.showCastDuration and effect.castEndTime then
       if effect.castEndTime >= currentTime then
         duration = effect.castEndTime - currentTime;
@@ -1215,7 +1217,6 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
       effect.endTime = -1;
       hasDuration = false;
     end;
-  end;
 
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
