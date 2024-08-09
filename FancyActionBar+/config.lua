@@ -1328,13 +1328,13 @@ FancyActionBar.specialEffects =
   [63456] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- ice comet
 
   [35750] = { id = 35750; stackId = {35750}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
-  [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Trap Beast DOT
+  [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Trap Beast DOT
   [40372] = { id = 40372; stackId = {40372}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
-  [40375] = { id = 40372; stackId = {40372}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Lightweight Trap DOT
+  [40375] = { id = 40372; stackId = {40372}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Lightweight Trap DOT
   [40382] = { id = 40382; stackId = {40382}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
-  [40385] = { id = 40382; stackId = {40382}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Barbed Trap DOT
+  [40385] = { id = 40382; stackId = {40382}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Barbed Trap DOT
   [40465] = { id = 40465; stackId = {40465}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
-  [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                                          -- Scalding Rune DOT
+  [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Scalding Rune DOT
 
   [28727] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- defensive posture
   [126604] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                      -- defensive posture
