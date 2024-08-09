@@ -3140,6 +3140,7 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
   if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced > specialEffect.hasProced) then
     return;
   end;
+
   if FancyActionBar.specialEffectProcs[effect.id] then
     local procUpdates = FancyActionBar.specialEffectProcs[effect.id];
     local procValues = procUpdates[effect.procs];
@@ -3153,6 +3154,10 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
     end;
     FancyActionBar.effects[effect.id] = effect;
   end;
+  
+  effect.endTime = endTime;
+  FancyActionBar.UpdateEffect(effect);
+
 end;
 
 function FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
@@ -3549,7 +3554,7 @@ function FancyActionBar.Initialize()
           elseif FancyActionBar.specialEffects[id] then
             local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
             if not specialEffect.onAbilityUsed then return; end;
-            if FancyActionBar.traps[specialEffect.id] and SV.ignoreTrapPlacement then return; end;
+            if FancyActionBar.traps[id] and SV.ignoreTrapPlacement then return; end;
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.beginTime = t;
             effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or 0) + t;
@@ -3601,7 +3606,7 @@ function FancyActionBar.Initialize()
       and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]);
     local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff;
     if specialEffect and (not useSpecialDebuffTracking) then
-       if FancyActionBar.traps[specialEffect.id] and SV.ignoreTrapPlacement then return end;
+      if FancyActionBar.traps[abilityId] and SV.ignoreTrapPlacement then return; end;
       FancyActionBar.HandleSpecialEffect(abilityId, change, t, beginTime, endTime, unitTag, unitId, stackCount);
       return;
     end;
