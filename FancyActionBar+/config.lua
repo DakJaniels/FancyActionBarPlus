@@ -727,6 +727,9 @@ FancyActionBar.abilityConfig =
   [183709] = { 183712 }; -- vitalizing glyphic
   [193794] = { 193797 }; -- glyphic of the tides
   [193558] = { 193559 }; -- resonating glyphic
+
+  -- Volendrung
+  [116095] = { 61665 }; -- Major Brutality
 };
 
 FancyActionBar.contingency =
