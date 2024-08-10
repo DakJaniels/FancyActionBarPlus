@@ -3073,7 +3073,7 @@ local fdNum = 0;
 local fdStacks = {};
 local lastCW = 0; -- track when last crystal weapon debuff was applied
 
-function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, endTime, unitTag, unitId, stackCount)
+function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
   local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id]);
   if specialEffect.handler then
     if specialEffect.handler == "device" then
@@ -3084,14 +3084,14 @@ function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, e
 
   for effectId, effect in pairs(FancyActionBar.effects) do
     if effect.id == specialEffect.id then
-      FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, unitId, stackCount);
+      FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId);
       FancyActionBar.UpdateEffect(effect);
       FancyActionBar.HandleStackUpdate(effect.id);
     end;
   end;
 end;
 
-function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, unitId, stackCount)
+function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     effect.beginTime = updateTime;
     effect.endTime = (specialEffect.fixedTime and (specialEffect.duration + updateTime)) or endTime;
@@ -3118,11 +3118,11 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     FancyActionBar.effects[effect.id] = effect;
     FancyActionBar.activeCasts[effect.id].begin = updateTime;
   elseif change == EFFECT_RESULT_FADED then
-    FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, unitId, stackCount);
+    FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId);
   end;
 end;
 
-function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, unitId, stackCount)
+function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
   if effect.beginTime and (updateTime - effect.beginTime < 0.3) then
     return;
   end;
@@ -3608,7 +3608,7 @@ function FancyActionBar.Initialize()
     local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff;
     if specialEffect and (not useSpecialDebuffTracking) then
       if FancyActionBar.traps[abilityId] and SV.ignoreTrapPlacement then return; end;
-      FancyActionBar.HandleSpecialEffect(abilityId, change, t, beginTime, endTime, unitTag, unitId, stackCount);
+      FancyActionBar.HandleSpecialEffect(abilityId, change, t, beginTime, endTime, unitTag, stackCount, abilityType, unitId);
       return;
     end;
 
@@ -3886,7 +3886,7 @@ function FancyActionBar.Initialize()
     local specialEffect = FancyActionBar.specialEffects[aId] and ZO_DeepTableCopy(FancyActionBar.specialEffects[aId]);
     local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff;
     if specialEffect and not useSpecialDebuffTracking then
-      FancyActionBar.HandleSpecialEffect(aId, result, t, t, t + GetAbilityDuration(aId), _, tId);
+      FancyActionBar.HandleSpecialEffect(aId, result, t, t, t + GetAbilityDuration(aId), _, _, _, tId);
       return;
     end;
 
