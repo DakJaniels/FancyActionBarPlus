@@ -366,6 +366,9 @@ function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
   if FancyActionBar.destroSkills[abilityId] then
     abilityId = FancyActionBar.GetBaseIdForDestroSkill(abilityId);
   end;
+  if abilityId == 31816 and _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
+    return "HyperTankingTools/icons/stonefistStomp.dds";
+  end;
   local skillType, skillLineIndex, skillIndex = GetSpecificSkillAbilityKeysByAbilityId(abilityId);
   local progressionId = GetProgressionSkillProgressionId(skillType, skillLineIndex, skillIndex);
   local collectibleId = GetActiveProgressionSkillAbilityFxOverrideCollectibleId(progressionId);
@@ -1017,6 +1020,8 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
     if FancyActionBar.destroSkills[id] then
       icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetIdForDestroSkill(id, bar));
+    elseif id == 31816 and _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
+      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or "HyperTankingTools/icons/stonefistStomp.dds";
     else
       id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar);
       icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
