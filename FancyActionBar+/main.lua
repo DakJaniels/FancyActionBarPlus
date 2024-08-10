@@ -2722,7 +2722,7 @@ function FancyActionBar.DetermineBarAndHide(locked)
       ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked);
       ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.activeBarTop, locked);
     end;
-    return 0, true;
+    return HOTBAR_CATEGORY_PRIMARY, true;
   else
     if SV.staticBars then
       ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop, locked);
@@ -2731,7 +2731,7 @@ function FancyActionBar.DetermineBarAndHide(locked)
       ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked);
       ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.activeBarTop, locked);
     end;
-    return 1, false;
+    return HOTBAR_CATEGORY_BACKUP, false;
   end;
 end;
 
