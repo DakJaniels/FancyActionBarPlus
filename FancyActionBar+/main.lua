@@ -3116,7 +3116,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     end;
 
     FancyActionBar.effects[effect.id] = effect;
-    FancyActionBar.activeCasts[effect.id].begin = updateTime;
+    if FancyActionBar.activeCasts[effect.id] then FancyActionBar.activeCasts[effect.id].begin = updateTime; end;
   elseif change == EFFECT_RESULT_FADED then
     FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId);
   end;
