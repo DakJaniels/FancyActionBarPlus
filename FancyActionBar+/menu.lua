@@ -606,6 +606,7 @@ local function GetChangedSkills()
   end;
   return skills;
 end;
+
 local function GetSkillToEditID()
   local id = "";
   if skillToEditID > 0 then
@@ -1625,11 +1626,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           width = "half";
         },
         { type = "divider" },
+
         --=============[  Quickslot Position  ]==================
         {
           type = "checkbox";
-          name = "Adjust Quick Slot placement";
-          tooltip = "Move Quick Slot closer to the Action Bar if the arrow is hidden.\nFor gamepad UI this will also adjust the gap between normal skill buttons and the ultimate button, as well as the gap between the ultimate button and the companion ultimate button (|cff6600Only|r if gamepad ult hotkeys are hidden).";
+          name = "Adjust Quickslot placement";
+          tooltip = "Move Quickslot closer to the Action Bar if the arrow is hidden.\nFor gamepad UI this will also adjust the gap between normal skill buttons and the ultimate button, as well as the gap between the ultimate button and the companion ultimate button (|cff6600Only|r if gamepad ult hotkeys are hidden).";
           default = defaults.moveQS;
           getFunc = function () return SV.moveQS; end;
           setFunc = function (value)
@@ -2401,15 +2403,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               };
             },
 
-            --============[ Keyboard Quick Slot ]==================
+            --============[ Keyboard Quickslot ]==================
             {
               type = "submenu";
-              name = "|cFFFACDQuick Slot Display Settings|r";
+              name = "|cFFFACDQuickslot Display Settings|r";
               controls =
               {
                 {
                   type = "checkbox";
-                  name = "Quick Slot cooldown duration";
+                  name = "Quickslot cooldown duration";
                   default = defaults.qsTimerEnableKB;
                   getFunc = function () return SV.qsTimerEnableKB; end;
                   setFunc = function (value)
@@ -2425,7 +2427,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "dropdown";
-                  name = "Quick Slot timer font";
+                  name = "Quickslot timer font";
                   scrollable = true;
                   tooltip = "Select which font to display the timer in.";
                   choices = FancyActionBar.GetFonts();
@@ -2444,7 +2446,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Quick Slot timer font size";
+                  name = "Quickslot timer font size";
                   min = 10;
                   max = 30;
                   step = 1;
@@ -2462,7 +2464,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "dropdown";
-                  name = "Quick Slot timer font style";
+                  name = "Quickslot timer font style";
                   tooltip = "Select which effect to display the timer font in.";
                   choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
@@ -2480,7 +2482,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "colorpicker";
-                  name = "Quick Slot timer color";
+                  name = "Quickslot timer color";
                   default = ZO_ColorDef:New(unpack(defaults.qsColorKB));
                   getFunc = function () return unpack(SV.qsColorKB); end;
                   setFunc = function (r, g, b)
@@ -3233,15 +3235,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               };
             },
 
-            --============[	Gamepad Quick Slot	]==================
+            --============[	Gamepad Quickslot	]==================
             {
               type = "submenu";
-              name = "|cFFFACDQuick slot display settings|r";
+              name = "|cFFFACDQuickslot display settings|r";
               controls =
               {
                 {
                   type = "checkbox";
-                  name = "Quick Slot cooldown duration";
+                  name = "Quickslot cooldown duration";
                   default = defaults.qsTimerEnableGP;
                   getFunc = function () return SV.qsTimerEnableGP; end;
                   setFunc = function (value)
@@ -3257,7 +3259,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "dropdown";
-                  name = "Quick Slot timer font";
+                  name = "Quickslot timer font";
                   scrollable = true;
                   tooltip = "Select which font to display the timer in.";
                   choices = FancyActionBar.GetFonts();
@@ -3276,7 +3278,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "slider";
-                  name = "Quick Slot timer font size";
+                  name = "Quickslot timer font size";
                   min = 10;
                   max = 30;
                   step = 1;
@@ -3294,7 +3296,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "dropdown";
-                  name = "Quick Slot timer font style";
+                  name = "Quickslot timer font style";
                   tooltip = "Select which effect to display the timer font in.";
                   choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" };
                   sort = "name-up";
@@ -3312,7 +3314,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
                 {
                   type = "colorpicker";
-                  name = "Quick Slot timer color";
+                  name = "Quickslot timer color";
                   default = ZO_ColorDef:New(unpack(defaults.qsColorGP));
                   getFunc = function () return unpack(SV.qsColorGP); end;
                   setFunc = function (r, g, b)
@@ -4033,7 +4035,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             {
               type = "checkbox";
               name = "Ignore Initial Trap Placement";
-              tooltip = "By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggerd. Toggle ON to only track the DOT";
+              tooltip = "By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT";
               default = defaults.ignoreTrapPlacement;
               getFunc = function () return SV.ignoreTrapPlacement; end;
               setFunc = function (value) SV.ignoreTrapPlacement = value or false; end;
