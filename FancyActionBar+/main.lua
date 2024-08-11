@@ -362,12 +362,37 @@ function FancyActionBar.GetSlotBoundAbilityId(index, bar)
   return id;
 end;
 
+local function CheckHyperTools()
+  if _G["HyperTools"] then
+    return "HT";
+  elseif _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
+    return "HTT";
+  else
+    return "";
+  end;
+end;
+
+---@param hyper string
+---@return string
+local function GetHyperToolsIcon(hyper)
+  if hyper == "HT" then
+    return "HyperTools/icons/stonefistStomp.dds";
+  elseif hyper == "HTT" then
+    return "HyperTankingTools/icons/stonefistStomp.dds";
+  else
+    return "";
+  end;
+end;
+
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
   if FancyActionBar.destroSkills[abilityId] then
     abilityId = FancyActionBar.GetBaseIdForDestroSkill(abilityId);
   end;
-  if abilityId == 31816 and _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
-    return "HyperTankingTools/icons/stonefistStomp.dds";
+  if abilityId == 31816 then
+    local hyper = CheckHyperTools();
+    if hyper ~= "" then
+      return GetHyperToolsIcon(hyper);
+    end
   end;
   local skillType, skillLineIndex, skillIndex = GetSpecificSkillAbilityKeysByAbilityId(abilityId);
   local progressionId = GetProgressionSkillProgressionId(skillType, skillLineIndex, skillIndex);
@@ -1019,8 +1044,17 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
     if FancyActionBar.destroSkills[id] then
       icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetIdForDestroSkill(id, bar));
-    elseif id == 31816 and _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
-      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or "HyperTankingTools/icons/stonefistStomp.dds";
+    elseif id == 31816 then
+      if SV.applyActionBarSkillStyles then
+        icon = FancyActionBar.GetSkillStyleIconForAbilityId(id);
+      else
+        local hyper = CheckHyperTools();
+        if hyper ~= "" then
+          icon = GetHyperToolsIcon(hyper);
+        else
+          icon = GetAbilityIcon(id);
+        end;
+      end;
     else
       id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar);
       icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
