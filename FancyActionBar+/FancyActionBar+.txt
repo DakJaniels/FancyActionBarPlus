@@ -5,7 +5,8 @@
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage
-## OptionalDependsOn:  AdvancedDisableControllerUI LuiExtended PerfectWeave
+## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
+## OptionalDependsOn: HyperTankingTools
 
 init.lua
 main.lua
