@@ -1294,9 +1294,24 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         { type = "divider" },
         {
           type = "button";
+          name = "Center Horizontally";
+          width = "half";
+          func = function () FancyActionBar.CenterActionBar(true, false); end;
+          reference = "ABHorizCenter_Button";
+        },
+        {
+          type = "button";
+          name = "Center Vertically";
+          width = "half";
+          func = function () FancyActionBar.CenterActionBar(false, true); end;
+          reference = "ABVertCenter_Button";
+        },
+        { type = "divider" },
+        {
+          type = "button";
           name = "Undo Last Move";
           width = "half";
-          func = function() FancyActionBar.UndoMove() end,
+          func = function () FancyActionBar.UndoMove(); end;
           reference = "ABUndo_Button";
         },
         {
@@ -4942,6 +4957,7 @@ function FancyActionBar.UndoMove()
   ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, prevX, prevY);
   ReanchorMover();
   FancyActionBar.SaveMoverPosition();
+  FAB_Mover:SetHidden(true);
 end;
 
 function FancyActionBar.ResetMoveActionBar()
@@ -4949,6 +4965,30 @@ function FancyActionBar.ResetMoveActionBar()
   SaveCurrentLocation();
   ACTION_BAR:ClearAnchors();
   ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y);
+  ReanchorMover();
+  FancyActionBar.SaveMoverPosition();
+  FancyActionBar.SetMoved(false);
+  FAB_Mover:SetHidden(true);
+end;
+
+function FancyActionBar.CenterActionBar(horiz, vert)
+  SaveCurrentLocation();
+  local x = FAB_Mover:GetLeft();
+  local y = FAB_Mover:GetTop();
+
+  if vert then
+    local height = ACTION_BAR:GetHeight();
+    y = zo_floor((GuiRoot:GetHeight() - height) / 2) + 8;
+  end;
+
+  if horiz then
+    local width = ACTION_BAR:GetWidth();
+    x = zo_floor((GuiRoot:GetWidth() - width) / 2);
+  end;
+
+  SaveCurrentLocation();
+  ACTION_BAR:ClearAnchors();
+  ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y);
   ReanchorMover();
   FancyActionBar.SaveMoverPosition();
   FancyActionBar.SetMoved(false);
