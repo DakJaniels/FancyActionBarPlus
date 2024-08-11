@@ -230,8 +230,8 @@ FancyActionBar.defaultSettings =
   };
   abMove =
   {                                                                -- y = -(default + adjusted) anchor offset
-    kb = { enable = false; x = 0; y = -22; prevX = 0; prevY = 0 }; -- y =      -( 0 + 22)
-    gp = { enable = false; x = 0; y = -75; prevX = 0; prevY = 0 }; -- y =      -(25 + 52)
+    kb = { enable = false; x = 0; y = -22; prevX = 0; prevY = -22 }; -- y =      -( 0 + 22)
+    gp = { enable = false; x = 0; y = -75; prevX = 0; prevY = -75 }; -- y =      -(25 + 52)
   };
   showDeath = false;
   -- compatibility

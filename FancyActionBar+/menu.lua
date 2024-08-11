@@ -1083,7 +1083,7 @@ end;
 ----------------------------------------------
 local function SaveCurrentLocation()
   local x = FAB_Mover:GetLeft();
-  local y = FAB_Mover:GetBottom();
+  local y = FAB_Mover:GetTop();
   -- if IsInGamepadPreferredMode() then
   if FancyActionBar.style == 2 then
     SV.abMove.gp.prevX = x;
@@ -1292,12 +1292,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
 
         { type = "divider" },
-
-        -- {	type = 'button',        name = 'Undo Last Move',
-        --   func = function() FancyActionBar.UndoMove() end,
-        --   disabled = function() return not wasMoved end,
-        --   width = 'half'
-        -- }
+        {
+          type = "button";
+          name = "Undo Last Move";
+          width = "half";
+          func = function() FancyActionBar.UndoMove() end,
+          reference = "ABUndo_Button";
+        },
+        {
+          type = "button";
+          name = "Reset Actionbar Position";
+          width = "half";
+          func = function () FancyActionBar.ResetMoveActionBar(); end;
+          reference = "ABReset_Button";
+        },
         { type = "divider" },
         {
           type = "description";
@@ -4921,23 +4929,28 @@ function FancyActionBar.SetMoved(moved)
 end;
 
 function FancyActionBar.UndoMove()
-  local x, y;
+  local prevX, prevY;
   if FancyActionBar.style == 2 then
-    x = SV.abMove.gp.prevX;
-    y = SV.abMove.gp.prevY;
-    SV.abMove.gp.x = x;
-    SV.abMove.gp.y = y;
+    prevX = SV.abMove.gp.prevX;
+    prevY = SV.abMove.gp.prevY;
   else
-    x = SV.abMove.kb.prevX;
-    y = SV.abMove.kb.prevY;
-    SV.abMove.kb.x = x;
-    SV.abMove.kb.y = y;
+    prevX = SV.abMove.kb.prevX;
+    prevY = SV.abMove.kb.prevY;
   end;
-  FancyActionBar.constants.move.x = x;
-  FancyActionBar.constants.move.y = y;
+  SaveCurrentLocation();
   ACTION_BAR:ClearAnchors();
-  ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y);
+  ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, prevX, prevY);
   ReanchorMover();
+  FancyActionBar.SaveMoverPosition();
+end;
+
+function FancyActionBar.ResetMoveActionBar()
+  local v, d = FancyActionBar:GetMovableVarsForUI();
+  SaveCurrentLocation();
+  ACTION_BAR:ClearAnchors();
+  ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y);
+  ReanchorMover();
+  FancyActionBar.SaveMoverPosition();
   FancyActionBar.SetMoved(false);
 end;
 
