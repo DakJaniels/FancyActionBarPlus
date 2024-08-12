@@ -733,6 +733,10 @@ FancyActionBar.abilityConfig =
 
   -- Volendrung
   [116095] = { 61665 }; -- Major Brutality
+
+  -- Lucent Citadel
+  [199287] = { 199288 }; -- Ghost Light Speed
+  [199290] = { 218361 }; -- Ghost Light Shield
 };
 
 FancyActionBar.contingency =
