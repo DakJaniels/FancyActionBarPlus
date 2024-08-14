@@ -740,15 +740,15 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
 
   local currentSlots = {};
 
-  for i = MIN_INDEX, MAX_INDEX + 1 do
-    local I0 = FancyActionBar.GetSlotBoundAbilityId(i, 0);
-    local I1 = FancyActionBar.GetSlotBoundAbilityId(i, 1);
+  for i = MIN_INDEX, ULT_INDEX do
+    local I0 = FancyActionBar.GetSlotBoundAbilityId(i, HOTBAR_CATEGORY_PRIMARY);
+    local I1 = FancyActionBar.GetSlotBoundAbilityId(i, HOTBAR_CATEGORY_BACKUP);
     if I0 == id then currentSlots[i] = true; end;
     if I1 == id then currentSlots[i + SLOT_INDEX_OFFSET] = true; end;
   end;
 
   for slot in pairs(currentSlots) do
-    if slot then FancyActionBar.SlotEffect(slot, id); end;
+    if slot then FancyActionBar.SlotEffect(slot, id, nil, nil, true); end;
   end;
 end;
 
@@ -803,33 +803,35 @@ end;
 --- @param dontFade boolean Flag to prevent fading of the effect.
 --- @param isChanneled boolean Flag to indicate if the effect is channeled.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, instantFade, dontFade, isChanneled)
+function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged)
   ---@alias effect table
-  local effect = FancyActionBar.effects[id] or
-    {
-      id = id;
-      endTime = 0;
-      custom = custom;
-      toggled = toggled;
-      ignore = ignore;
-      passive = false;
-      isDebuff = false;
-      activeOnTarget = false;
-      instantFade = instantFade;
-      dontFade = dontFade;
-      faded = true;
-      isChanneled = isChanneled;
-    };
+  local effect = FancyActionBar.effects[id] or {};
+
+  if effectChanged or not FancyActionBar.effects[id] then
+    effect.id = id;
+    effect.endTime = 0;
+    effect.custom = custom;
+    effect.toggled = toggled;
+    effect.ignore = ignore;
+    effect.passive = false;
+    effect.isDebuff = false;
+    effect.activeOnTarget = false;
+    effect.instantFade = instantFade;
+    effect.dontFade = dontFade;
+    effect.faded = true;
+    effect.isChanneled = isChanneled;
+  end
 
   -- Portions of the effect table that should always be updated
   effect.stackId = stackId;
 
-  if not FancyActionBar.effects[id] and config then
+  if effectChanged or not FancyActionBar.effects[id] and config then
     FancyActionBar.effects[id] = effect;
-  end;
+  end
 
   return effect; -- Always returns an effect
-end;
+end
+
 
 function FancyActionBar.GetSlottedEffect(index)
   return slottedIds[index].effect, slottedIds[index].ability;
@@ -1044,20 +1046,16 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
   if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
     if FancyActionBar.destroSkills[id] then
       icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetIdForDestroSkill(id, bar));
-    elseif id == 31816 then
-      if SV.applyActionBarSkillStyles then
-        icon = FancyActionBar.GetSkillStyleIconForAbilityId(id);
-      else
-        local hyper = CheckHyperTools();
-        if hyper ~= "" then
-          icon = GetHyperToolsIcon(hyper);
-        else
-          icon = GetAbilityIcon(id);
-        end;
-      end;
     else
       id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar);
-      icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
+      if SV.applyActionBarSkillStyles then
+        icon = FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
+      elseif id == 31816 then
+        local hyper = CheckHyperTools();
+        icon = hyper ~= "" and GetHyperToolsIcon(hyper) or GetAbilityIcon(id)
+      else
+        icon = GetAbilityIcon(id);
+      end;
     end;
     btn.icon:SetHidden(false);
     btn.icon:SetTexture(icon);
@@ -1534,7 +1532,7 @@ function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
   end;
 end;
 
-function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag) -- assign effect and instructions to overlay index.
+function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag, effectChanged) -- assign effect and instructions to overlay index.
   if (not abilityId or abilityId == 0) then
     FancyActionBar.UnslotEffect(index);
     return;
@@ -1552,7 +1550,6 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   local cfg = abilityConfig[abilityId];
   local ignore = false;
-
 
   if cfg == false and stackId == nil then ignore = true; end;
 
@@ -1618,7 +1615,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   stackId = #effectStackId > 0 and effectStackId or #abilityStackId > 0 and abilityStackId or {};
 
-  local effect = FancyActionBar.GetEffect(effectId, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
 
 
   if not ignore then
@@ -2039,7 +2036,9 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
         toggled = true; FancyActionBar.toggles[id] = false;
       end;
       if FancyActionBar.removeInstantly[cI] then rI = true; end;
-      if cfg and cfg[1] then
+      if cfg == false then
+        abilityConfig[id] = false;
+      elseif cfg and cfg[1] then
         abilityConfig[id] = { cfg[1], true, toggled, rI };
       else
         abilityConfig[id] = nil;
@@ -3543,10 +3542,8 @@ function FancyActionBar.Initialize()
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
 
-      if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) then -- track when the skill was used and ignore other events for it that is lower than the GCD
-        if (abilityConfig[id] and abilityConfig[id] ~= false) or FancyActionBar.specialEffects[id] then
-          FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
-        end;
+      if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (abilityConfig[id] and abilityConfig[id] == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
+        FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
       end;
 
       if FancyActionBar.IdCheck(index, id) == false then
