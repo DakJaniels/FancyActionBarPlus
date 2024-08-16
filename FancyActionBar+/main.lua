@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.7.1";
+local VERSION = "2.7.2";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -1890,13 +1890,15 @@ end;
 
 function FancyActionBar.OnUltChanged(eventCode, unitTag, powerIndex, powerType, powerValue, powerMax, powerEffectiveMax)
   if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE then
-    FancyActionBar.UpdateUltimateValueLabels(true, powerValue, currentHotbarCategory);
+    local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE);
+    FancyActionBar.UpdateUltimateValueLabels(true, current, currentHotbarCategory);
   end;
 end;
 
 function FancyActionBar.OnUltChangedCompanion(eventCode, unitTag, powerIndex, powerType, powerValue, powerMax, powerEffectiveMax)
   if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE then
-    FancyActionBar.UpdateUltimateValueLabels(false, powerValue);
+    local current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE);
+    FancyActionBar.UpdateUltimateValueLabels(false, current);
   end;
 end;
 
@@ -4129,8 +4131,10 @@ function FancyActionBar.Initialize()
   end;
 
   for id in pairs(FancyActionBar.needCombatEvent) do
-    EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent);
-    EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+    if (not FancyActionBar.needCombatEvent[id].class) or (FancyActionBar.needCombatEvent[id].class == class) then
+      EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent);
+      EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER);
+    end;
   end;
 
   if FancyActionBar.graveLordSacrifice then

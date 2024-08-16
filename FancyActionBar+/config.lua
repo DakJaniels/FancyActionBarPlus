@@ -1228,10 +1228,22 @@ FancyActionBar.specialClassEffectProcs =
 
 FancyActionBar.needCombatEvent =
 {
-  [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- momentum
-  [38794] = { duration = GetAbilityDuration(38794) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- forward momentum
-  --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION }; -- rally
-  [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
+  [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false }; -- momentum
+  [38794] = { duration = GetAbilityDuration(38794) / 1000, result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false };                                                               -- forward momentum
+  --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false  }; -- rally
+  [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
+
+  -- Class Specific UltGen Passives that need Combat Events
+  [29474] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };  -- Mountain's Blessing I
+  [45005] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };  -- Mountain's Blessing II
+  [36589] = { duration = 4; result = ACTION_RESULT_POWER_ENERGIZE; class = 3 };  -- Transfer I
+  [45146] = { duration = 4; result = ACTION_RESULT_POWER_ENERGIZE; class = 3 };  -- Transfer II
+  [88512] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 4 };  -- Savage Beast I
+  [88513] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 4 };  -- Savage Beast II
+  [31746] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 6 };  -- Prism I
+  [45217] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 6 };  -- Prism II
+  [185051] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 117 };  -- Implacable Outcome I
+  [185070] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 117 };  -- Implacable Outcome II
 };
 
 FancyActionBar.traps = 
