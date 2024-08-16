@@ -14,12 +14,10 @@ local time = GetFrameTimeSeconds;
 local MIN_INDEX = 3;                          -- first ability index
 local MAX_INDEX = 7;                          -- last ability index
 local ULT_INDEX = 8;                          -- ultimate slot index
+local QUICK_SLOT = 9;                         -- ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1
 local SLOT_INDEX_OFFSET = 20;                 -- offset for backbar abilities indices
 local COMPANION_INDEX_OFFSET = 30;            -- offset for companion ultimate
 local SLOT_COUNT = MAX_INDEX - MIN_INDEX + 1; -- total number of slots
-local ULT_SLOT = 8;                           -- ACTION_BAR_ULTIMATE_SLOT_INDEX + 1
-local QUICK_SLOT = 9;                         -- ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1
-local COMPANION = HOTBAR_CATEGORY_COMPANION;
 local ACTION_BAR = GetControl("ZO_ActionBar1");
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS");
 local currentWeaponPair = GetActiveWeaponPairInfo();
@@ -784,7 +782,7 @@ function FancyActionBar.SetActionButtonAbilityFxOverride(index)
 end;
 
 function FancyActionBar.GetOverlay(index)
-  if (index == ULT_SLOT) or (index == ULT_SLOT + SLOT_INDEX_OFFSET)
+  if (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET)
   then
     return FancyActionBar.ultOverlays[index];
   else
@@ -861,32 +859,36 @@ function FancyActionBar.IsSameEffect(index, abilityId)
 end;
 
 function FancyActionBar.UpdateCompanionOverlayOnChange()
-  if (ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).hasAction and DoesUnitExist("companion") and HasActiveCompanion()) then
+  if HasActiveCompanion() and DoesUnitExist("companion") and (ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction) then
     hideCompanionUlt = false;
 
     local current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE);
-    cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, COMPANION);
-
-    CompanionUltimateButton:SetHidden(false);
-    FancyActionBar.UpdateUltimateValueLabels(false, current);
-
-    if FancyActionBar.style == 2
-    then
-      ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(true);
+    cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION);
+    if cost3 == nil or cost3 == 0 then
+      if CompanionUltimateButton then
+        CompanionUltimateButton:SetHidden(true);
+        ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
+      end;
     else
-      ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(not SV.showHotkeys);
+      CompanionUltimateButton:SetHidden(false);
+      FancyActionBar.UpdateUltimateValueLabels(false, current);
+      if FancyActionBar.style == 2 then
+        ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
+      else
+        ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(not SV.showHotkeys);
+      end;
     end;
   else
     hideCompanionUlt = true;
     if CompanionUltimateButton then
       CompanionUltimateButton:SetHidden(true);
-      ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(true);
+      ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
     end;
   end;
 end;
 
 function FancyActionBar.HandleCompanionStateChanged() -- prevents quick slot from being moved when a companion is summoned / unsummoned
-  local c = ZO_ActionBar_GetButton(ULT_SLOT, COMPANION);
+  local c = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
   c:HandleSlotChanged();
   c:UpdateUltimateMeter();
   zo_callLater(function () FancyActionBar.UpdateCompanionOverlayOnChange(); end, 2000);
@@ -2293,7 +2295,7 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
 
   -- cost1 = GetSlotAbilityCost(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY)
   -- cost2 = GetSlotAbilityCost(ULT_INDEX, HOTBAR_CATEGORY_BACKUP)
-  cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, COMPANION);
+  cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION);
 
   if e then
     current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE);
@@ -2378,9 +2380,9 @@ function FancyActionBar.CreateUltOverlay(index) -- create ultimate skill button 
     local parent;
     if index == ULT_INDEX + COMPANION_INDEX_OFFSET
     then
-      parent = ZO_ActionBar_GetButton(ULT_SLOT, COMPANION);
+      parent = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
     else
-      parent = ZO_ActionBar_GetButton(ULT_SLOT);
+      parent = ZO_ActionBar_GetButton(ULT_INDEX);
     end;
     overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index);
     overlay.timer = overlay:GetNamedChild("Duration");
@@ -2408,8 +2410,8 @@ function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button
 end;
 
 local applyButtonStyles = function (style)
-  ZO_ActionBar_GetButton(ULT_SLOT):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(ULT_SLOT, COMPANION):ApplyStyle(style.ultButtonTemplate);
+  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
+  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
   -- ZO_ActionBar_GetButton(QUICK_SLOT):ApplyStyle(style.buttonTemplate)
   -- QuickslotButton:ApplyStyle(style.buttonTemplate)
 end;
@@ -4094,7 +4096,7 @@ function FancyActionBar.Initialize()
   end);
 
   ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
-    if (not ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).hasAction or not DoesUnitExist("companion") or not HasActiveCompanion()) then
+    if (not ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction or not DoesUnitExist("companion") or not HasActiveCompanion()) then
       CompanionUltimateButton:SetHidden(true);
     end;
   end);
