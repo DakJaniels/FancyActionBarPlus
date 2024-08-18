@@ -1674,7 +1674,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
         {
           type = "checkbox";
-          name = "Show gamepad ult hotkeys";
+          name = "Show gamepad ultimate hotkeys";
           tooltip = "Show the LB RB labels for gamepad UI.";
           default = defaults.showHotkeysUltGP;
           getFunc = function () return SV.showHotkeysUltGP; end;
@@ -1688,7 +1688,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         },
         {
           type = "checkbox",
-          name = "Hide Companion Ultimate Slot",
+          name = "Hide companion ultimate slot",
+          tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not";
           default = defaults.hideCompanionUlt,
           getFunc = function() return SV.hideCompanionUlt; end,
           setFunc = function(value)
@@ -1700,7 +1701,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         --=============[  OneBar Mode  ]==================
         {
           type = "checkbox";
-          name = "Hide Locked Bars";
+          name = "Hide locked Action Bars";
           tooltip = "If enabled, locked, inactive, action bars will be hidden, such when Oakensoul is equipped or the Werewolf transformation is activated.";
           default = defaults.hideLockedBar;
           getFunc = function () return SV.hideLockedBar; end;
@@ -1714,7 +1715,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         --=============[  Skill Styles  ]==================
         {
           type = "checkbox";
-          name = "Apply Skill Styles to Action Bar Slots";
+          name = "Apply skill styles to Action Bar slots";
+          tooltip = "If a given skill style override is unlocked and activated, and the applicable ability is slotted on the action bar, use the skill style icon instead of the ability icon .";
           default = defaults.applyActionBarSkillStyles;
           getFunc = function () return SV.applyActionBarSkillStyles; end;
           setFunc = function (value)
