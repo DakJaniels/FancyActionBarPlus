@@ -1686,6 +1686,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
           width = "full";
         },
+        {
+          type = "checkbox",
+          name = "Hide Companion Ultimate Slot",
+          default = defaults.hideCompanionUlt,
+          getFunc = function() return SV.hideCompanionUlt; end,
+          setFunc = function(value)
+            SV.hideCompanionUlt = value or false;
+            FancyActionBar.UpdateCompanionOverlayOnChange();
+          end,
+          width = "full",
+        },
         --=============[  OneBar Mode  ]==================
         {
           type = "checkbox";

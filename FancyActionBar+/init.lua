@@ -66,6 +66,7 @@ FancyActionBar.defaultSettings =
   hideLockedBar = true;
   showHotkeys = true;
   showHotkeysUltGP = true;
+  hideCompanionUlt = false;
   showHighlight = true;
   highlightColor = { 0, 1, 0, 0.7 };
   highlightExpire = false;

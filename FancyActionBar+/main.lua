@@ -240,7 +240,6 @@ local channeledAbilityUsed = nil;           -- for tracking channeling abilities
 local isChanneling = false;                 -- for tracking channeling abilities
 local wasBlockActive = false;               -- for tracking block state
 local uiModeChanged = false;                -- don't change configuration if not needed
-local hideCompanionUlt = false;             -- variable with no settings for now (hide if companion is not currently present or if doesn't have its ultimate ability unlocked - why show empty button ZoS?? )
 local activeUlt = { id = 0; endTime = -1 }; -- for tracking ultimate duration across barswap
 
 local guardId = 0;                          -- sync active id for guard on both bars as active and inactive are different
@@ -859,9 +858,7 @@ function FancyActionBar.IsSameEffect(index, abilityId)
 end;
 
 function FancyActionBar.UpdateCompanionOverlayOnChange()
-  if HasActiveCompanion() and DoesUnitExist("companion") and (ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction) then
-    hideCompanionUlt = false;
-
+  if (not SV.hideCompanionUlt) and HasActiveCompanion() and DoesUnitExist("companion") and (ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction) then
     local current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE);
     cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION);
     if cost3 == nil or cost3 == 0 then
@@ -879,7 +876,6 @@ function FancyActionBar.UpdateCompanionOverlayOnChange()
       end;
     end;
   else
-    hideCompanionUlt = true;
     if CompanionUltimateButton then
       CompanionUltimateButton:SetHidden(true);
       ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
@@ -1876,7 +1872,7 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value, hotbar) -- upda
     local o3 = FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET];
     CompanionUltimateButtonLeadingEdge:SetAlpha(alpha);
 
-    if hideCompanionUlt then
+    if SV.hideCompanionUlt then
       CompanionUltimateButton:SetHidden(true);
       if o3 and o3.value then
         o3.value:SetText("");
@@ -4398,6 +4394,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
     if SV.hideLockedBar == nil then SV.hideLockedBar = d.hideLockedBar; end;
+    if SV.hideCompanionUlt == nil then SV.hideCompanionUlt = d.hideCompanionUlt; end;
 
     SV.variablesValidated = true;
     SV.addonVersion = FancyActionBar.GetVersion();
