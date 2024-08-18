@@ -1682,7 +1682,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           setFunc = function(value)
             SV.forceGamepadStyle = value or false;
             FancyActionBar.uiModeChanged = true;
-            FancyActionBar.style = SV.forceGamepadStyle and 2 or 1;
+            FancyActionBar.forceGamepadActionBar = IsInGamepadPreferredMode() and false or SV.forceGamepadStyle;
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
             FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
