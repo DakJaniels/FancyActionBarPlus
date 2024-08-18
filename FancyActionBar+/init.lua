@@ -30,7 +30,8 @@ FancyActionBar.defaultSettings =
 
   configChanges = {};
   dynamicAbilityConfig = false;
-
+  forceGamepadStyle = false,
+  
   externalBuffs = false;
   externalBlackList = {};
   externalBlackListRun = false;

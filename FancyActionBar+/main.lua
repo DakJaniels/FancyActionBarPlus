@@ -23,7 +23,9 @@ local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS");
 local currentWeaponPair = GetActiveWeaponPairInfo();
 local currentHotbarCategory = GetActiveHotbarCategory();
 local isWeaponSwapLocked = false;             -- for tracking weapon swap lock state
-local specialHotbarActive =  false;           -- for tracking if a specialHotbar is active
+local specialHotbarActive = false;  -- for tracking if a specialHotbar is active
+
+
 local specialHotbar = 
     {
       [HOTBAR_CATEGORY_TEMPORARY] = true;
@@ -112,6 +114,7 @@ FancyActionBar.qsOverlay = nil;               -- shortcut for.. reasons..
 
 FancyActionBar.initialized = false;           -- check before running some functions that can't be run this early
 FancyActionBar.initialSetup = true;           -- same as above. not sure why I added both...
+FancyActionBar.uiModeChanged = false;         -- don't change configuration if not needed
 FancyActionBar.wasMoved = false;              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false;            -- don't register updates if already registered
 
@@ -239,7 +242,6 @@ local lastButton = 0;                       -- for repositioning of skill button
 local channeledAbilityUsed = nil;           -- for tracking channeling abilities
 local isChanneling = false;                 -- for tracking channeling abilities
 local wasBlockActive = false;               -- for tracking block state
-local uiModeChanged = false;                -- don't change configuration if not needed
 local activeUlt = { id = 0; endTime = -1 }; -- for tracking ultimate duration across barswap
 
 local guardId = 0;                          -- sync active id for guard on both bars as active and inactive are different
@@ -598,7 +600,7 @@ end;
 ---
 ---@return table
 function FancyActionBar.GetContants()
-  if uiModeChanged or (not FancyActionBar.initialized) then
+  if FancyActionBar.uiModeChanged or (not FancyActionBar.initialized) then
     FancyActionBar.style = IsInGamepadPreferredMode() and 2 or 1;
     local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
@@ -2138,9 +2140,9 @@ function FancyActionBar.AdjustControlsPositions() -- resource bars and default a
   local style = FancyActionBar.GetContants();
   local anchor = ZO_Anchor:New();
 
-  if FancyActionBar.initialSetup or uiModeChanged then
+  if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
     -- Move action bar and attributes up a bit.
-    uiModeChanged = false;
+    FancyActionBar.uiModeChanged = false;
     anchor:SetFromControlAnchor(ACTION_BAR);
     anchor:SetOffsets(nil, style.actionBarOffset);
     anchor:Set(ACTION_BAR);
@@ -2942,7 +2944,7 @@ function FancyActionBar.UpdateStyle()
   local style = {};
   local mode;
 
-  if FancyActionBar.initialSetup or uiModeChanged then
+  if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
     mode = IsInGamepadPreferredMode() and 2 or 1;
   else
     if ADCUI then
@@ -3541,6 +3543,13 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
+      if SV.forceGamepadStyle then
+        local btn = ZO_ActionBar_GetButton(n)
+        if btn then
+          btn:PlayAbilityUsedBounce()
+          btn:PlayGlow()
+        end
+      end;
 
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (abilityConfig[id] and abilityConfig[id] == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
         FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
@@ -4025,11 +4034,11 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
-    uiModeChanged = true;
+    FancyActionBar.uiModeChanged = true;
     local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-    uiModeChanged = false;
+    FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);
 
@@ -4096,6 +4105,38 @@ function FancyActionBar.Initialize()
       CompanionUltimateButton:SetHidden(true);
     end;
   end);
+
+  local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
+    local GROW_SCALE = 1.1
+    local shrink = timeline:GetAnimation(1)
+    local grow = timeline:GetAnimation(2)
+    local reset = timeline:GetAnimation(3)
+    local size = 47
+
+    shrink:SetStartAndEndWidth(size, size * shrinkScale)
+    shrink:SetStartAndEndHeight(size, size * shrinkScale)
+
+    grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
+    grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
+
+    reset:SetStartAndEndWidth(size * GROW_SCALE, size)
+    reset:SetStartAndEndHeight(size * GROW_SCALE, size)
+    reset:SetDuration(resetTime)
+  end
+
+  function ActionButton:SetBounceAnimationParameters(cooldownTime)
+    local SHRINK_SCALE = 0.9
+    local ICON_SHRINK_SCALE = 0.8
+    local FRAME_RESET_TIME_MS = 167
+    local ICON_RESET_TIME_MS = 100
+    local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
+    SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
+    SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
+  end
+  
+  SecurePostHook(ActionButton, 'ApplyStyle', function(self)
+    ApplyTemplateToControl(self.slot, 'FAB_AltActionButton')
+  end)
 
   class = GetUnitClassId("player");
   if FancyActionBar.fakeClassEffects[class] then
@@ -4265,8 +4306,9 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showExpire == nil then SV.showExpire = d.showExpire; end;
     if SV.showExpireStart == nil then SV.showExpireStart = d.showExpireStart; end;
     if SV.expireColor == nil then SV.expireColor = d.expireColor; end;
+    if SV.forceGamepadStyle == nil then SV.forceGamepadStyle = d.forceGamepadStyle; end;
 
-    if IsInGamepadPreferredMode() then
+    if IsInGamepadPreferredMode() or SV.forceGamepadStyle then
       if SV.fontName then
         SV.fontNameGP = SV.fontName;
         SV.fontName = nil;

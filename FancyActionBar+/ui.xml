@@ -108,6 +108,50 @@
       </Controls>
     </Control>
     <!-- Action Button Keyboard -->
+    <Control name="FAB_AltActionButton" virtual="true">
+      <Dimensions x="50" y="50" />
+      <Controls>
+        <Control name="$(parent)FlipCard">
+          <Dimensions x="47" y="47" />
+        </Control>
+        <Texture name="$(parent)Icon">
+          <Dimensions x="47" y="47" />
+        </Texture>
+        <Texture name="$(parent)CooldownIcon" hidden="true" />
+        <Button name="$(parent)Button" hidden="false" alpha="0" />
+        <Label name="$(parent)ButtonText" font="ZoFontGamepad18">
+          <!-- Setting the width back to 0 makes it use the suggested width based on the text
+          rendering -->
+          <Dimensions x="0" y="25" />
+          <Anchor point="TOP" relativePoint="BOTTOM" offsetY="-6" />
+        </Label>
+        <Label name="$(parent)StackCountText" font="ZoFontGamepad27" color="DCD822">
+          <Dimensions x="0" y="25" />
+          <Anchor point="CENTER" relativePoint="CENTER" offsetX="23" offsetY="-20" />
+        </Label>
+        <Label name="$(parent)TimerText" font="ZoFontGamepad27" color="DCD822">
+          <Dimensions x="0" y="25" />
+          <Anchor point="CENTER" relativePoint="CENTER"
+            offsetY="ACTION_BUTTON_TIMER_TEXT_OFFSET_Y_DEFAULT_GAMEPAD" />
+        </Label>
+        <Texture name="$(parent)TimerOverlay">
+          <Dimensions x="47" y="47" />
+        </Texture>
+        <Texture name="$(parent)Glow" hidden="false" alpha="0" />
+        <Texture name="$(parent)BG" hidden="false" alpha="1" />
+        <!-- <Backdrop name="$(parent)Backdrop" hidden="false" /> -->
+        <Backdrop name="$(parent)Backdrop" inherits="ZO_DefaultBackdrop" hidden="false" alpha="1">
+          <Anchor point="TOPLEFT" relativeTo="$(parent)FlipCard" offsetX="-4" offsetY="-4" />
+          <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)FlipCard" offsetX="4" offsetY="4" />
+          <Edge file="/FancyActionBar+/texture/CustomEdge.dds" edgeFileWidth="128"
+            edgeFileHeight="16" />
+          <Center file="/FancyActionBar+/texture/CustomCenter.dds" />
+          <Controls>
+            <Texture name="$(parent)MungeOverlay" alpha="0" />
+          </Controls>
+        </Backdrop>
+      </Controls>
+    </Control>
     <Control name="FAB_ActionButtonOverlay_Keyboard_Template" virtual="true">
       <Dimensions x="50" y="50" />
       <Controls>

@@ -1673,6 +1673,24 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           width = "full";
         },
         {
+          type = "checkbox",
+          name = "Force enable gamepad Action Bar style",
+          tooltip =
+          "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessability Mode. This setting force enables these additonal UI elements.",
+          default = defaults.forceGamepadStyle;
+          getFunc = function() return SV.forceGamepadStyle; end,
+          setFunc = function(value)
+            SV.forceGamepadStyle = value or false;
+            FancyActionBar.uiModeChanged = true;
+            FancyActionBar.style = SV.forceGamepadStyle and 2 or 1;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+            FancyActionBar.uiModeChanged = false;
+          end,
+          width = "full",
+        },
+        {
           type = "checkbox";
           name = "Show gamepad ultimate hotkeys";
           tooltip = "Show the LB RB labels for gamepad UI.";
