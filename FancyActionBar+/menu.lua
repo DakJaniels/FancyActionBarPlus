@@ -1689,7 +1689,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "checkbox",
           name = "Hide companion ultimate slot",
-          tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not";
+          tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not.";
           default = defaults.hideCompanionUlt,
           getFunc = function() return SV.hideCompanionUlt; end,
           setFunc = function(value)
