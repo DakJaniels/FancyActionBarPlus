@@ -1,12 +1,12 @@
 ## Title: FancyActionBar+
 ## Version: 2.7.2
-## APIVersion: 101042
+## APIVersion: 101043
 ## AddOnVersion: 272
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage
 ## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
-## OptionalDependsOn: HyperTools HyperTankingTools
+## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles
 
 init.lua
 main.lua
