@@ -2500,7 +2500,7 @@ local configureFillAnimationsAndFrames = function (style)
   local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, currentHotbarCategory);
   local isGamepad = IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar;
 
-  if FancyActionBar.style == 2 and isSlotUsed then
+  if FancyActionBar.style == 2 or FancyActionBar.forceGamepadActionBar and isSlotUsed then
     -- Show fill bar if platform appropriate
     gpFrame:SetHidden(false);
     gpFrameC:SetHidden(false);
@@ -2941,12 +2941,51 @@ end;
 
 ActionButton["SetUltimateMeter"] = FancySetUltimateMeter;
 
+local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
+  local style = FancyActionBar.GetContants()
+  local GROW_SCALE = 1
+  local shrink = timeline:GetAnimation(1)
+  local grow = timeline:GetAnimation(2)
+  local reset = timeline:GetAnimation(3)
+  local size = style.flipCardSize
+
+  shrink:SetStartAndEndWidth(size, size * shrinkScale)
+  shrink:SetStartAndEndHeight(size, size * shrinkScale)
+
+  grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
+  grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
+
+  reset:SetStartAndEndWidth(size * GROW_SCALE, size)
+  reset:SetStartAndEndHeight(size * GROW_SCALE, size)
+  reset:SetDuration(resetTime)
+end
+
+SetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"];
+local function FancySetBounceAnimationParameters(self, cooldownTime)
+  local SHRINK_SCALE = 0.9
+  local ICON_SHRINK_SCALE = 0.8
+  local FRAME_RESET_TIME_MS = 167
+  local ICON_RESET_TIME_MS = 100
+  local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
+  SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
+  SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
+end
+ActionButton["SetBounceAnimationParameters"] = FancySetBounceAnimationParameters;
+
+-- SecurePostHook(ActionButton, 'ApplyStyle', function(self)
+--   if FancyActionBar.forceGamepadActionBar then
+--     ApplyTemplateToControl(self.slot, 'FAB_AltActionButton')
+--   else
+--     ApplyTemplateToControl(self.slot, 'ZO_ActionButton')
+--   end;
+-- end)
+
 function FancyActionBar.UpdateStyle()
   local style = {};
   local mode;
 
   if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
-    mode = IsInGamepadPreferredMode() and 2 or 1;
+    mode = IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar and 2 or 1;
   else
     if ADCUI then
       if ADCUI:originalIsInGamepadPreferredMode() then
@@ -2960,7 +2999,7 @@ function FancyActionBar.UpdateStyle()
         mode = 1;
       end;
     else
-      mode = IsInGamepadPreferredMode() and 2 or 1;
+      mode = IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar and 2 or 1;
     end;
   end;
 
@@ -4107,40 +4146,6 @@ function FancyActionBar.Initialize()
       CompanionUltimateButton:SetHidden(true);
     end;
   end);
-
-  local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
-    local GROW_SCALE = 1.1
-    local shrink = timeline:GetAnimation(1)
-    local grow = timeline:GetAnimation(2)
-    local reset = timeline:GetAnimation(3)
-    local size = 47
-
-    shrink:SetStartAndEndWidth(size, size * shrinkScale)
-    shrink:SetStartAndEndHeight(size, size * shrinkScale)
-
-    grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
-    grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
-
-    reset:SetStartAndEndWidth(size * GROW_SCALE, size)
-    reset:SetStartAndEndHeight(size * GROW_SCALE, size)
-    reset:SetDuration(resetTime)
-  end
-
-  function ActionButton:SetBounceAnimationParameters(cooldownTime)
-    local SHRINK_SCALE = 0.9
-    local ICON_SHRINK_SCALE = 0.8
-    local FRAME_RESET_TIME_MS = 167
-    local ICON_RESET_TIME_MS = 100
-    local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
-    SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
-    SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
-  end
-  
-  SecurePostHook(ActionButton, 'ApplyStyle', function(self)
-    if FancyActionBar.forceGamepadActionBar then
-      ApplyTemplateToControl(self.slot, 'FAB_AltActionButton')
-    end;
-  end)
 
   class = GetUnitClassId("player");
   if FancyActionBar.fakeClassEffects[class] then
