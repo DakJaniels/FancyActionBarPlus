@@ -115,7 +115,7 @@ FancyActionBar.qsOverlay = nil;               -- shortcut for.. reasons..
 FancyActionBar.initialized = false;           -- check before running some functions that can't be run this early
 FancyActionBar.initialSetup = true;           -- same as above. not sure why I added both...
 FancyActionBar.uiModeChanged = false;         -- don't change configuration if not needed
-FancyActionBar.forceGamepadActionBar = false; -- If the gamepad actionbar style should be force enabled
+FancyActionBar.useGamepadActionBar = false; -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false;              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false;            -- don't register updates if already registered
 
@@ -583,7 +583,7 @@ end;
 ---@return table def
 function FancyActionBar:GetMovableVarsForUI()
   local var = FancyActionBar.constants.move;
-  local def = IsInGamepadPreferredMode() and defaultSettings.abMove.gp or defaultSettings.abMove.kb;
+  local def = (IsInGamepadPreferredMode() or FancyActionBar.useGamepadActionBar) and defaultSettings.abMove.gp or defaultSettings.abMove.kb;
   return var, def;
 end;
 
@@ -602,8 +602,8 @@ end;
 ---@return table
 function FancyActionBar.GetContants()
   if FancyActionBar.uiModeChanged or (not FancyActionBar.initialized) then
-    FancyActionBar.style = IsInGamepadPreferredMode() and 2 or 1;
-    local s = FancyActionBar.style == 1 and (not FancyActionBar.forceGamepadActionBar) and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
+    FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1;
+    local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
   end;
   return FancyActionBar.constants.style;
@@ -2498,9 +2498,9 @@ local configureFillAnimationsAndFrames = function (style)
   end;
 
   local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, currentHotbarCategory);
-  local isGamepad = IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar;
+  local isGamepad = FancyActionBar.useGamepadActionBar;
 
-  if FancyActionBar.style == 2 or FancyActionBar.forceGamepadActionBar and isSlotUsed then
+  if FancyActionBar.style == 2 and isSlotUsed then
     -- Show fill bar if platform appropriate
     gpFrame:SetHidden(false);
     gpFrameC:SetHidden(false);
@@ -2549,7 +2549,7 @@ local createOverlays = function (style, weaponSwapControl, QSB)
   local QO = FancyActionBar.CreateQuickSlotOverlay(QUICK_SLOT);
   setupOverlay(QO, QSB);
   QO.timer = QO:GetNamedChild("Duration");
-  QO.timer:SetColor(unpack(IsInGamepadPreferredMode() and SV.qsColorGP or SV.qsColorKB));
+  QO.timer:SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsColorGP or SV.qsColorKB));
 
   local qsFrame = FancyActionBar.qsOverlay:GetNamedChild("Frame");
   if qsFrame then
@@ -2620,12 +2620,7 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
 
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    if FancyActionBar.forceGamepadActionBar then
-      --button:ApplyStyle('FAB_AltActionButton');
-      button:ApplyStyle('ZO_ActionButton_Gamepad_Template');
-    else
-      button:ApplyStyle(style.buttonTemplate);
-    end;
+    button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
     if lastButton then
       button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
     elseif i == MIN_INDEX then
@@ -2690,12 +2685,7 @@ end;
 function FancyActionBar.SetupBackbarButton(style, weaponSwapControl, lastButton, index)
   ---@type ActionButton
   local button = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
-  if FancyActionBar.forceGamepadActionBar then
-    --button:ApplyStyle('FAB_AltActionButton');
-    button:ApplyStyle('ZO_ActionButton_Gamepad_Template');
-  else
-    button:ApplyStyle(style.buttonTemplate);
-  end;
+  button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
   button.icon:SetDesaturation(SV.desaturationInactive / 100);
   button.icon:SetAlpha(SV.alphaInactive / 100);
 
@@ -2890,7 +2880,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
   local ultimateFillFrame = GetControl(self.slot, "Frame");
 
   local isGamepad = false;
-  if IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar then isGamepad = true; end;
+  if FancyActionBar.useGamepadActionBar then isGamepad = true; end;
   if isSlotUsed then
     -- Show fill bar if platform appropriate
     ultimateFillFrame:SetHidden(not isGamepad);
@@ -2981,20 +2971,12 @@ local function FancySetBounceAnimationParameters(self, cooldownTime)
 end
 ActionButton["SetBounceAnimationParameters"] = FancySetBounceAnimationParameters;
 
--- SecurePostHook(ActionButton, 'ApplyStyle', function(self)
---   if FancyActionBar.forceGamepadActionBar then
---     ApplyTemplateToControl(self.slot, 'FAB_AltActionButton')
---   else
---     ApplyTemplateToControl(self.slot, 'ZO_ActionButton')
---   end;
--- end)
-
 function FancyActionBar.UpdateStyle()
   local style = {};
   local mode;
 
   if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
-    mode = IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar and 2 or 1;
+    mode = FancyActionBar.useGamepadActionBar and 2 or 1;
   else
     if ADCUI then
       if ADCUI:originalIsInGamepadPreferredMode() then
@@ -3008,7 +2990,7 @@ function FancyActionBar.UpdateStyle()
         mode = 1;
       end;
     else
-      mode = IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar and 2 or 1;
+      mode = FancyActionBar.useGamepadActionBar and 2 or 1;
     end;
   end;
 
@@ -3400,8 +3382,7 @@ function FancyActionBar.Initialize()
   defaultSettings = FancyActionBar.defaultSettings;
   SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName());
   CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName());
-  FancyActionBar.forceGamepadActionBar = IsInGamepadPreferredMode() and false or SV.forceGamepadStyle or defaultSettings.forceGamepadStyle;
-  
+  FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
   for i = MIN_INDEX, ULT_INDEX do
     FancyActionBar.SetSlottedEffect(i, 0, 0);
     FancyActionBar.SetSlottedEffect(i + SLOT_INDEX_OFFSET, 0, 0);
@@ -3593,7 +3574,7 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
-      if FancyActionBar.forceGamepadActionBar then
+      if SV.forceGamepadStyle then
         local btn = ZO_ActionBar_GetButton(n)
         if btn then
           btn:PlayAbilityUsedBounce()
@@ -4085,6 +4066,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
     FancyActionBar.uiModeChanged = true;
+    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
     local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
