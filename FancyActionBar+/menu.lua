@@ -1111,9 +1111,9 @@ end;
 ----------------[   Other   ]-----------------
 ----------------------------------------------
 local framesHidden = false;
-local function SetDefaultAbilityFrame()
+local function SetDefaultAbilityFrame(forceHide)
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
-  if SV.hideDefaultFrames then
+  if SV.hideDefaultFrames or forceHide then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
     framesHidden = true;
@@ -1518,7 +1518,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Show frames";
           tooltip = "Show a frame around buttons on the actionbar.";
           default = defaults.showFrames;
-          disabled = function () return FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
+          disabled = function () return (FancyActionBar.style == 2 or SV.forceGamepadStyle); end; --IsInGamepadPreferredMode() end,
           getFunc = function () return SV.showFrames; end;
           setFunc = function (value)
             SV.showFrames = value or false;
@@ -1684,6 +1684,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.uiModeChanged = true;
             FancyActionBar.forceGamepadActionBar = IsInGamepadPreferredMode() and false or SV.forceGamepadStyle;
             local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.ConfigureFrames(IsInGamepadPreferredMode() or FancyActionBar.forceGamepadActionBar)
             FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
             FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
             FancyActionBar.uiModeChanged = false;
@@ -4388,7 +4389,7 @@ function FancyActionBar.SetMarker(value)
   SetFloatingMarkerGlobalAlpha(1);
 end;
 
-function FancyActionBar.ConfigureFrames()
+function FancyActionBar.ConfigureFrames(forceHide)
   -- ZO_CenterScreenAnnouncementLine.smallCombinedIconFrame
   -- ZO_CenterScreenAnnouncementLine.iconControlFrame
 
@@ -4432,7 +4433,7 @@ function FancyActionBar.ConfigureFrames()
     HideFrames(true);
     if FancyActionBar.qsOverlay and FancyActionBar.qsOverlay.frame then FancyActionBar.qsOverlay.frame:SetHidden(true); end;
   else
-    if not SV.showFrames then
+    if not SV.showFrames or forceHide then
       HideFrames(true);
       if FancyActionBar.qsOverlay and FancyActionBar.qsOverlay.frame then FancyActionBar.qsOverlay.frame:SetHidden(true); end;
     else
@@ -4440,7 +4441,7 @@ function FancyActionBar.ConfigureFrames()
       if FancyActionBar.qsOverlay and FancyActionBar.qsOverlay.frame then FancyActionBar.qsOverlay.frame:SetHidden(false); end;
       FancyActionBar.SetFrameColor();
     end;
-    SetDefaultAbilityFrame();
+    SetDefaultAbilityFrame(forceHide);
   end;
 end;
 

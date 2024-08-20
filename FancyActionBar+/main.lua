@@ -602,8 +602,8 @@ end;
 ---@return table
 function FancyActionBar.GetContants()
   if FancyActionBar.uiModeChanged or (not FancyActionBar.initialized) then
-    FancyActionBar.style = IsInGamepadPreferredMode()  or FancyActionBar.forceGamepadActionBar and 2 or 1;
-    local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
+    FancyActionBar.style = IsInGamepadPreferredMode() and 2 or 1;
+    local s = FancyActionBar.style == 1 and (not FancyActionBar.forceGamepadActionBar) and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
   end;
   return FancyActionBar.constants.style;
@@ -2164,7 +2164,7 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
 
   if (SV.showArrow == false) or (lock == true) then
     if SV.moveQS == true then
-      if not FancyActionBar.style == 1 then
+      if FancyActionBar.style == 2 then
         QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * (style.abilitySlotOffsetX * scale))), 0 * scale, QSB:GetResizeToFitConstrains());
       else
         QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + (style.abilitySlotOffsetX * scale)), 0 * scale, QSB:GetResizeToFitConstrains());
