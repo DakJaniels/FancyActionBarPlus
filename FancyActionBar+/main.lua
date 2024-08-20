@@ -602,7 +602,7 @@ end;
 ---@return table
 function FancyActionBar.GetContants()
   if FancyActionBar.uiModeChanged or (not FancyActionBar.initialized) then
-    FancyActionBar.style = IsInGamepadPreferredMode() and 2 or 1;
+    FancyActionBar.style = IsInGamepadPreferredMode()  or FancyActionBar.forceGamepadActionBar and 2 or 1;
     local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
   end;
@@ -2511,7 +2511,7 @@ local configureFillAnimationsAndFrames = function (style)
 
     -- Set fill animations
     configureFillAnimation(leftFill, actionbutton8backdrop, -24, 24);
-    configureFillAnimation(rightFill, actionbutton8backdrop, -24, 48);
+    configureFillAnimation(rightFill, actionbutton8backdrop, -24, 24);
     configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -24, 24);
     configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 24);
   else
@@ -2620,8 +2620,12 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
 
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    button:ApplyStyle(style.buttonTemplate);
-
+    if FancyActionBar.forceGamepadActionBar then
+      --button:ApplyStyle('FAB_AltActionButton');
+      button:ApplyStyle('ZO_ActionButton_Gamepad_Template');
+    else
+      button:ApplyStyle(style.buttonTemplate);
+    end;
     if lastButton then
       button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
     elseif i == MIN_INDEX then
@@ -2686,7 +2690,12 @@ end;
 function FancyActionBar.SetupBackbarButton(style, weaponSwapControl, lastButton, index)
   ---@type ActionButton
   local button = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
-  button:ApplyStyle(style.buttonTemplate);
+  if FancyActionBar.forceGamepadActionBar then
+    --button:ApplyStyle('FAB_AltActionButton');
+    button:ApplyStyle('ZO_ActionButton_Gamepad_Template');
+  else
+    button:ApplyStyle(style.buttonTemplate);
+  end;
   button.icon:SetDesaturation(SV.desaturationInactive / 100);
   button.icon:SetAlpha(SV.alphaInactive / 100);
 
@@ -2943,7 +2952,7 @@ ActionButton["SetUltimateMeter"] = FancySetUltimateMeter;
 
 local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
   local style = FancyActionBar.GetContants()
-  local GROW_SCALE = 1
+  local GROW_SCALE = 1.1
   local shrink = timeline:GetAnimation(1)
   local grow = timeline:GetAnimation(2)
   local reset = timeline:GetAnimation(3)
@@ -2960,7 +2969,7 @@ local function SetAnimationParameters(timeline, control, shrinkScale, resetTime,
   reset:SetDuration(resetTime)
 end
 
-SetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"];
+local origSetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"];
 local function FancySetBounceAnimationParameters(self, cooldownTime)
   local SHRINK_SCALE = 0.9
   local ICON_SHRINK_SCALE = 0.8

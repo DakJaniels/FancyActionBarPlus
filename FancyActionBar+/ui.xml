@@ -143,8 +143,7 @@
         <Backdrop name="$(parent)Backdrop" inherits="ZO_DefaultBackdrop" hidden="false" alpha="1">
           <Anchor point="TOPLEFT" relativeTo="$(parent)FlipCard" offsetX="-4" offsetY="-4" />
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)FlipCard" offsetX="4" offsetY="4" />
-          <Edge file="/FancyActionBar+/texture/CustomEdge.dds" edgeFileWidth="128"
-            edgeFileHeight="16" />
+          <Edge file="/FancyActionBar+/texture/CustomEdge.dds" edgeFileWidth="128" edgeFileHeight="16" />
           <Center file="/FancyActionBar+/texture/CustomCenter.dds" />
           <Controls>
             <Texture name="$(parent)MungeOverlay" alpha="0" />
