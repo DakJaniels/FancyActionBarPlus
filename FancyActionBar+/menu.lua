@@ -1687,6 +1687,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
             FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
             FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+            FancyActionBar.ApplySettings();
             FancyActionBar.uiModeChanged = false;
           end,
           width = "full",
