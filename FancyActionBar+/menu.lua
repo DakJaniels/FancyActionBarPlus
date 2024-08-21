@@ -2261,7 +2261,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   type = "slider";
                   name = "Ultimate value font size";
                   min = 10;
-                  max = 30;
+                  max = 60;
                   step = 1;
                   getFunc = function () return SV.ultValueSizeKB; end;
                   setFunc = function (value)
@@ -2296,8 +2296,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
                   default = defaults.ultValueYKB;
-                  min = -150;
-                  max = 150;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueYKB; end;
                   setFunc = function (value)
@@ -2314,8 +2314,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Horizontal";
                   tooltip = "[<- left] or [right ->]";
                   default = defaults.ultValueXKB;
-                  min = -150;
-                  max = 150;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueXKB; end;
                   setFunc = function (value)
@@ -2917,7 +2917,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             --============[ Gamepad Ultimate  ]====================
             {
               type = "submenu";
-              name = "|cFFFACUltimate Timer Settings|r";
+              name = "|cFFFACDUltimate Timer Settings|r";
               controls =
               {
                 {
@@ -3093,7 +3093,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   type = "slider";
                   name = "Ultimate value font size";
                   min = 10;
-                  max = 30;
+                  max = 60;
                   step = 1;
                   getFunc = function () return SV.ultValueSizeGP; end;
                   setFunc = function (value)
@@ -3128,8 +3128,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
                   default = defaults.ultValueYGP;
-                  min = -50;
-                  max = 50;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueYGP; end;
                   setFunc = function (value)
@@ -3146,8 +3146,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Horizontal";
                   tooltip = "[<- left] or [right ->]";
                   default = defaults.ultValueXGP;
-                  min = -50;
-                  max = 50;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueXGP; end;
                   setFunc = function (value)

@@ -2408,11 +2408,13 @@ function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button
   return overlay;
 end;
 
-local applyButtonStyles = function (style)
-  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
-  -- ZO_ActionBar_GetButton(QUICK_SLOT):ApplyStyle(style.buttonTemplate)
-  -- QuickslotButton:ApplyStyle(style.buttonTemplate)
+local applyButtonStyles = function(style)
+  local ultButton = ZO_ActionBar_GetButton(ULT_INDEX);
+  local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
+  local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL);
+  ultButton:ApplyStyle(style.ultButtonTemplate);
+  ultButtonC:ApplyStyle(style.ultButtonTemplate);
+  QSButton:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
 end;
 
 local repositionUltimateSlot = function (style, weaponSwapControl)
@@ -2946,7 +2948,7 @@ local function SetAnimationParameters(timeline, control, shrinkScale, resetTime,
   local shrink = timeline:GetAnimation(1)
   local grow = timeline:GetAnimation(2)
   local reset = timeline:GetAnimation(3)
-  local size = style.flipCardSize
+  local size = isUltimateSlot and style.ultFlipCardSize or style.flipCardSize
 
   shrink:SetStartAndEndWidth(size, size * shrinkScale)
   shrink:SetStartAndEndHeight(size, size * shrinkScale)
@@ -2969,7 +2971,6 @@ local function FancySetBounceAnimationParameters(self, cooldownTime)
   SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
   SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
 end
-ActionButton["SetBounceAnimationParameters"] = FancySetBounceAnimationParameters;
 
 function FancyActionBar.UpdateStyle()
   local style = {};
@@ -3009,6 +3010,7 @@ function FancyActionBar.UpdateStyle()
   FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.x);
 
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
+  ActionButton.SetBounceAnimationParameters = FancyActionBar.forceGamepadStyle and FancySetBounceAnimationParameters or origSetBounceAnimationParameters;
   ZO_ActionBar_GetButton(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1):ApplySwapAnimationStyle();
 end;
 
@@ -3500,6 +3502,7 @@ function FancyActionBar.Initialize()
 
   -- Set Bar Settings for hideLockedBar mode and/or apply AbilityFxOverrides
   local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbilityAssignments, activeHotbarCategory)
+    local style = FancyActionBar.GetContants();
       if specialHotbar[activeHotbarCategory] then
         specialHotbarActive = true;
         if SV.hideLockedBar == true then
@@ -3517,11 +3520,15 @@ function FancyActionBar.Initialize()
         FancyActionBar.SwapControls(specialHotbarActive)
         FancyActionBar.SlotEffects()
       end;
+    ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
+    ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
+    ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
+    'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
     FancyActionBar.ApplyAbilityFxOverrides()
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
-  local function OnAllHotbarsUpdated()
+    local function OnAllHotbarsUpdated()
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
       if button then
