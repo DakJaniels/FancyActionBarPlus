@@ -2159,21 +2159,23 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
   local style = FancyActionBar.GetContants();
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   local QSB = GetControl("QuickslotButton");
-
+  local xOffset = FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB or SV.quickSlotCustomXOffsetGP or 0;
+  local yOffset = FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB or SV.quickSlotCustomYOffsetGP or 0;
   QSB:ClearAnchors();
 
   if (SV.showArrow == false) or (lock == true) then
     if SV.moveQS == true then
       if FancyActionBar.style == 2 then
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * (style.abilitySlotOffsetX * scale))), 0 * scale, QSB:GetResizeToFitConstrains());
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * ((style.abilitySlotOffsetX + xOffset) * scale))), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
       else
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + (style.abilitySlotOffsetX * scale)), 0 * scale, QSB:GetResizeToFitConstrains());
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + ((style.abilitySlotOffsetX + xOffset) * scale)), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
       end;
     else
-      QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + SV.quickSlotCustomXOffset), (0 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
+      QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
     end;
   else
-    QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + SV.quickSlotCustomXOffset), (0 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
+    QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale,
+      QSB:GetResizeToFitConstrains());
     FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor));
   end;
 
@@ -2205,8 +2207,8 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
   ActionButton8:ClearAnchors();
   CompanionUltimateButton:ClearAnchors();
 
-  local ultX = 10 + SV.ultimateSlotCustomXOffset + (10 * scale);
-  local ultY = 0 + SV.ultimateSlotCustomYOffset;
+  local ultX = 10 + SV.ultimateSlotCustomXOffsetGP + (10 * scale);
+  local ultY = 0 + SV.ultimateSlotCustomYOffsetGP;
   local ultCX = 20 + (10 * scale);
   local ultCY = 0;
   local u = 65 * scale;
@@ -2214,7 +2216,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
   local f2 = f1 * SLOT_COUNT;
 
   if SV.showHotkeysUltGP then
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffset, 0 + SV.ultimateSlotCustomYOffset, ActionButton8:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffsetGP, 0 + SV.ultimateSlotCustomYOffsetGP, ActionButton8:GetResizeToFitConstrains());
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains());
     return;
   end;
@@ -2223,7 +2225,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
     ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + ultX, ultY, ActionButton8:GetResizeToFitConstrains());
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, 10 + ultCX, 0, CompanionUltimateButton:GetResizeToFitConstrains());
   else
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffset, 0 + SV.ultimateSlotCustomYOffset, ActionButton8:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffsetGP, 0 + SV.ultimateSlotCustomYOffsetGP, ActionButton8:GetResizeToFitConstrains());
     -- ActionButton8:SetAnchor(RIGHT, ZO_ActionBar1, RIGHT, 40 * scale, 0)
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains());
   end;
@@ -2423,8 +2425,8 @@ local repositionUltimateSlot = function (style, weaponSwapControl)
   else
     ActionButton8:ClearAnchors();
     CompanionUltimateButton:ClearAnchors();
-    local uX = (style.ultimateSlotOffsetX + SV.ultimateSlotCustomXOffset) * scale;
-    local uY = (0 + SV.ultimateSlotCustomYOffset) * scale;
+    local uX = (style.ultimateSlotOffsetX + SV.ultimateSlotCustomXOffsetKB) * scale;
+    local uY = (0 + SV.ultimateSlotCustomYOffsetKB) * scale;
     local uC = style.ultimateSlotOffsetX * scale;
     local f1 = (style.abilitySlotWidth + style.abilitySlotOffsetX);
     local f2 = (f1 * SLOT_COUNT) - 2;
@@ -4351,6 +4353,22 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
       if SV.abMove.gp.x == nil or SV.abMove.gp.x == 0 then SV.abMove.gp.x = ACTION_BAR:GetLeft(); end;
       if SV.abMove.gp.y == nil or SV.abMove.gp.y == 0 then SV.abMove.gp.y = ACTION_BAR:GetTop(); end;
+      if SV.ultimateSlotCustomXOffset then
+        SV.ultimateSlotCustomXOffsetGP = SV.ultimateSlotCustomXOffset;
+        SV.ultimateSlotCustomXOffset = nil;
+      end;
+      if SV.ultimateSlotCustomYOffset then
+        SV.ultimateSlotCustomYOffsetGP = SV.ultimateSlotCustomYOffset;
+        SV.ultimateSlotCustomYOffset = nil;
+      end;
+      if SV.quickSlotCustomXOffset then
+        SV.quickSlotCustomXOffsetGP = SV.quickSlotCustomXOffset;
+        SV.quickSlotCustomXOffset = nil;
+      end;
+      if SV.quickSlotCustomYOffset then
+        SV.quickSlotCustomYOffsetGP = SV.quickSlotCustomYOffset;
+        SV.quickSlotCustomYOffset = nil;
+      end
     else
       if SV.fontName then
         SV.fontNameKB = SV.fontName;
@@ -4387,6 +4405,22 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
       if SV.abMove.kb.x == nil or SV.abMove.kb.x == 0 then SV.abMove.kb.x = ACTION_BAR:GetLeft(); end;
       if SV.abMove.kb.y == nil or SV.abMove.kb.y == 0 then SV.abMove.kb.y = ACTION_BAR:GetTop(); end;
+      if SV.ultimateSlotCustomXOffset then
+        SV.ultimateSlotCustomXOffsetKB = SV.ultimateSlotCustomXOffset;
+        SV.ultimateSlotCustomXOffset = nil;
+      end;
+      if SV.ultimateSlotCustomYOffset then
+        SV.ultimateSlotCustomYOffsetKB = SV.ultimateSlotCustomYOffset;
+        SV.ultimateSlotCustomYOffset = nil;
+      end;
+      if SV.quickSlotCustomXOffset then
+        SV.quickSlotCustomXOffsetKB = SV.quickSlotCustomXOffset;
+        SV.quickSlotCustomXOffset = nil;
+      end;
+      if SV.quickSlotCustomYOffset then
+        SV.quickSlotCustomYOffsetKB = SV.quickSlotCustomYOffset;
+        SV.quickSlotCustomYOffset = nil;
+      end
     end;
 
     if SV.fontNameStackKB == nil then SV.fontNameStackKB = d.fontNameStackKB; end;
@@ -4415,10 +4449,14 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showArrow == nil then SV.showArrow = d.showArrow; end;
     if SV.arrowColor == nil then SV.arrowColor = d.arrowColor; end;
     if SV.moveQS == nil then SV.moveQS = d.moveQS; end;
-    if SV.ultimateSlotCustomXOffset == nil then SV.ultimateSlotCustomXOffset = d.ultimateSlotCustomXOffset; end;
-    if SV.ultimateSlotCustomYOffset == nil then SV.ultimateSlotCustomYOffset = d.ultimateSlotCustomYOffset; end;
-    if SV.quickSlotCustomXOffset == nil then SV.quickSlotCustomXOffset = d.quickSlotCustomXOffset; end;
-    if SV.quickSlotCustomYOffset == nil then SV.quickSlotCustomYOffset = d.quickSlotCustomYOffset; end;
+    if SV.ultimateSlotCustomXOffsetKB == nil then SV.ultimateSlotCustomXOffsetKB = d.ultimateSlotCustomXOffsetKB; end;
+    if SV.ultimateSlotCustomYOffsetKB == nil then SV.ultimateSlotCustomYOffsetKB = d.ultimateSlotCustomYOffsetKB; end;
+    if SV.quickSlotCustomXOffsetKB == nil then SV.quickSlotCustomXOffsetKB = d.quickSlotCustomXOffsetKB; end;
+    if SV.quickSlotCustomYOffsetKB == nil then SV.quickSlotCustomYOffsetKB = d.quickSlotCustomYOffsetKB; end;
+    if SV.ultimateSlotCustomXOffsetGP == nil then SV.ultimateSlotCustomXOffsetGP = d.ultimateSlotCustomXOffsetGP; end;
+    if SV.ultimateSlotCustomYOffsetGP == nil then SV.ultimateSlotCustomYOffsetGP = d.ultimateSlotCustomYOffsetGP; end;
+    if SV.quickSlotCustomXOffsetGP == nil then SV.quickSlotCustomXOffsetGP = d.quickSlotCustomXOffsetGP; end;
+    if SV.quickSlotCustomYOffsetGP == nil then SV.quickSlotCustomYOffsetGP = d.quickSlotCustomYOffsetGP; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;
     if SV.frameColor == nil then SV.frameColor = d.frameColor; end;
     if SV.showMarker == nil then SV.showMarker = d.showMarker; end;

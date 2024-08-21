@@ -1330,12 +1330,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Horizontal (X) Position";
-          default = defaults.quickSlotCustomXOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomXOffsetGP or defaults.quickSlotCustomXOffsetKB;
           min = -1200;
           max = 1200;
-          getFunc = function () return SV.quickSlotCustomXOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomXOffsetGP or SV.quickSlotCustomXOffsetKB; end;
           setFunc = function (value)
-            SV.quickSlotCustomXOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.quickSlotCustomXOffsetGP = value;
+            else
+              SV.quickSlotCustomXOffsetKB = value;
+            end;
             FancyActionBar.AdjustQuickSlotSpacing();
             --FancyActionBar.ApplySettings();
           end;
@@ -1344,12 +1348,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Vertical (Y) Position";
-          default = defaults.quickSlotCustomYOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomYOffsetGP or defaults.quickSlotCustomYOffsetKB;
           min = -600;
           max = 600;
-          getFunc = function () return SV.quickSlotCustomYOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomYOffsetGP or SV.quickSlotCustomYOffsetKB; end;
           setFunc = function (value)
-            SV.quickSlotCustomYOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.quickSlotCustomYOffsetGP = value;
+            else
+              SV.quickSlotCustomYOffsetKB = value;
+            end;
             FancyActionBar.AdjustQuickSlotSpacing();
             --FancyActionBar.ApplySettings();
           end;
@@ -1364,12 +1372,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Horizontal (X) Position";
-          default = defaults.ultimateSlotCustomXOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomXOffsetGP or defaults.ultimateSlotCustomXOffsetKB;
           min = -1200;
           max = 1200;
-          getFunc = function () return SV.ultimateSlotCustomXOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomXOffsetGP or SV.ultimateSlotCustomXOffsetKB; end;
           setFunc = function (value)
-            SV.ultimateSlotCustomXOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.ultimateSlotCustomXOffsetGP = value;
+            else
+              SV.ultimateSlotCustomXOffsetKB = value;
+            end;
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
           end;
@@ -1378,12 +1390,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Vertical (Y) Position";
-          default = defaults.ultimateSlotCustomYOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomYOffsetGP or defaults.ultimateSlotCustomYOffsetKB;
           min = -600;
           max = 600;
-          getFunc = function () return SV.ultimateSlotCustomYOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomYOffsetGP or SV.ultimateSlotCustomYOffsetKB; end;
           setFunc = function (value)
-            SV.ultimateSlotCustomYOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.ultimateSlotCustomYOffsetGP = value;
+            else
+              SV.ultimateSlotCustomYOffsetKB = value;
+            end;
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
           end;
