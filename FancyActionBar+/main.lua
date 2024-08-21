@@ -3531,6 +3531,7 @@ function FancyActionBar.Initialize()
 
   -- Any skill swapped. Setup buttons and slot effects.
     local function OnAllHotbarsUpdated()
+    local style = FancyActionBar.GetContants();
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
       if button then
@@ -4070,6 +4071,11 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, OnActiveHotbarUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
+  EM:RegisterForEvent(NAME, EVENT_ACTIVE_QUICKSLOT_CHANGED, function()
+    if not SV.forceGamepadStyle then return end;
+    local style = FancyActionBar.GetContants();
+    ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle('FAB_ActionButton_Hybrid_Template');
+  end)
   EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player");
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
@@ -4107,6 +4113,11 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
+    local style = FancyActionBar.GetContants();
+    ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
+    ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
+    ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
+      'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
@@ -4117,6 +4128,8 @@ function FancyActionBar.Initialize()
 
   FancyActionBar.SetExternalBuffTracking();
 
+  EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.UpdateUltimateCost);
+  
   EM:RegisterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnEquippedGearChanged);
   EM:AddFilterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN);
 
