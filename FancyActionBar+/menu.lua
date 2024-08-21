@@ -2897,7 +2897,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             --============[ Gamepad Ultimate  ]====================
             {
               type = "submenu";
-              name = "|cFFFACUltimate Timer Settings|r";
+              name = "|cFFFACDUltimate Timer Settings|r";
               controls =
               {
                 {
