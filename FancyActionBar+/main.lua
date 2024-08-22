@@ -3537,7 +3537,7 @@ function FancyActionBar.Initialize()
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
-    local function OnAllHotbarsUpdated()
+  local function OnAllHotbarsUpdated()
     local style = FancyActionBar.GetContants();
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
@@ -3550,6 +3550,7 @@ function FancyActionBar.Initialize()
         button.timerOverlay:SetHidden(true);
         button:HandleSlotChanged(); -- update slot manually
         button.buttonText:SetHidden(not SV.showHotkeys);
+        button:ApplyStyle(style.buttonTemplate)
       end;
       if (currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
         local altbutton = ZO_ActionBar_GetButton(i, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY);
