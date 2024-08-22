@@ -472,7 +472,8 @@ FancyActionBar.abilityConfig =
   [185823] = { 185825 }; -- tentacular dread
   [185836] = { 185838 }; -- the imperfect ring
   [185839] = { 185840 }; -- rune of displacement
-  [201296] = { 182989 }; -- fulminating rune
+  [182988] = { 182989 }, -- fulminating rune (Stam)
+  [201296] = { 182989 }, -- fulminating rune (Mag)
   [189791] = { 189792 }; -- the unblinking eye
   [189837] = { 191367 }; -- the tide king's gaze
   [189867] = { 189868 }; -- the languid eye
@@ -999,7 +1000,8 @@ FancyActionBar.debuffIds =
   [185823] = { 185825 }; -- tentacular dread (abyssal ink)
   [185836] = { 185838 }; -- the imperfect ring (the imperfect ring)
   [185839] = { 185840 }; -- rune of displacement (rune of displacement)
-  [201296] = { 182989 }; -- fulminating rune (fulminating rune)
+  [182988] = { 182989 }, -- fulminating rune (Stam)
+  [201296] = { 182989 }, -- fulminating rune (Mag)
   [183165] = { 38254 };  -- runic jolt (taunt)
   [183430] = { 187742 }; -- runic sunder (armor steal)
   [186531] = { 38254 };  -- runic embrace (taunt)
@@ -1185,9 +1187,6 @@ FancyActionBar.specialClassEffects =
   -- Arcanist
   [117] =
   {
-    -- Priority level will be used instead of stacks, shorter durations should have a higher priority
-    --[184258] = { id = 201296; stackId = {201296}; procs = 1; hasProced = 0; isSpecialDebuff = true; priority = 1; allowRecast = false }; -- Fulminating Rune Explosion
-    --[182989] = { id = 201296; stackId = {201296}; procs = 1; hasProced = 0; isDebuff = true; priority = 0; }; -- Fulminating Rune DOT
   }
 };
 
@@ -1221,8 +1220,6 @@ FancyActionBar.specialClassEffectProcs =
   -- Arcanist
   [117] =
   {
-    --[184258] = { [1] = { id = 201296; stacks = 0; procs = 1; hasProced = 0 } };
-    --[182989] = { [1] = { id = 201296; stacks = 0; procs = 1; hasProced = 0 }; };
   };
 };
 
