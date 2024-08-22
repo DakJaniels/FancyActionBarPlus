@@ -3564,7 +3564,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+    FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
