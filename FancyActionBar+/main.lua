@@ -3504,7 +3504,6 @@ function FancyActionBar.Initialize()
 
   -- Set Bar Settings for hideLockedBar mode and/or apply AbilityFxOverrides
   local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbilityAssignments, activeHotbarCategory)
-    local style = FancyActionBar.GetContants();
       if specialHotbar[activeHotbarCategory] then
         specialHotbarActive = true;
         if SV.hideLockedBar == true then
@@ -3522,10 +3521,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.SwapControls(specialHotbarActive)
         FancyActionBar.SlotEffects()
       end;
-    ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
-    ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
-    ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
-    'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
     FancyActionBar.ApplyAbilityFxOverrides()
   end;
 
@@ -3557,6 +3553,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
+    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
@@ -4113,11 +4110,7 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
-    local style = FancyActionBar.GetContants();
-    ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
-    ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
-    ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
-      'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
