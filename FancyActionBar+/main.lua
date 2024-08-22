@@ -2588,6 +2588,15 @@ function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adju
   createOverlays(style, weaponSwapControl, QSB);
 end;
 
+function FancyActionBar.ReapplyQuickSlotAndUltimateButtons()
+  if not SV.forceGamepadStyle then return; end;
+  local style = FancyActionBar.GetContants();
+  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
+  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
+  ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
+    'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+end;
+
 --- Apply style to action bars depending on keyboard/gamepad mode.
 function FancyActionBar.ApplyStyle()
   FancyActionBar.UpdateStyle();
@@ -3518,11 +3527,11 @@ function FancyActionBar.Initialize()
         else
           isWeaponSwapLocked = false
         end;
-        FancyActionBar.SwapControls(specialHotbarActive)
-        FancyActionBar.SlotEffects()
+        FancyActionBar.SwapControls(specialHotbarActive);
+        FancyActionBar.SlotEffects();
       end;
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-    FancyActionBar.ApplyAbilityFxOverrides()
+    FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
+    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
@@ -4110,7 +4119,7 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+    FancyActionBar.ReapplyQuickSlotAndUltimateButtons()
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
