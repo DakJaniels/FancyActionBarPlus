@@ -1211,7 +1211,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.kb.enable = value or false;
             if FancyActionBar.style == 1 then
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1228,7 +1232,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.kb.scale = value;
             if FancyActionBar.style == 1 then
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1259,7 +1267,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.gp.enable = value or false;
             if FancyActionBar.style == 2 then
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1276,7 +1288,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.gp.scale = value;
             if FancyActionBar.style == 2 then
               FancyActionBar.constants.abScale.scale = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1705,6 +1721,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyQuickSlotAndUltimateStyle()
             FancyActionBar.ApplySettings();
             FancyActionBar.uiModeChanged = false;
+            ReanchorMover();
+            RefreshMoverSize();
           end,
           width = "full",
         },
@@ -5091,9 +5109,9 @@ function FancyActionBar.SaveMoverPosition()
   FancyActionBar.constants.move.enable = true;
 
   if Azurah then
-    if ((FancyActionBar.style == 2 and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+    if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
         or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
-        or FancyActionBar.useGamepadActionBar
     then
       Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, x, y, FancyActionBar.GetScale());
     end;
@@ -5141,4 +5159,13 @@ function FancyActionBar.UpdateScale(s)
   local scale = s;
   ACTION_BAR:SetScale(scale);
   RefreshMoverSize();
+
+  if Azurah then
+    if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
+        or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
+    then
+      Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, FancyActionBar.constants.move.x, FancyActionBar.constants.move.x, scale);
+    end;
+  end;
 end;
