@@ -173,7 +173,7 @@ local function ClearTargetEffects()
 end;
 
 local function ClearDebuffsIfNotOnTarget()
-  for id, debuff in pairs(FancyActionBar.debuffs) do
+  for _, debuff in pairs(FancyActionBar.debuffs) do
     if not debuff.keepOnTargetChange then
       debuff.activeOnTarget = false;
       debuff.endTime = 0;
@@ -194,7 +194,7 @@ local function ClearDebuffsIfNotOnTarget()
         end;
       end;
 
-      for id, effect in pairs(FancyActionBar.effects) do
+      for _, effect in pairs(FancyActionBar.effects) do
         if effect.stackId and #effect.stackId > 0 then
           for i = 1, #effect.stackId do
             if effect.stackId[i] == debuff.id then

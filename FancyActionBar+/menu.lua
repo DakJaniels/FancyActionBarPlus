@@ -4333,6 +4333,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
   LAM:RegisterOptionControls(name, options);
 
+---@diagnostic disable-next-line: redefined-local
   CALLBACK_MANAGER:RegisterCallback("LAM-PanelOpened", function (panel)
     if panel == FAB_Panel then
       ACTION_BAR:SetHidden(false);
@@ -4346,6 +4347,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
       qsDisplayTime = 0;
     end;
   end);
+---@diagnostic disable-next-line: redefined-local
   CALLBACK_MANAGER:RegisterCallback("LAM-PanelClosed", function (panel)
     if panel ~= FAB_Panel then return; end;
     ACTION_BAR:SetHidden(true);
@@ -4354,6 +4356,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     qsDisplayTime = 0;
   end);
 
+---@diagnostic disable-next-line: redefined-local
   CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", function (panel)
     if panel == FAB_Panel then
       if not settingsPageCreated then
