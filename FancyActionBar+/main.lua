@@ -2626,10 +2626,10 @@ function FancyActionBar.SetupActionBar(style, weaponSwapControl)
   weaponSwapControl:SetMouseEnabled(false);
 end;
 
-function FancyActionBar.ApplyActiveHotbarStyle(activeHotbarCategory)
+function FancyActionBar.ApplyActiveHotbarStyle()
   if not SV.forceGamepadStyle then return; end;
   for i = MIN_INDEX, MAX_INDEX do
-    local button = ZO_ActionBar_GetButton(i, activeHotbarCategory);
+    local button = ZO_ActionBar_GetButton(i);
     button:ApplyStyle('FAB_ActionButton_Hybrid_Template');
   end;
 end;
@@ -2642,7 +2642,7 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
 
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+    --button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
     if lastButton then
       button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
     elseif i == MIN_INDEX then
@@ -3540,8 +3540,8 @@ function FancyActionBar.Initialize()
         FancyActionBar.SlotEffects();
       end;
     FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
-    FancyActionBar.ApplyActiveHotbarStyle(activeHotbarCategory);
     FancyActionBar.ApplyAbilityFxOverrides();
+    FancyActionBar.ApplyActiveHotbarStyle();
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
@@ -3585,7 +3585,8 @@ function FancyActionBar.Initialize()
       isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls(isWeaponSwapLocked);
-      FancyActionBar.ApplyAbilityFxOverrides();
+      -- FancyActionBar.ApplyAbilityFxOverrides();
+      -- FancyActionBar.ApplyActiveHotbarStyle();
       currentWeaponPair = activeWeaponPair;
     end;
   end;
@@ -4132,8 +4133,8 @@ function FancyActionBar.Initialize()
     end;
     FancyActionBar.OnPlayerActivated();
     FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
-    FancyActionBar.ApplyActiveHotbarStyle(GetActiveHotbarCategory());
     FancyActionBar.ApplyAbilityFxOverrides();
+    FancyActionBar.ApplyActiveHotbarStyle();
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
