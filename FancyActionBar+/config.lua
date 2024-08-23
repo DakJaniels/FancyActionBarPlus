@@ -729,6 +729,8 @@ FancyActionBar.stackMap =
     198564, -- chakram of destiny
     186209, -- tidal chakram
     198567, -- tidal chakram
+    183241, -- impervious runeward
+    184362, -- impervious runeward
   };
 
   -- Leeching Strikes
