@@ -3468,6 +3468,7 @@ function FancyActionBar.Initialize()
     local btn = ZO_ActionBar_GetButton(n);
     if btn then
       btn:HandleSlotChanged();
+      if SV.forceGamepadStyle then btn:ApplyStyle("FAB_ActionButton_Hybrid_Template"); end;
       if (n == ULT_INDEX or n == ULT_INDEX + SLOT_INDEX_OFFSET) then
         FancyActionBar.UpdateUltimateCost();
       end;
