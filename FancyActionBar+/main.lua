@@ -349,6 +349,7 @@ end;
 
 ---@param index number
 ---@param bar? HotBarCategory
+---@return integer abilityId
 function FancyActionBar.GetSlotBoundAbilityId(index, bar)
   bar = bar or GetActiveHotbarCategory();
   local id = GetSlotBoundId(index, bar);
@@ -799,6 +800,7 @@ end;
 --- @param instantFade boolean Flag to indicate if the effect should fade instantly.
 --- @param dontFade boolean Flag to prevent fading of the effect.
 --- @param isChanneled boolean Flag to indicate if the effect is channeled.
+--- @param effectChanged boolean  Flag to indicate if the effect is changed.
 --- @return effect table @The effect associated with the given id.
 function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged)
   ---@alias effect table
@@ -2716,6 +2718,7 @@ end;
 ---@param active object
 ---@param inactive object
 ---@param firstTop boolean
+---@param locked boolean
 local function ApplyBarPosition(active, inactive, firstTop, locked)
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   if locked == true then
@@ -3285,8 +3288,8 @@ function FancyActionBar.RefreshEffects()
         end;
         for id, effect in pairs(FancyActionBar.effects) do
           if effect.stackId then
-            for i = 1, #effect.stackId do
-              if effect.stackId[i] == abilityId then
+            for j = 1, #effect.stackId do
+              if effect.stackId[j] == abilityId then
                 FancyActionBar.stacks[abilityId] = stackCount or 0;
                 FancyActionBar.HandleStackUpdate(id);
               end;
@@ -3976,7 +3979,7 @@ function FancyActionBar.Initialize()
 
   local function OnReflect(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
     if (tType ~= COMBAT_UNIT_TYPE_PLAYER) then return; end;
-    local time = time();
+    local t = time();
     local doStackUpdate = false;
 
     if SV.debugAll then
@@ -3989,7 +3992,7 @@ function FancyActionBar.Initialize()
     local specialEffect = FancyActionBar.specialEffects[aId];
     local reflectStacks = specialEffect.stackId[1];
     local effect = FancyActionBar.effects[specialEffect.id];
-    if effect.beginTime and (time - effect.beginTime < 0.3) then
+    if effect.beginTime and (t - effect.beginTime < 0.3) then
       return;
     end;
 
