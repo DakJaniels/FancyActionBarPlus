@@ -2627,10 +2627,10 @@ function FancyActionBar.SetupActionBar(style, weaponSwapControl)
 end;
 
 function FancyActionBar.ApplyActiveHotbarStyle(activeHotbarCategory)
-  local style = FancyActionBar.GetContants();
+  if not SV.forceGamepadStyle then return; end;
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i, activeHotbarCategory);
-    button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+    button:ApplyStyle('FAB_ActionButton_Hybrid_Template');
   end;
 end;
 
