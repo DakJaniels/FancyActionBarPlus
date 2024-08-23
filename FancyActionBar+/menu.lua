@@ -5093,6 +5093,7 @@ function FancyActionBar.SaveMoverPosition()
   if Azurah then
     if ((FancyActionBar.style == 2 and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
         or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
+        or FancyActionBar.useGamepadActionBar
     then
       Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, x, y, FancyActionBar.GetScale());
     end;
