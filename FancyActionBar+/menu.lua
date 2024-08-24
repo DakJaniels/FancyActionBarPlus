@@ -5163,13 +5163,4 @@ function FancyActionBar.UpdateScale(s)
   local scale = s;
   ACTION_BAR:SetScale(scale);
   RefreshMoverSize();
-
-  if Azurah then
-    if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
-        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
-        or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
-    then
-      Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, FancyActionBar.constants.move.x, FancyActionBar.constants.move.x, scale);
-    end;
-  end;
 end;
