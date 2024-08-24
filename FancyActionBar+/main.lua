@@ -2845,7 +2845,6 @@ function FancyActionBar.UpdateBarSettings(locked) -- run all UI visual updates w
   FancyActionBar.AdjustControlsPositions();
   FancyActionBar.ApplyPosition();
   FancyActionBar.ApplyAbilityFxOverrides();
-  FancyActionBar.MoveActionBar();
 end;
 
 function FancyActionBar.SetScale() -- resize and check for other addons with same function
@@ -3020,9 +3019,10 @@ function FancyActionBar.UpdateStyle()
   -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
   FancyActionBar.style = mode;
   FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style);
-
-  FancyActionBar.MoveActionBar()
-
+  
+  FAB_Default_Bar_Position:ClearAnchors();
+  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y);
+  
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
   ActionButton.SetBounceAnimationParameters = FancyActionBar.forceGamepadStyle and FancySetBounceAnimationParameters or origSetBounceAnimationParameters;
   ZO_ActionBar_GetButton(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1):ApplySwapAnimationStyle();
@@ -4089,9 +4089,9 @@ function FancyActionBar.Initialize()
     local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+    FancyActionBar.ApplyQuickSlotAndUltimateStyle();
     FancyActionBar.ApplySettings();
-    FancyActionBar.ApplyActiveHotbarStyle()
+    FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);
