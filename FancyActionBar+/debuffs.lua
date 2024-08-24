@@ -508,7 +508,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     if debuff.beginTime and (t - debuff.beginTime < 0.3) and (not debuff.instantFade) then return; end;
 
     if specialEffect then
-      if (debuff.hasProced and (debuff.hasProced > specialEffect.hasProced)) then
+      if (debuff.hasProced and (debuff.hasProced ~= specialEffect.hasProced)) then
         return; -- we don't need to worry about this effect anymore because it has already proced
       elseif FancyActionBar.specialEffectProcs[abilityId] then
         local procUpdates = FancyActionBar.specialEffectProcs[abilityId];
