@@ -5067,6 +5067,7 @@ function FancyActionBar.ToggleMover(enableMove)
   if enableMove == true then
     unlocked = true
     RefreshMoverSize()
+    ReanchorMover();
     SaveCurrentLocation();
     FAB_Mover:SetHidden(false);
     FAB_Mover:SetMovable(true);
@@ -5085,6 +5086,9 @@ function FancyActionBar.MoveActionBar()
   if v.enable then
     ACTION_BAR:ClearAnchors();
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y);
+  else
+    ACTION_BAR:ClearAnchors();
+    ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y);
   end;
 end;
 
