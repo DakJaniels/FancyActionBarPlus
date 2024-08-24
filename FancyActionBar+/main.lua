@@ -3021,8 +3021,7 @@ function FancyActionBar.UpdateStyle()
   FancyActionBar.style = mode;
   FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style);
 
-  FAB_Default_Bar_Position:ClearAnchors();
-  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.x);
+  FancyActionBar.MoveActionBar()
 
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
   ActionButton.SetBounceAnimationParameters = FancyActionBar.forceGamepadStyle and FancySetBounceAnimationParameters or origSetBounceAnimationParameters;

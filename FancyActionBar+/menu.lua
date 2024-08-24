@@ -1722,8 +1722,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplySettings();
             FancyActionBar.ApplyActiveHotbarStyle()
             FancyActionBar.uiModeChanged = false;
-            RefreshMoverSize();
-            ReanchorMover();
           end,
           width = "full",
         },
