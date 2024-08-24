@@ -1720,9 +1720,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
             FancyActionBar.ApplyQuickSlotAndUltimateStyle()
             FancyActionBar.ApplySettings();
+            FancyActionBar.ApplyActiveHotbarStyle()
             FancyActionBar.uiModeChanged = false;
-            ReanchorMover();
             RefreshMoverSize();
+            ReanchorMover();
           end,
           width = "full",
         },

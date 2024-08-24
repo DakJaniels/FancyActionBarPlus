@@ -2587,17 +2587,6 @@ function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adju
   createOverlays(style, weaponSwapControl, QSB);
 end;
 
-function FancyActionBar.ReapplyQuickSlotAndUltimateButtons()
-  if not SV.forceGamepadStyle then return; end;
-  local style = FancyActionBar.GetContants();
-  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
-    'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
-  FancyActionBar.AdjustUltValue();
-  FancyActionBar.ApplyUltValueFont();
-end;
-
 --- Apply style to action bars depending on keyboard/gamepad mode.
 function FancyActionBar.ApplyStyle()
   FancyActionBar.UpdateStyle();
@@ -2627,11 +2616,15 @@ function FancyActionBar.SetupActionBar(style, weaponSwapControl)
 end;
 
 function FancyActionBar.ApplyActiveHotbarStyle()
-  if not SV.forceGamepadStyle then return; end;
+  local style = FancyActionBar.GetContants();
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    button:ApplyStyle('FAB_ActionButton_Hybrid_Template');
+    button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
   end;
+  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
+  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
+  ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
+    'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
 end;
 
 --- Setup the buttons with the given style.
@@ -3539,9 +3532,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.SwapControls(specialHotbarActive);
         FancyActionBar.SlotEffects();
       end;
-    FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
     FancyActionBar.ApplyAbilityFxOverrides();
-    FancyActionBar.ApplyActiveHotbarStyle();
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
@@ -3558,7 +3549,6 @@ function FancyActionBar.Initialize()
         button.timerOverlay:SetHidden(true);
         button:HandleSlotChanged(); -- update slot manually
         button.buttonText:SetHidden(not SV.showHotkeys);
-        button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate)
       end;
       if (currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
         local altbutton = ZO_ActionBar_GetButton(i, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY);
@@ -3566,7 +3556,6 @@ function FancyActionBar.Initialize()
           altbutton.noUpdates = true;
           altbutton.showTimer = false;
           altbutton.showBackRowSlot = false;
-          altbutton:ApplyStyle(SV.forceGamepadStyle and "FAB_ActionButton_Hybrid_Template" or style.buttonTemplate);
         end;
       end;
     end;
@@ -3574,7 +3563,6 @@ function FancyActionBar.Initialize()
     FancyActionBar.ToggleUltimateValue();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
-    FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
@@ -4090,11 +4078,6 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, OnActiveHotbarUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
-  EM:RegisterForEvent(NAME, EVENT_ACTIVE_QUICKSLOT_CHANGED, function()
-    if not SV.forceGamepadStyle then return end;
-    local style = FancyActionBar.GetContants();
-    ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle('FAB_ActionButton_Hybrid_Template');
-  end)
   EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player");
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
@@ -4132,9 +4115,7 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
-    FancyActionBar.ReapplyQuickSlotAndUltimateButtons();
     FancyActionBar.ApplyAbilityFxOverrides();
-    FancyActionBar.ApplyActiveHotbarStyle();
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
@@ -4168,6 +4149,11 @@ function FancyActionBar.Initialize()
       Update();
       EM:RegisterForUpdate(NAME .. "Update", updateRate, Update);
     end;
+  end);
+
+  SecurePostHook(ActionButton, "ApplyStyle", function(self)
+    local style = FancyActionBar.GetContants();
+    ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
   end);
 
   ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
