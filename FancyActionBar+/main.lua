@@ -3594,7 +3594,7 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
-      if SV.forceGamepadStyle then
+      if SV.forceGamepadStyle and n ~= ULT_INDEX then
         local btn = ZO_ActionBar_GetButton(n)
         if btn then
           btn:PlayAbilityUsedBounce()
