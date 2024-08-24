@@ -3178,7 +3178,7 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
     end;
   end;
 
-  if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced > specialEffect.hasProced) then
+  if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced ~= specialEffect.hasProced) then
     return;
   end;
 
