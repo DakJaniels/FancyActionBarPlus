@@ -2737,16 +2737,22 @@ end;
 ---@param firstTop boolean
 ---@param locked boolean
 local function ApplyBarPosition(active, inactive, firstTop, locked)
+  local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
+  local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2;
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   if locked == true then
     active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
     inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
   elseif firstTop then
-    active:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4, active:GetResizeToFitConstrains());
-    inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
+    active:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
+      -2 - barYOffset, active:GetResizeToFitConstrains());
+    inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
+      2 + barYOffset, inactive:GetResizeToFitConstrains());
   else
-    active:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
-    inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4, inactive:GetResizeToFitConstrains());
+    active:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
+      2 + barYOffset, active:GetResizeToFitConstrains());
+    inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
+      -2 - barYOffset, inactive:GetResizeToFitConstrains());
   end;
 end;
 
@@ -4477,6 +4483,10 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultimateSlotCustomYOffsetGP == nil then SV.ultimateSlotCustomYOffsetGP = d.ultimateSlotCustomYOffsetGP; end;
     if SV.quickSlotCustomXOffsetGP == nil then SV.quickSlotCustomXOffsetGP = d.quickSlotCustomXOffsetGP; end;
     if SV.quickSlotCustomYOffsetGP == nil then SV.quickSlotCustomYOffsetGP = d.quickSlotCustomYOffsetGP; end;
+    if SV.barXOffsetKB == nil then SV.barXOffsetKB = d.barXOffsetKB; end;
+    if SV.barYOffsetKB == nil then SV.barYOffsetKB = d.barYOffsetKB; end;
+    if SV.barXOffsetGP == nil then SV.barXOffsetGP = d.barXOffsetGP; end;
+    if SV.barYOffsetGP == nil then SV.barYOffsetGP = d.barYOffsetGP; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;
     if SV.frameColor == nil then SV.frameColor = d.frameColor; end;
     if SV.showMarker == nil then SV.showMarker = d.showMarker; end;

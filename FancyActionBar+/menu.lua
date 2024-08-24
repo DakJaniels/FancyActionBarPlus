@@ -1421,6 +1421,54 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
+        { type = "divider" },
+        {
+          type = "description";
+          title = "[ |cffdf80Adjust Bar Spacing and Offset|r ]";
+          width = "full";
+        },
+        {
+          type = "slider";
+          name = "Horizontal (X) Position";
+          default = FancyActionBar.useGamepadActionBar and defaults.barXOffsetGP or defaults.barXOffsetKB;
+          min = -1200;
+          max = 1200;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.barXOffsetGP or SV.barXOffsetKB; end;
+          setFunc = function (value)
+            if FancyActionBar.useGamepadActionBar then
+              SV.barXOffsetGP = value;
+            else
+              SV.barXOffsetKB = value;
+            end;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
+        {
+          type = "slider";
+          name = "Vertical (Y) Position";
+          default = FancyActionBar.useGamepadActionBar and defaults.barYOffsetGP or defaults.barYOffsetKB;
+          min = -600;
+          max = 600;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB; end;
+          setFunc = function (value)
+            if FancyActionBar.useGamepadActionBar then
+              SV.barYOffsetGP = value;
+            else
+              SV.barYOffsetKB = value;
+            end;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
       };
     },
 

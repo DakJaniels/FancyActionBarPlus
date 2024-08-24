@@ -74,6 +74,10 @@ FancyActionBar.defaultSettings =
   highlightExpireColor = { 1, 0, 0, 0.7 };
   toggledHighlight = false;
   toggledColor = { 1, 1, 1, 0.7 };
+  barXOffsetKB = 0;
+  barYOffsetKB = 0;
+  barXOffsetGP = 0;
+  barYOffsetGP = 0;
   -- back bar visibility
   alphaInactive = 20;
   desaturationInactive = 50;
