@@ -2530,6 +2530,17 @@ local configureFillAnimationsAndFrames = function (style)
   end;
 end;
 
+function FancyActionBar.toggleFillAnimationsAndFrames(state)
+  GetControl("ActionButton8Frame"):SetHidden(not state);
+  GetControl("ActionButton8FillAnimationLeft"):SetHidden(not state);
+  GetControl("ActionButton8FillAnimationRight"):SetHidden(not state);
+  if AreCompanionSkillsInitialized() then
+    GetControl("CompanionUltimateButtonFrame"):SetHidden(not state);
+    GetControl("CompanionUltimateButtonFillAnimationLeft"):SetHidden(not state);
+    GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state);
+  end
+end;
+
 local createOverlays = function (style, weaponSwapControl, QSB)
   local function setupOverlay(overlay, anchorControl)
     overlay:SetAnchor(TOPLEFT, anchorControl, TOPLEFT, 0, 0);
@@ -4094,6 +4105,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.ApplyQuickSlotAndUltimateStyle();
     FancyActionBar.ApplySettings();
+    FancyActionBar.toggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
     FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);

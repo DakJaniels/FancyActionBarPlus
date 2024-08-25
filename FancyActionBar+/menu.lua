@@ -1769,6 +1769,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyActiveHotbarStyle();
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
+            FancyActionBar.toggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
             FancyActionBar.uiModeChanged = false;
           end,
           width = "full",
