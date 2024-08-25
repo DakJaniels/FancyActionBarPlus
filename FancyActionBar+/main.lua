@@ -4126,6 +4126,7 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
+    FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
