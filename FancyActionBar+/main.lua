@@ -2530,7 +2530,7 @@ local configureFillAnimationsAndFrames = function (style)
   end;
 end;
 
-function FancyActionBar.toggleFillAnimationsAndFrames(state)
+function FancyActionBar.ToggleFillAnimationsAndFrames(state)
   GetControl("ActionButton8Frame"):SetHidden(not state);
   GetControl("ActionButton8FillAnimationLeft"):SetHidden(not state);
   GetControl("ActionButton8FillAnimationRight"):SetHidden(not state);
@@ -4105,7 +4105,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.ApplyQuickSlotAndUltimateStyle();
     FancyActionBar.ApplySettings();
-    FancyActionBar.toggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
+    FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
     FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);
