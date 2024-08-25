@@ -3581,8 +3581,6 @@ function FancyActionBar.Initialize()
       isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls(isWeaponSwapLocked);
-      -- FancyActionBar.ApplyAbilityFxOverrides();
-      -- FancyActionBar.ApplyActiveHotbarStyle();
       currentWeaponPair = activeWeaponPair;
     end;
   end;
@@ -4097,7 +4095,6 @@ function FancyActionBar.Initialize()
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
     FancyActionBar.ApplyQuickSlotAndUltimateStyle();
     FancyActionBar.ApplySettings();
-    FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);
@@ -4126,7 +4123,6 @@ function FancyActionBar.Initialize()
       FancyActionBar.EffectCheck();
     end;
     FancyActionBar.OnPlayerActivated();
-    FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
