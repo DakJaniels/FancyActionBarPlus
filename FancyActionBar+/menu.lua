@@ -1113,7 +1113,7 @@ end;
 local framesHidden = false;
 local function SetDefaultAbilityFrame()
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
-  if SV.hideDefaultFrames then
+  if SV.hideDefaultFrames or SV.forceGamepadStyle then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
     framesHidden = true;
@@ -1211,7 +1211,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.kb.enable = value or false;
             if FancyActionBar.style == 1 then
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1228,7 +1232,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.kb.scale = value;
             if FancyActionBar.style == 1 then
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1259,7 +1267,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.gp.enable = value or false;
             if FancyActionBar.style == 2 then
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1276,7 +1288,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             SV.abScaling.gp.scale = value;
             if FancyActionBar.style == 2 then
               FancyActionBar.constants.abScale.scale = value;
-              FancyActionBar.UpdateBarSettings();
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+              FancyActionBar.ApplySettings();
             end;
           end;
           width = "half";
@@ -1330,12 +1346,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Horizontal (X) Position";
-          default = defaults.quickSlotCustomXOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomXOffsetGP or defaults.quickSlotCustomXOffsetKB;
           min = -1200;
           max = 1200;
-          getFunc = function () return SV.quickSlotCustomXOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomXOffsetGP or SV.quickSlotCustomXOffsetKB; end;
           setFunc = function (value)
-            SV.quickSlotCustomXOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.quickSlotCustomXOffsetGP = value;
+            else
+              SV.quickSlotCustomXOffsetKB = value;
+            end;
             FancyActionBar.AdjustQuickSlotSpacing();
             --FancyActionBar.ApplySettings();
           end;
@@ -1344,12 +1364,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Vertical (Y) Position";
-          default = defaults.quickSlotCustomYOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomYOffsetGP or defaults.quickSlotCustomYOffsetKB;
           min = -600;
           max = 600;
-          getFunc = function () return SV.quickSlotCustomYOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomYOffsetGP or SV.quickSlotCustomYOffsetKB; end;
           setFunc = function (value)
-            SV.quickSlotCustomYOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.quickSlotCustomYOffsetGP = value;
+            else
+              SV.quickSlotCustomYOffsetKB = value;
+            end;
             FancyActionBar.AdjustQuickSlotSpacing();
             --FancyActionBar.ApplySettings();
           end;
@@ -1364,12 +1388,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Horizontal (X) Position";
-          default = defaults.ultimateSlotCustomXOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomXOffsetGP or defaults.ultimateSlotCustomXOffsetKB;
           min = -1200;
           max = 1200;
-          getFunc = function () return SV.ultimateSlotCustomXOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomXOffsetGP or SV.ultimateSlotCustomXOffsetKB; end;
           setFunc = function (value)
-            SV.ultimateSlotCustomXOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.ultimateSlotCustomXOffsetGP = value;
+            else
+              SV.ultimateSlotCustomXOffsetKB = value;
+            end;
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
           end;
@@ -1378,12 +1406,64 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "slider";
           name = "Vertical (Y) Position";
-          default = defaults.ultimateSlotCustomYOffset;
+          default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomYOffsetGP or defaults.ultimateSlotCustomYOffsetKB;
           min = -600;
           max = 600;
-          getFunc = function () return SV.ultimateSlotCustomYOffset; end;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomYOffsetGP or SV.ultimateSlotCustomYOffsetKB; end;
           setFunc = function (value)
-            SV.ultimateSlotCustomYOffset = value;
+            if FancyActionBar.useGamepadActionBar then
+              SV.ultimateSlotCustomYOffsetGP = value;
+            else
+              SV.ultimateSlotCustomYOffsetKB = value;
+            end;
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
+        { type = "divider" },
+        {
+          type = "description";
+          title = "[ |cffdf80Adjust Bar Spacing and Offset|r ]";
+          width = "full";
+        },
+        {
+          type = "slider";
+          name = "Horizontal (X) Position";
+          default = FancyActionBar.useGamepadActionBar and defaults.barXOffsetGP or defaults.barXOffsetKB;
+          min = -1200;
+          max = 1200;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.barXOffsetGP or SV.barXOffsetKB; end;
+          setFunc = function (value)
+            if FancyActionBar.useGamepadActionBar then
+              SV.barXOffsetGP = value;
+            else
+              SV.barXOffsetKB = value;
+            end;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
+        {
+          type = "slider";
+          name = "Vertical (Y) Position";
+          default = FancyActionBar.useGamepadActionBar and defaults.barYOffsetGP or defaults.barYOffsetKB;
+          min = -600;
+          max = 600;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB; end;
+          setFunc = function (value)
+            if FancyActionBar.useGamepadActionBar then
+              SV.barYOffsetGP = value;
+            else
+              SV.barYOffsetKB = value;
+            end;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
           end;
@@ -1518,7 +1598,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Show frames";
           tooltip = "Show a frame around buttons on the actionbar.";
           default = defaults.showFrames;
-          disabled = function () return FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
+          disabled = function () return (FancyActionBar.style == 2 or SV.forceGamepadStyle); end; --IsInGamepadPreferredMode() end,
           getFunc = function () return SV.showFrames; end;
           setFunc = function (value)
             SV.showFrames = value or false;
@@ -1671,6 +1751,28 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           title = "[ |cffdf80Miscellaneous|r ]";
           text = "Additional Miscellaneous Options.";
           width = "full";
+        },
+        {
+          type = "checkbox",
+          name = "Force enable gamepad Action Bar style",
+          tooltip =
+          "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessability Mode. This setting force enables these additonal UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.",
+          default = defaults.forceGamepadStyle;
+          getFunc = function() return SV.forceGamepadStyle; end,
+          setFunc = function(value)
+            SV.forceGamepadStyle = value or false;
+            FancyActionBar.uiModeChanged = true;
+            FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+            FancyActionBar.ApplyActiveHotbarStyle();
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+            FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
+            FancyActionBar.uiModeChanged = false;
+          end,
+          width = "full",
         },
         {
           type = "checkbox";
@@ -2241,7 +2343,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   type = "slider";
                   name = "Ultimate value font size";
                   min = 10;
-                  max = 30;
+                  max = 60;
                   step = 1;
                   getFunc = function () return SV.ultValueSizeKB; end;
                   setFunc = function (value)
@@ -2276,8 +2378,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
                   default = defaults.ultValueYKB;
-                  min = -150;
-                  max = 150;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueYKB; end;
                   setFunc = function (value)
@@ -2294,8 +2396,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Horizontal";
                   tooltip = "[<- left] or [right ->]";
                   default = defaults.ultValueXKB;
-                  min = -150;
-                  max = 150;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueXKB; end;
                   setFunc = function (value)
@@ -3073,7 +3175,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   type = "slider";
                   name = "Ultimate value font size";
                   min = 10;
-                  max = 30;
+                  max = 60;
                   step = 1;
                   getFunc = function () return SV.ultValueSizeGP; end;
                   setFunc = function (value)
@@ -3108,8 +3210,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Vertical";
                   tooltip = "[<- down] or [up ->]";
                   default = defaults.ultValueYGP;
-                  min = -50;
-                  max = 50;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueYGP; end;
                   setFunc = function (value)
@@ -3126,8 +3228,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   name = "Horizontal";
                   tooltip = "[<- left] or [right ->]";
                   default = defaults.ultValueXGP;
-                  min = -50;
-                  max = 50;
+                  min = -500;
+                  max = 500;
                   step = 1;
                   getFunc = function () return SV.ultValueXGP; end;
                   setFunc = function (value)
@@ -4425,8 +4527,8 @@ function FancyActionBar.ConfigureFrames()
       if FancyActionBar.qsOverlay and FancyActionBar.qsOverlay.frame then FancyActionBar.qsOverlay.frame:SetHidden(false); end;
       FancyActionBar.SetFrameColor();
     end;
-    SetDefaultAbilityFrame();
   end;
+  SetDefaultAbilityFrame();
 end;
 
 function FancyActionBar.SetFrameColor()
@@ -5013,7 +5115,8 @@ end;
 function FancyActionBar.ToggleMover(enableMove)
   if enableMove == true then
     unlocked = true
-    -- RefreshMoverSize()
+    RefreshMoverSize()
+    ReanchorMover();
     SaveCurrentLocation();
     FAB_Mover:SetHidden(false);
     FAB_Mover:SetMovable(true);
@@ -5032,6 +5135,9 @@ function FancyActionBar.MoveActionBar()
   if v.enable then
     ACTION_BAR:ClearAnchors();
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y);
+  else
+    ACTION_BAR:ClearAnchors();
+    ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y);
   end;
 end;
 
@@ -5058,7 +5164,8 @@ function FancyActionBar.SaveMoverPosition()
   FancyActionBar.constants.move.enable = true;
 
   if Azurah then
-    if ((FancyActionBar.style == 2 and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+    if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
         or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
     then
       Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, x, y, FancyActionBar.GetScale());

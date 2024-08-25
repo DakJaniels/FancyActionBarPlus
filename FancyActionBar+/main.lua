@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.7.2";
+local VERSION = "2.8.0";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -23,7 +23,9 @@ local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS");
 local currentWeaponPair = GetActiveWeaponPairInfo();
 local currentHotbarCategory = GetActiveHotbarCategory();
 local isWeaponSwapLocked = false;             -- for tracking weapon swap lock state
-local specialHotbarActive =  false;           -- for tracking if a specialHotbar is active
+local specialHotbarActive = false;  -- for tracking if a specialHotbar is active
+
+
 local specialHotbar = 
     {
       [HOTBAR_CATEGORY_TEMPORARY] = true;
@@ -112,6 +114,8 @@ FancyActionBar.qsOverlay = nil;               -- shortcut for.. reasons..
 
 FancyActionBar.initialized = false;           -- check before running some functions that can't be run this early
 FancyActionBar.initialSetup = true;           -- same as above. not sure why I added both...
+FancyActionBar.uiModeChanged = false;         -- don't change configuration if not needed
+FancyActionBar.useGamepadActionBar = false; -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false;              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false;            -- don't register updates if already registered
 
@@ -239,7 +243,6 @@ local lastButton = 0;                       -- for repositioning of skill button
 local channeledAbilityUsed = nil;           -- for tracking channeling abilities
 local isChanneling = false;                 -- for tracking channeling abilities
 local wasBlockActive = false;               -- for tracking block state
-local uiModeChanged = false;                -- don't change configuration if not needed
 local activeUlt = { id = 0; endTime = -1 }; -- for tracking ultimate duration across barswap
 
 local guardId = 0;                          -- sync active id for guard on both bars as active and inactive are different
@@ -581,7 +584,7 @@ end;
 ---@return table def
 function FancyActionBar:GetMovableVarsForUI()
   local var = FancyActionBar.constants.move;
-  local def = IsInGamepadPreferredMode() and defaultSettings.abMove.gp or defaultSettings.abMove.kb;
+  local def = (IsInGamepadPreferredMode() or FancyActionBar.useGamepadActionBar) and defaultSettings.abMove.gp or defaultSettings.abMove.kb;
   return var, def;
 end;
 
@@ -599,8 +602,8 @@ end;
 ---
 ---@return table
 function FancyActionBar.GetContants()
-  if uiModeChanged or (not FancyActionBar.initialized) then
-    FancyActionBar.style = IsInGamepadPreferredMode() and 2 or 1;
+  if FancyActionBar.uiModeChanged or (not FancyActionBar.initialized) then
+    FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1;
     local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
   end;
@@ -930,7 +933,6 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
   if SV.hideLockedBar and FancyActionBar.oakensoulEquipped then
     FancyActionBar.OnWeaponSwapLocked(true, isWeaponSwapLocked)
   end;
-
 end;
 
 -------------------------------------------------------------------------------
@@ -2140,9 +2142,9 @@ function FancyActionBar.AdjustControlsPositions() -- resource bars and default a
   local style = FancyActionBar.GetContants();
   local anchor = ZO_Anchor:New();
 
-  if FancyActionBar.initialSetup or uiModeChanged then
+  if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
     -- Move action bar and attributes up a bit.
-    uiModeChanged = false;
+    FancyActionBar.uiModeChanged = false;
     anchor:SetFromControlAnchor(ACTION_BAR);
     anchor:SetOffsets(nil, style.actionBarOffset);
     anchor:Set(ACTION_BAR);
@@ -2158,21 +2160,23 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
   local style = FancyActionBar.GetContants();
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   local QSB = GetControl("QuickslotButton");
-
+  local xOffset = FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB or SV.quickSlotCustomXOffsetGP or 0;
+  local yOffset = FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB or SV.quickSlotCustomYOffsetGP or 0;
   QSB:ClearAnchors();
 
   if (SV.showArrow == false) or (lock == true) then
     if SV.moveQS == true then
-      if not FancyActionBar.style == 1 then
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * (style.abilitySlotOffsetX * scale))), 0 * scale, QSB:GetResizeToFitConstrains());
+      if FancyActionBar.style == 2 then
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * ((style.abilitySlotOffsetX + xOffset) * scale))), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
       else
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + (style.abilitySlotOffsetX * scale)), 0 * scale, QSB:GetResizeToFitConstrains());
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + ((style.abilitySlotOffsetX + xOffset) * scale)), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
       end;
     else
-      QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + SV.quickSlotCustomXOffset), (0 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
+      QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
     end;
   else
-    QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + SV.quickSlotCustomXOffset), (0 + SV.quickSlotCustomYOffset) * scale, QSB:GetResizeToFitConstrains());
+    QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale,
+      QSB:GetResizeToFitConstrains());
     FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor));
   end;
 
@@ -2204,8 +2208,8 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
   ActionButton8:ClearAnchors();
   CompanionUltimateButton:ClearAnchors();
 
-  local ultX = 10 + SV.ultimateSlotCustomXOffset + (10 * scale);
-  local ultY = 0 + SV.ultimateSlotCustomYOffset;
+  local ultX = 10 + SV.ultimateSlotCustomXOffsetGP + (10 * scale);
+  local ultY = 0 + SV.ultimateSlotCustomYOffsetGP;
   local ultCX = 20 + (10 * scale);
   local ultCY = 0;
   local u = 65 * scale;
@@ -2213,7 +2217,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
   local f2 = f1 * SLOT_COUNT;
 
   if SV.showHotkeysUltGP then
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffset, 0 + SV.ultimateSlotCustomYOffset, ActionButton8:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffsetGP, 0 + SV.ultimateSlotCustomYOffsetGP, ActionButton8:GetResizeToFitConstrains());
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains());
     return;
   end;
@@ -2222,7 +2226,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
     ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + ultX, ultY, ActionButton8:GetResizeToFitConstrains());
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, 10 + ultCX, 0, CompanionUltimateButton:GetResizeToFitConstrains());
   else
-    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffset, 0 + SV.ultimateSlotCustomYOffset, ActionButton8:GetResizeToFitConstrains());
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffsetGP, 0 + SV.ultimateSlotCustomYOffsetGP, ActionButton8:GetResizeToFitConstrains());
     -- ActionButton8:SetAnchor(RIGHT, ZO_ActionBar1, RIGHT, 40 * scale, 0)
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains());
   end;
@@ -2407,11 +2411,13 @@ function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button
   return overlay;
 end;
 
-local applyButtonStyles = function (style)
-  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
-  -- ZO_ActionBar_GetButton(QUICK_SLOT):ApplyStyle(style.buttonTemplate)
-  -- QuickslotButton:ApplyStyle(style.buttonTemplate)
+local applyButtonStyles = function(style)
+  local ultButton = ZO_ActionBar_GetButton(ULT_INDEX);
+  local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
+  local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL);
+  ultButton:ApplyStyle(style.ultButtonTemplate);
+  ultButtonC:ApplyStyle(style.ultButtonTemplate);
+  QSButton:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
 end;
 
 local repositionUltimateSlot = function (style, weaponSwapControl)
@@ -2420,8 +2426,8 @@ local repositionUltimateSlot = function (style, weaponSwapControl)
   else
     ActionButton8:ClearAnchors();
     CompanionUltimateButton:ClearAnchors();
-    local uX = (style.ultimateSlotOffsetX + SV.ultimateSlotCustomXOffset) * scale;
-    local uY = (0 + SV.ultimateSlotCustomYOffset) * scale;
+    local uX = (style.ultimateSlotOffsetX + SV.ultimateSlotCustomXOffsetKB) * scale;
+    local uY = (0 + SV.ultimateSlotCustomYOffsetKB) * scale;
     local uC = style.ultimateSlotOffsetX * scale;
     local f1 = (style.abilitySlotWidth + style.abilitySlotOffsetX);
     local f2 = (f1 * SLOT_COUNT) - 2;
@@ -2497,7 +2503,7 @@ local configureFillAnimationsAndFrames = function (style)
   end;
 
   local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, currentHotbarCategory);
-  local isGamepad = IsInGamepadPreferredMode();
+  local isGamepad = FancyActionBar.useGamepadActionBar;
 
   if FancyActionBar.style == 2 and isSlotUsed then
     -- Show fill bar if platform appropriate
@@ -2512,7 +2518,7 @@ local configureFillAnimationsAndFrames = function (style)
     configureFillAnimation(leftFill, actionbutton8backdrop, -24, 24);
     configureFillAnimation(rightFill, actionbutton8backdrop, -24, 48);
     configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -24, 24);
-    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 24);
+    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 48);
   else
     -- Hide fill animations and frames
     hideFillAnimation(leftFill);
@@ -2522,6 +2528,17 @@ local configureFillAnimationsAndFrames = function (style)
     gpFrame:SetHidden(true);
     gpFrameC:SetHidden(true);
   end;
+end;
+
+function FancyActionBar.ToggleFillAnimationsAndFrames(state)
+  GetControl("ActionButton8Frame"):SetHidden(not state);
+  GetControl("ActionButton8FillAnimationLeft"):SetHidden(not state);
+  GetControl("ActionButton8FillAnimationRight"):SetHidden(not state);
+  if AreCompanionSkillsInitialized() then
+    GetControl("CompanionUltimateButtonFrame"):SetHidden(not state);
+    GetControl("CompanionUltimateButtonFillAnimationLeft"):SetHidden(not state);
+    GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state);
+  end
 end;
 
 local createOverlays = function (style, weaponSwapControl, QSB)
@@ -2548,7 +2565,7 @@ local createOverlays = function (style, weaponSwapControl, QSB)
   local QO = FancyActionBar.CreateQuickSlotOverlay(QUICK_SLOT);
   setupOverlay(QO, QSB);
   QO.timer = QO:GetNamedChild("Duration");
-  QO.timer:SetColor(unpack(IsInGamepadPreferredMode() and SV.qsColorGP or SV.qsColorKB));
+  QO.timer:SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsColorGP or SV.qsColorKB));
 
   local qsFrame = FancyActionBar.qsOverlay:GetNamedChild("Frame");
   if qsFrame then
@@ -2611,6 +2628,14 @@ function FancyActionBar.SetupActionBar(style, weaponSwapControl)
   weaponSwapControl:SetMouseEnabled(false);
 end;
 
+function FancyActionBar.ApplyActiveHotbarStyle()
+  local style = FancyActionBar.GetContants();
+  for i = MIN_INDEX, MAX_INDEX do
+    local button = ZO_ActionBar_GetButton(i);
+    button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+  end;
+end;
+
 --- Setup the buttons with the given style.
 ---@param style table
 ---@param weaponSwapControl object
@@ -2619,8 +2644,7 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
 
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    button:ApplyStyle(style.buttonTemplate);
-
+    --button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
     if lastButton then
       button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
     elseif i == MIN_INDEX then
@@ -2685,7 +2709,7 @@ end;
 function FancyActionBar.SetupBackbarButton(style, weaponSwapControl, lastButton, index)
   ---@type ActionButton
   local button = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
-  button:ApplyStyle(style.buttonTemplate);
+  button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
   button.icon:SetDesaturation(SV.desaturationInactive / 100);
   button.icon:SetAlpha(SV.alphaInactive / 100);
 
@@ -2720,16 +2744,22 @@ end;
 ---@param firstTop boolean
 ---@param locked boolean
 local function ApplyBarPosition(active, inactive, firstTop, locked)
+  local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
+  local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2;
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   if locked == true then
     active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
     inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
   elseif firstTop then
-    active:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4, active:GetResizeToFitConstrains());
-    inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
+    active:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
+      -2 - barYOffset, active:GetResizeToFitConstrains());
+    inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
+      2 + barYOffset, inactive:GetResizeToFitConstrains());
   else
-    active:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
-    inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4, inactive:GetResizeToFitConstrains());
+    active:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
+      2 + barYOffset, active:GetResizeToFitConstrains());
+    inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
+      -2 - barYOffset, inactive:GetResizeToFitConstrains());
   end;
 end;
 
@@ -2828,7 +2858,6 @@ function FancyActionBar.UpdateBarSettings(locked) -- run all UI visual updates w
   FancyActionBar.AdjustControlsPositions();
   FancyActionBar.ApplyPosition();
   FancyActionBar.ApplyAbilityFxOverrides();
-  FancyActionBar.MoveActionBar();
 end;
 
 function FancyActionBar.SetScale() -- resize and check for other addons with same function
@@ -2881,7 +2910,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
   local ultimateFillFrame = GetControl(self.slot, "Frame");
 
   local isGamepad = false;
-  if IsInGamepadPreferredMode() then isGamepad = true; end;
+  if FancyActionBar.useGamepadActionBar then isGamepad = true; end;
   if isSlotUsed then
     -- Show fill bar if platform appropriate
     ultimateFillFrame:SetHidden(not isGamepad);
@@ -2941,26 +2970,55 @@ end;
 
 ActionButton["SetUltimateMeter"] = FancySetUltimateMeter;
 
+local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
+  local style = FancyActionBar.GetContants()
+  local GROW_SCALE = 1.1
+  local shrink = timeline:GetAnimation(1)
+  local grow = timeline:GetAnimation(2)
+  local reset = timeline:GetAnimation(3)
+  local size = isUltimateSlot and style.ultFlipCardSize or style.flipCardSize
+
+  shrink:SetStartAndEndWidth(size, size * shrinkScale)
+  shrink:SetStartAndEndHeight(size, size * shrinkScale)
+
+  grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
+  grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
+
+  reset:SetStartAndEndWidth(size * GROW_SCALE, size)
+  reset:SetStartAndEndHeight(size * GROW_SCALE, size)
+  reset:SetDuration(resetTime)
+end
+
+local origSetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"];
+local function FancySetBounceAnimationParameters(self, cooldownTime)
+  local SHRINK_SCALE = 0.9
+  local ICON_SHRINK_SCALE = 0.8
+  local FRAME_RESET_TIME_MS = 167
+  local ICON_RESET_TIME_MS = 100
+  local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
+  SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
+  SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
+end
+
 function FancyActionBar.UpdateStyle()
   local style = {};
   local mode;
 
-  if FancyActionBar.initialSetup or uiModeChanged then
-    mode = IsInGamepadPreferredMode() and 2 or 1;
+  if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
+    mode = FancyActionBar.useGamepadActionBar and 2 or 1;
   else
     if ADCUI then
-      if ADCUI:originalIsInGamepadPreferredMode() then
-        if ADCUI:shouldUseGamepadUI()
-        then
+      if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
+        if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
           mode = 2;
         else
-          mode = ADCUI:shouldUseGamepadActionBar() and 2 or 1;
+          mode = ADCUI:shouldUseGamepadActionBar() or SV.forceGamepadStyle and 2 or 1;
         end;
       else
         mode = 1;
       end;
     else
-      mode = IsInGamepadPreferredMode() and 2 or 1;
+      mode = FancyActionBar.useGamepadActionBar and 2 or 1;
     end;
   end;
 
@@ -2974,11 +3032,12 @@ function FancyActionBar.UpdateStyle()
   -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
   FancyActionBar.style = mode;
   FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style);
-
+  
   FAB_Default_Bar_Position:ClearAnchors();
-  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.x);
-
+  FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y);
+  
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
+  ActionButton.SetBounceAnimationParameters = FancyActionBar.forceGamepadStyle and FancySetBounceAnimationParameters or origSetBounceAnimationParameters;
   ZO_ActionBar_GetButton(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1):ApplySwapAnimationStyle();
 end;
 
@@ -3352,7 +3411,7 @@ function FancyActionBar.Initialize()
   defaultSettings = FancyActionBar.defaultSettings;
   SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName());
   CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName());
-
+  FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
   for i = MIN_INDEX, ULT_INDEX do
     FancyActionBar.SetSlottedEffect(i, 0, 0);
     FancyActionBar.SetSlottedEffect(i + SLOT_INDEX_OFFSET, 0, 0);
@@ -3417,6 +3476,7 @@ function FancyActionBar.Initialize()
     local btn = ZO_ActionBar_GetButton(n);
     if btn then
       btn:HandleSlotChanged();
+      if SV.forceGamepadStyle then btn:ApplyStyle("FAB_ActionButton_Hybrid_Template"); end;
       if (n == ULT_INDEX or n == ULT_INDEX + SLOT_INDEX_OFFSET) then
         FancyActionBar.UpdateUltimateCost();
       end;
@@ -3484,14 +3544,15 @@ function FancyActionBar.Initialize()
         else
           isWeaponSwapLocked = false
         end;
-        FancyActionBar.SwapControls(specialHotbarActive)
-        FancyActionBar.SlotEffects()
+        FancyActionBar.SwapControls(specialHotbarActive);
+        FancyActionBar.SlotEffects();
       end;
-    FancyActionBar.ApplyAbilityFxOverrides()
+    FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
   -- Any skill swapped. Setup buttons and slot effects.
   local function OnAllHotbarsUpdated()
+    local style = FancyActionBar.GetContants();
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
       if button then
@@ -3527,7 +3588,8 @@ function FancyActionBar.Initialize()
       isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls(isWeaponSwapLocked);
-      FancyActionBar.ApplyAbilityFxOverrides();
+      -- FancyActionBar.ApplyAbilityFxOverrides();
+      -- FancyActionBar.ApplyActiveHotbarStyle();
       currentWeaponPair = activeWeaponPair;
     end;
   end;
@@ -3544,6 +3606,13 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
+      if SV.forceGamepadStyle and n ~= ULT_INDEX then
+        local btn = ZO_ActionBar_GetButton(n)
+        if btn then
+          btn:PlayAbilityUsedBounce()
+          btn:PlayGlow()
+        end
+      end;
 
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (abilityConfig[id] and abilityConfig[id] == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
         FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
@@ -4028,11 +4097,16 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
-    uiModeChanged = true;
+    FancyActionBar.uiModeChanged = true;
+    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
     local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-    uiModeChanged = false;
+    FancyActionBar.ApplyActiveHotbarStyle();
+    FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+    FancyActionBar.ApplySettings();
+    FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
+    FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);
 
@@ -4094,6 +4168,11 @@ function FancyActionBar.Initialize()
       Update();
       EM:RegisterForUpdate(NAME .. "Update", updateRate, Update);
     end;
+  end);
+
+  SecurePostHook(ActionButton, "ApplyStyle", function(self)
+    local style = FancyActionBar.GetContants();
+    ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
   end);
 
   ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
@@ -4270,8 +4349,9 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showExpire == nil then SV.showExpire = d.showExpire; end;
     if SV.showExpireStart == nil then SV.showExpireStart = d.showExpireStart; end;
     if SV.expireColor == nil then SV.expireColor = d.expireColor; end;
+    if SV.forceGamepadStyle == nil then SV.forceGamepadStyle = d.forceGamepadStyle; end;
 
-    if IsInGamepadPreferredMode() then
+    if IsInGamepadPreferredMode() or SV.forceGamepadStyle then
       if SV.fontName then
         SV.fontNameGP = SV.fontName;
         SV.fontName = nil;
@@ -4307,6 +4387,22 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
       if SV.abMove.gp.x == nil or SV.abMove.gp.x == 0 then SV.abMove.gp.x = ACTION_BAR:GetLeft(); end;
       if SV.abMove.gp.y == nil or SV.abMove.gp.y == 0 then SV.abMove.gp.y = ACTION_BAR:GetTop(); end;
+      if SV.ultimateSlotCustomXOffset then
+        SV.ultimateSlotCustomXOffsetGP = SV.ultimateSlotCustomXOffset;
+        SV.ultimateSlotCustomXOffset = nil;
+      end;
+      if SV.ultimateSlotCustomYOffset then
+        SV.ultimateSlotCustomYOffsetGP = SV.ultimateSlotCustomYOffset;
+        SV.ultimateSlotCustomYOffset = nil;
+      end;
+      if SV.quickSlotCustomXOffset then
+        SV.quickSlotCustomXOffsetGP = SV.quickSlotCustomXOffset;
+        SV.quickSlotCustomXOffset = nil;
+      end;
+      if SV.quickSlotCustomYOffset then
+        SV.quickSlotCustomYOffsetGP = SV.quickSlotCustomYOffset;
+        SV.quickSlotCustomYOffset = nil;
+      end
     else
       if SV.fontName then
         SV.fontNameKB = SV.fontName;
@@ -4343,6 +4439,22 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
       if SV.abMove.kb.x == nil or SV.abMove.kb.x == 0 then SV.abMove.kb.x = ACTION_BAR:GetLeft(); end;
       if SV.abMove.kb.y == nil or SV.abMove.kb.y == 0 then SV.abMove.kb.y = ACTION_BAR:GetTop(); end;
+      if SV.ultimateSlotCustomXOffset then
+        SV.ultimateSlotCustomXOffsetKB = SV.ultimateSlotCustomXOffset;
+        SV.ultimateSlotCustomXOffset = nil;
+      end;
+      if SV.ultimateSlotCustomYOffset then
+        SV.ultimateSlotCustomYOffsetKB = SV.ultimateSlotCustomYOffset;
+        SV.ultimateSlotCustomYOffset = nil;
+      end;
+      if SV.quickSlotCustomXOffset then
+        SV.quickSlotCustomXOffsetKB = SV.quickSlotCustomXOffset;
+        SV.quickSlotCustomXOffset = nil;
+      end;
+      if SV.quickSlotCustomYOffset then
+        SV.quickSlotCustomYOffsetKB = SV.quickSlotCustomYOffset;
+        SV.quickSlotCustomYOffset = nil;
+      end
     end;
 
     if SV.fontNameStackKB == nil then SV.fontNameStackKB = d.fontNameStackKB; end;
@@ -4371,10 +4483,18 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showArrow == nil then SV.showArrow = d.showArrow; end;
     if SV.arrowColor == nil then SV.arrowColor = d.arrowColor; end;
     if SV.moveQS == nil then SV.moveQS = d.moveQS; end;
-    if SV.ultimateSlotCustomXOffset == nil then SV.ultimateSlotCustomXOffset = d.ultimateSlotCustomXOffset; end;
-    if SV.ultimateSlotCustomYOffset == nil then SV.ultimateSlotCustomYOffset = d.ultimateSlotCustomYOffset; end;
-    if SV.quickSlotCustomXOffset == nil then SV.quickSlotCustomXOffset = d.quickSlotCustomXOffset; end;
-    if SV.quickSlotCustomYOffset == nil then SV.quickSlotCustomYOffset = d.quickSlotCustomYOffset; end;
+    if SV.ultimateSlotCustomXOffsetKB == nil then SV.ultimateSlotCustomXOffsetKB = d.ultimateSlotCustomXOffsetKB; end;
+    if SV.ultimateSlotCustomYOffsetKB == nil then SV.ultimateSlotCustomYOffsetKB = d.ultimateSlotCustomYOffsetKB; end;
+    if SV.quickSlotCustomXOffsetKB == nil then SV.quickSlotCustomXOffsetKB = d.quickSlotCustomXOffsetKB; end;
+    if SV.quickSlotCustomYOffsetKB == nil then SV.quickSlotCustomYOffsetKB = d.quickSlotCustomYOffsetKB; end;
+    if SV.ultimateSlotCustomXOffsetGP == nil then SV.ultimateSlotCustomXOffsetGP = d.ultimateSlotCustomXOffsetGP; end;
+    if SV.ultimateSlotCustomYOffsetGP == nil then SV.ultimateSlotCustomYOffsetGP = d.ultimateSlotCustomYOffsetGP; end;
+    if SV.quickSlotCustomXOffsetGP == nil then SV.quickSlotCustomXOffsetGP = d.quickSlotCustomXOffsetGP; end;
+    if SV.quickSlotCustomYOffsetGP == nil then SV.quickSlotCustomYOffsetGP = d.quickSlotCustomYOffsetGP; end;
+    if SV.barXOffsetKB == nil then SV.barXOffsetKB = d.barXOffsetKB; end;
+    if SV.barYOffsetKB == nil then SV.barYOffsetKB = d.barYOffsetKB; end;
+    if SV.barXOffsetGP == nil then SV.barXOffsetGP = d.barXOffsetGP; end;
+    if SV.barYOffsetGP == nil then SV.barYOffsetGP = d.barYOffsetGP; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;
     if SV.frameColor == nil then SV.frameColor = d.frameColor; end;
     if SV.showMarker == nil then SV.showMarker = d.showMarker; end;
