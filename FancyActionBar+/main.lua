@@ -2516,9 +2516,9 @@ local configureFillAnimationsAndFrames = function (style)
 
     -- Set fill animations
     configureFillAnimation(leftFill, actionbutton8backdrop, -24, 24);
-    configureFillAnimation(rightFill, actionbutton8backdrop, -24, 24);
+    configureFillAnimation(rightFill, actionbutton8backdrop, -24, 48);
     configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -24, 24);
-    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 24);
+    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 48);
   else
     -- Hide fill animations and frames
     hideFillAnimation(leftFill);
