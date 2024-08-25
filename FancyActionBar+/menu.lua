@@ -1766,9 +1766,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
             FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-            FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+            FancyActionBar.ApplyActiveHotbarStyle();
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
-            FancyActionBar.ApplyActiveHotbarStyle()
             FancyActionBar.uiModeChanged = false;
           end,
           width = "full",

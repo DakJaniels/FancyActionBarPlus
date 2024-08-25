@@ -2623,10 +2623,6 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     local button = ZO_ActionBar_GetButton(i);
     button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
   end;
-  ZO_ActionBar_GetButton(ULT_INDEX):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION):ApplyStyle(style.ultButtonTemplate);
-  ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL):ApplyStyle(SV.forceGamepadStyle and
-    'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
 end;
 
 --- Setup the buttons with the given style.
@@ -4095,9 +4091,9 @@ function FancyActionBar.Initialize()
     local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+    FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.ApplyQuickSlotAndUltimateStyle();
     FancyActionBar.ApplySettings();
-    FancyActionBar.ApplyActiveHotbarStyle();
     FancyActionBar.uiModeChanged = false;
     --ReloadUI("ingame");
   end);
