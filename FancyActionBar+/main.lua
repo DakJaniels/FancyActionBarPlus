@@ -4120,7 +4120,6 @@ function FancyActionBar.Initialize()
     OnAllHotbarsUpdated();
     FancyActionBar.SwapControls();
     FancyActionBar.ApplyAbilityFxOverrides();
-    zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 1000);
     EM:UnregisterForUpdate(NAME .. "Update");
     EM:RegisterForUpdate(NAME .. "Update", updateRate, Update);
     EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED);
@@ -4133,6 +4132,7 @@ function FancyActionBar.Initialize()
     end;
     FancyActionBar.OnPlayerActivated();
     FancyActionBar.ApplyAbilityFxOverrides();
+    zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 100);
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
