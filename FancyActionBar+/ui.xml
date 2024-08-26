@@ -88,7 +88,7 @@
     </Control>
     <!-- Ultimate Gamepad -->
     <Control name="FAB_UltimateButtonOverlay_Gamepad_Template" virtual="true" tier="HIGH" inheritAlpha="false">
-      <Dimensions x="64" y="64" />
+      <Dimensions x="67" y="67" />
       <Controls>
         <Texture name="$(parent)BG" alpha="1" tier="HIGH" level="4" textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" inheritAlpha="false" hidden="true">
           <AnchorFill />
