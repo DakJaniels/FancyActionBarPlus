@@ -4086,7 +4086,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             {
               type = "checkbox";
-              name = "Show Instance Counter";
+              name = "Show Target Instance Counter";
               tooltip = "Abilities that track an effect that can be applied to multiple targets simultaneously will show an instance counter on the top left of the ability icon.";
               default = defaults.showTargetCount;
               getFunc = function () return SV.showTargetCount; end;
@@ -4097,9 +4097,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               name = "Show Instance Count for One Active Instance";
               tooltip = "Show the target instance counter if only one instance of the effect is active. Note that this does not apply to debuffs when 'Debuffs on target' mode is enabled.";
               default = defaults.showSingleTargetInstance;
+              disabled = function () return not SV.showTargetCount; end;
               getFunc = function () return SV.showSingleTargetInstance; end;
               setFunc = function (value) SV.showSingleTargetInstance = value or false; end;
-              disabled = function () return not SV.showTargetCount; end;
             },
             { type = "divider" },
             {
@@ -4161,6 +4161,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               title = "[ |cffdf80Miscellaneous Options|r ]";
               text = "Additional settings for configuring ability tracking.";
               width = "full";
+            },
+            {
+              type = "checkbox";
+              name = "Show Stack Counter";
+              tooltip = "Show stack count for abilities that can have multiple stacks, or can stack multiple times.";
+              default = defaults.showStackCount;
+              getFunc = function () return SV.showStackCount; end;
+              setFunc = function (value) SV.showStackCount = value or false; end;
             },
             {
               type = "checkbox";

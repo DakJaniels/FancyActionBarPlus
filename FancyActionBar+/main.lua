@@ -1460,6 +1460,7 @@ function FancyActionBar.IsValidStackId(effectStackIds, abilityStackIds)
 end;
 
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
+  if SV.showStackCount == false then return; end;
   local effect = FancyActionBar.effects[id];
   if effect then
     if effect.slot1 then FancyActionBar.UpdateStacks(effect.slot1); end;
@@ -4502,6 +4503,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.debug == nil then SV.debug = d.debug; end;
     if SV.showToggle == nil then SV.showToggle = d.showToggle; end;
     if SV.toggleColor == nil then SV.toggleColor = d.toggleColor; end;
+    if SV.showStackCount == nil then SV.showStackCount = d.showStackCount; end;
     if SV.showOvertauntStacks == nil then SV.showOvertauntStacks = d.showOvertauntStacks; end;
     if SV.showTargetCount == nil then SV.showTargetCount = d.showTargetCount; end;
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
