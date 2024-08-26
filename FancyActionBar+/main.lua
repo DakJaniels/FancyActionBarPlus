@@ -2417,7 +2417,7 @@ local applyButtonStyles = function(style)
   local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL);
   ultButton:ApplyStyle(style.ultButtonTemplate);
   ultButtonC:ApplyStyle(style.ultButtonTemplate);
-  QSButton:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+  QSButton:ApplyStyle(style.buttonTemplate);
 end;
 
 local repositionUltimateSlot = function (style, weaponSwapControl)
@@ -2632,7 +2632,7 @@ function FancyActionBar.ApplyActiveHotbarStyle()
   local style = FancyActionBar.GetContants();
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+    button:ApplyStyle(style.buttonTemplate);
   end;
 end;
 
@@ -2644,7 +2644,6 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
 
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
-    --button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
     if lastButton then
       button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
     elseif i == MIN_INDEX then
@@ -2709,7 +2708,7 @@ end;
 function FancyActionBar.SetupBackbarButton(style, weaponSwapControl, lastButton, index)
   ---@type ActionButton
   local button = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET];
-  button:ApplyStyle(SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+  button:ApplyStyle(style.buttonTemplate);
   button.icon:SetDesaturation(SV.desaturationInactive / 100);
   button.icon:SetAlpha(SV.alphaInactive / 100);
 
@@ -4171,7 +4170,7 @@ function FancyActionBar.Initialize()
 
   SecurePostHook(ActionButton, "ApplyStyle", function(self)
     local style = FancyActionBar.GetContants();
-    ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or SV.forceGamepadStyle and 'FAB_ActionButton_Hybrid_Template' or style.buttonTemplate);
+    ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate);
   end);
 
   ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
