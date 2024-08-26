@@ -36,7 +36,7 @@ local GAMEPAD_CONSTANTS =
 {
   dimensions = 64;
   flipCardSize = 61;
-  ultFlipCardSize = 67;
+  ultFlipCardSize = 61;
   abilitySlotWidth = 64;
   abilitySlotOffsetX = 10;
   buttonTextOffsetY = 60;
