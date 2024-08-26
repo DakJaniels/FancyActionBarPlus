@@ -3587,8 +3587,6 @@ function FancyActionBar.Initialize()
       isChanneling = false;
       currentHotbarCategory = GetActiveHotbarCategory();
       FancyActionBar.SwapControls(isWeaponSwapLocked);
-      -- FancyActionBar.ApplyAbilityFxOverrides();
-      -- FancyActionBar.ApplyActiveHotbarStyle();
       currentWeaponPair = activeWeaponPair;
     end;
   end;
@@ -4122,6 +4120,7 @@ function FancyActionBar.Initialize()
     OnAllHotbarsUpdated();
     FancyActionBar.SwapControls();
     FancyActionBar.ApplyAbilityFxOverrides();
+    zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 1000);
     EM:UnregisterForUpdate(NAME .. "Update");
     EM:RegisterForUpdate(NAME .. "Update", updateRate, Update);
     EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED);
