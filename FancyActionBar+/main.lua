@@ -4172,6 +4172,7 @@ function FancyActionBar.Initialize()
   SecurePostHook(ActionButton, "ApplyStyle", function(self)
     local style = FancyActionBar.GetContants();
     ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate);
+    setFlipCardDimensions(style);
   end);
 
   ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
