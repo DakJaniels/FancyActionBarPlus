@@ -4132,7 +4132,9 @@ function FancyActionBar.Initialize()
     end;
     FancyActionBar.OnPlayerActivated();
     FancyActionBar.ApplyAbilityFxOverrides();
-    zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 100);
+    if initial then
+      zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 100);
+    end
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
