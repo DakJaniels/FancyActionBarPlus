@@ -2441,18 +2441,20 @@ local setFlipCardDimensions = function (style)
   local c8 = GetControl("ActionButton8FlipCard");
   local c9 = GetControl("ActionButton9FlipCard");
   local c38 = GetControl("CompanionUltimateButtonFlipCard");
+  local flipCardSize = style.flipCardSize;
+  local ultFlipCardSize = style.ultFlipCardSize;
 
   if c8 then
     c8:ClearDimensions();
-    c8:SetDimensions(style.ultFlipCardSize, style.ultFlipCardSize);
+    c8:SetDimensions(ultFlipCardSize, ultFlipCardSize);
   end;
   if c9 then
     c9:ClearDimensions();
-    c9:SetDimensions(style.flipCardSize, style.flipCardSize);
+    c9:SetDimensions(flipCardSize, flipCardSize);
   end;
   if c38 then
     c38:ClearDimensions();
-    c38:SetDimensions(style.ultFlipCardSize, style.ultFlipCardSize);
+    c38:SetDimensions(ultFlipCardSize, ultFlipCardSize);
   end;
 end;
 
@@ -2496,7 +2498,8 @@ local configureFillAnimationsAndFrames = function (style)
   local gpFrameC = GetControl("CompanionUltimateButtonFrame");
   local actionbutton8backdrop = GetControl("ActionButton8Backdrop");
   local companionultimatebuttonbackdrop = GetControl("CompanionUltimateButtonBackdrop");
-
+  local ultFlipCardSize = style.ultFlipCardSize;
+  local halfUltFlipCardSize = ultFlipCardSize / 2;
   -- Check if controls are retrieved successfully
   if not leftFill or not rightFill or not leftFillC or not rightFillC or not gpFrame or not gpFrameC then
     --Chat("One or more controls are nil");
@@ -2516,10 +2519,10 @@ local configureFillAnimationsAndFrames = function (style)
     rightFillC:SetHidden(not isGamepad);
 
     -- Set fill animations
-    configureFillAnimation(leftFill, actionbutton8backdrop, -24, 24);
-    configureFillAnimation(rightFill, actionbutton8backdrop, -24, 48);
-    configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -24, 24);
-    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -24, 48);
+    configureFillAnimation(leftFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize);
+    configureFillAnimation(rightFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize);
+    configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -ultFlipCardSize, ultFlipCardSize);
+    configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -ultFlipCardSize, ultFlipCardSize);
   else
     -- Hide fill animations and frames
     hideFillAnimation(leftFill);
