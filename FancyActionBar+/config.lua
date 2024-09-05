@@ -1231,6 +1231,8 @@ FancyActionBar.needCombatEvent =
   [38794] = { duration = GetAbilityDuration(38794) / 1000, result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false };                                                               -- forward momentum
   --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false  }; -- rally
   [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
+  [217512] = { duration = 5; result = ACTION_RESULT_POWER_ENERGIZE; class = false };                                                                                                                    -- Soul Burst (Potent Burst), Anchorite's Potency Alt Id??
+  [216940] = { duration = 5; result = ACTION_RESULT_POWER_ENERGIZE; class = false };                                                                                                                    -- Leashing Soul (Potent Soul), Anchorite's Potency
 
   -- Class Specific UltGen Passives that need Combat Events
   [29474] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };  -- Mountain's Blessing I
