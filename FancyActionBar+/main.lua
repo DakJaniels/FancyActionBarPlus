@@ -1459,6 +1459,21 @@ function FancyActionBar.IsValidStackId(effectStackIds, abilityStackIds)
   return found;
 end;
 
+function FancyActionBar.HasDebuffStacks(effectId)
+  local hasStacks = false;
+  local debuffStackMap = FancyActionBar.debuffStackMap;
+  for stackId, abilityIds in pairs(debuffStackMap) do
+    for i = 1, #abilityIds do
+      if abilityIds[i] == effectId then
+        hasStacks = true;
+        break;
+      end;
+    end;
+  end;
+  return hasStacks;
+end;
+
+
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
   if SV.showStackCount == false then return; end;
   local effect = FancyActionBar.effects[id];
@@ -1673,7 +1688,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   -- Assign effect to overlay.
   if overlay then overlay.effect = effect; end;
 
-  local validStacksForOverlay = ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId);
+  local validStacksForOverlay = ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId);
   if overlay then overlay.stacks = validStacksForOverlay; end;
 
   if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then

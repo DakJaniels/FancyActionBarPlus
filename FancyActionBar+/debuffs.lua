@@ -76,7 +76,7 @@ function FancyActionBar.IsAbilityActiveOnCurrentTarget(id)
   if nBuffs > 0 then
     for i = 1, nBuffs do
       local _, _, endTime, _, stacks, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo("reticleover", i);
-      if abilityId == id and (castByPlayer or stacks) then
+      if abilityId == id and (castByPlayer or stacks > 0) then
         isActive = true;
         data.endTime = endTime;
         data.stacks = stacks or 0;
@@ -296,18 +296,15 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
 
   if not debuff then return; end;
   local t = time();
-
-  if debuff.isSpecialDebuff and stacks then
-    if debuff.id == 52790 and SV.showOvertauntStacks then
-      FancyActionBar.stacks[debuff.id] = stacks;
-    else
-      if debuff.stackId then
-        for i = 1, #debuff.stackId do
-          FancyActionBar.stacks[debuff.stackId[i]] = stacks;
-        end;
+  if debuff.id == 52790 and SV.showOvertauntStacks then
+    FancyActionBar.stacks[debuff.id] = stacks;
+  else
+    if debuff.stackId then
+      for i = 1, #debuff.stackId do
+        FancyActionBar.stacks[debuff.stackId[i]] = stacks;
       end;
     end;
-  end
+  end;
 
   for id, effect in pairs(FancyActionBar.effects) do
     if effect.id == debuff.id then
@@ -414,7 +411,6 @@ end;
 function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
   local tag = "";
   if unitTag ~= nil and unitTag ~= "" then tag = unitTag; end;
-
   -- if ((effect.activeOnTarget and tag ~= 'reticleover') or (not effect.activeOnTarget and effect.hideOnNoTarget)) then
   --   FancyActionBar:dbg(1, '<<1>> duration <<2>>s ignored on: <<3>>.', effectName, string.format(' %0.1f', endTime - t), tag )
   --   return
@@ -441,7 +437,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
     end;
   end;
-
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     if specialEffect then
       for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
@@ -450,24 +445,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
       if specialEffect.stacks then
         stackCount = specialEffect.stacks;
-      else
-        if debuff.stackId then
-          for i = 1, #debuff.stackId do
-            if debuff.stackId[i] == debuff.id then
-              stackCount = stackCount or 1;
-              break;
-            end;
-          end;
-        end;
-      end;
-    else
-      if debuff.stackId then
-        for i = 1, #debuff.stackId do
-          if debuff.stackId[i] == debuff.id then
-            stackCount = FancyActionBar.stacks[debuff.stackId[i]] or stackCount;
-            break;
-          end;
-        end;
       end;
     end;
 

@@ -767,6 +767,11 @@ FancyActionBar.stackMap =
   [63473] = { 63473, 40493 }; -- shooting star
   
   --[222370] = { 222370 } -- Anchorite's Potency, to show Soul Gems
+  
+  [134336] =
+  {
+    134336,
+  };
 };
 
 FancyActionBar.fixedStacks =
@@ -779,7 +784,6 @@ FancyActionBar.fixedStacks =
 
 FancyActionBar.debuffStackMap =
 {
-  -- [134336] = 134336;  -- Stone Giant (stacks on target)
   -- Taunt Counter
   [52790] =
   {
@@ -801,6 +805,14 @@ FancyActionBar.debuffStackMap =
     217180, -- goading smash (Scribing?) (taunt)
     219972, -- goading smash (scribing) (taunt)
   };
+  
+  -- Stone Giant Stagger
+  [134336] =
+  {
+    134336,
+  };
+
+  -- [134336] = 134336;  -- Stone Giant (stacks on target)
 };
 
 FancyActionBar.allowExternalStacks =
