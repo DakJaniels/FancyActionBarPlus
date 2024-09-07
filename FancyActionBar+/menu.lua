@@ -1110,17 +1110,50 @@ end;
 ----------------------------------------------
 ----------------[   Other   ]-----------------
 ----------------------------------------------
+
+local function SetDarkUI(framesHidden)
+  local eso_root = "esoui/art/";
+  local ui_root = "darkui/";
+  local theme;
+  local theme_textures_up = { "actionbar/abilityframe64_up.dds", "abilityframe64_up.dds" };
+  local theme_textures_dn = { "actionbar/abilityframe64_down.dds", "abilityframe64_down.dds" };
+  local backdrop = { "skillsadvisor/square_abilityframe64_doubleframe.dds", "abilityframe64_up.dds" };
+  if darkui.SV.Icon == GetString(DARKUI_LIGHT) then
+    theme = "light";
+  elseif darkui.SV.Icon == GetString(DARKUI_MIXED) then
+    theme = "mixed";
+  else
+    theme = "dark";
+  end;
+  if framesHidden then
+    RedirectTexture(eso_root .. theme_textures_up[1], ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2]);
+    RedirectTexture(eso_root .. theme_textures_dn[1], ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
+    RedirectTexture(eso_root .. backdrop[1], ui_root .. "theme_" .. theme .. "/" .. backdrop[2]);
+  else
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2], FAB_BLANK);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], FAB_NO_FRAME_DOWN);
+    RedirectTexture(eso_root .. backdrop[1], eso_root .. backdrop[1]);
+  end;
+end;
+
 local framesHidden = false;
 local function SetDefaultAbilityFrame()
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
   if SV.hideDefaultFrames or SV.forceGamepadStyle then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
-    framesHidden = true;
+    if _G["darkui"] then
+      SetDarkUI(framesHidden);
+    end;
+  framesHidden = true;
+    
   else
     if framesHidden then
       RedirectTexture(f[1], f[1]);
       RedirectTexture(f[2], f[2]);
+      if _G["darkui"] then
+        SetDarkUI(framesHidden);
+      end;
       framesHidden = false;
     end;
   end;
