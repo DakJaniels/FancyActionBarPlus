@@ -34,7 +34,7 @@ Applies an offset to the ultimate slot position. Applies to Keyboard UI or Gamep
 
 #### Adjust Bar Spacing and Offset
 
-* Horizontal (X) Position (default: 0) - Adjusts the relative position of the front and back action bars with respect to each other along the X (horizonal) axis (changing this value will shift the top bar left, and the bottom bar right, or vice versa)
+* Horizontal (X) Position (default: 0) - Adjusts the relative position of the front and back action bars with respect to each other along the X (horizontal) axis (changing this value will shift the top bar left, and the bottom bar right, or vice versa)
 * Vertical (Y) Position (default: 0) - Adjusts the relative position of the front and back action bars along the Y (vertical) axis. This setting effectively changes the gap between the top and bottom bar. Recommended setting: 4 for a gap that matches the gap between action buttons.
 
 ### GENERAL
