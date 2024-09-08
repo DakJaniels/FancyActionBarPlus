@@ -1789,7 +1789,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           type = "checkbox",
           name = "Force enable gamepad Action Bar style",
           tooltip =
-          "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessability Mode. This setting force enables these additonal UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.",
+          "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessibility Mode. This setting force enables these additional UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.";
           default = defaults.forceGamepadStyle;
           getFunc = function() return SV.forceGamepadStyle; end,
           setFunc = function(value)

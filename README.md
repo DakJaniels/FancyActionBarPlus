@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.7.4
+## User Guide and Menu Option Documentation for v2.8.0
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -18,19 +18,24 @@ Keyboard UI and Gamepad UI have separate sub-menus but identical options
 
 #### Adjust Quickslot Position
 
-Applies an offset to the quickslot position. Applies to both Keyboard UI and Gamepad UI
+Applies an offset to the quickslot position. Applies to Keyboard UI or Gamepad UI depending on which UI mode is active.
 
 * Horizontal (X) Position (default: 0), negative values move the slot left, positive values move it right.
 * Vertical (Y) Position (default: 0), negative values move the slot up, positive values move it down.
 
 #### Adjust Ultimate Slot Position 
 
-Applies an offset to the ultimate slot position. Applies to both Keyboard UI and Gamepad UI. Companion Ultimates will appear to the right of wherever the ultimate slot is placed
+Applies an offset to the ultimate slot position. Applies to Keyboard UI or Gamepad UI depending on which UI mode is active. Companion Ultimates will appear to the right of wherever the ultimate slot is placed
 
 * Horizontal (X) Position (default: 0), negative values move the slot left, positive values move it right.
 * Vertical (Y) Position (default: 0), negative values move the slot up, positive values move it down.
 
 [![Actionbar Size & Position](https://i.imgur.com/pydnjTB.png)](https://i.imgur.com/pydnjTB.png)
+
+#### Adjust Bar Spacing and Offset
+
+* Horizontal (X) Position (default: 0) - Adjusts the relative position of the front and back action bars with respect to each other along the X (horizonal) axis (changing this value will shift the top bar left, and the bottom bar right, or vice versa)
+* Vertical (Y) Position (default: 0) - Adjusts the relative position of the front and back action bars along the Y (vertical) axis. This setting effectively changes the gap between the top and bottom bar. Recommended setting: 4 for a gap that matches the gap between action buttons.
 
 ### GENERAL
 
@@ -70,7 +75,8 @@ Button frames options only apply to Keyboard UI
 
 #### Miscellaneous
 
-* Show gamepad ult hotkeys (default: ON) – Show the LB RB labels for gamepad UI. Set this to OFF to allow quickslot placement adjustments in gamepad UI
+* Force enable gamepad Action Bar style (default: off) - Setting to ON allows the use of the gamepad action bar theme including animations while in the Keyboard UI. Note that while in this mode FAB+ menu settings, and default options (unless adjusted) that refer to the Gamepad UI will be used.
+* Show gamepad ultimate hotkeys (default: ON) – Show the LB RB labels for gamepad UI. Set this to OFF to allow quickslot placement adjustments in gamepad UI
 * Hide companion ultimate slot (default: OFF) – When enabled, the companion ultimate slot, normally anchored to the right of the player ultimate slot when a companion has an ultimate ability slotted will always be hidden
 * Hide Locked Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a “one bar” mode that only shows the active bar.
 [![Hide Locked Bars](https://i.imgur.com/SEVGXcd.png)](https://i.imgur.com/SEVGXcd.png)
@@ -218,6 +224,7 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 
 #### Miscellaneous Options
 
+* Show Stack Counter (default: ON) - Show stack count for abilities that can have multiple stacks, or can stack multiple times. 
 * Show Cast/Channel Times on Action Slots (default: ON) – If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled. Abilities must have a cast or channel time longer than 1 second for this timer to display.
 * Ignore Initial Trap Placement (default: OFF) - By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT.
 
