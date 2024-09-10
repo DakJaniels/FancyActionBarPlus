@@ -2645,9 +2645,12 @@ end;
 
 function FancyActionBar.ApplyActiveHotbarStyle()
   local style = FancyActionBar.GetContants();
+  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
     button:ApplyStyle(style.buttonTemplate);
+    FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
+    FancyActionBar.SetupButtonStatus(button);
   end;
 end;
 
