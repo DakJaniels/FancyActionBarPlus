@@ -22,15 +22,15 @@ local ACTION_BAR = GetControl("ZO_ActionBar1");
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS");
 local currentWeaponPair = GetActiveWeaponPairInfo();
 local currentHotbarCategory = GetActiveHotbarCategory();
-local isWeaponSwapLocked = false;             -- for tracking weapon swap lock state
-local specialHotbarActive = false;  -- for tracking if a specialHotbar is active
+local isWeaponSwapLocked = false;  -- for tracking weapon swap lock state
+local specialHotbarActive = false; -- for tracking if a specialHotbar is active
 
 
-local specialHotbar = 
-    {
-      [HOTBAR_CATEGORY_TEMPORARY] = true;
-      [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = true;
-    }
+local specialHotbar =
+{
+  [HOTBAR_CATEGORY_TEMPORARY] = true;
+  [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = true;
+};
 
 local GAMEPAD_CONSTANTS =
 {
@@ -39,7 +39,7 @@ local GAMEPAD_CONSTANTS =
   ultFlipCardSize = 67;
   abilitySlotWidth = 64;
   abilitySlotOffsetX = 10;
-  buttonTextOffsetY = 60;
+  buttonTextOffsetY = 80;
   actionBarOffset = -52;
   attributesOffset = -152;
   width = 606;
@@ -62,7 +62,7 @@ local KEYBOARD_CONSTANTS =
   ultFlipCardSize = 47;
   abilitySlotWidth = 50;
   abilitySlotOffsetX = 2;
-  buttonTextOffsetY = 50;
+  buttonTextOffsetY = 62;
   actionBarOffset = -22;
   attributesOffset = -112;
   width = 483;
@@ -115,7 +115,7 @@ FancyActionBar.qsOverlay = nil;               -- shortcut for.. reasons..
 FancyActionBar.initialized = false;           -- check before running some functions that can't be run this early
 FancyActionBar.initialSetup = true;           -- same as above. not sure why I added both...
 FancyActionBar.uiModeChanged = false;         -- don't change configuration if not needed
-FancyActionBar.useGamepadActionBar = false; -- If the gamepad actionbar style should be force enabled
+FancyActionBar.useGamepadActionBar = false;   -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false;              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false;            -- don't register updates if already registered
 
@@ -124,7 +124,7 @@ FancyActionBar.inCombat = false;              -- for GCD
 
 FancyActionBar.weaponFront = WEAPONTYPE_NONE; -- for getting correct id's for destro staff skills on back bar
 FancyActionBar.weaponBack = WEAPONTYPE_NONE;
-FancyActionBar.oakensoul = "/esoui/art/icons/u34_mythic_oakensoul_ring.dds"
+FancyActionBar.oakensoul = "/esoui/art/icons/u34_mythic_oakensoul_ring.dds";
 FancyActionBar.oakensoulEquipped = false;
 
 FancyActionBar.durationMin = 4;
@@ -393,7 +393,7 @@ function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
     local hyper = CheckHyperTools();
     if hyper ~= "" then
       return GetHyperToolsIcon(hyper);
-    end
+    end;
   end;
   local skillType, skillLineIndex, skillIndex = GetSpecificSkillAbilityKeysByAbilityId(abilityId);
   local progressionId = GetProgressionSkillProgressionId(skillType, skillLineIndex, skillIndex);
@@ -778,8 +778,8 @@ function FancyActionBar.SetActionButtonAbilityFxOverride(index)
   local id = FancyActionBar.GetSlotBoundAbilityId(index);
   if id > 0 then
     local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
-  if icon then
-    btn.icon:SetTexture(icon);
+    if icon then
+      btn.icon:SetTexture(icon);
     end;
   end;
 end;
@@ -822,18 +822,17 @@ function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, 
     effect.dontFade = dontFade;
     effect.faded = true;
     effect.isChanneled = isChanneled;
-  end
+  end;
 
   -- Portions of the effect table that should always be updated
   effect.stackId = stackId;
 
   if effectChanged or not FancyActionBar.effects[id] and config then
     FancyActionBar.effects[id] = effect;
-  end
+  end;
 
   return effect; -- Always returns an effect
-end
-
+end;
 
 function FancyActionBar.GetSlottedEffect(index)
   return slottedIds[index].effect, slottedIds[index].ability;
@@ -896,7 +895,6 @@ function FancyActionBar.HandleCompanionStateChanged() -- prevents quick slot fro
 end;
 
 function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
-
   if (not SV.hideLockedBar) and (not userPreferenceChanged) then return; end;
   if isLocked == wasLocked then return; end;
   --if (not isLocked) and (not wasLocked) then return; end;
@@ -929,9 +927,9 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
   FancyActionBar.EffectCheck();
   FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT));
   FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT));
-  FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
+  FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul);
   if SV.hideLockedBar and FancyActionBar.oakensoulEquipped then
-    FancyActionBar.OnWeaponSwapLocked(true, isWeaponSwapLocked)
+    FancyActionBar.OnWeaponSwapLocked(true, isWeaponSwapLocked);
   end;
 end;
 
@@ -1054,7 +1052,7 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
         icon = FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id);
       elseif id == 31816 then
         local hyper = CheckHyperTools();
-        icon = hyper ~= "" and GetHyperToolsIcon(hyper) or GetAbilityIcon(id)
+        icon = hyper ~= "" and GetHyperToolsIcon(hyper) or GetAbilityIcon(id);
       else
         icon = GetAbilityIcon(id);
       end;
@@ -1232,7 +1230,6 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
 end;
 
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks)
-
   if effect.toggled or effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
 
   local currentTime = time();
@@ -1240,21 +1237,21 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
   local hasDuration = true;
   local duration = 0;
-    if SV.showCastDuration and effect.castEndTime then
-      if effect.castEndTime >= currentTime then
-        duration = effect.castEndTime - currentTime;
-      elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
-        duration = effect.endTime - currentTime;
-      else
-        effect.endTime = -1;
-        hasDuration = false;
-      end;
+  if SV.showCastDuration and effect.castEndTime then
+    if effect.castEndTime >= currentTime then
+      duration = effect.castEndTime - currentTime;
     elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
       duration = effect.endTime - currentTime;
     else
       effect.endTime = -1;
       hasDuration = false;
     end;
+  elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
+    duration = effect.endTime - currentTime;
+  else
+    effect.endTime = -1;
+    hasDuration = false;
+  end;
 
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
@@ -1472,7 +1469,6 @@ function FancyActionBar.HasDebuffStacks(effectId)
   end;
   return hasStacks;
 end;
-
 
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
   if SV.showStackCount == false then return; end;
@@ -1726,7 +1722,7 @@ function FancyActionBar.SlotEffects() -- slot effects for primary and backup bar
       FancyActionBar.SlotEffect(i, FancyActionBar.GetSlotBoundAbilityId(i, currentHotbarCategory));
     end;
   end;
-  FancyActionBar.UpdateUltimateCost()
+  FancyActionBar.UpdateUltimateCost();
 end;
 
 function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the effect.
@@ -1872,7 +1868,7 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value, hotbar) -- upda
   local modeP = FancyActionBar.constants.ult.value.mode;
   local modeC = FancyActionBar.constants.ult.companion.mode;
   local alpha = (value < 10) and 0 or 1;
-  local cost = ((currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY) or (currentHotbarCategory == HOTBAR_CATEGORY_BACKUP)) and cost1 or costAlt
+  local cost = ((currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY) or (currentHotbarCategory == HOTBAR_CATEGORY_BACKUP)) and cost1 or costAlt;
   if (player and FancyActionBar.constants.ult.value.show) then
     ActionButton8LeadingEdge:SetAlpha(alpha);
     -- ActionButton8UltimateBar:SetHidden(false)
@@ -1941,7 +1937,7 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
   cost1 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY));
   cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP));
   costAlt = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, currentHotbarCategory));
-  
+
   local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE);
   FancyActionBar.UpdateUltimateValueLabels(true, current);
 end;
@@ -2213,7 +2209,7 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
   --   ActionButton9:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, 0, -2 * scale)
   --   FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
   -- end
-    FAB_ActionBarArrow:SetHidden(lock or not SV.showArrow);
+  FAB_ActionBarArrow:SetHidden(lock or not SV.showArrow);
 end;
 
 function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button according to variables
@@ -2427,7 +2423,7 @@ function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button
   return overlay;
 end;
 
-local applyButtonStyles = function(style)
+local applyButtonStyles = function (style)
   local ultButton = ZO_ActionBar_GetButton(ULT_INDEX);
   local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
   local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL);
@@ -2557,7 +2553,7 @@ function FancyActionBar.ToggleFillAnimationsAndFrames(state)
     GetControl("CompanionUltimateButtonFrame"):SetHidden(not state);
     GetControl("CompanionUltimateButtonFillAnimationLeft"):SetHidden(not state);
     GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state);
-  end
+  end;
 end;
 
 local createOverlays = function (style, weaponSwapControl, QSB)
@@ -2683,8 +2679,9 @@ end;
 ---@param index number
 function FancyActionBar.SetupButtonText(button, weaponSwapControl, style, index)
   local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + style.abilitySlotOffsetX);
+  local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
   button.buttonText:ClearAnchors();
-  button.buttonText:SetAnchor(TOP, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), style.buttonTextOffsetY);
+  button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), style.buttonTextOffsetY + barYOffset);
   button.buttonText:SetHidden(not SV.showHotkeys);
 end;
 
@@ -2989,34 +2986,34 @@ end;
 ActionButton["SetUltimateMeter"] = FancySetUltimateMeter;
 
 local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
-  local style = FancyActionBar.GetContants()
-  local GROW_SCALE = 1.1
-  local shrink = timeline:GetAnimation(1)
-  local grow = timeline:GetAnimation(2)
-  local reset = timeline:GetAnimation(3)
-  local size = isUltimateSlot and style.ultFlipCardSize or style.flipCardSize
+  local style = FancyActionBar.GetContants();
+  local GROW_SCALE = 1.1;
+  local shrink = timeline:GetAnimation(1);
+  local grow = timeline:GetAnimation(2);
+  local reset = timeline:GetAnimation(3);
+  local size = isUltimateSlot and style.ultFlipCardSize or style.flipCardSize;
 
-  shrink:SetStartAndEndWidth(size, size * shrinkScale)
-  shrink:SetStartAndEndHeight(size, size * shrinkScale)
+  shrink:SetStartAndEndWidth(size, size * shrinkScale);
+  shrink:SetStartAndEndHeight(size, size * shrinkScale);
 
-  grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
-  grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
+  grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE);
+  grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE);
 
-  reset:SetStartAndEndWidth(size * GROW_SCALE, size)
-  reset:SetStartAndEndHeight(size * GROW_SCALE, size)
-  reset:SetDuration(resetTime)
-end
+  reset:SetStartAndEndWidth(size * GROW_SCALE, size);
+  reset:SetStartAndEndHeight(size * GROW_SCALE, size);
+  reset:SetDuration(resetTime);
+end;
 
 local origSetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"];
 local function FancySetBounceAnimationParameters(self, cooldownTime)
-  local SHRINK_SCALE = 0.9
-  local ICON_SHRINK_SCALE = 0.8
-  local FRAME_RESET_TIME_MS = 167
-  local ICON_RESET_TIME_MS = 100
-  local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
-  SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
-  SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
-end
+  local SHRINK_SCALE = 0.9;
+  local ICON_SHRINK_SCALE = 0.8;
+  local FRAME_RESET_TIME_MS = 167;
+  local ICON_RESET_TIME_MS = 100;
+  local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory());
+  SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot);
+  SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot);
+end;
 
 function FancyActionBar.UpdateStyle()
   local style = {};
@@ -3050,10 +3047,10 @@ function FancyActionBar.UpdateStyle()
   -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
   FancyActionBar.style = mode;
   FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style);
-  
+
   FAB_Default_Bar_Position:ClearAnchors();
   FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y);
-  
+
   ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle;
   ActionButton.SetBounceAnimationParameters = FancyActionBar.forceGamepadStyle and FancySetBounceAnimationParameters or origSetBounceAnimationParameters;
   ZO_ActionBar_GetButton(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1):ApplySwapAnimationStyle();
@@ -3272,10 +3269,9 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
     end;
     FancyActionBar.effects[effect.id] = effect;
   end;
-  
+
   effect.endTime = endTime;
   FancyActionBar.UpdateEffect(effect);
-
 end;
 
 function FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
@@ -3547,23 +3543,26 @@ function FancyActionBar.Initialize()
 
   -- Set Bar Settings for hideLockedBar mode and/or apply AbilityFxOverrides
   local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbilityAssignments, activeHotbarCategory)
-      if specialHotbar[activeHotbarCategory] then
-        specialHotbarActive = true;
-        if SV.hideLockedBar == true then
-          FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked);
-        end;
-        FancyActionBar.SlotEffects()
-      elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
-        specialHotbarActive = false;
-        if FancyActionBar.oakensoulEquipped then FancyActionBar.SlotEffects() return; end;
-        if SV.hideLockedBar == true then
-          FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked);
-        else
-          isWeaponSwapLocked = false
-        end;
-        FancyActionBar.SwapControls(specialHotbarActive);
-        FancyActionBar.SlotEffects();
+    if specialHotbar[activeHotbarCategory] then
+      specialHotbarActive = true;
+      if SV.hideLockedBar == true then
+        FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked);
       end;
+      FancyActionBar.SlotEffects();
+    elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
+      specialHotbarActive = false;
+      if FancyActionBar.oakensoulEquipped then
+        FancyActionBar.SlotEffects();
+        return;
+      end;
+      if SV.hideLockedBar == true then
+        FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked);
+      else
+        isWeaponSwapLocked = false;
+      end;
+      FancyActionBar.SwapControls(specialHotbarActive);
+      FancyActionBar.SlotEffects();
+    end;
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
 
@@ -3601,16 +3600,16 @@ function FancyActionBar.Initialize()
   local function OnArmory()
     FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT));
     FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT));
-    local wasOakensoulEquipped = FancyActionBar.oakensoulEquipped
+    local wasOakensoulEquipped = FancyActionBar.oakensoulEquipped;
     local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or
-    (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
-    FancyActionBar.oakensoulEquipped = isOakensoulEquipped
+      (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul);
+    FancyActionBar.oakensoulEquipped = isOakensoulEquipped;
     if SV.hideLockedBar and isOakensoulEquipped or wasOakensoulEquipped then
-      FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked)
+      FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked);
     end;
-    OnAllHotbarsUpdated()
+    OnAllHotbarsUpdated();
   end;
-  
+
   local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
       --g_activeWeaponSwapInProgress = true;
@@ -3635,11 +3634,11 @@ function FancyActionBar.Initialize()
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
       if SV.forceGamepadStyle and n ~= ULT_INDEX then
-        local btn = ZO_ActionBar_GetButton(n)
+        local btn = ZO_ActionBar_GetButton(n);
         if btn then
-          btn:PlayAbilityUsedBounce()
-          btn:PlayGlow()
-        end
+          btn:PlayAbilityUsedBounce();
+          btn:PlayGlow();
+        end;
       end;
 
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (abilityConfig[id] and abilityConfig[id] == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
@@ -3996,11 +3995,11 @@ function FancyActionBar.Initialize()
       FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT));
     end;
     if slotId == EQUIP_SLOT_RING1 or slotId == EQUIP_SLOT_RING2 then
-      local wasOakensoulEquipped = FancyActionBar.oakensoulEquipped
-      local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
-      FancyActionBar.oakensoulEquipped = isOakensoulEquipped
+      local wasOakensoulEquipped = FancyActionBar.oakensoulEquipped;
+      local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul);
+      FancyActionBar.oakensoulEquipped = isOakensoulEquipped;
       if SV.hideLockedBar and isOakensoulEquipped or wasOakensoulEquipped then
-        FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked)
+        FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked);
       end;
     end;
   end;
@@ -4147,7 +4146,7 @@ function FancyActionBar.Initialize()
   end);
 
   EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
-  EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged);
+    EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged);
     FancyActionBar.ApplyStyle();
     OnAllHotbarsUpdated();
     FancyActionBar.SwapControls();
@@ -4166,7 +4165,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ApplyAbilityFxOverrides();
     if initial then
       zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 100);
-    end
+    end;
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
@@ -4177,7 +4176,7 @@ function FancyActionBar.Initialize()
   FancyActionBar.SetExternalBuffTracking();
 
   EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.UpdateUltimateCost);
-  
+
   EM:RegisterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnEquippedGearChanged);
   EM:AddFilterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN);
 
@@ -4202,7 +4201,7 @@ function FancyActionBar.Initialize()
     end;
   end);
 
-  SecurePostHook(ActionButton, "ApplyStyle", function(self)
+  SecurePostHook(ActionButton, "ApplyStyle", function (self)
     local style = FancyActionBar.GetContants();
     ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate);
     setFlipCardDimensions(style);
@@ -4435,7 +4434,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
       if SV.quickSlotCustomYOffset then
         SV.quickSlotCustomYOffsetGP = SV.quickSlotCustomYOffset;
         SV.quickSlotCustomYOffset = nil;
-      end
+      end;
     else
       if SV.fontName then
         SV.fontNameKB = SV.fontName;
@@ -4487,7 +4486,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
       if SV.quickSlotCustomYOffset then
         SV.quickSlotCustomYOffsetKB = SV.quickSlotCustomYOffset;
         SV.quickSlotCustomYOffset = nil;
-      end
+      end;
     end;
 
     if SV.fontNameStackKB == nil then SV.fontNameStackKB = d.fontNameStackKB; end;
