@@ -38,7 +38,6 @@ local GAMEPAD_CONSTANTS =
   flipCardSize = 61;
   ultFlipCardSize = 67;
   abilitySlotWidth = 64;
-  abilitySlotOffsetX = 10;
   buttonTextOffsetY = 80;
   actionBarOffset = -52;
   attributesOffset = -152;
@@ -61,7 +60,6 @@ local KEYBOARD_CONSTANTS =
   flipCardSize = 47;
   ultFlipCardSize = 47;
   abilitySlotWidth = 50;
-  abilitySlotOffsetX = 2;
   buttonTextOffsetY = 62;
   actionBarOffset = -22;
   attributesOffset = -112;
@@ -211,6 +209,10 @@ FancyActionBar.constants =
     y = 0;
   };
   noTargetAlpha = 90;
+  abilitySlot =
+  {
+    offsetX = 2;
+  };
   style = {};
   update = {}
 };
@@ -2169,6 +2171,7 @@ end;
 
 function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and arrow visibility
   lock = SV.hideLockedBar and lock or SV.hideLockedBar and isWeaponSwapLocked and true or nil;
+  local abilitySlotOffsetX = FancyActionBar.constants.abilitySlot.offsetX;
   local style = FancyActionBar.GetContants();
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   local QSB = GetControl("QuickslotButton");
@@ -2179,9 +2182,9 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
   if (SV.showArrow == false) or (lock == true) then
     if SV.moveQS == true then
       if FancyActionBar.style == 2 then
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * ((style.abilitySlotOffsetX + xOffset) * scale))), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * ((abilitySlotOffsetX + xOffset) * scale))), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
       else
-        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + ((style.abilitySlotOffsetX + xOffset) * scale)), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
+        QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + ((abilitySlotOffsetX + xOffset) * scale)), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
       end;
     else
       QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
@@ -2197,9 +2200,9 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
   -- if SV.showArrow == false then
   -- 	if SV.moveQS == true then
   --     if not FancyActionBar.style == 1 then
-  --       ActionButton9:SetAnchor(RIGHT, weaponSwapControl, RIGHT, - (2 + (SLOT_COUNT * (style.abilitySlotOffsetX*scale))), -2 * scale)
+  --       ActionButton9:SetAnchor(RIGHT, weaponSwapControl, RIGHT, - (2 + (SLOT_COUNT * (abilitySlotOffsetX*scale))), -2 * scale)
   --     else
-  --       ActionButton9:SetAnchor(RIGHT, weaponSwapControl, RIGHT, - (5 + (style.abilitySlotOffsetX*scale)), -2 * scale)
+  --       ActionButton9:SetAnchor(RIGHT, weaponSwapControl, RIGHT, - (5 + (abilitySlotOffsetX*scale)), -2 * scale)
   --     end
   --   else
   --     ActionButton9:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, 0, -2 * scale)
@@ -2225,7 +2228,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
   local ultCX = 20 + (10 * scale);
   local ultCY = 0;
   local u = 65 * scale;
-  local f1 = (style.abilitySlotWidth + style.abilitySlotOffsetX);
+  local f1 = (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX);
   local f2 = f1 * SLOT_COUNT;
 
   if SV.showHotkeysUltGP then
@@ -2441,7 +2444,7 @@ local repositionUltimateSlot = function (style, weaponSwapControl)
     local uX = (style.ultimateSlotOffsetX + SV.ultimateSlotCustomXOffsetKB) * scale;
     local uY = (0 + SV.ultimateSlotCustomYOffsetKB) * scale;
     local uC = style.ultimateSlotOffsetX * scale;
-    local f1 = (style.abilitySlotWidth + style.abilitySlotOffsetX);
+    local f1 = (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX);
     local f2 = (f1 * SLOT_COUNT) - 2;
     ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + uX, uY, ActionButton8:GetResizeToFitConstrains());
     CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, uC, 0, CompanionUltimateButton:GetResizeToFitConstrains());
@@ -2663,10 +2666,13 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
     if lastButton then
-      button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
+      button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX);
     elseif i == MIN_INDEX then
       button.slot:ClearAnchors();
       button.slot:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4);
+    else
+      button.slot:ClearAnchors();
+      button.slot:SetAnchor(LEFT, ZO_ActionBar_GetButton(i - 1).slot, RIGHT, 0, 0);
     end;
 
     lastButton = button;
@@ -2681,7 +2687,7 @@ end;
 ---@param style table
 ---@param index number
 function FancyActionBar.SetupButtonText(button, weaponSwapControl, style, index)
-  local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + style.abilitySlotOffsetX);
+  local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX);
   local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
   button.buttonText:ClearAnchors();
   button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), style.buttonTextOffsetY + barYOffset);
@@ -2710,7 +2716,7 @@ function FancyActionBar.SetupOverlays(style, weaponSwapControl)
     if i == MIN_INDEX then
       overlay:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4);
     else
-      overlay:SetAnchor(LEFT, FancyActionBar.overlays[i - 1], RIGHT, style.abilitySlotOffsetX, 0);
+      overlay:SetAnchor(LEFT, FancyActionBar.overlays[i - 1], RIGHT, FancyActionBar.constants.abilitySlot.offsetX, 0);
     end;
 
     lastButton = FancyActionBar.SetupBackbarButton(style, weaponSwapControl, lastButton, i);
@@ -2736,7 +2742,7 @@ function FancyActionBar.SetupBackbarButton(style, weaponSwapControl, lastButton,
   if index == MIN_INDEX then
     button.slot:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0);
   else
-    button:ApplyAnchor(lastButton.slot, style.abilitySlotOffsetX);
+    button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX);
   end;
 
   return button;
@@ -2752,7 +2758,7 @@ function FancyActionBar.SetupBackbarOverlay(style, weaponSwapControl, index)
   if index == MIN_INDEX then
     overlay:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0);
   else
-    overlay:SetAnchor(LEFT, FancyActionBar.overlays[index + SLOT_INDEX_OFFSET - 1], RIGHT, style.abilitySlotOffsetX, 0);
+    overlay:SetAnchor(LEFT, FancyActionBar.overlays[index + SLOT_INDEX_OFFSET - 1], RIGHT, FancyActionBar.constants.abilitySlot.offsetX, 0);
   end;
 end;
 
@@ -4526,8 +4532,10 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultimateSlotCustomYOffsetGP == nil then SV.ultimateSlotCustomYOffsetGP = d.ultimateSlotCustomYOffsetGP; end;
     if SV.quickSlotCustomXOffsetGP == nil then SV.quickSlotCustomXOffsetGP = d.quickSlotCustomXOffsetGP; end;
     if SV.quickSlotCustomYOffsetGP == nil then SV.quickSlotCustomYOffsetGP = d.quickSlotCustomYOffsetGP; end;
+    if SV.abilitySlotOffsetXKB == nil then SV.abilitySlotOffsetXKB = d.abilitySlotOffsetXKB; end;
     if SV.barXOffsetKB == nil then SV.barXOffsetKB = d.barXOffsetKB; end;
     if SV.barYOffsetKB == nil then SV.barYOffsetKB = d.barYOffsetKB; end;
+    if SV.abilitySlotOffsetXGP == nil then SV.abilitySlotOffsetXGP = d.abilitySlotOffsetXGP; end;
     if SV.barXOffsetGP == nil then SV.barXOffsetGP = d.barXOffsetGP; end;
     if SV.barYOffsetGP == nil then SV.barYOffsetGP = d.barYOffsetGP; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;

@@ -1515,6 +1515,27 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           end;
           width = "half";
         },
+        {
+          type = "slider";
+          name = "Button (X) Spacing";
+          default = FancyActionBar.useGamepadActionBar and defaults.abilitySlotOffsetXGP or defaults.abilitySlotOffsetXKB;
+          min = -600;
+          max = 600;
+          getFunc = function () return FancyActionBar.useGamepadActionBar and SV.abilitySlotOffsetXGP or SV.abilitySlotOffsetXKB; end;
+          setFunc = function (value)
+            if FancyActionBar.useGamepadActionBar then
+              SV.abilitySlotOffsetXGP = value;
+            else
+              SV.abilitySlotOffsetXKB = value;
+            end;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+            FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+            FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+            FancyActionBar.ApplySettings();
+          end;
+          width = "half";
+        },
       };
     },
 

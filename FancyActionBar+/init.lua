@@ -75,8 +75,10 @@ FancyActionBar.defaultSettings =
   highlightExpireColor = { 1, 0, 0, 0.7 };
   toggledHighlight = false;
   toggledColor = { 1, 1, 1, 0.7 };
+  abilitySlotOffsetXKB = 2;
   barXOffsetKB = 0;
   barYOffsetKB = 0;
+  abilitySlotOffsetXGP = 10;
   barXOffsetGP = 0;
   barYOffsetGP = 0;
   -- back bar visibility
@@ -471,6 +473,10 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         x = SV.abMove.kb.x;
         y = SV.abMove.kb.y;
       };
+      abilitySlot =
+      {
+        offsetX = SV.abilitySlotOffsetXKB;
+      };
       style = {};
     };
     c = kb;
@@ -558,6 +564,10 @@ function FancyActionBar:UpdateContants(mode, vars, style)
         enable = SV.abMove.gp.enable;
         x = SV.abMove.gp.x;
         y = SV.abMove.gp.y;
+      };
+      abilitySlot =
+      {
+        offsetX = SV.abilitySlotOffsetXGP;
       };
       style = {};
     };
