@@ -27,6 +27,8 @@ local FAB_NO_FRAME_DOWN = "/FancyActionBar+/texture/abilitynoframe64_down.dds";
 local FAB_BLANK = "/FancyActionBar+/texture/blank.dds";
 local FAB_MARKER = "/FancyActionBar+/texture/redarrow.dds";
 local FAB_BG = "/FancyActionBar+/texture/button_bg.dds";
+local FAB_BD_EDGE = "/FancyActionBar+/texture/CustomEdge.dds";
+local FAB_BD_CENTER = "/FancyActionBar+/texture/CustomCenter.dds";
 local FAB_Fonts =
 {
   ["ProseAntique"] = "$(ANTIQUE_FONT)";
@@ -1157,6 +1159,17 @@ local function SetDefaultAbilityFrame()
       framesHidden = false;
     end;
   end;
+  FancyActionBar.ToggleFrameType();
+end;
+
+function FancyActionBar.ToggleFrameType()
+  if SV.useThinFrames then
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BD_EDGE);
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER);
+  else
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", "esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds");
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", "esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds");
+  end;
 end;
 
 local function GetUltimateFlipCardSize()
@@ -1819,6 +1832,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.AdjustUltimateSpacing();
           end;
           disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
+          width = "full";
+        },
+        {
+          type = "checkbox";
+          name = "Use thin gamepad button frame borders";
+          tooltip = "";
+          default = defaults.useThinFrames;
+          disabled = function () return not FancyActionBar.style == 2; end; --IsInGamepadPreferredMode() end,
+          getFunc = function () return SV.useThinFrames; end;
+          setFunc = function (value)
+            SV.useThinFrames = value or false;
+            FancyActionBar.ToggleFrameType();
+          end;
           width = "full";
         },
         {

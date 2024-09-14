@@ -4491,7 +4491,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         SV.quickSlotCustomYOffset = nil;
       end;
     end;
-
+    if SV.useThinFrames == nil then SV.useThinFrames = d.useThinFrames; end;
     if SV.fontNameStackKB == nil then SV.fontNameStackKB = d.fontNameStackKB; end;
     if SV.fontSizeStackKB == nil then SV.fontSizeStackKB = d.fontSizeStackKB; end;
     if SV.fontTypeStackKB == nil then SV.fontTypeStackKB = d.fontTypeStackKB; end;

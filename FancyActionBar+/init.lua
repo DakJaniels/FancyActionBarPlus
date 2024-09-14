@@ -146,6 +146,7 @@ FancyActionBar.defaultSettings =
   qsYKB = 10;
   qsColorKB = { 1, 0.5, 0.2 };
   -- gamepad UI visuals
+  useThinFrames = false;
   -- duration
   fontNameGP = "Univers 67";
   fontSizeGP = 34;
