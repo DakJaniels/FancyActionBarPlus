@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.8.1";
+local VERSION = "2.8.2";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -3211,7 +3211,7 @@ end;
 function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     effect.beginTime = updateTime;
-    effect.endTime = (specialEffect.fixedTime and (specialEffect.duration + updateTime)) or endTime;
+    effect.endTime = (specialEffect.setTime and (specialEffect.duration + updateTime)) or endTime;
 
     local targetType = GetAbilityTargetDescription(effect.id, nil, unitTag);
     if specialEffect.isMultiTarget and (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
@@ -3695,7 +3695,7 @@ function FancyActionBar.Initialize()
             if FancyActionBar.traps[id] and SV.ignoreTrapPlacement then return; end;
             for k, v in pairs(specialEffect) do effect[k] = v; end;
             effect.beginTime = t;
-            effect.endTime = ((specialEffect.fixedTime and specialEffect.duration) or effect.duration or 0) + t;
+            effect.endTime = ((specialEffect.setTime and specialEffect.duration) or effect.duration or 0) + t;
             FancyActionBar.UpdateEffect(effect);
             if specialEffect.stacks then
               FancyActionBar.stacks[specialEffect.stackId[1] or specialEffect.id] = specialEffect.stacks;

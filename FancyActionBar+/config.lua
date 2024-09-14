@@ -772,6 +772,13 @@ FancyActionBar.stackMap =
   {
     134336,
   };
+
+  -- Fetcher Infection
+  [91416] =
+  {
+    86027,
+    101904,
+  }
 };
 
 FancyActionBar.fixedStacks =
@@ -780,6 +787,8 @@ FancyActionBar.fixedStacks =
   [222285] = "¤";
   [222678] = "¤";
   --[222370] = select(3, GetSoulGemInfo(1, 50, false));
+    
+  [91416] = "+"
 };
 
 FancyActionBar.debuffStackMap =
@@ -1169,26 +1178,26 @@ FancyActionBar.specialClassEffects =
   -- Sorcerer
   [2] =
   {
-    [24330] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
-    [89491] = { id = 24330; stackId = {24330}; fixedTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
+    [24330] = { id = 24330; stackId = {24330}; setTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
+    [89491] = { id = 24330; stackId = {24330}; setTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
     [46331] = { id = 46331; stackId = {46331}; stacks = 2; procs = 1; hasProced = 0}; -- Crystal Weapon
   };
   -- Nightblade
   [3] =
   {
     [37475] = { id = 37475; stackId = {37475}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- manifestation of terror
-    [76639] = { id = 37475; stackId = {37475}; fixedTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true }; -- manifestation of terror (fear)
+    [76639] = { id = 37475; stackId = {37475}; setTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true }; -- manifestation of terror (fear)
     --[147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (major cowardice)
   };
   -- Warden
   [4] =
   {
-    [86009] = { id = 86009; stackId = {86009}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
-    [178020] = { id = 86009; stackId = {86009}; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
-    [86019] = { id = 86019; stackId = {86019}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
-    [146919] = { id = 86019; stackId = {86019}; fixedTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
-    [86015] = { id = 86015; stackId = {86015}; fixedTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = {86015}; fixedTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
+    [86009] = { id = 86009; stackId = {86009}; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
+    [178020] = { id = 86009; stackId = {86009}; setTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
+    [86019] = { id = 86019; stackId = {86019}; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
+    [146919] = { id = 86019; stackId = {86019}; setTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
+    [86015] = { id = 86015; stackId = {86015}; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
+    [178028] = { id = 86015; stackId = {86015}; setTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
 
     [86135] = { id = 86135; stackId = {86135}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- crystallized shield
     [86139] = { id = 86139; stackId = {86139}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- crystallized slab

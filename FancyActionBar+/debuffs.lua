@@ -299,7 +299,7 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
   if debuff.id == 52790 and SV.showOvertauntStacks then
     FancyActionBar.stacks[debuff.id] = stacks;
   else
-    if debuff.stackId then
+    if stacks and debuff.stackId then
       for i = 1, #debuff.stackId do
         FancyActionBar.stacks[debuff.stackId[i]] = stacks;
       end;
@@ -310,7 +310,7 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
     if effect.id == debuff.id then
       for dId, dEffect in pairs(debuff) do effect[dId] = dEffect; end;
       FancyActionBar.effects[id] = effect;
-      if #effect.stackId ~= 0 then
+      if stacks and #effect.stackId ~= 0 then
         FancyActionBar.HandleStackUpdate(id);
       end;
       FancyActionBar.UpdateEffect(effect);
@@ -351,24 +351,34 @@ local function OnReticleTargetChanged()
         keep[debuff.id] = true; -- make sure we're keeping the debuff in case the specialEffect changes the id
         if specialEffect then
           for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
-          if specialEffect.fixedTime then
+          if specialEffect.setTime then
             debuff.endTime = debuff.beginTime + specialEffect.duration;
           end;
           keep[debuff.id] = true; -- keep the debuff.id after pushing all the special effect properties
         else
           local stackCounts = {};
+          local fixedStacks = false;
           if debuff.stackId then
             for s = 1, #debuff.stackId do
-              local stackId = debuff.stackId[s];
-              local currentStacks = FancyActionBar.stacks[stackId];
-              table.insert(stackCounts, currentStacks);
+              if FancyActionBar.fixedStacks[debuff.stackId[s]] then
+                fixedStacks = true;
+                break;
+              else
+                local stackId = debuff.stackId[s];
+                local currentStacks = FancyActionBar.stacks[stackId];
+                table.insert(stackCounts, currentStacks);
+              end;
             end;
           end;
-          table.insert(stackCounts, debuff.stacks);
-          local maxStacks = FancyActionBar.getStackValue(stackCounts);
-          debuff.stacks = maxStacks;
+          if fixedStacks then
+            debuff.stacks = false;
+          else
+            table.insert(stackCounts, debuff.stacks);
+            local maxStacks = FancyActionBar.getStackValue(stackCounts);
+            debuff.stacks = maxStacks;
+          end;
         end;
-        
+
         debuff.duration = debuff.endTime - debuff.beginTime;
         FancyActionBar.debuffs[debuff.id] = debuff;
         FancyActionBar.debuffs[debuff.id].activeOnTarget = true;
@@ -409,6 +419,7 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endT
 end;
 
 function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
+  local _;
   local tag = "";
   if unitTag ~= nil and unitTag ~= "" then tag = unitTag; end;
   -- if ((effect.activeOnTarget and tag ~= 'reticleover') or (not effect.activeOnTarget and effect.hideOnNoTarget)) then
@@ -440,11 +451,18 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     if specialEffect then
       for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
-      if specialEffect.fixedTime then
+      if specialEffect.setTime then
         endTime = t + specialEffect.duration;
       end;
       if specialEffect.stacks then
         stackCount = specialEffect.stacks;
+      end;
+    elseif debuff.stackId then
+      for i = 1, #debuff.stackId do
+        if FancyActionBar.fixedStacks[debuff.stackId[i]] then
+          stackCount = false;
+          break;
+        end;
       end;
     end;
 
@@ -496,14 +514,14 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     elseif debuff.stackId then
       for i = 1, #debuff.stackId do
         if FancyActionBar.fixedStacks[debuff.stackId[i]] then
-          stackCount = 0
+          stackCount = false;
           break;
         elseif FancyActionBar.stacks[debuff.stackId[i]] then
           stackCount = zo_max(FancyActionBar.stacks[debuff.stackId[i]] - stackCount, 0);
           break;
-        end
+        end;
       end;
-    end
+    end;
     if debuff.instantFade then
       debuff.endTime = 0;
     end;
@@ -536,17 +554,27 @@ end;
 -- end
 
 local function ClearDebuffsOnCombatEnd()
+  local _;
   local t = time();
   local keep = {};
+  local stackCount = 0;
   if not IsUnitInCombat("player") then
     for i, debuff in pairs(FancyActionBar.debuffs) do
       FancyActionBar.targets[debuff.id] = nil;
       local specialEffect = FancyActionBar.specialEffects[debuff.id];
-      if (specialEffect and specialEffect.fixedTime) and (debuff.endTime and debuff.endTime > t) then
+      if (specialEffect and specialEffect.setTime) and (debuff.endTime and debuff.endTime > t) then
         keep[i] = true;
       else
         debuff.endTime = 0;
-        UpdateDebuff(debuff, 0, 0, nil);
+        if debuff.stackId then
+          for s = 1, #debuff.stackId do
+            if FancyActionBar.fixedStacks[debuff.stackId[s]] then
+              _, _, stackCount = FancyActionBar.CheckForActiveEffect(debuff.stackId[s]);
+              break;
+            end;
+          end;
+        end;
+        UpdateDebuff(debuff, stackCount, 0, nil);
       end;
       ClearDebuffs(keep);
     end;
