@@ -4214,6 +4214,7 @@ function FancyActionBar.Initialize()
     local style = FancyActionBar.GetContants();
     ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate);
     setFlipCardDimensions(style);
+    FancyActionBar.UpdateCompanionOverlayOnChange();
   end);
 
   ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
