@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.8.1
+## User Guide and Menu Option Documentation for v2.8.2
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -36,6 +36,7 @@ Applies an offset to the ultimate slot position. Applies to Keyboard UI or Gamep
 
 * Horizontal (X) Position (default: 0) - Adjusts the relative position of the front and back action bars with respect to each other along the X (horizontal) axis (changing this value will shift the top bar left, and the bottom bar right, or vice versa)
 * Vertical (Y) Position (default: 0) - Adjusts the relative position of the front and back action bars along the Y (vertical) axis. This setting effectively changes the gap between the top and bottom bar. Recommended setting: 4 for a gap that matches the gap between action buttons.
+* Button (X) Spacing (default: 4 keyboard; 10 gamepad) - Adjusts the spacing between action buttons within the action bar.
 
 ### GENERAL
 
@@ -77,6 +78,7 @@ Button frames options only apply to Keyboard UI
 
 * Force enable gamepad Action Bar style (default: off) - Setting to ON allows the use of the gamepad action bar theme including animations while in the Keyboard UI. Note that while in this mode FAB+ menu settings, and default options (unless adjusted) that refer to the Gamepad UI will be used.
 * Show gamepad ultimate hotkeys (default: ON) – Show the LB RB labels for gamepad UI. Set this to OFF to allow quickslot placement adjustments in gamepad UI
+* •	Use thin gamepad button frames borders (default: OFF) – Replaces the default gamepad frames with a minimal 1px black frame border with no backdrop
 * Hide companion ultimate slot (default: OFF) – When enabled, the companion ultimate slot, normally anchored to the right of the player ultimate slot when a companion has an ultimate ability slotted will always be hidden
 * Hide Locked Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a “one bar” mode that only shows the active bar.
 [![Hide Locked Bars](https://i.imgur.com/SEVGXcd.png)](https://i.imgur.com/SEVGXcd.png)
