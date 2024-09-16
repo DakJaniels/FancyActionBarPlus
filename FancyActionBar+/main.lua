@@ -110,9 +110,7 @@ FancyActionBar.style = nil;                   -- Gamepad or Keyboard UI for comp
 
 FancyActionBar.qsOverlay = nil;               -- shortcut for.. reasons..
 
-FancyActionBar.initialized = false;           -- check before running some functions that can't be run this early
-FancyActionBar.initialSetup = true;           -- same as above. not sure why I added both...
-FancyActionBar.uiModeChanged = false;         -- don't change configuration if not needed
+FancyActionBar.updateUI = false;        -- don't change configuration if not needed
 FancyActionBar.useGamepadActionBar = false;   -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false;              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false;            -- don't register updates if already registered
@@ -604,7 +602,7 @@ end;
 ---
 ---@return table
 function FancyActionBar.GetContants()
-  if FancyActionBar.uiModeChanged or (not FancyActionBar.initialized) then
+  if FancyActionBar.updateUI then
     FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1;
     local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS;
     FancyActionBar.constants.style = s;
@@ -2156,9 +2154,8 @@ function FancyActionBar.AdjustControlsPositions() -- resource bars and default a
   local style = FancyActionBar.GetContants();
   local anchor = ZO_Anchor:New();
 
-  if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
+  if FancyActionBar.updateUI then
     -- Move action bar and attributes up a bit.
-    FancyActionBar.uiModeChanged = false;
     anchor:SetFromControlAnchor(ACTION_BAR);
     anchor:SetOffsets(nil, style.actionBarOffset);
     anchor:Set(ACTION_BAR);
@@ -2277,10 +2274,7 @@ function FancyActionBar.ApplySettings() -- apply all UI settings for current UI 
 
   FancyActionBar.ToggleGCD();
 
-  if FancyActionBar.initialSetup then
-    FancyActionBar.initialSetup = false;
-    FancyActionBar.ApplyPosition();
-  end;
+  FancyActionBar.ApplyPosition();
 end;
 
 function FancyActionBar.ToggleQuickSlotDuration() -- enable / disable quickslot timer
@@ -3028,7 +3022,7 @@ function FancyActionBar.UpdateStyle()
   local style = {};
   local mode;
 
-  if FancyActionBar.initialSetup or FancyActionBar.uiModeChanged then
+  if FancyActionBar.updateUI then
     mode = FancyActionBar.useGamepadActionBar and 2 or 1;
   else
     if ADCUI then
@@ -3434,6 +3428,7 @@ function FancyActionBar.Initialize()
   defaultSettings = FancyActionBar.defaultSettings;
   SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName());
   CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName());
+  FancyActionBar.updateUI = true;
   FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
   for i = MIN_INDEX, ULT_INDEX do
     FancyActionBar.SetSlottedEffect(i, 0, 0);
@@ -3442,8 +3437,6 @@ function FancyActionBar.Initialize()
 
   FancyActionBar.ValidateVariables();
   FancyActionBar.UpdateStyle();
-
-  FancyActionBar.initialized = true;
 
   FancyActionBar.UpdateTextures();
 
@@ -4134,7 +4127,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath);
   EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function () isChanneling = false; end);
   EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
-    FancyActionBar.uiModeChanged = true;
+    FancyActionBar.updateUI = true;
     FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
     local _, locked = GetActiveWeaponPairInfo();
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
@@ -4143,7 +4136,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.ApplyQuickSlotAndUltimateStyle();
     FancyActionBar.ApplySettings();
     FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
-    FancyActionBar.uiModeChanged = false;
+    FancyActionBar.updateUI = false;
     --ReloadUI("ingame");
   end);
 
@@ -4173,7 +4166,9 @@ function FancyActionBar.Initialize()
     FancyActionBar.OnPlayerActivated();
     FancyActionBar.ApplyAbilityFxOverrides();
     if initial then
-      zo_callLater(function () FancyActionBar.ApplyActiveHotbarStyle(); end, 100);
+      zo_callLater(function ()
+        FancyActionBar.ApplyActiveHotbarStyle();
+      end, 100);
     end;
   end;
 
@@ -4280,6 +4275,7 @@ function FancyActionBar.Initialize()
 
   SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_BACK_ROW, "false");
   SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false");
+  FancyActionBar.updateUI = false;
 end;
 
 function FancyActionBar.OnAddOnLoaded(event, addonName)

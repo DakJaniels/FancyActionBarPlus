@@ -1828,7 +1828,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function() return SV.forceGamepadStyle; end,
           setFunc = function(value)
             SV.forceGamepadStyle = value or false;
-            FancyActionBar.uiModeChanged = true;
+            FancyActionBar.updateUI = true;
             FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
@@ -1837,8 +1837,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
             FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
-            FancyActionBar.uiModeChanged = false;
-          end,
+            FancyActionBar.updateUI = false;
+          end;
           width = "full",
         },
         {
