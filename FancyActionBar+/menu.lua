@@ -594,7 +594,7 @@ local function GetChangedSkills()
     local str = GetAbilityName(id) .. " (";
     if type(cfg) == "table" then
       local a = cfg[1] or id;
-      str = str .. tostring(a) .. ")";
+      str = str .. tostring(id) .. "=>" .. tostring(a) .. ")";
     elseif cfg == true then
       str = str .. tostring(id) .. ")";
     elseif cfg == false then
@@ -1119,6 +1119,8 @@ local function SetDarkUI(framesHidden)
   local theme;
   local theme_textures_up = { "actionbar/abilityframe64_up.dds", "abilityframe64_up.dds" };
   local theme_textures_dn = { "actionbar/abilityframe64_down.dds", "abilityframe64_down.dds" };
+  local theme_gp_edge = { "miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", "gamepad/gp_tooltip_edge_semitrans_16.dds" };
+
   local backdrop = { "skillsadvisor/square_abilityframe64_doubleframe.dds", "abilityframe64_up.dds" };
   if darkui.SV.Icon == GetString(DARKUI_LIGHT) then
     theme = "light";
@@ -1136,26 +1138,28 @@ local function SetDarkUI(framesHidden)
     RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], FAB_NO_FRAME_DOWN);
     RedirectTexture(eso_root .. backdrop[1], eso_root .. backdrop[1]);
   end;
+  if SV.useThinFrames then
+    RedirectTexture(eso_root .. theme_gp_edge[1], ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+  else
+    RedirectTexture(eso_root .. theme_gp_edge[1], eso_root .. theme_gp_edge[1]);
+  end;
 end;
 
 local framesHidden = false;
 local function SetDefaultAbilityFrame()
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
+  if _G["darkui"] then
+    SetDarkUI(framesHidden);
+  end;
   if SV.hideDefaultFrames or SV.forceGamepadStyle then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
-    if _G["darkui"] then
-      SetDarkUI(framesHidden);
-    end;
   framesHidden = true;
     
   else
     if framesHidden then
       RedirectTexture(f[1], f[1]);
       RedirectTexture(f[2], f[2]);
-      if _G["darkui"] then
-        SetDarkUI(framesHidden);
-      end;
       framesHidden = false;
     end;
   end;

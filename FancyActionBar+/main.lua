@@ -2918,7 +2918,7 @@ end;
 
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"];
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
-  local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, self.button.hotbarCategory);
+  local isSlotUsed = IsSlotUsed(ULT_INDEX, self.button.hotbarCategory);
   local barTexture = GetControl(self.slot, "UltimateBar");
   local leadingEdge = GetControl(self.slot, "LeadingEdge");
   local ultimateReadyBurstTexture = GetControl(self.slot, "ReadyBurst");
@@ -2954,8 +2954,8 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
       leadingEdge:SetHidden(isGamepad);
 
       -- update both platforms progress bars
-      local slotHeight = FancyActionBar.constants.style.ultSize;       --self.slot:GetHeight()    the only change needed...
-      local percentComplete = ultimateCount / self.currentUltimateMax;
+      local slotHeight = FancyActionBar.constants.style.ultSize or self.slot:GetHeight();
+      local percentComplete = (ultimateCount / self.currentUltimateMax);
       local yOffset = zo_floor(slotHeight * (0.97 - percentComplete)); -- changed from 1 cause normally the bar shows below the button when at 0 and my OCD can't handle.
       barTexture:SetHeight(yOffset);
 
@@ -3428,7 +3428,6 @@ function FancyActionBar.Initialize()
   defaultSettings = FancyActionBar.defaultSettings;
   SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName());
   CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName());
-  FancyActionBar.updateUI = true;
   FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
   for i = MIN_INDEX, ULT_INDEX do
     FancyActionBar.SetSlottedEffect(i, 0, 0);
@@ -3437,6 +3436,8 @@ function FancyActionBar.Initialize()
 
   FancyActionBar.ValidateVariables();
   FancyActionBar.UpdateStyle();
+
+  FancyActionBar.updateUI = true;
 
   FancyActionBar.UpdateTextures();
 
@@ -4275,13 +4276,13 @@ function FancyActionBar.Initialize()
 
   SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_BACK_ROW, "false");
   SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false");
-  FancyActionBar.updateUI = false;
 end;
 
 function FancyActionBar.OnAddOnLoaded(event, addonName)
   if addonName == NAME then
     EM:UnregisterForEvent(NAME, EVENT_ADD_ON_LOADED);
     FancyActionBar.Initialize();
+    FancyActionBar.updateUI = false;
   end;
 end;
 
