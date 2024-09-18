@@ -194,6 +194,8 @@ FancyActionBar.defaultSettings =
   ultUsableThresholdColorGP = { 1, 0.8, 0 };
   ultUsableValueColorGP = { 0, 1, 0 };
   ultMaxValueColorGP = { 1, 0, 0 };
+  ultFillFrameAlpha = 1;
+  ultFillBarAlpha = 1;
   -- companion
   ultValueEnableCompanionGP = true;
   ultValueModeCompanionGP = 1;

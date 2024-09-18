@@ -915,6 +915,7 @@ end;
 function FancyActionBar.OnPlayerActivated() -- status update after travel.
   FancyActionBar.SetMarker();
   FancyActionBar.ToggleUltimateValue();
+  FancyActionBar.SetUltFrameAlpha();
   FancyActionBar:UpdateDebuffTracking();
 
   FancyActionBar.HandleCompanionStateChanged();
@@ -2551,6 +2552,18 @@ function FancyActionBar.ToggleFillAnimationsAndFrames(state)
     GetControl("CompanionUltimateButtonFillAnimationLeft"):SetHidden(not state);
     GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state);
   end;
+  FancyActionBar.SetUltFrameAlpha();
+end;
+
+function FancyActionBar.SetUltFrameAlpha()
+  GetControl("ActionButton8Frame"):SetAlpha(SV.ultFillFrameAlpha);
+  GetControl("ActionButton8FillAnimationLeft"):SetAlpha(SV.ultFillBarAlpha);
+  GetControl("ActionButton8FillAnimationRight"):SetAlpha(SV.ultFillBarAlpha);
+  if AreCompanionSkillsInitialized() then
+    GetControl("CompanionUltimateButtonFrame"):SetAlpha(SV.ultFillFrameAlpha);
+    GetControl("CompanionUltimateButtonFillAnimationLeft"):SetAlpha(SV.ultFillBarAlpha);
+    GetControl("CompanionUltimateButtonFillAnimationRight"):SetAlpha(SV.ultFillBarAlpha);
+  end;
 end;
 
 local createOverlays = function (style, weaponSwapControl, QSB)
@@ -3014,7 +3027,7 @@ local function FancySetBounceAnimationParameters(self, cooldownTime)
   local FRAME_RESET_TIME_MS = 167;
   local ICON_RESET_TIME_MS = 100;
   local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory());
-  SetAnimationParameters(self.bounceAnimation, self.FlipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot);
+  SetAnimationParameters(self.bounceAnimation, self.flipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot);
   SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot);
 end;
 
@@ -3595,6 +3608,7 @@ function FancyActionBar.Initialize()
     end;
     FancyActionBar.SlotEffects();
     FancyActionBar.ToggleUltimateValue();
+    FancyActionBar.SetUltFrameAlpha();
     FancyActionBar.UpdateSlottedSkillsDecriptions();
     FancyActionBar.EffectCheck();
     FancyActionBar.ApplyAbilityFxOverrides();
@@ -4559,6 +4573,8 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultUsableThresholdColorGP == nil then SV.ultUsableThresholdColorGP = d.ultUsableThresholdColorGP; end;
     if SV.ultUsableValueColorGP == nil then SV.ultUsableValueColorGP = d.ultUsableValueColorGP; end;
     if SV.ultMaxValueColorGP == nil then SV.ultMaxValueColorGP = d.ultMaxValueColorGP; end;
+    if SV.ultFillFrameAlpha == nil then SV.ultFillFrameAlpha = d.ultFillFrameAlpha; end;
+    if SV.ultFillBarAlpha == nil then SV.ultFillBarAlpha = d.ultFillBarAlpha; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
     if SV.hideLockedBar == nil then SV.hideLockedBar = d.hideLockedBar; end;
     if SV.hideCompanionUlt == nil then SV.hideCompanionUlt = d.hideCompanionUlt; end;

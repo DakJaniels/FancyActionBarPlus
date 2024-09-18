@@ -2562,7 +2562,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   step = 1;
                   getFunc = function () return (SV.ultValueThresholdKB * 100); end;
                   setFunc = function (value)
-                    SV.ultValueSizeKB = (value / 100);
+                    SV.ultValueThresholdKB = (value / 100);
                     if FancyActionBar.style == 1 then
                       FancyActionBar.constants.ult.value.threshold = value;
                     end;
@@ -3394,13 +3394,53 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   step = 1;
                   getFunc = function () return (SV.ultValueThresholdGP * 100); end;
                   setFunc = function (value)
-                    SV.ultValueSizeGP = (value / 100);
+                    SV.ultValueThresholdGP = (value / 100);
                     if FancyActionBar.style == 2 then
                       FancyActionBar.constants.ult.value.threshold = value;
                     end;
                   end;
                   width = "half";
                   default = defaults.ultValueThresholdGP;
+                },
+                { type = "divider";
+                },
+                {
+                  type = "description";
+                  title = "Ult Fill Frame Transparency";
+                  text = "Transparency (alpha) settings for the fill frame and fill bar.";
+                  width = "full";
+                },
+                {
+                  type = "slider";
+                  name = "Ult Fill Frame Alpha";
+                  min = 0;
+                  max = 100;
+                  step = 1;
+                  default = defaults.ultFillFrameAlpha;
+                  getFunc = function () return SV.ultFillFrameAlpha * 100 ; end;
+                  setFunc = function (value)
+                    SV.ultFillFrameAlpha = value / 100;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.SetUltFrameAlpha();
+                    end;
+                  end;
+                  width = "half";
+                },
+                {
+                  type = "slider";
+                  name = "Ult Fill Bar Alpha";
+                  min = 0;
+                  max = 100;
+                  step = 1;
+                  default = defaults.ultFillBarAlpha;
+                  getFunc = function () return SV.ultFillBarAlpha * 100; end;
+                  setFunc = function (value)
+                    SV.ultFillBarAlpha = value / 100;
+                    if FancyActionBar.style == 2 then
+                      FancyActionBar.SetUltFrameAlpha();
+                    end;
+                  end;
+                  width = "half";
                 },
                 { type = "divider";
                 },
