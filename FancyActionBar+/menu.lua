@@ -1113,6 +1113,18 @@ end;
 ----------------[   Other   ]-----------------
 ----------------------------------------------
 
+local function toggleFrameType()
+  if SV.useThinFrames then
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BD_EDGE);
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER);
+  else
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds",
+      "esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds");
+    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds",
+      "esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds");
+  end;
+end;
+
 local function SetDarkUI(framesHidden)
   local eso_root = "esoui/art/";
   local ui_root = "darkui/";
@@ -1120,7 +1132,8 @@ local function SetDarkUI(framesHidden)
   local theme_textures_up = { "actionbar/abilityframe64_up.dds", "abilityframe64_up.dds" };
   local theme_textures_dn = { "actionbar/abilityframe64_down.dds", "abilityframe64_down.dds" };
   local theme_gp_edge = { "miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", "gamepad/gp_tooltip_edge_semitrans_16.dds" };
-
+  local theme_gp_center = { "miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", "gamepad/gp_tooltip_center_semitrans_16.dds" };
+  
   local backdrop = { "skillsadvisor/square_abilityframe64_doubleframe.dds", "abilityframe64_up.dds" };
   if darkui.SV.Icon == GetString(DARKUI_LIGHT) then
     theme = "light";
@@ -1139,18 +1152,18 @@ local function SetDarkUI(framesHidden)
     RedirectTexture(eso_root .. backdrop[1], eso_root .. backdrop[1]);
   end;
   if SV.useThinFrames then
-    RedirectTexture(eso_root .. theme_gp_edge[1], ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_EDGE);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_CENTER);
   else
-    RedirectTexture(eso_root .. theme_gp_edge[1], eso_root .. theme_gp_edge[1]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_center[2], ui_root .. "theme_" .. theme .. "/" .. theme_gp_center[2]);
   end;
 end;
 
 local framesHidden = false;
 local function SetDefaultAbilityFrame()
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
-  if _G["darkui"] then
-    SetDarkUI(framesHidden);
-  end;
+  local wereFramesHidden = framesHidden;
   if SV.hideDefaultFrames or SV.forceGamepadStyle then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
@@ -1162,18 +1175,11 @@ local function SetDefaultAbilityFrame()
       RedirectTexture(f[2], f[2]);
       framesHidden = false;
     end;
+    end;
+  if _G["darkui"] then
+    SetDarkUI(wereFramesHidden);
   end;
-  FancyActionBar.ToggleFrameType();
-end;
-
-function FancyActionBar.ToggleFrameType()
-  if SV.useThinFrames then
-    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BD_EDGE);
-    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER);
-  else
-    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", "esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds");
-    RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", "esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds");
-  end;
+  toggleFrameType();
 end;
 
 local function GetUltimateFlipCardSize()
@@ -1868,7 +1874,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.useThinFrames; end;
           setFunc = function (value)
             SV.useThinFrames = value or false;
-            FancyActionBar.ToggleFrameType();
+            toggleFrameType();
           end;
           width = "full";
         },
