@@ -1143,41 +1143,37 @@ local function SetDarkUI(framesHidden)
     theme = "dark";
   end;
   if framesHidden then
+    RedirectTexture(eso_root .. theme_textures_up[1], FAB_BLANK);
+    RedirectTexture(eso_root .. theme_textures_dn[1], FAB_NO_FRAME_DOWN);
+    RedirectTexture(eso_root .. backdrop[1], eso_root .. backdrop[1]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2], FAB_BLANK);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], FAB_NO_FRAME_DOWN);
+  else
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2], ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
     RedirectTexture(eso_root .. theme_textures_up[1], ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2]);
     RedirectTexture(eso_root .. theme_textures_dn[1], ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
     RedirectTexture(eso_root .. backdrop[1], ui_root .. "theme_" .. theme .. "/" .. backdrop[2]);
-  else
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2], FAB_BLANK);
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], FAB_NO_FRAME_DOWN);
-    RedirectTexture(eso_root .. backdrop[1], eso_root .. backdrop[1]);
-  end;
-  if SV.useThinFrames then
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_EDGE);
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_CENTER);
-  else
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_center[2], ui_root .. "theme_" .. theme .. "/" .. theme_gp_center[2]);
+
   end;
 end;
 
 local framesHidden = false;
 local function SetDefaultAbilityFrame()
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
-  local wereFramesHidden = framesHidden;
   if SV.hideDefaultFrames or SV.forceGamepadStyle then
     RedirectTexture(f[1], f[3]);
     RedirectTexture(f[2], f[4]);
-  framesHidden = true;
-    
+    framesHidden = true;
   else
     if framesHidden then
       RedirectTexture(f[1], f[1]);
       RedirectTexture(f[2], f[2]);
       framesHidden = false;
     end;
-    end;
+  end;
   if _G["darkui"] then
-    SetDarkUI(wereFramesHidden);
+    SetDarkUI(framesHidden);
   end;
   toggleFrameType();
 end;
@@ -4667,6 +4663,7 @@ function FancyActionBar.ConfigureFrames()
     end;
   end;
   SetDefaultAbilityFrame();
+  FancyActionBar.SetUltFrameAlpha();
 end;
 
 function FancyActionBar.SetFrameColor()
