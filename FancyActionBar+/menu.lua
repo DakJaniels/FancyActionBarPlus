@@ -1332,13 +1332,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "checkbox";
           name = "Unlock Actionbar Position (Keyboard)";
-          default = unlocked;
-          disabled = function () return FancyActionBar.style == 2; end;
-          getFunc = function(value)
-            local _, locked = GetActiveWeaponPairInfo();
-            FancyActionBar.ToggleMover(value);
-            SetBarTheme(locked);
-          end,
+          default = unlocked,
+          disabled = function() return FancyActionBar.style == 2; end,
+          getFunc = function() return FancyActionBar.style == 1 and FancyActionBar.IsUnlocked(); end,
           setFunc = function(value)
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.ToggleMover(value);
@@ -1402,11 +1398,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Unlock Actionbar Position (Gamepad)";
           default = unlocked;
           disabled = function () return FancyActionBar.style == 1; end;
-          getFunc = function (value)
-            local _, locked = GetActiveWeaponPairInfo();
-            FancyActionBar.ToggleMover(value);
-            SetBarTheme(locked);
-          end,
+          getFunc = function() return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked(); end,
           setFunc = function (value) 
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.ToggleMover(value);
@@ -5310,7 +5302,7 @@ end;
 
 function FancyActionBar.ToggleMover(enableMove)
   if enableMove == true then
-    unlocked = true
+    unlocked = enableMove;
     RefreshMoverSize()
     ReanchorMover();
     SaveCurrentLocation();
@@ -5318,7 +5310,7 @@ function FancyActionBar.ToggleMover(enableMove)
     FAB_Mover:SetMovable(true);
     FAB_Mover:SetMouseEnabled(true);
   elseif enableMove == false then
-    unlocked = true;
+    unlocked = enableMove;
     FAB_Mover:SetHidden(true);
     FAB_Mover:SetMovable(false);
     FAB_Mover:SetMouseEnabled(false);
