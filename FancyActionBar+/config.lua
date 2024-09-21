@@ -1314,6 +1314,9 @@ FancyActionBar.toggled =
   [24785] = true; -- Overload
   [24806] = true; -- Energy Overload
   [24804] = true; -- Power Overload
+
+  -- Nightblade
+  --[25380] = true; --Shadowy Disguise
 };
 
 FancyActionBar.graveLordSacrifice =

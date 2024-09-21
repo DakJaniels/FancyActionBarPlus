@@ -1173,13 +1173,24 @@ local function SetDarkUI(framesHidden)
       ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
   end;
   if SV.useThinFrames then
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_EDGE);
-    RedirectTexture(eso_root .. theme_gp_edge[1], FAB_BD_EDGE);
-    RedirectTexture(eso_root .. theme_gp_center[1], FAB_BD_CENTER);
-  else
+    RedirectTexture(FAB_BD_EDGE, FAB_BD_EDGE);
     RedirectTexture(eso_root .. theme_gp_edge[1], eso_root .. theme_gp_edge[1]);
     RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2],
       ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+    RedirectTexture(eso_root .. theme_gp_edge[1], FAB_BD_EDGE);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_EDGE);
+
+    RedirectTexture(FAB_BD_CENTER, FAB_BD_CENTER);
+    RedirectTexture(eso_root .. theme_gp_center[1], eso_root .. theme_gp_center[1]);
+    RedirectTexture(eso_root .. theme_gp_center[1], FAB_BD_CENTER);
+  else
+    RedirectTexture(FAB_BD_EDGE, FAB_BD_EDGE);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2],
+      ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+    RedirectTexture(eso_root .. theme_gp_edge[1], eso_root .. theme_gp_edge[1]);
+    RedirectTexture(eso_root .. theme_gp_edge[1], ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+
+    RedirectTexture(FAB_BD_CENTER, FAB_BD_CENTER);
     RedirectTexture(eso_root .. theme_gp_center[1], eso_root .. theme_gp_center[1]);
   end
 end;
