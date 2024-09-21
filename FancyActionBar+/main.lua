@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.8.2";
+local VERSION = "2.8.3";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -1070,10 +1070,10 @@ end;
 --------------
 function FancyActionBar.ResetOverlayDuration(overlay)
   if overlay then
-    local durationControl = overlay:GetNamedChild("Duration");
-    local bgControl = overlay:GetNamedChild("BG");
-    local stacksControl = overlay:GetNamedChild("Stacks");
-    local targetsControl = overlay:GetNamedChild("Targets");
+    local durationControl = overlay.timer;
+    local bgControl = overlay.bg;
+    local stacksControl = overlay.stack;
+    local targetsControl = overlay.target;
 
     if durationControl then durationControl:SetText(""); end;
     if bgControl then bgControl:SetHidden(true); end;
@@ -1217,10 +1217,10 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
   if overlay then
     local effect = overlay.effect;
     local allowStacks = overlay.stacks;
-    local durationControl = overlay:GetNamedChild("Duration");
-    local bgControl = overlay:GetNamedChild("BG");
-    local stacksControl = overlay:GetNamedChild("Stacks");
-    local targetsControl = overlay:GetNamedChild("Targets");
+    local durationControl = overlay.timer;
+    local bgControl = overlay.bg;
+    local stacksControl = overlay.stack;
+    local targetsControl = overlay.target;
 
     if effect and not effect.ignore and effect.id > 0 then
       FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks);
@@ -1324,9 +1324,14 @@ function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksC
 end;
 
 function FancyActionBar.UpdateStacks(index) -- stacks label.
-  local overlay = FancyActionBar.overlays[index];
+local overlay;
+  if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
+    overlay = FancyActionBar.ultOverlays[index];
+  else
+    overlay = FancyActionBar.overlays[index];
+  end;
   if overlay then
-    local stacksControl = overlay:GetNamedChild("Stacks");
+    local stacksControl = overlay.stack;
     if overlay.effect and overlay.stacks then
       local effect = overlay.effect;
       local stackId = effect.stackId;
@@ -1349,11 +1354,16 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
   end;
 end;
 
-function FancyActionBar.UpdateTargets(index) -- stacks label.
-  local overlay = FancyActionBar.overlays[index];
+function FancyActionBar.UpdateTargets(index) -- targets label.
+local overlay;
+  if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
+    overlay = FancyActionBar.ultOverlays[index];
+  else
+    overlay = FancyActionBar.overlays[index];
+  end;
   if overlay then
-    local targetsControl = overlay:GetNamedChild("Targets");
     local effect = overlay.effect;
+    local targetsControl = overlay.target;
     if effect and effect.id and FancyActionBar.targets[effect.id] then
       local target = FancyActionBar.targets[effect.id];
       if ((SV.showSingleTargetInstance or effect.isDebuff) and target.targetCount > 0) or (not SV.showSingleTargetInstance and target.targetCount > 1) then
@@ -1370,7 +1380,10 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
   local overlay = FancyActionBar.ultOverlays[index];
   if overlay then
     local effect = overlay.effect or { id = 0; endTime = -1 };
-    local durationControl = overlay:GetNamedChild("Duration");
+    local allowStacks = overlay.stacks;
+    local durationControl = overlay.timer;
+    local stacksControl = overlay.stack;
+    local targetsControl = overlay.target;
     -- local timerColor = IsInGamepadPreferredMode() and SV.ultColorGP or SV.ultColorKB
     local timerColor = FancyActionBar.constants.ult.duration.color;
 
@@ -1379,7 +1392,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
       return;
     end;
 
-    local t = time();
+    local currentTime = time();
     local duration, ultEndTime, instantFade;
     if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET then
       -- Update activeUlt table if new effect is longer
@@ -1393,7 +1406,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
         activeUlt.endTime = effect.endTime;
         ultEndTime = effect.endTime;
         instantFade = effect.instantFade;
-      elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > t - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
+      elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > currentTime - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
         -- If the effect is not the active one but meets fade delay conditions, use its end time
         ultEndTime = effect.endTime;
         instantFade = effect.instantFade;
@@ -1406,7 +1419,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
       ultEndTime = effect.endTime;
       instantFade = effect.instantFade;
     end;
-    duration = ultEndTime - t;
+    duration = ultEndTime - currentTime;
     if duration > -2 then
       if duration > 0 then
         if (FancyActionBar.constants.update.showDecimal and (duration <= FancyActionBar.constants.update.showDecimalStart))
@@ -1423,7 +1436,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
         end;
       else
         if (SV.delayFade and not instantFade) then
-          local delayEnd = (ultEndTime + SV.fadeDelay) - t;
+          local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime;
           if delayEnd > 0
           then
             durationControl:SetText(zo_max(0, zo_ceil(duration)));
@@ -1437,6 +1450,8 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     else
       durationControl:SetText("");
     end;
+    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime);
+    FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime);
   end;
   if SV.applyActionBarSkillStyles then FancyActionBar.SetActionButtonAbilityFxOverride(index); end;
 end;
@@ -1663,10 +1678,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   if (index == ULT_INDEX or index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
     if isFrontBar then
-      effect.ult1 = index;
+      effect.slot1 = index;
       if abilityId == 113105 then cost1 = 70; else cost1 = GetAbilityCost(abilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag); end;
     elseif index == (ULT_INDEX + SLOT_INDEX_OFFSET) then
-      effect.ult2 = index;
+      effect.slot2 = index;
       if abilityId == 113105 then cost2 = 70; else cost2 = GetAbilityCost(abilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag); end;
     end;
 
@@ -2399,6 +2414,8 @@ function FancyActionBar.CreateUltOverlay(index) -- create ultimate skill button 
     overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index);
     overlay.timer = overlay:GetNamedChild("Duration");
     overlay.value = overlay:GetNamedChild("Value");
+    overlay.stack = overlay:GetNamedChild("Stacks");
+    overlay.target = overlay:GetNamedChild("Targets");
     FancyActionBar.ultOverlays[index] = overlay;
   end;
   return overlay;

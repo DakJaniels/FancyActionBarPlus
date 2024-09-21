@@ -22,6 +22,7 @@ local settingsPageCreated = false;
 local unlocked = false;
 local ultDisplayTime = 0;
 local qsDisplayTime = 0;
+local framesHidden = false;
 local FAB_FRAME = "/FancyActionBar+/texture/abilityFrame64_up.dds";
 local FAB_NO_FRAME_DOWN = "/FancyActionBar+/texture/abilitynoframe64_down.dds";
 local FAB_BLANK = "/FancyActionBar+/texture/blank.dds";
@@ -148,6 +149,24 @@ local function IsValidId(id)
   end;
 
   return true;
+end;
+
+local function UpdateAzurahDb()
+  if not Azurah then return end;
+  if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
+        or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
+  then
+    Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y,
+      FancyActionBar.GetScale());
+  end;
+end;
+
+local function SetBarTheme(locked)
+  FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
+  FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
+  FancyActionBar.ApplyQuickSlotAndUltimateStyle();
+  FancyActionBar.ApplySettings();
 end;
 ----------------------------------------------
 -----------[   External Buffs   ]-------------
@@ -1113,7 +1132,7 @@ end;
 ----------------[   Other   ]-----------------
 ----------------------------------------------
 
-local function toggleFrameType()
+local function ToggleFrameType()
   if SV.useThinFrames then
     RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BD_EDGE);
     RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER);
@@ -1143,22 +1162,28 @@ local function SetDarkUI(framesHidden)
     theme = "dark";
   end;
   if framesHidden then
-    RedirectTexture(eso_root .. theme_textures_up[1], FAB_BLANK);
-    RedirectTexture(eso_root .. theme_textures_dn[1], FAB_NO_FRAME_DOWN);
     RedirectTexture(eso_root .. backdrop[1], eso_root .. backdrop[1]);
     RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2], FAB_BLANK);
     RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], FAB_NO_FRAME_DOWN);
   else
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2], ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2]);
-    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2], ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
-    RedirectTexture(eso_root .. theme_textures_up[1], ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2]);
-    RedirectTexture(eso_root .. theme_textures_dn[1], ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
     RedirectTexture(eso_root .. backdrop[1], ui_root .. "theme_" .. theme .. "/" .. backdrop[2]);
-
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2],
+      ui_root .. "theme_" .. theme .. "/" .. theme_textures_up[2]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2],
+      ui_root .. "theme_" .. theme .. "/" .. theme_textures_dn[2]);
   end;
+  if SV.useThinFrames then
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2], FAB_BD_EDGE);
+    RedirectTexture(eso_root .. theme_gp_edge[1], FAB_BD_EDGE);
+    RedirectTexture(eso_root .. theme_gp_center[1], FAB_BD_CENTER);
+  else
+    RedirectTexture(eso_root .. theme_gp_edge[1], eso_root .. theme_gp_edge[1]);
+    RedirectTexture(ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2],
+      ui_root .. "theme_" .. theme .. "/" .. theme_gp_edge[2]);
+    RedirectTexture(eso_root .. theme_gp_center[1], eso_root .. theme_gp_center[1]);
+  end
 end;
 
-local framesHidden = false;
 local function SetDefaultAbilityFrame()
   local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN };
   if SV.hideDefaultFrames or SV.forceGamepadStyle then
@@ -1172,10 +1197,6 @@ local function SetDefaultAbilityFrame()
       framesHidden = false;
     end;
   end;
-  if _G["darkui"] then
-    SetDarkUI(framesHidden);
-  end;
-  toggleFrameType();
 end;
 
 local function GetUltimateFlipCardSize()
@@ -1264,10 +1285,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             if FancyActionBar.style == 1 then
               FancyActionBar.constants.abScale.enable = value;
               local _, locked = GetActiveWeaponPairInfo();
-              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
-              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
-              FancyActionBar.ApplySettings();
+              FancyActionBar.SetScale();
+              FancyActionBar.ToggleMover(true);
+              SetBarTheme(locked);
+              UpdateAzurahDb();
+              FancyActionBar.ToggleMover(false);
+              SetBarTheme(locked);
             end;
           end;
           width = "half";
@@ -1283,12 +1306,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           setFunc = function (value)
             SV.abScaling.kb.scale = value;
             if FancyActionBar.style == 1 then
-              FancyActionBar.constants.abScale.enable = value;
               local _, locked = GetActiveWeaponPairInfo();
-              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
-              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
-              FancyActionBar.ApplySettings();
+              FancyActionBar.constants.abScale.enable = value;
+              FancyActionBar.SetScale();
+              FancyActionBar.ToggleMover(true);
+              SetBarTheme(locked);
+              UpdateAzurahDb();
+              FancyActionBar.ToggleMover(false);
+              SetBarTheme(locked);
             end;
           end;
           width = "half";
@@ -1298,8 +1323,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Unlock Actionbar Position (Keyboard)";
           default = unlocked;
           disabled = function () return FancyActionBar.style == 2; end;
-          getFunc = function (value) FancyActionBar.ToggleMover(value); end;
-          setFunc = function (value) FancyActionBar.ToggleMover(value); end;
+          getFunc = function(value)
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.ToggleMover(value);
+            SetBarTheme(locked);
+          end,
+          setFunc = function(value)
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.ToggleMover(value);
+            SetBarTheme(locked);
+          end,
           width = "full";
         },
 
@@ -1318,12 +1351,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           setFunc = function (value)
             SV.abScaling.gp.enable = value or false;
             if FancyActionBar.style == 2 then
-              FancyActionBar.constants.abScale.enable = value;
               local _, locked = GetActiveWeaponPairInfo();
-              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
-              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
-              FancyActionBar.ApplySettings();
+              FancyActionBar.constants.abScale.enable = value;
+              FancyActionBar.SetScale()
+              FancyActionBar.ToggleMover(true);
+              SetBarTheme(locked);
+              UpdateAzurahDb();
+              FancyActionBar.ToggleMover(false);
+              SetBarTheme(locked);
             end;
           end;
           width = "half";
@@ -1341,10 +1376,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             if FancyActionBar.style == 2 then
               FancyActionBar.constants.abScale.scale = value;
               local _, locked = GetActiveWeaponPairInfo();
-              FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked);
-              FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
-              FancyActionBar.ApplyQuickSlotAndUltimateStyle();
-              FancyActionBar.ApplySettings();
+              FancyActionBar.SetScale()
+              FancyActionBar.ToggleMover(true);
+              SetBarTheme(locked);
+              UpdateAzurahDb()
+              FancyActionBar.ToggleMover(false);
+              SetBarTheme(locked);
             end;
           end;
           width = "half";
@@ -1354,8 +1391,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Unlock Actionbar Position (Gamepad)";
           default = unlocked;
           disabled = function () return FancyActionBar.style == 1; end;
-          getFunc = function (value) FancyActionBar.ToggleMover(value); end;
-          setFunc = function (value) FancyActionBar.ToggleMover(value); end;
+          getFunc = function (value)
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.ToggleMover(value);
+            SetBarTheme(locked);
+          end,
+          setFunc = function (value) 
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.ToggleMover(value);
+            SetBarTheme(locked);
+          end;
           width = "full";
         },
 
@@ -1700,7 +1745,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.hideDefaultFrames; end;
           setFunc = function (value)
             SV.hideDefaultFrames = value or false;
-            SetDefaultAbilityFrame();
+            FancyActionBar.ConfigureFrames();
           end;
           width = "half";
         },
@@ -1870,7 +1915,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.useThinFrames; end;
           setFunc = function (value)
             SV.useThinFrames = value or false;
-            toggleFrameType();
+            FancyActionBar.ConfigureFrames();
           end;
           width = "full";
         },
@@ -4663,6 +4708,11 @@ function FancyActionBar.ConfigureFrames()
     end;
   end;
   SetDefaultAbilityFrame();
+  if _G["darkui"] then
+    SetDarkUI(framesHidden);
+  else
+    ToggleFrameType();
+  end;
   FancyActionBar.SetUltFrameAlpha();
 end;
 
@@ -5298,14 +5348,7 @@ function FancyActionBar.SaveMoverPosition()
   FancyActionBar.constants.move.y = y;
   FancyActionBar.constants.move.enable = true;
 
-  if Azurah then
-    if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
-        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
-        or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
-    then
-      Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, x, y, FancyActionBar.GetScale());
-    end;
-  end;
+  UpdateAzurahDb();
 
   if BUI and BUI.Vars["ZO_ActionBar1"] then
     BUI.Vars["ZO_ActionBar1"][1] = TOPLEFT;
@@ -5322,6 +5365,8 @@ function FancyActionBar.SaveMoverPosition()
   ACTION_BAR:ClearAnchors();
   ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y);
   FancyActionBar.SetMoved(true);
+  local _, locked = GetActiveWeaponPairInfo();
+  SetBarTheme(locked);
 end;
 
 local function PlayerDeath(oldState, newState)
