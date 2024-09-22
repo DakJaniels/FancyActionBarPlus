@@ -4824,14 +4824,14 @@ function FancyActionBar.ApplyStackFont()
 
   if name == "" then name = "$(BOLD_FONT)"; end;
 
-  for i = MIN_INDEX, MAX_INDEX do
-    local overlay = FancyActionBar.overlays[i];
+  for i = MIN_INDEX, ULT_INDEX do
+    local overlay = FancyActionBar.GetOverlay(i);
     local stack = overlay:GetNamedChild("Stacks");
 
     stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type);
     stack:SetHidden(false);
 
-    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET);
     stack = overlay:GetNamedChild("Stacks");
 
     stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type);
@@ -4845,14 +4845,14 @@ function FancyActionBar.AdjustStackX()
   -- so moving slider in setting will move stack the same direction
   local x = stackX - 40;
 
-  for i = MIN_INDEX, MAX_INDEX do
-    local overlay = FancyActionBar.overlays[i];
+  for i = MIN_INDEX, ULT_INDEX do
+    local overlay = FancyActionBar.GetOverlay(i);
     local stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
     stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY);
 
-    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET);
     stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
@@ -4866,14 +4866,14 @@ function FancyActionBar.AdjustStackY()
   local x = stackX - 40;
   -- so moving slider in setting will move stack the same direction
 
-  for i = MIN_INDEX, MAX_INDEX do
-    local overlay = FancyActionBar.overlays[i];
+  for i = MIN_INDEX, ULT_INDEX do
+    local overlay = FancyActionBar.GetOverlay(i);
     local stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
     stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY);
 
-    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET);
     stack = overlay:GetNamedChild("Stacks");
 
     stack:ClearAnchors();
@@ -4891,14 +4891,14 @@ function FancyActionBar.ApplyTargetFont()
 
   if name == "" then name = "$(BOLD_FONT)"; end;
 
-  for i = MIN_INDEX, MAX_INDEX do
-    local overlay = FancyActionBar.overlays[i];
+  for i = MIN_INDEX, ULT_INDEX do
+    local overlay = FancyActionBar.GetOverlay(i);
     local target = overlay:GetNamedChild("Targets");
 
     target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type);
     target:SetHidden(false);
 
-    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET);
     target = overlay:GetNamedChild("Targets");
 
     target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type);
@@ -4911,14 +4911,14 @@ function FancyActionBar.AdjustTargetX()
   local targetY = FancyActionBar.constants.targets.y;
   -- so moving slider in setting will move target the same direction
 
-  for i = MIN_INDEX, MAX_INDEX do
-    local overlay = FancyActionBar.overlays[i];
+  for i = MIN_INDEX, ULT_INDEX do
+    local overlay = FancyActionBar.GetOverlay(i);
     local target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
     target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY);
 
-    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET);
     target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
@@ -4931,14 +4931,14 @@ function FancyActionBar.AdjustTargetY()
   local targetY = FancyActionBar.constants.targets.y;
   -- so moving slider in setting will move target the same direction
 
-  for i = MIN_INDEX, MAX_INDEX do
-    local overlay = FancyActionBar.overlays[i];
+  for i = MIN_INDEX, ULT_INDEX do
+    local overlay = FancyActionBar.GetOverlay(i);
     local target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
     target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY);
 
-    overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET];
+    overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET);
     target = overlay:GetNamedChild("Targets");
 
     target:ClearAnchors();
@@ -4979,34 +4979,35 @@ end;
 
 function FancyActionBar.UpdateHighlight(index)
   local button = FancyActionBar.GetActionButton(index);
-  local overlay = FancyActionBar.overlays[index];
+  local overlay = FancyActionBar.GetOverlay(index);
   local effect = overlay.effect;
-  local bgControl = overlay:GetNamedChild("BG");
-  local durationControl = overlay:GetNamedChild("Duration");
+  local bgControl = overlay.bg;
+  local durationControl = overlay.timer;
 
   -- local state
-
-  if (FancyActionBar.toggles[effect.id] == true or effect.passive == true) then
-    -- state = 'On'
-    if SV.toggledHighlight then
-      button.status:SetAlpha(0);
-      bgControl:SetColor(unpack(SV.toggledColor));
-      bgControl:SetHidden(false);
-    elseif SV.showHighlight then
-      button.status:SetAlpha(0);
-      bgControl:SetColor(unpack(SV.highlightColor));
-      bgControl:SetHidden(false);
+  if button and overlay then
+    if (FancyActionBar.toggles[effect.id] == true or effect.passive == true) then
+      -- state = 'On'
+      if SV.toggledHighlight then
+        button.status:SetAlpha(0);
+        bgControl:SetColor(unpack(SV.toggledColor));
+        bgControl:SetHidden(false);
+      elseif SV.showHighlight then
+        button.status:SetAlpha(0);
+        bgControl:SetColor(unpack(SV.highlightColor));
+        bgControl:SetHidden(false);
+      else
+        bgControl:SetHidden(true);
+        button.status:SetAlpha(0.7);
+      end;
+      durationControl:SetText("");
     else
+      -- state = 'Off'
       bgControl:SetHidden(true);
       button.status:SetAlpha(0.7);
     end;
-    durationControl:SetText("");
-  else
-    -- state = 'Off'
-    bgControl:SetHidden(true);
-    button.status:SetAlpha(0.7);
+    -- Chat('Toggled overlay ' .. index .. ' bg: ' .. state)
   end;
-  -- Chat('Toggled overlay ' .. index .. ' bg: ' .. state)
 end;
 
 function FancyActionBar.AdjustUltTimer(sample)

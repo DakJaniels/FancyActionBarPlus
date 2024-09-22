@@ -2414,6 +2414,7 @@ function FancyActionBar.CreateUltOverlay(index) -- create ultimate skill button 
     overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index);
     overlay.timer = overlay:GetNamedChild("Duration");
     overlay.value = overlay:GetNamedChild("Value");
+    overlay.bg = overlay:GetNamedChild("BG");
     overlay.stack = overlay:GetNamedChild("Stacks");
     overlay.target = overlay:GetNamedChild("Targets");
     FancyActionBar.ultOverlays[index] = overlay;
