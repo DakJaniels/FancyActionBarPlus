@@ -4203,7 +4203,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.ApplyActiveHotbarStyle();
       end, 100);
     end;
-    ZO_ActionBar_GetButton(ULT_INDEX):UpdateUltimateMeter()
+    ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter()
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
