@@ -2680,7 +2680,6 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
   end;
-  ZO_ActionBar_GetButton(ULT_INDEX):UpdateUltimateMeter()
 end;
 
 --- Setup the buttons with the given style.
@@ -4204,6 +4203,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.ApplyActiveHotbarStyle();
       end, 100);
     end;
+    ZO_ActionBar_GetButton(ULT_INDEX):UpdateUltimateMeter()
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
