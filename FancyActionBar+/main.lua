@@ -2680,6 +2680,7 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
   end;
+  --ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter()
 end;
 
 --- Setup the buttons with the given style.
