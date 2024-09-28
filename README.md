@@ -80,8 +80,9 @@ Button frames options only apply to Keyboard UI
 * Show gamepad ultimate hotkeys (default: ON) – Show the LB RB labels for gamepad UI. Set this to OFF to allow quickslot placement adjustments in gamepad UI
 * •	Use thin gamepad button frames borders (default: OFF) – Replaces the default gamepad frames with a minimal 1px black frame border with no backdrop
 * Hide companion ultimate slot (default: OFF) – When enabled, the companion ultimate slot, normally anchored to the right of the player ultimate slot when a companion has an ultimate ability slotted will always be hidden
-* Hide Locked Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a “one bar” mode that only shows the active bar.
-[![Hide Locked Bars](https://i.imgur.com/SEVGXcd.png)](https://i.imgur.com/SEVGXcd.png)
+* Hide locked Action Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a “one bar” mode that only shows the active bar.
+[![Hide locked Action Bars](https://i.imgur.com/SEVGXcd.png)](https://i.imgur.com/SEVGXcd.png)
+* Reposition active bar when locked (default: ON) - When the locked action bar is hidden the ui will reposition the active bar to center it, aligned with the default quickslot and ult slot positions. If disabled, the inactive bar will be hidden but the action bar will not be repositioned (this does not work properly for when the back bar is the active bar.) 
 * Apply Skill Styles to Action Bar Slots (default: ON) – by default Fancy Action Bar + will apply the icons for skill style ability overrides to the icon on the action bar. Note that different ability morphs share the same skill icon which can make determining slotted skill morphs difficult. For maximum compatibility with skill style icon overrides, it is recommended to also install the separate, optional, “Action Bar Skill Styles” addon.
 
 [![Skill Styles](https://i.imgur.com/mZt3Rjn.png)](https://i.imgur.com/mZt3Rjn.png)

@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.8.6";
+local VERSION = "2.8.7";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -909,6 +909,7 @@ function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceCh
   FancyActionBar.ToggleInactiveBar(hideBar, doLock);
   FancyActionBar.AdjustQuickSlotSpacing(doLock);
   FAB_ActionBarArrow:SetHidden(not SV.showArrow or doLock);
+  FancyActionBar.ApplyAlphaInactive(isWeaponSwapLocked and 0 or SV.alphaInactive or defaultSettings.alphaInactive);
 end;
 
 -- ZO_ActionButtons_ToggleShowGlobalCooldown()
@@ -2680,7 +2681,7 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
   end;
-  --ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter()
+  ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter()
 end;
 
 --- Setup the buttons with the given style.
@@ -2797,7 +2798,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked)
   local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
   local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2;
   local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
-  if locked == true then
+  if locked == true and SV.repositionActiveBar then
     active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
     inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
   elseif firstTop then
@@ -4202,9 +4203,8 @@ function FancyActionBar.Initialize()
     if initial then
       zo_callLater(function ()
         FancyActionBar.ApplyActiveHotbarStyle();
-      end, 100);
+      end, 500);
     end;
-    ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter()
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
@@ -4597,6 +4597,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultFillBarAlpha == nil then SV.ultFillBarAlpha = d.ultFillBarAlpha; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
     if SV.hideLockedBar == nil then SV.hideLockedBar = d.hideLockedBar; end;
+    if SV.repositionActiveBar == nil then SV.repositionActiveBar = d.repositionActiveBar; end;
     if SV.hideCompanionUlt == nil then SV.hideCompanionUlt = d.hideCompanionUlt; end;
 
     SV.variablesValidated = true;

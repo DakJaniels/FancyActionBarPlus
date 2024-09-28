@@ -1659,7 +1659,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           min = 0;
           max = 100;
           getFunc = function () return SV.alphaInactive; end;
-          setFunc = function (value) FancyActionBar.ApplyAlphaInactive(value); end;
+          setFunc = function (value)
+            SV.alphaInactive = value;
+            FancyActionBar.ApplyAlphaInactive(value);
+          end;
           width = "half";
         },
         {
@@ -1943,6 +1946,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           getFunc = function () return SV.hideLockedBar; end;
           setFunc = function (value)
             SV.hideLockedBar = value or false;
+            local _, locked = GetActiveWeaponPairInfo();
+            FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar);
+          end;
+          width = "full"
+        },
+        {
+          type = "checkbox";
+          name = "Reposition active bar when locked";
+          tooltip = "When the locked action bar is hidden the ui will reposition the active bar.";
+          default = defaults.repositionActiveBar;
+          getFunc = function () return SV.repositionActiveBar; end;
+          setFunc = function (value)
+            SV.repositionActiveBar = value or false;
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar);
           end;
@@ -4749,7 +4765,6 @@ function FancyActionBar.ApplyAlphaInactive(alpha)
     button = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET];
     button.icon:SetAlpha(alphaInactive);
   end;
-  SV.alphaInactive = alpha;
 end;
 
 function FancyActionBar.ApplyDesaturationInactiveInactive(desaturation)

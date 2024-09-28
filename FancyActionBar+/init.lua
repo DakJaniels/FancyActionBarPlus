@@ -66,6 +66,7 @@ FancyActionBar.defaultSettings =
   frontBarTop = true;
   activeBarTop = false;
   hideLockedBar = true;
+  repositionActiveBar = true;
   showHotkeys = true;
   showHotkeysUltGP = true;
   hideCompanionUlt = false;
