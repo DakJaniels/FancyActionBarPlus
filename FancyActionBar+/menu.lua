@@ -1302,6 +1302,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               UpdateAzurahDb();
               FancyActionBar.ToggleMover(false);
               SetBarTheme(locked);
+              if not FancyActionBar.wasMoved then
+                FancyActionBar.ResetMoveActionBar();
+                FancyActionBar.RepositionHealthBar();
+              end;
             end;
           end;
           width = "half";
@@ -1325,6 +1329,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               UpdateAzurahDb();
               FancyActionBar.ToggleMover(false);
               SetBarTheme(locked);
+              if not FancyActionBar.wasMoved then
+                FancyActionBar.ResetMoveActionBar();
+                FancyActionBar.RepositionHealthBar();
+              end
             end;
           end;
           width = "half";
@@ -1358,14 +1366,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           setFunc = function (value)
             SV.abScaling.gp.enable = value or false;
             if FancyActionBar.style == 2 then
-              local _, locked = GetActiveWeaponPairInfo();
               FancyActionBar.constants.abScale.enable = value;
-              FancyActionBar.SetScale()
+              local _, locked = GetActiveWeaponPairInfo();
+              FancyActionBar.SetScale();
               FancyActionBar.ToggleMover(true);
               SetBarTheme(locked);
               UpdateAzurahDb();
               FancyActionBar.ToggleMover(false);
               SetBarTheme(locked);
+              if not FancyActionBar.wasMoved then
+                FancyActionBar.ResetMoveActionBar();
+                FancyActionBar.RepositionHealthBar();
+              end;
             end;
           end;
           width = "half";
@@ -1389,6 +1401,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               UpdateAzurahDb()
               FancyActionBar.ToggleMover(false);
               SetBarTheme(locked);
+              if not FancyActionBar.wasMoved then
+                FancyActionBar.ResetMoveActionBar();
+                FancyActionBar.RepositionHealthBar();
+              end
             end;
           end;
           width = "half";
@@ -5319,7 +5335,7 @@ end;
 function FancyActionBar.ToggleMover(enableMove)
   if enableMove == true then
     unlocked = enableMove;
-    RefreshMoverSize()
+    --RefreshMoverSize()
     ReanchorMover();
     SaveCurrentLocation();
     FAB_Mover:SetHidden(false);
@@ -5386,6 +5402,14 @@ function FancyActionBar.SaveMoverPosition()
   FancyActionBar.SetMoved(true);
   local _, locked = GetActiveWeaponPairInfo();
   SetBarTheme(locked);
+end;
+
+function FancyActionBar.RepositionHealthBar()
+  if FancyActionBar.wasMoved then return; end;
+  local c = FancyActionBar.GetContants();
+  local scale = FancyActionBar.GetScale();
+  local abTop = ACTION_BAR:GetTop();
+  ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - (c.dimensions * scale)));
 end;
 
 local function PlayerDeath(oldState, newState)

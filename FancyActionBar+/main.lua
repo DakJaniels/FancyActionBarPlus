@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.8.7";
+local VERSION = "2.8.8";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -2898,6 +2898,9 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
   FancyActionBar.HideHotkeys(not SV.showHotkeys);
 
   FancyActionBar.MoveActionBar();
+  if not FancyActionBar.wasMoved then
+    FancyActionBar.RepositionHealthBar();
+  end;
 end;
 
 function FancyActionBar.UpdateBarSettings(locked) -- run all UI visual updates when UI mode is changed.
