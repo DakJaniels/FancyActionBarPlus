@@ -5406,6 +5406,7 @@ end;
 
 function FancyActionBar.RepositionHealthBar()
   if FancyActionBar.wasMoved then return; end;
+  if Azurah then return; end;
   local c = FancyActionBar.GetContants();
   local scale = FancyActionBar.GetScale();
   local abTop = ACTION_BAR:GetTop();
