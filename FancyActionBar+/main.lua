@@ -4573,6 +4573,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.abilitySlotOffsetXGP == nil then SV.abilitySlotOffsetXGP = d.abilitySlotOffsetXGP; end;
     if SV.barXOffsetGP == nil then SV.barXOffsetGP = d.barXOffsetGP; end;
     if SV.barYOffsetGP == nil then SV.barYOffsetGP = d.barYOffsetGP; end;
+    if SV.moveHealthBar == nil then SV.moveHealthBar = d.moveHealthBar; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;
     if SV.frameColor == nil then SV.frameColor = d.frameColor; end;
     if SV.showMarker == nil then SV.showMarker = d.showMarker; end;

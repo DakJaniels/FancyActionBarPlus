@@ -1582,6 +1582,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked);
             FancyActionBar.ApplyQuickSlotAndUltimateStyle();
             FancyActionBar.ApplySettings();
+            if not FancyActionBar.wasMoved then
+              FancyActionBar.ResetMoveActionBar();
+              FancyActionBar.RepositionHealthBar();
+            end;
           end;
           width = "half";
         },
@@ -5407,10 +5411,13 @@ end;
 function FancyActionBar.RepositionHealthBar()
   if FancyActionBar.wasMoved then return; end;
   if Azurah then return; end;
-  local c = FancyActionBar.GetContants();
-  local scale = FancyActionBar.GetScale();
-  local abTop = ACTION_BAR:GetTop();
-  ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - (c.dimensions * scale)));
+  if SV.moveHealthBar then
+    local c = FancyActionBar.GetContants();
+    local scale = FancyActionBar.GetScale();
+    local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB;
+    local abTop = ACTION_BAR:GetTop();
+    ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - ((c.dimensions * scale) + 4 + barYOffset)));
+  end;
 end;
 
 local function PlayerDeath(oldState, newState)
