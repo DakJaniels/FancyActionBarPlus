@@ -233,4 +233,4 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 
 ### MISCELLANEOUS
 
-Additional misclaneous options include the ability to show the action bar while dead (default: OFF), prevent casting abilities while trading (default: ON), enable compatibility with the Perfect Weave addon (default: OFF), showing markers on enemies you are currently in combat with, and enabling a global cooldown tracker widget.
+Additional miscellaneous options include the ability to show the action bar while dead (default: OFF), prevent casting abilities while trading (default: ON), enable compatibility with the Perfect Weave addon (default: OFF), setting to adjust the health bar position to prevent overlap with FAB (default: ON), showing markers on enemies you are currently in combat with, and enabling a global cooldown tracker widget.

@@ -4444,7 +4444,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "checkbox",
           name = "Adjust Health Bar",
-          tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in it's default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
+          tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
           default = defaults.moveHealthBar,
           getFunc = function() return SV.moveHealthBar; end,
           setFunc = function(value) 
