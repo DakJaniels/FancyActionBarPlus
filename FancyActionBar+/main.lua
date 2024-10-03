@@ -19,6 +19,7 @@ local SLOT_INDEX_OFFSET = 20;                 -- offset for backbar abilities in
 local COMPANION_INDEX_OFFSET = 30;            -- offset for companion ultimate
 local SLOT_COUNT = MAX_INDEX - MIN_INDEX + 1; -- total number of slots
 local ACTION_BAR = GetControl("ZO_ActionBar1");
+local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS");
 local currentWeaponPair = GetActiveWeaponPairInfo();
 local currentHotbarCategory = GetActiveHotbarCategory();
@@ -2187,7 +2188,6 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
   lock = SV.hideLockedBar and lock or SV.hideLockedBar and isWeaponSwapLocked and true or nil;
   local abilitySlotOffsetX = FancyActionBar.constants.abilitySlot.offsetX;
   local style = FancyActionBar.GetContants();
-  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   local QSB = GetControl("QuickslotButton");
   local xOffset = FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB or SV.quickSlotCustomXOffsetGP or 0;
   local yOffset = FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB or SV.quickSlotCustomYOffsetGP or 0;
@@ -2232,7 +2232,6 @@ end;
 function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button according to variables
   if FancyActionBar.style == 1 then return; end;
   local style = FancyActionBar.GetContants();
-  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
 
   ActionButton8:ClearAnchors();
   CompanionUltimateButton:ClearAnchors();
@@ -2619,7 +2618,6 @@ end;
 
 function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to settings
   local style = FancyActionBar.GetContants();
-  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   local QSB = QuickslotButton;
 
   -- Apply styles to buttons
@@ -2649,7 +2647,6 @@ function FancyActionBar.ApplyStyle()
   FancyActionBar.UpdateStyle();
   currentHotbarCategory = GetActiveHotbarCategory();
   local style = FancyActionBar.GetContants();
-  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
 
   FancyActionBar.SetupActionBar(style, weaponSwapControl);
   FancyActionBar.SetupButtons(style, weaponSwapControl);
@@ -2674,7 +2671,6 @@ end;
 
 function FancyActionBar.ApplyActiveHotbarStyle()
   local style = FancyActionBar.GetContants();
-  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   for i = MIN_INDEX, MAX_INDEX do
     local button = ZO_ActionBar_GetButton(i);
     button:ApplyStyle(style.buttonTemplate);
@@ -2715,9 +2711,10 @@ end;
 ---@param index number
 function FancyActionBar.SetupButtonText(button, weaponSwapControl, style, index)
   local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX);
-  local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
+  local barYOffset = SV.hideLockedBar and isWeaponSwapLocked and (style.dimensions + style.buttonTextOffsetY) / 3 or
+  style.buttonTextOffsetY + ((FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2);
   button.buttonText:ClearAnchors();
-  button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), style.buttonTextOffsetY + barYOffset);
+  button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), barYOffset);
   button.buttonText:SetHidden(not SV.showHotkeys);
 end;
 
@@ -2797,7 +2794,6 @@ end;
 local function ApplyBarPosition(active, inactive, firstTop, locked)
   local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
   local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2;
-  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   if locked == true and SV.repositionActiveBar then
     active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
     inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
@@ -2815,7 +2811,6 @@ local function ApplyBarPosition(active, inactive, firstTop, locked)
 end;
 
 function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
-  local style = FancyActionBar.GetContants();
   local hide, bar;
 
   FancyActionBar.ClearAnchors();
@@ -2857,11 +2852,13 @@ function FancyActionBar.DetermineBarAndHide(locked)
 end;
 
 function FancyActionBar.SetBarPositions(bar)
+  local style = FancyActionBar.GetContants();
   bar = bar or GetActiveHotbarCategory();
   for i = MIN_INDEX, MAX_INDEX do
     FancyActionBar.UpdateInactiveBarIcon(i, bar);
     local btnMain = ZO_ActionBar_GetButton(i);
     btnMain:HandleSlotChanged();
+    FancyActionBar.SetupButtonText(btnMain, weaponSwapControl, style, i);
   end;
 end;
 
@@ -2869,14 +2866,24 @@ function FancyActionBar.ToggleInactiveBar(bar, hide)
   local showOffset = bar == HOTBAR_CATEGORY_PRIMARY and SLOT_INDEX_OFFSET or 0;
   local hideOffset = bar == HOTBAR_CATEGORY_PRIMARY and 0 or SLOT_INDEX_OFFSET;
   for i = MIN_INDEX, MAX_INDEX do
+    local hideOverlay = FancyActionBar.overlays[i + hideOffset];
+    if hideOverlay then
+      hideOverlay:SetHidden(hide);
+    end;
     -- bar to hide
-    FancyActionBar.overlays[i + hideOffset]:SetHidden(hide);
     local hideButton = FancyActionBar.GetActionButton(i + hideOffset);
-    hideButton.slot:SetHidden(hide);
+    if hideButton then
+      hideButton.slot:SetHidden(hide);
+    end;
     if not hide then
-      FancyActionBar.overlays[i + showOffset]:SetHidden(hide);
+      local showOverlay = FancyActionBar.overlays[i + showOffset];
+      if showOverlay then
+        showOverlay:SetHidden(hide);
+      end;
       local showButton = FancyActionBar.GetActionButton(i + showOffset);
-      showButton.slot:SetHidden(hide);
+      if showButton then
+        showButton.slot:SetHidden(hide);
+      end;
     end;
   end;
   FancyActionBar.SwapControls(hide);
