@@ -30,8 +30,8 @@ FancyActionBar.defaultSettings =
 
   configChanges = {};
   dynamicAbilityConfig = false;
-  forceGamepadStyle = false,
-  
+  forceGamepadStyle = false;
+
   externalBuffs = false;
   externalBlackList = {};
   externalBlackListRun = false;
@@ -53,7 +53,7 @@ FancyActionBar.defaultSettings =
   durationMin = 2;
   durationMax = 120;
   showCastDuration = true;
-  
+
   showStackCount = true;
   showOvertauntStacks = false;
   showTargetCount = true;
@@ -181,8 +181,8 @@ FancyActionBar.defaultSettings =
   ultColorGP = { 1, 1, 1 };
   ultimateSlotCustomXOffsetKB = 0;
   ultimateSlotCustomYOffsetKB = 0;
-  ultimateSlotCustomXOffsetGP = 0,
-  ultimateSlotCustomYOffsetGP = 0,
+  ultimateSlotCustomXOffsetGP = 0;
+  ultimateSlotCustomYOffsetGP = 0;
   -- ult value
   ultValueEnableGP = true;
   ultValueModeGP = 1;
@@ -211,10 +211,10 @@ FancyActionBar.defaultSettings =
   qsXGP = 0;
   qsYGP = 10;
   qsColorGP = { 1, 0.5, 0.2 };
-  quickSlotCustomXOffsetKB = 0,
-  quickSlotCustomYOffsetKB = 0,
-  quickSlotCustomXOffsetGP = 0,
-  quickSlotCustomYOffsetGP = 0,
+  quickSlotCustomXOffsetKB = 0;
+  quickSlotCustomYOffsetKB = 0;
+  quickSlotCustomXOffsetGP = 0;
+  quickSlotCustomYOffsetGP = 0;
   -- both
   ultFlash = true;
   -- frames for keyboard UI
@@ -247,7 +247,7 @@ FancyActionBar.defaultSettings =
     gp = { enable = false; scale = 100 };
   };
   abMove =
-  {                                                                -- y = -(default + adjusted) anchor offset
+  {                                                                  -- y = -(default + adjusted) anchor offset
     kb = { enable = false; x = 0; y = -22; prevX = 0; prevY = -22 }; -- y =      -( 0 + 22)
     gp = { enable = false; x = 0; y = -75; prevX = 0; prevY = -75 }; -- y =      -(25 + 52)
   };

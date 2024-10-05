@@ -160,19 +160,19 @@ FancyActionBar.abilityConfig =
   [39197] = { 61694 }; -- immovable (major resolve)
 
   -- Werewolf
-  [32632] = { 137156 };  -- punce (carnage bleed)
-  [39105] = { 137184 };  -- brutal pounce (brutal carnage bleed)
-  [39104] = { 137164 };  -- feral pounce (brutal carnage bleed)
-  [58317] = { 61745 };   -- hircine's rage (major berserk)
-  [58325] = { 61704 };   -- hircine's fortitude (minor fortitude)
-  [32633] = { 137257 };  -- roar (off-balance)
-  [39113] = { 45834 };   -- ferocious roar (off-balance); 137287 is heavy attack speed buff
-  [39114] = { 61743 };   -- deafening roar major breach; 137312 is off-balance
-  [58855] = { 58856 };   -- infectious claws
-  [58864] = { 58865 };   -- claws of anguish
-  [58879] = { 58880 };   -- claws of life
-  [39075] = { 32455 };   -- pack leader
-  [39076] = { 32455 };   -- werewolf berserker
+  [32632] = { 137156 }; -- punce (carnage bleed)
+  [39105] = { 137184 }; -- brutal pounce (brutal carnage bleed)
+  [39104] = { 137164 }; -- feral pounce (brutal carnage bleed)
+  [58317] = { 61745 };  -- hircine's rage (major berserk)
+  [58325] = { 61704 };  -- hircine's fortitude (minor fortitude)
+  [32633] = { 137257 }; -- roar (off-balance)
+  [39113] = { 45834 };  -- ferocious roar (off-balance); 137287 is heavy attack speed buff
+  [39114] = { 61743 };  -- deafening roar major breach; 137312 is off-balance
+  [58855] = { 58856 };  -- infectious claws
+  [58864] = { 58865 };  -- claws of anguish
+  [58879] = { 58880 };  -- claws of life
+  [39075] = { 32455 };  -- pack leader
+  [39076] = { 32455 };  -- werewolf berserker
 
   -- Vampire
   [32986] = { 106208 };  -- mist form
@@ -275,10 +275,10 @@ FancyActionBar.abilityConfig =
   [32792] = { 32796 };  -- deep breath
   [32715] = { 61814 };  -- ferocious leap
   [133027] = { 31816 }; -- track stone giant
-  [32673] = { 61711 }; -- fragmented shield
-  [29043] = { 61665 }; -- molten weapons
-  [31874] = { 61665 }; -- igneous weapons
-  [31888] = { 61665 }; -- molten armaments
+  [32673] = { 61711 };  -- fragmented shield
+  [29043] = { 61665 };  -- molten weapons
+  [31874] = { 61665 };  -- igneous weapons
+  [31888] = { 61665 };  -- molten armaments
   [29037] = {};         -- petrify
   [32678] = {};         -- shattering rocks
   [32685] = {};         -- fossilize
@@ -472,8 +472,8 @@ FancyActionBar.abilityConfig =
   [185823] = { 185825 }; -- tentacular dread
   [185836] = { 185838 }; -- the imperfect ring
   [185839] = { 185840 }; -- rune of displacement
-  [182988] = { 182989 }, -- fulminating rune (Stam)
-  [201296] = { 182989 }, -- fulminating rune (Mag)
+  [182988] = { 182989 }; -- fulminating rune (Stam)
+  [201296] = { 182989 }; -- fulminating rune (Mag)
   [189791] = { 189792 }; -- the unblinking eye
   [189837] = { 191367 }; -- the tide king's gaze
   [189867] = { 189868 }; -- the languid eye
@@ -586,7 +586,7 @@ FancyActionBar.stackMap =
     38747, -- carve bleed
     38745, -- Carve (2H)
   };
-   
+
   [38802] = { 38802 }; -- rally
 
   -- Spell Orb
@@ -605,7 +605,7 @@ FancyActionBar.stackMap =
   [106208] =
   {
     106208, -- mist form fatigue
-    32986, -- mist form
+    32986,  -- mist form
   };
 
   -- elusive mist fatigue
@@ -620,7 +620,7 @@ FancyActionBar.stackMap =
   {
     49247, -- blood mist fatigue
     38965, -- blood mist
-   }; 
+  };
 
   -- blood frenzy stacks
   [172418] =
@@ -633,7 +633,7 @@ FancyActionBar.stackMap =
   [134166] =
   {
     134166, -- simmering frenzy stacks
-    134160,  -- simmering frenzy
+    134160, -- simmering frenzy
   };
 
   -- sated fury stacks
@@ -641,7 +641,7 @@ FancyActionBar.stackMap =
   {
     172648, -- sated fury stacks
     135841, -- sated fury
-  }; 
+  };
 
   -- force pulse (vAS destro)
   [100306] =
@@ -649,7 +649,7 @@ FancyActionBar.stackMap =
     100306, -- force pulse (vAS destro)
     46340,  -- force shock
     46348,  -- crushing shock
-    46356,   -- force pulse
+    46356,  -- force pulse
   };
 
   -- chaotic whirlwind (vAS dw)
@@ -659,11 +659,11 @@ FancyActionBar.stackMap =
     28591,  -- whirlwind
     38891,  -- whirling blades
     38861,  -- steel tornado
-   };
+  };
 
-  [122585] = { 61902 };  -- Grim Focus
-  [122586] = { 61919 };  -- Merciless Resolve
-  [122587] = { 61927 };  -- Relentless Focus
+  [122585] = { 61902 }; -- Grim Focus
+  [122586] = { 61919 }; -- Merciless Resolve
+  [122587] = { 61927 }; -- Relentless Focus
 
   -- Bound Armaments
   [203447] =
@@ -681,7 +681,7 @@ FancyActionBar.stackMap =
     23277, -- Ball of Lightning
   };
 
-  [29032] = { 29032 };   -- Stone Fist (stacks on self)
+  [29032] = { 29032 };         -- Stone Fist (stacks on self)
   [31816] = { 31816, 133027 }; -- Stone Giant (stacks on self)
 
   -- Seething Fury
@@ -693,7 +693,7 @@ FancyActionBar.stackMap =
 
   [117638] = { 117638, 117637, 123718, 123719 }; -- Ricochet Skull
   [117625] = { 117625, 117624, 123699, 123704 }; -- venom skull
-  [125749] = { 125750 }; -- ruinous scythe
+  [125749] = { 125750 };                         -- ruinous scythe
 
   -- Crux
   [184220] =
@@ -765,9 +765,9 @@ FancyActionBar.stackMap =
   [63430] = { 63430, 16536 }; -- meteor
   [63456] = { 63456, 40489 }; -- ice comet
   [63473] = { 63473, 40493 }; -- shooting star
-  
+
   --[222370] = { 222370 } -- Anchorite's Potency, to show Soul Gems
-  
+
   [134336] =
   {
     134336,
@@ -787,7 +787,7 @@ FancyActionBar.fixedStacks =
   [222285] = "¤";
   [222678] = "¤";
   --[222370] = select(3, GetSoulGemInfo(1, 50, false));
-    
+
   [91416] = "+"
 };
 
@@ -814,7 +814,7 @@ FancyActionBar.debuffStackMap =
     217180, -- goading smash (Scribing?) (taunt)
     219972, -- goading smash (scribing) (taunt)
   };
-  
+
   -- Stone Giant Stagger
   [134336] =
   {
@@ -945,23 +945,23 @@ FancyActionBar.debuffIds =
   [61491] = { 61491 }; -- inevitable detonation
 
   -- Dragonknight
-  [20657] = { 44363 }; -- searing strike
-  [20668] = { 44369 }; -- venomous claw
-  [20660] = { 44373 }; -- burning embers
-  [20917] = { 31102 }; -- fiery breath
-  [20930] = { 31104 }; -- engulfing flames
-  [20944] = { 31103 }; -- noxious breath
-  [20245] = { 20527 }; -- dark talons
-  [20251] = { 61723 }; -- choking talons (minor maim)
-  [20252] = { 31898 }; -- burning talons
+  [20657] = { 44363 };  -- searing strike
+  [20668] = { 44369 };  -- venomous claw
+  [20660] = { 44373 };  -- burning embers
+  [20917] = { 31102 };  -- fiery breath
+  [20930] = { 31104 };  -- engulfing flames
+  [20944] = { 31103 };  -- noxious breath
+  [20245] = { 20527 };  -- dark talons
+  [20251] = { 61723 };  -- choking talons (minor maim)
+  [20252] = { 31898 };  -- burning talons
   [133027] = { 31816 }; -- track stone giant
   -- [31816] = { 133027 }; -- track stagger
-  [29032] = false;       -- don't track stonefist
+  [29032] = false;      -- don't track stonefist
   --[31816] = { 134336 };  -- track stagger instead
   --[133027] = { 134336 }; -- track stagger
-  [29037] = {};          -- pretrify
-  [32678] = {};          -- shattering rocks
-  [32685] = {};          -- fossilize
+  [29037] = {}; -- pretrify
+  [32678] = {}; -- shattering rocks
+  [32685] = {}; -- fossilize
 
   -- Sorcerer
   [28025] = {};        -- encase
@@ -1023,8 +1023,8 @@ FancyActionBar.debuffIds =
   [185823] = { 185825 }; -- tentacular dread (abyssal ink)
   [185836] = { 185838 }; -- the imperfect ring (the imperfect ring)
   [185839] = { 185840 }; -- rune of displacement (rune of displacement)
-  [182988] = { 182989 }, -- fulminating rune (Stam)
-  [201296] = { 182989 }, -- fulminating rune (Mag)
+  [182988] = { 182989 }; -- fulminating rune (Stam)
+  [201296] = { 182989 }; -- fulminating rune (Mag)
   [183165] = { 38254 };  -- runic jolt (taunt)
   [183430] = { 187742 }; -- runic sunder (armor steal)
   [186531] = { 38254 };  -- runic embrace (taunt)
@@ -1128,28 +1128,28 @@ FancyActionBar.fakeClassEffects =
 --- @type table<number, {  id: number,  stackId: table,  stacks: number,  procs?: number,  hasProced?: number,  isDebuff?: boolean,  keepOnTargetChange?: boolean,  forceExpireStacks?: boolean,  onAbilityUsed?: boolean,  needCombatEvent?: boolean,  handler?: string, isMultiTarget?: boolean}>
 FancyActionBar.specialEffects =
 {
-  [16536] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- meteor
-  [63430] = { id = 16536; stackId = {16536}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- meteor
-  [40489] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- ice comet
-  [63456] = { id = 40489; stackId = {40489}; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                                                -- ice comet
+  [16536] = { id = 16536; stackId = { 16536 }; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                            -- meteor
+  [63430] = { id = 16536; stackId = { 16536 }; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                            -- meteor
+  [40489] = { id = 40489; stackId = { 40489 }; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                            -- ice comet
+  [63456] = { id = 40489; stackId = { 40489 }; procs = 1; hasProced = 0; isMultiTarget = true };                                                                                                            -- ice comet
 
-  [35750] = { id = 35750; stackId = {35750}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
-  [35756] = { id = 35750; stackId = {35750}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Trap Beast DOT
-  [40372] = { id = 40372; stackId = {40372}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
-  [40375] = { id = 40372; stackId = {40372}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Lightweight Trap DOT
-  [40382] = { id = 40382; stackId = {40382}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
-  [40385] = { id = 40382; stackId = {40382}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Barbed Trap DOT
-  [40465] = { id = 40465; stackId = {40465}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
-  [40468] = { id = 40465; stackId = {40465}; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Scalding Rune DOT
+  [35750] = { id = 35750; stackId = { 35750 }; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Trap Beast Placed
+  [35756] = { id = 35750; stackId = { 35750 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Trap Beast DOT
+  [40372] = { id = 40372; stackId = { 40372 }; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Lightweight Trap Placed
+  [40375] = { id = 40372; stackId = { 40372 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Lightweight Trap DOT
+  [40382] = { id = 40382; stackId = { 40382 }; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true; forceExpireStacks = true; onAbilityUsed = true; needCombatEvent = true }; -- Barbed Trap Placed
+  [40385] = { id = 40382; stackId = { 40382 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Barbed Trap DOT
+  [40465] = { id = 40465; stackId = { 40465 }; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                                         -- Scalding Rune Placed
+  [40468] = { id = 40465; stackId = { 40465 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true };                                                    -- Scalding Rune DOT
 
-  [28727] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- defensive posture
-  [126604] = { id = 28727; stackId = {28727}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                      -- defensive posture
+  [28727] = { id = 28727; stackId = { 28727 }; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                    -- defensive posture
+  [126604] = { id = 28727; stackId = { 28727 }; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                   -- defensive posture
 
-  [38312] = { id = 38312; stackId = {38312}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- defensive stance
-  [126608] = { id = 38312; stackId = {38312}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                      -- defensive stance
+  [38312] = { id = 38312; stackId = { 38312 }; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                    -- defensive stance
+  [126608] = { id = 38312; stackId = { 38312 }; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                   -- defensive stance
 
-  [38317] = { id = 38317; stackId = {38317}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- absorb missile
-  [38324] = { id = 38317; stackId = {38317}; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                       -- absorb missile
+  [38317] = { id = 38317; stackId = { 38317 }; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                    -- absorb missile
+  [38324] = { id = 38317; stackId = { 38317 }; stacks = 1; handler = "reflect"; onAbilityUsed = true; };                                                                                                    -- absorb missile
 };
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
@@ -1168,44 +1168,44 @@ FancyActionBar.specialEffectProcs =
 -- Class Specific Effects Processed through the FancyActionBar.HandleSpecial function
 FancyActionBar.specialClassEffects =
 {
-    --- effects tracked through the HandleSpecial function
-    -- Dragonknight
-    [1] =
-    {
-      --[31816] = { id = 31841; stackId = {31816};}; -- Stone Giant
-      --[133027] = { id = 133027; stackId = {31841};}; -- Stone Giant
-    };
+  --- effects tracked through the HandleSpecial function
+  -- Dragonknight
+  [1] =
+  {
+    --[31816] = { id = 31841; stackId = {31816};}; -- Stone Giant
+    --[133027] = { id = 133027; stackId = {31841};}; -- Stone Giant
+  };
   -- Sorcerer
   [2] =
   {
-    [24330] = { id = 24330; stackId = {24330}; setTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
-    [89491] = { id = 24330; stackId = {24330}; setTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
-    [46331] = { id = 46331; stackId = {46331}; stacks = 2; procs = 1; hasProced = 0}; -- Crystal Weapon
+    [24330] = { id = 24330; stackId = { 24330 }; setTime = true; duration = 3.5; stacks = 2; procs = 1; hasProced = 0; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, first proc
+    [89491] = { id = 24330; stackId = { 24330 }; setTime = true; duration = 8.5; stacks = 1; procs = 1; hasProced = 1; isSpecialDebuff = true; keepOnTargetChange = true }; -- Haunting Curse, second proc
+    [46331] = { id = 46331; stackId = { 46331 }; stacks = 2; procs = 1; hasProced = 0 };                                                                                    -- Crystal Weapon
   };
   -- Nightblade
   [3] =
   {
-    [37475] = { id = 37475; stackId = {37475}; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true }; -- manifestation of terror
-    [76639] = { id = 37475; stackId = {37475}; setTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true }; -- manifestation of terror (fear)
+    [37475] = { id = 37475; stackId = { 37475 }; stacks = 1; procs = 1; hasProced = 0; isDebuff = false; keepOnTargetChange = true };                                                    -- manifestation of terror
+    [76639] = { id = 37475; stackId = { 37475 }; setTime = true; duration = 4; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true; isMultiTarget = true }; -- manifestation of terror (fear)
     --[147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (major cowardice)
   };
   -- Warden
   [4] =
   {
-    [86009] = { id = 86009; stackId = {86009}; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
-    [178020] = { id = 86009; stackId = {86009}; setTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
-    [86019] = { id = 86019; stackId = {86019}; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
-    [146919] = { id = 86019; stackId = {86019}; setTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
-    [86015] = { id = 86015; stackId = {86015}; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
-    [178028] = { id = 86015; stackId = {86015}; setTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
+    [86009] = { id = 86009; stackId = { 86009 }; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Scorch, first proc
+    [178020] = { id = 86009; stackId = { 86009 }; setTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Scorch, second proc
+    [86019] = { id = 86019; stackId = { 86019 }; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Sub Assault, first proc
+    [146919] = { id = 86019; stackId = { 86019 }; setTime = true; duration = 3; stacks = 1; procs = 1; hasProced = 1 }; -- Sub Assault, second proc
+    [86015] = { id = 86015; stackId = { 86015 }; setTime = true; duration = 3; stacks = 2; procs = 1; hasProced = 0 };  -- Deep Fissure, first proc
+    [178028] = { id = 86015; stackId = { 86015 }; setTime = true; duration = 6; stacks = 1; procs = 1; hasProced = 1 }; -- Deep Fissure, second proc
 
-    [86135] = { id = 86135; stackId = {86135}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- crystallized shield
-    [86139] = { id = 86139; stackId = {86139}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- crystallized slab
-    [86143] = { id = 86143; stackId = {86143}; stacks = 3; handler = "reflect"; onAbilityUsed = true; };                -- shimmering shield
+    [86135] = { id = 86135; stackId = { 86135 }; stacks = 3; handler = "reflect"; onAbilityUsed = true; };              -- crystallized shield
+    [86139] = { id = 86139; stackId = { 86139 }; stacks = 3; handler = "reflect"; onAbilityUsed = true; };              -- crystallized slab
+    [86143] = { id = 86143; stackId = { 86143 }; stacks = 3; handler = "reflect"; onAbilityUsed = true; };              -- shimmering shield
 
-    [86175] = { id = 86175; stackId = {86175}; handler = "device" };                                                    -- frozen gate
-    [86179] = { id = 86179; stackId = {86179}; handler = "device" };                                                    -- frozen device
-    [86183] = { id = 86183; stackId = {86183}; handler = "device" };                                                    -- frozen retreat
+    [86175] = { id = 86175; stackId = { 86175 }; handler = "device" };                                                  -- frozen gate
+    [86179] = { id = 86179; stackId = { 86179 }; handler = "device" };                                                  -- frozen device
+    [86183] = { id = 86183; stackId = { 86183 }; handler = "device" };                                                  -- frozen retreat
   };
   -- Arcanist
   [117] =
@@ -1221,10 +1221,10 @@ FancyActionBar.specialClassEffectProcs =
   {
     [24330] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false }; };
     [89491] = { [1] = { id = 24330; stacks = 0; procs = 1; hasProced = 0; faded = false } };
-    [46331] = { [1] = { id = 46331; stacks = 0; procs = 1; hasProced = 0} };
+    [46331] = { [1] = { id = 46331; stacks = 0; procs = 1; hasProced = 0 } };
   };
   -- Nightblade
-  [3] = 
+  [3] =
   {
     [37475] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = false; } };
     [76639] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = true } };
@@ -1248,27 +1248,27 @@ FancyActionBar.specialClassEffectProcs =
 
 FancyActionBar.needCombatEvent =
 {
-  [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false }; -- momentum
-  [38794] = { duration = GetAbilityDuration(38794) / 1000, result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false };                                                               -- forward momentum
+  [28297] = { duration = GetAbilityDuration(28297) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false };                                                                              -- momentum
+  [38794] = { duration = GetAbilityDuration(38794) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false };                                                                              -- forward momentum
   --[38802] = { duration = GetAbilityDuration(38802) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false  }; -- rally
   [222370] = { duration = GetAbilityDuration(222370) / 1000; result = ACTION_RESULT_EFFECT_GAINED_DURATION; class = false; --[[stackId = {222370}; stacks = select(3,GetSoulGemInfo(1, 50, false))]] }; -- Soul Burst, Anchorite's Potency
   [217512] = { duration = 5; result = ACTION_RESULT_POWER_ENERGIZE; class = false };                                                                                                                    -- Soul Burst (Potent Burst), Anchorite's Potency Alt Id??
   [216940] = { duration = 5; result = ACTION_RESULT_POWER_ENERGIZE; class = false };                                                                                                                    -- Leashing Soul (Potent Soul), Anchorite's Potency
 
   -- Class Specific UltGen Passives that need Combat Events
-  [29474] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };  -- Mountain's Blessing I
-  [45005] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };  -- Mountain's Blessing II
-  [36589] = { duration = 4; result = ACTION_RESULT_POWER_ENERGIZE; class = 3 };  -- Transfer I
-  [45146] = { duration = 4; result = ACTION_RESULT_POWER_ENERGIZE; class = 3 };  -- Transfer II
-  [88512] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 4 };  -- Savage Beast I
-  [88513] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 4 };  -- Savage Beast II
-  [31746] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 6 };  -- Prism I
-  [45217] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 6 };  -- Prism II
-  [185051] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 117 };  -- Implacable Outcome I
-  [185070] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 117 };  -- Implacable Outcome II
+  [29474] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };    -- Mountain's Blessing I
+  [45005] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 1 };    -- Mountain's Blessing II
+  [36589] = { duration = 4; result = ACTION_RESULT_POWER_ENERGIZE; class = 3 };    -- Transfer I
+  [45146] = { duration = 4; result = ACTION_RESULT_POWER_ENERGIZE; class = 3 };    -- Transfer II
+  [88512] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 4 };    -- Savage Beast I
+  [88513] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 4 };    -- Savage Beast II
+  [31746] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 6 };    -- Prism I
+  [45217] = { duration = 6; result = ACTION_RESULT_POWER_ENERGIZE; class = 6 };    -- Prism II
+  [185051] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 117 }; -- Implacable Outcome I
+  [185070] = { duration = 8; result = ACTION_RESULT_POWER_ENERGIZE; class = 117 }; -- Implacable Outcome II
 };
 
-FancyActionBar.traps = 
+FancyActionBar.traps =
 {
   [35750] = true; -- trap beast
   [40372] = true; -- lightweight beast trap
@@ -1578,7 +1578,7 @@ FancyActionBar.stackableBuff =
 
   -- Radiating Regen
   [40079] = 40079;
- };
+};
 
 FancyActionBar.confirmBuffFade =
 {

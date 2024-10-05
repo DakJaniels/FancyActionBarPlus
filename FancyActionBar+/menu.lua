@@ -152,10 +152,10 @@ local function IsValidId(id)
 end;
 
 local function UpdateAzurahDb()
-  if not Azurah then return end;
+  if not Azurah then return; end;
   if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
-        or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
-        or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
+      or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
+      or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
   then
     Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y,
       FancyActionBar.GetScale());
@@ -1152,7 +1152,7 @@ local function SetDarkUI(framesHidden)
   local theme_textures_dn = { "actionbar/abilityframe64_down.dds", "abilityframe64_down.dds" };
   local theme_gp_edge = { "miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", "gamepad/gp_tooltip_edge_semitrans_16.dds" };
   local theme_gp_center = { "miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", "gamepad/gp_tooltip_center_semitrans_16.dds" };
-  
+
   local backdrop = { "skillsadvisor/square_abilityframe64_doubleframe.dds", "abilityframe64_up.dds" };
   if darkui.SV.Icon == GetString(DARKUI_LIGHT) then
     theme = "light";
@@ -1192,7 +1192,7 @@ local function SetDarkUI(framesHidden)
 
     RedirectTexture(FAB_BD_CENTER, FAB_BD_CENTER);
     RedirectTexture(eso_root .. theme_gp_center[1], eso_root .. theme_gp_center[1]);
-  end
+  end;
 end;
 
 local function SetDefaultAbilityFrame()
@@ -1332,7 +1332,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               if not FancyActionBar.wasMoved then
                 FancyActionBar.ResetMoveActionBar();
                 FancyActionBar.RepositionHealthBar();
-              end
+              end;
             end;
           end;
           width = "half";
@@ -1340,14 +1340,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         {
           type = "checkbox";
           name = "Unlock Actionbar Position (Keyboard)";
-          default = unlocked,
-          disabled = function() return FancyActionBar.style == 2; end,
-          getFunc = function() return FancyActionBar.style == 1 and FancyActionBar.IsUnlocked(); end,
-          setFunc = function(value)
+          default = unlocked;
+          disabled = function () return FancyActionBar.style == 2; end;
+          getFunc = function () return FancyActionBar.style == 1 and FancyActionBar.IsUnlocked(); end;
+          setFunc = function (value)
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.ToggleMover(value);
             SetBarTheme(locked);
-          end,
+          end;
           width = "full";
         },
 
@@ -1395,16 +1395,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             if FancyActionBar.style == 2 then
               FancyActionBar.constants.abScale.scale = value;
               local _, locked = GetActiveWeaponPairInfo();
-              FancyActionBar.SetScale()
+              FancyActionBar.SetScale();
               FancyActionBar.ToggleMover(true);
               SetBarTheme(locked);
-              UpdateAzurahDb()
+              UpdateAzurahDb();
               FancyActionBar.ToggleMover(false);
               SetBarTheme(locked);
               if not FancyActionBar.wasMoved then
                 FancyActionBar.ResetMoveActionBar();
                 FancyActionBar.RepositionHealthBar();
-              end
+              end;
             end;
           end;
           width = "half";
@@ -1414,8 +1414,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           name = "Unlock Actionbar Position (Gamepad)";
           default = unlocked;
           disabled = function () return FancyActionBar.style == 1; end;
-          getFunc = function() return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked(); end,
-          setFunc = function (value) 
+          getFunc = function () return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked(); end;
+          setFunc = function (value)
             local _, locked = GetActiveWeaponPairInfo();
             FancyActionBar.ToggleMover(value);
             SetBarTheme(locked);
@@ -1897,13 +1897,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           width = "full";
         },
         {
-          type = "checkbox",
-          name = "Force enable gamepad Action Bar style",
+          type = "checkbox";
+          name = "Force enable gamepad Action Bar style";
           tooltip =
           "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessibility Mode. This setting force enables these additional UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.";
           default = defaults.forceGamepadStyle;
-          getFunc = function() return SV.forceGamepadStyle; end,
-          setFunc = function(value)
+          getFunc = function () return SV.forceGamepadStyle; end;
+          setFunc = function (value)
             SV.forceGamepadStyle = value or false;
             FancyActionBar.updateUI = true;
             FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle;
@@ -1916,7 +1916,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar);
             FancyActionBar.updateUI = false;
           end;
-          width = "full",
+          width = "full";
         },
         {
           type = "checkbox";
@@ -1946,16 +1946,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           width = "full";
         },
         {
-          type = "checkbox",
-          name = "Hide companion ultimate slot",
+          type = "checkbox";
+          name = "Hide companion ultimate slot";
           tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not.";
-          default = defaults.hideCompanionUlt,
-          getFunc = function() return SV.hideCompanionUlt; end,
-          setFunc = function(value)
+          default = defaults.hideCompanionUlt;
+          getFunc = function () return SV.hideCompanionUlt; end;
+          setFunc = function (value)
             SV.hideCompanionUlt = value or false;
             FancyActionBar.UpdateCompanionOverlayOnChange();
-          end,
-          width = "full",
+          end;
+          width = "full";
         },
         --=============[  OneBar Mode  ]==================
         {
@@ -3497,7 +3497,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                   max = 100;
                   step = 1;
                   default = defaults.ultFillFrameAlpha;
-                  getFunc = function () return SV.ultFillFrameAlpha * 100 ; end;
+                  getFunc = function () return SV.ultFillFrameAlpha * 100; end;
                   setFunc = function (value)
                     SV.ultFillFrameAlpha = value / 100;
                     if FancyActionBar.style == 2 then
@@ -4286,7 +4286,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               width = "half";
               default = defaults.durationMax;
             },
-   
+
             { type = "divider" },
             {
               type = "description";
@@ -4313,57 +4313,57 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             { type = "divider" },
             {
-              type = "editbox",
-              name = "Add to Blacklist",
+              type = "editbox";
+              name = "Add to Blacklist";
               tooltip =
-              "Enter the ID of the skill you dont want to track multiple target instances of.",
+              "Enter the ID of the skill you dont want to track multiple target instances of.";
               -- default = '',
-              getFunc = function() return GetMultiTargetSkillToBlacklistID(); end,
-              setFunc = function(value) SetMultiTargetSkillToBlacklistID(value); end,
-              reference = "MultiTargetSkillToBlacklistID_Editbox",
-              isMultiline = false,
-              isExtraWide = false,
-              width = "half",
+              getFunc = function () return GetMultiTargetSkillToBlacklistID(); end;
+              setFunc = function (value) SetMultiTargetSkillToBlacklistID(value); end;
+              reference = "MultiTargetSkillToBlacklistID_Editbox";
+              isMultiline = false;
+              isExtraWide = false;
+              width = "half";
             },
             {
-              type = "description",
-              title = "Selected Skill:",
-              text = function() return GetMultiTargetSkillToBlacklistName(); end,
-              width = "half",
-              reference = "MultiTargetSkillToBlacklistTitle",
+              type = "description";
+              title = "Selected Skill:";
+              text = function () return GetMultiTargetSkillToBlacklistName(); end;
+              width = "half";
+              reference = "MultiTargetSkillToBlacklistTitle";
             },
 
-            { type = "description", width = "half" },
+            { type = "description"; width = "half" },
 
             {
-              type = "button",
-              name = "Confirm Blacklist",
-              width = "half",
-              func = function() BlacklistMultiTargetId(); end,
-              disabled = function() return not CanBlacklistMultiTargetId(); end,
-              reference = "MultiTargetSkillToBlacklist_Button",
+              type = "button";
+              name = "Confirm Blacklist";
+              width = "half";
+              func = function () BlacklistMultiTargetId(); end;
+              disabled = function () return not CanBlacklistMultiTargetId(); end;
+              reference = "MultiTargetSkillToBlacklist_Button";
             },
 
-            { type = "description", width = "full" },
+            { type = "description"; width = "full" },
 
             {
-              type = "dropdown",
-              name = "Blacklisted IDs",
-              choices = GetBlacklistedMultiTargetSkills(),
-              getFunc = function() GetSelectedMultiTargetBlacklist(); end,
-              setFunc = function(value) SetSelectedMultiTargetBlacklist(value); end,
-              reference = "MultiTargetBlacklist_Dropdown",
+              type = "dropdown";
+              name = "Blacklisted IDs";
+              choices = GetBlacklistedMultiTargetSkills();
+              getFunc = function () GetSelectedMultiTargetBlacklist(); end;
+              setFunc = function (value) SetSelectedMultiTargetBlacklist(value); end;
+              reference = "MultiTargetBlacklist_Dropdown";
               -- default = '== Select a Skill ==',
-              width = "half",
+              width = "half";
             },
 
             {
-              type = "button",
-              name = "Remove From Blacklist",
-              width = "half",
-              func = function() ClearMultiTargetBlacklistId(); end,
+              type = "button";
+              name = "Remove From Blacklist";
+              width = "half";
+              func = function () ClearMultiTargetBlacklistId(); end;
               disabled = function () return not CanClearBlacklistMultiTargetId(); end;
-              reference = "MultiTargetBlacklistToClear_Button",
+              reference = "MultiTargetBlacklistToClear_Button";
             },
             { type = "divider" },
             {
@@ -4442,22 +4442,22 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
           width = "half";
         },
         {
-          type = "checkbox",
-          name = "Adjust Health Bar",
-          tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
-          default = defaults.moveHealthBar,
-          getFunc = function() return SV.moveHealthBar; end,
-          setFunc = function(value) 
-            SV.moveHealthBar = value or false
+          type = "checkbox";
+          name = "Adjust Health Bar";
+          tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.";
+          default = defaults.moveHealthBar;
+          getFunc = function () return SV.moveHealthBar; end;
+          setFunc = function (value)
+            SV.moveHealthBar = value or false;
             if not FancyActionBar.wasMoved then
               FancyActionBar.ResetMoveActionBar();
               FancyActionBar.RepositionHealthBar();
             end;
           end;
-          requiresReload = true,
-          width = "half",
+          requiresReload = true;
+          width = "half";
         },
-        { type = "description", text = "", width = "half" },
+        { type = "description"; text = ""; width = "half" },
 
         --============[	Enemy Markers	]=======================
         {
@@ -4614,7 +4614,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
   LAM:RegisterOptionControls(name, options);
 
----@diagnostic disable-next-line: redefined-local
+  ---@diagnostic disable-next-line: redefined-local
   CALLBACK_MANAGER:RegisterCallback("LAM-PanelOpened", function (panel)
     if panel == FAB_Panel then
       ACTION_BAR:SetHidden(false);
@@ -4628,7 +4628,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
       qsDisplayTime = 0;
     end;
   end);
----@diagnostic disable-next-line: redefined-local
+  ---@diagnostic disable-next-line: redefined-local
   CALLBACK_MANAGER:RegisterCallback("LAM-PanelClosed", function (panel)
     if panel ~= FAB_Panel then return; end;
     ACTION_BAR:SetHidden(true);
@@ -4637,7 +4637,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     qsDisplayTime = 0;
   end);
 
----@diagnostic disable-next-line: redefined-local
+  ---@diagnostic disable-next-line: redefined-local
   CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", function (panel)
     if panel == FAB_Panel then
       if not settingsPageCreated then

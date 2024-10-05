@@ -111,7 +111,7 @@ FancyActionBar.style = nil;                   -- Gamepad or Keyboard UI for comp
 
 FancyActionBar.qsOverlay = nil;               -- shortcut for.. reasons..
 
-FancyActionBar.updateUI = false;        -- don't change configuration if not needed
+FancyActionBar.updateUI = false;              -- don't change configuration if not needed
 FancyActionBar.useGamepadActionBar = false;   -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false;              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false;            -- don't register updates if already registered
@@ -1326,7 +1326,7 @@ function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksC
 end;
 
 function FancyActionBar.UpdateStacks(index) -- stacks label.
-local overlay;
+  local overlay;
   if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
     overlay = FancyActionBar.ultOverlays[index];
   else
@@ -1357,7 +1357,7 @@ local overlay;
 end;
 
 function FancyActionBar.UpdateTargets(index) -- targets label.
-local overlay;
+  local overlay;
   if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
     overlay = FancyActionBar.ultOverlays[index];
   else
@@ -2677,7 +2677,7 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
   end;
-  ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter()
+  ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter();
 end;
 
 --- Setup the buttons with the given style.
@@ -2712,7 +2712,7 @@ end;
 function FancyActionBar.SetupButtonText(button, weaponSwapControl, style, index)
   local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX);
   local barYOffset = SV.hideLockedBar and isWeaponSwapLocked and (style.dimensions + style.buttonTextOffsetY) / 3 or
-  style.buttonTextOffsetY + ((FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2);
+    style.buttonTextOffsetY + ((FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2);
   button.buttonText:ClearAnchors();
   button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), barYOffset);
   button.buttonText:SetHidden(not SV.showHotkeys);
