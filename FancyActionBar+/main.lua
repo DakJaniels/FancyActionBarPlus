@@ -123,6 +123,7 @@ FancyActionBar.weaponFront = WEAPONTYPE_NONE; -- for getting correct id's for de
 FancyActionBar.weaponBack = WEAPONTYPE_NONE;
 FancyActionBar.oakensoul = "/esoui/art/icons/u34_mythic_oakensoul_ring.dds";
 FancyActionBar.oakensoulEquipped = false;
+FancyActionBar.isWerewolf = false;
 
 FancyActionBar.durationMin = 4;
 FancyActionBar.durationMax = 99;
@@ -931,8 +932,9 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
   FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT));
   FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT));
   FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul);
-  if SV.hideLockedBar and FancyActionBar.oakensoulEquipped then
-    FancyActionBar.OnWeaponSwapLocked(true, isWeaponSwapLocked);
+  if SV.hideLockedBar then
+    local locked = (FancyActionBar.oakensoulEquipped or FancyActionBar.isWerewolf) and true or false;
+    FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar);
   end;
 end;
 
@@ -4186,6 +4188,7 @@ function FancyActionBar.Initialize()
   end);
 
   EM:RegisterForEvent(NAME, EVENT_WEREWOLF_STATE_CHANGED, function (_, value)
+    FancyActionBar.isWerewolf = value;
     if SV.hideLockedBar then
       FancyActionBar.OnWeaponSwapLocked(value, isWeaponSwapLocked);
     end;
