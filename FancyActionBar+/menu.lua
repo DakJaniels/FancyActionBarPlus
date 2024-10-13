@@ -610,22 +610,30 @@ local function GetChangedSkills()
   table.insert(skills, default);
 
   for id, cfg in pairs(changes) do
-    local craftedId = GetAbilityCraftedAbilityId(ability);
-    local str = GetAbilityName(id) .. " (";
+    local craftedId = GetAbilityCraftedAbilityId(id);
+    local str = GetAbilityName(id)
     if type(cfg) == "table" then
       if craftedId ~= 0 then
-        local a = cfg[1] or id;
-        str = str .. tostring(id) .. "=>" .. tostring(a) .. ")";
+        local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+        local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+        local scripts = tostring(" [" .. (GetCraftedAbilityScriptDisplayName(scripts[1]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[2]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[3]) or "?") .. "]");
+        if cfg[2] and cfg[2][scriptKey] then
+          local a = cfg[2][scriptKey][1];
+          str = str .. scripts .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")";
+        else
+          local a = cfg[1] or id;
+          str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")";
+        end;
       else
         local a = cfg[1] or id;
-        str = str .. tostring(id) .. "=>" .. tostring(a) .. ")"; 
+        str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")";
       end;
     elseif cfg == true then
-      str = str .. tostring(id) .. ")";
+      str = str .. " (" .. tostring(id) .. ")";
     elseif cfg == false then
-      str = str .. "Disabled)";
+      str = str .. " (Disabled)";
     else
-      str = str .. "Not Tracked)";
+      str = str .. " (Not Tracked)";
     end;
     changedSkillStrings[id] = str;
     changedSkillIds[str] = id;
