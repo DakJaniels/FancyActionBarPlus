@@ -1597,7 +1597,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       if abilityId == 81420 then -- guard slot id while active for all morphs
         if guardId > 0 then effectId = guardId; end;
       else
-        effectId = cfg[1] or (FancyActionBar.specialEffects[effectId] and FancyActionBar.specialEffects[effectId].id) or abilityId;
+        effectId = cfg[1] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
         if FancyActionBar.guard.ids[abilityId] then guardId = abilityId; end;
       end;
 
