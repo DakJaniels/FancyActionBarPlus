@@ -708,7 +708,7 @@ function FancyActionBar.OnlyUpdateEffectForUsedSkill(id)
 
 end;
 
-function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
+function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg, craftedId)
   local isToggled, noTarget = false, false;
 
   if FancyActionBar.toggled[id] then
@@ -725,7 +725,9 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
   local cI, rI = id, false;
 
   if type(cfg) == "table" then
-    if cfg[1] then cI = cfg[1]; end;
+    local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+    local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+    cI = craftedId ~= 0 and scriptKey ~= "0_0_0" and cfg[2] and cfg[2][scriptKey][1] or cfg[1];
   end;
 
   if FancyActionBar.removeInstantly[cI] then rI = true; end;
@@ -1585,7 +1587,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   if cfg == false and stackId == nil then ignore = true; end;
 
-  if cfg ~= nil or FancyActionBar.specialEffects[effectId] then
+  if cfg ~= nil or FancyActionBar.specialEffects[abilityId] then
     if ignore then
       effectId = abilityId;
       custom = true;
@@ -2028,6 +2030,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
   local parsedCustomConfig = {};
   for id, cfg in pairs(config) do
     local toggled, hide = false, false;
+    local craftedId = GetAbilityCraftedAbilityId(id);
     if customConfig[id] then
       cfg = customConfig[id];
       parsedCustomConfig[id] = true;
@@ -2044,7 +2047,13 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     local cI, rI = id, false;
 
     if type(cfg) == "table" then
-      if cfg[1] then cI = cfg[1]; end;
+      if craftedId ~= 0 then
+        local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+        local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+        cI = craftedId ~= 0 and cfg[2] and scriptKey ~= "0_0_0" and cfg[2][scriptKey] and cfg[2][scriptKey][1] or cfg[1];
+      else
+        if cfg[1] then cI = cfg[1]; end;
+      end;
     end;
 
     if FancyActionBar.removeInstantly[cI] then rI = true; end;
@@ -2064,6 +2073,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     if not parsedCustomConfig[id] then
       local toggled, hide = false, false;
       local cI, rI = id, false;
+      local craftedId = GetAbilityCraftedAbilityId(id);
 
       cfg = customConfig[id];
       if FancyActionBar.toggled[id] then
@@ -2072,8 +2082,15 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
       if FancyActionBar.removeInstantly[cI] then rI = true; end;
       if cfg == false then
         abilityConfig[id] = false;
-      elseif cfg and cfg[1] then
-        abilityConfig[id] = { cfg[1], true, toggled, rI };
+      elseif cfg and cfg[1] or cfg[2] then
+        if craftedId ~= 0 then
+          local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+          local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+          local cS = craftedId ~= 0 and cfg[2] and scriptKey ~= "0_0_0" and cfg[2][scriptKey] and cfg[2][scriptKey][1] or cfg[1];
+          abilityConfig[id] = { cS, true, toggled, rI };
+        else
+          abilityConfig[id] = { cfg[1], true, toggled, rI };
+        end;
       else
         abilityConfig[id] = nil;
       end;
@@ -2093,6 +2110,10 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
   --     FancyActionBar.toggles[id]   = false
   --   end
   -- end
+end;
+
+function FancyActionBar.DebugConfig(abilityId)
+  d(abilityConfig[abilityId]);
 end;
 
 --  ---------------------------------
