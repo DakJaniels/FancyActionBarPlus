@@ -709,7 +709,7 @@ function FancyActionBar.OnlyUpdateEffectForUsedSkill(id)
 
 end;
 
-function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg, craftedId)
+function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
   local isToggled, noTarget = false, false;
 
   if FancyActionBar.toggled[id] then
@@ -725,18 +725,12 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg, craftedId)
 
   local cI, rI = id, false;
 
-  if type(cfg) == "table" then
-    local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
-    local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
-    cI = craftedId ~= 0 and scriptKey ~= "0_0_0" and cfg[2] and cfg[2][scriptKey][1] or cfg[1];
-  end;
-
-  if FancyActionBar.removeInstantly[cI] then rI = true; end;
+  if FancyActionBar.removeInstantly[id] then rI = true; end;
 
   if type(cfg) == "table" then
-    abilityConfig[id] = { cI, true, isToggled, rI };
+    abilityConfig[id] = { cfg[1], cfg[2], isToggled, rI };
   elseif cfg then
-    abilityConfig[id] = { id, true, isToggled, rI };
+    abilityConfig[id] = { id, nil, isToggled, rI };
   elseif cfg == false then
     abilityConfig[id] = false;
   else
@@ -1599,13 +1593,20 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       if abilityId == 81420 then -- guard slot id while active for all morphs
         if guardId > 0 then effectId = guardId; end;
       else
-        effectId = cfg[1] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+        local craftedId = GetAbilityCraftedAbilityId(abilityId);
+        if craftedId ~= 0 then
+          local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+          local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+          effectId = (cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+        else
+          effectId = cfg[1] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+        end;
         if FancyActionBar.guard.ids[abilityId] then guardId = abilityId; end;
       end;
 
       custom = true;
-      toggled = cfg[3] or FancyActionBar.toggled[effectId] or false;
-      instantFade = cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
+      toggled = FancyActionBar.toggled[effectId] or cfg[3] or false;
+      instantFade = FancyActionBar.removeInstantly[effectId] or cfg[4] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
     end;
   else
@@ -2050,20 +2051,18 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 
     if type(cfg) == "table" then
       if craftedId ~= 0 then
-        local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
-        local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
-        cI = craftedId ~= 0 and cfg[2] and scriptKey ~= "0_0_0" and cfg[2][scriptKey] and cfg[2][scriptKey][1] or cfg[1];
-      else
-        if cfg[1] then cI = cfg[1]; end;
+        if cfg[1] and cfg[2] and not cfg[2]["0_0_0"] then
+          cfg[2]["0_0_0"] = cfg[1];
+        end
       end;
     end;
 
     if FancyActionBar.removeInstantly[cI] then rI = true; end;
 
     if type(cfg) == "table" then
-      abilityConfig[id] = { cI, true, toggled, rI };
+      abilityConfig[id] = { cfg[1], cfg[2], toggled, rI };
     elseif cfg then
-      abilityConfig[id] = { cI, true, toggled, rI };
+      abilityConfig[id] = { cfg[1], nil, toggled, rI };
     elseif cfg == false then
       abilityConfig[id] = false;
     else
@@ -2086,12 +2085,12 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
         abilityConfig[id] = false;
       elseif cfg and cfg[1] or cfg[2] then
         if craftedId ~= 0 then
-          local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
-          local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
-          local cS = craftedId ~= 0 and cfg[2] and scriptKey ~= "0_0_0" and cfg[2][scriptKey] and cfg[2][scriptKey][1] or cfg[1];
-          abilityConfig[id] = { cS, true, toggled, rI };
+          if cfg[1] and cfg[2] and not cfg[2]["0_0_0"] then
+            cfg[2]["0_0_0"] = cfg[1];
+          end;
+          abilityConfig[id] = { cfg[1], cfg[2], toggled, rI };
         else
-          abilityConfig[id] = { cfg[1], true, toggled, rI };
+          abilityConfig[id] = { cfg[1], nil, toggled, rI };
         end;
       else
         abilityConfig[id] = nil;
@@ -2115,7 +2114,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 end;
 
 function FancyActionBar.DebugConfig(abilityId)
-  d(abilityConfig[abilityId]);
+  return abilityConfig[abilityId];
 end;
 
 --  ---------------------------------
@@ -3144,7 +3143,16 @@ function FancyActionBar.IdentifyIndex(number, bar)
 end;
 
 function FancyActionBar.IdCheck(index, id)
-  if abilityConfig[id] and abilityConfig[id] == false then return false; end;
+  local craftedId = GetAbilityCraftedAbilityId(id);
+  if craftedId ~= 0 then
+    local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+    local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+    if abilityConfig[id] and ((abilityConfig[id] == false) or (abilityConfig[id][scriptKey] and abilityConfig[id][scriptKey][1] == false)) then return false; end;
+  else
+    if abilityConfig[id] and abilityConfig[id] == false then return false; end;
+  end;
+
+
   if slottedIds[index] ~= nil and slottedIds[index].ability ~= slottedIds[index].effect then
     if FancyActionBar.toggled[id] then return true; end;
     if FancyActionBar.specialEffects[id] then return true; end;
@@ -3703,6 +3711,7 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
+      local idCheck = FancyActionBar.IdCheck(index, id);
       if SV.forceGamepadStyle and n ~= ULT_INDEX then
         local btn = ZO_ActionBar_GetButton(n);
         if btn then
@@ -3710,12 +3719,12 @@ function FancyActionBar.Initialize()
           btn:PlayGlow();
         end;
       end;
-
-      if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (abilityConfig[id] and abilityConfig[id] == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
+      
+      if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (idCheck == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
         FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
       end;
 
-      if FancyActionBar.IdCheck(index, id) == false then
+      if idCheck == false then
         local E = FancyActionBar.effects[i];
         if E then
           if fakes[i] then activeFakes[i] = true; end;

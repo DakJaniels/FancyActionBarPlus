@@ -757,8 +757,9 @@ local function ResetUpdateSettings()
 end;
 
 local function UpdateEffectForAbility(track, ability, effect)
-  local config
-  local craftedId = GetAbilityCraftedAbilityId(ability);
+  local config, craftedId, scriptKey
+
+  craftedId = GetAbilityCraftedAbilityId(ability);
 
   if track == 0 then -- dont track this skill
     config = false;
@@ -773,7 +774,7 @@ local function UpdateEffectForAbility(track, ability, effect)
     config = customConfig[ability] or {};
    if craftedId ~= 0 then
       local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
-      local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+      scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
       if scriptKey ~= "0_0_0" then
         if not config[2] then
           config[2] = {};
@@ -781,10 +782,10 @@ local function UpdateEffectForAbility(track, ability, effect)
 
         config[2][scriptKey] = { effect };
       else
-        config[1] = { effect };
+        config[1] = effect ;
       end;
     else
-      config[1] = { effect };
+      config[1] = effect ;
     end;
   end;
 
@@ -806,7 +807,7 @@ local function UpdateEffectForAbility(track, ability, effect)
 
   ResetUpdateSettings();
 
-  FancyActionBar.EditCurrentAbilityConfiguration(ability, config, craftedId);
+  FancyActionBar.EditCurrentAbilityConfiguration(ability, config);
 end;
 
 local function IsChangePossible()
@@ -1008,7 +1009,7 @@ end;
 local function GetCurrentBackBarInfo()
   local list = "";
   for i = 3, 8 do
-    local id, isCraftedAbility, scripts = FancyActionBar.GetSlotBoundAbilityId(i, 1);
+    local id = FancyActionBar.GetSlotBoundAbilityId(i, 1);
     local craftedId = GetAbilityCraftedAbilityId(id);
     local line = "empty";
     local name = "";
