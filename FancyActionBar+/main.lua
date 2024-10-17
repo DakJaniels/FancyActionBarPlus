@@ -1597,16 +1597,16 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         if craftedId ~= 0 then
           local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
           local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
-          effectId = (cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+          effectId = (cfg and ((cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1])) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
         else
-          effectId = cfg[1] or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+          effectId = (cfg and cfg[1]) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
         end;
         if FancyActionBar.guard.ids[abilityId] then guardId = abilityId; end;
       end;
 
       custom = true;
-      toggled = FancyActionBar.toggled[effectId] or cfg[3] or false;
-      instantFade = FancyActionBar.removeInstantly[effectId] or cfg[4] or false;
+      toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or false;
+      instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
     end;
   else
@@ -2053,7 +2053,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
       if craftedId ~= 0 then
         if cfg[1] and cfg[2] and not cfg[2]["0_0_0"] then
           cfg[2]["0_0_0"] = cfg[1];
-        end
+        end;
       end;
     end;
 
@@ -3719,7 +3719,7 @@ function FancyActionBar.Initialize()
           btn:PlayGlow();
         end;
       end;
-      
+
       if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (idCheck == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
         FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
       end;

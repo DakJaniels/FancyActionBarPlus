@@ -611,7 +611,7 @@ local function GetChangedSkills()
 
   for id, cfg in pairs(changes) do
     local craftedId = GetAbilityCraftedAbilityId(id);
-    local str = GetAbilityName(id)
+    local str = GetAbilityName(id);
     if type(cfg) == "table" then
       if craftedId ~= 0 then
         local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
@@ -757,11 +757,12 @@ local function ResetUpdateSettings()
 end;
 
 local function UpdateEffectForAbility(track, ability, effect)
-  local config, craftedId, scriptKey
+  local config, craftedId, scriptKey;
 
   craftedId = GetAbilityCraftedAbilityId(ability);
 
-  if track == 0 then -- dont track this skill
+  -- These "track" options need to be updated to check if the ability is a crafted ability and then apply the effect to the correct scriptKey
+  if track == 0 then     -- dont track this skill
     config = false;
   elseif track == 1 then -- reset data for skill effect
     if FancyActionBar.abilityConfig[ability] then
@@ -772,7 +773,7 @@ local function UpdateEffectForAbility(track, ability, effect)
   elseif track == 2 then -- set new skill effect
     local customConfig = FancyActionBar.GetAbilityConfigChanges();
     config = customConfig[ability] or {};
-   if craftedId ~= 0 then
+    if craftedId ~= 0 then
       local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
       scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
       if scriptKey ~= "0_0_0" then
@@ -782,10 +783,10 @@ local function UpdateEffectForAbility(track, ability, effect)
 
         config[2][scriptKey] = { effect };
       else
-        config[1] = effect ;
+        config[1] = effect;
       end;
     else
-      config[1] = effect ;
+      config[1] = effect;
     end;
   end;
 
@@ -978,10 +979,10 @@ local function GetCurrentFrontBarInfo()
     local name = "";
 
     if craftedId ~= 0 then
-        -- if FancyActionBar.destroSkills[id] then
-        --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
-        --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
-        -- else
+      -- if FancyActionBar.destroSkills[id] then
+      --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
+      --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
+      -- else
       name = GetAbilityName(id);
       local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
       local priScript = GetCraftedAbilityScriptDisplayName(scripts[1]);
