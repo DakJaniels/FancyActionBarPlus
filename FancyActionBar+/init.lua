@@ -59,7 +59,9 @@ FancyActionBar.defaultSettings =
   showTargetCount = true;
   showSingleTargetInstance = false;
   ignoreTrapPlacement = false;
-
+  showSoonestExpire = false;
+  ignoreUngroupedAliies = false;
+  
   -- general
   lockInTrade = true;
   staticBars = true;
@@ -83,7 +85,7 @@ FancyActionBar.defaultSettings =
   barXOffsetGP = 0;
   barYOffsetGP = 0;
   moveHealthBar = true;
-  showSoonestExpire = false;
+
   -- back bar visibility
   alphaInactive = 20;
   desaturationInactive = 50;

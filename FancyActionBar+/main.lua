@@ -3879,6 +3879,10 @@ function FancyActionBar.Initialize()
       end;
 
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
+        if SV.ignoreUngroupedAliies then
+          if (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
+        end;
+
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
           _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
@@ -4625,7 +4629,6 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.barXOffsetGP == nil then SV.barXOffsetGP = d.barXOffsetGP; end;
     if SV.barYOffsetGP == nil then SV.barYOffsetGP = d.barYOffsetGP; end;
     if SV.moveHealthBar == nil then SV.moveHealthBar = d.moveHealthBar; end;
-    if SV.showSoonestExpire == nil then SV.showSoonestExpire = d.showSoonestExpire; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;
     if SV.frameColor == nil then SV.frameColor = d.frameColor; end;
     if SV.showMarker == nil then SV.showMarker = d.showMarker; end;
@@ -4652,6 +4655,8 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultFillFrameAlpha == nil then SV.ultFillFrameAlpha = d.ultFillFrameAlpha; end;
     if SV.ultFillBarAlpha == nil then SV.ultFillBarAlpha = d.ultFillBarAlpha; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
+    if SV.showSoonestExpire == nil then SV.showSoonestExpire = d.showSoonestExpire; end;
+    if SV.ignoreUngroupedAliies == nil then SV.ignoreUngroupedAliies = d.ignoreUngroupedAliies; end;
     if SV.hideLockedBar == nil then SV.hideLockedBar = d.hideLockedBar; end;
     if SV.repositionActiveBar == nil then SV.repositionActiveBar = d.repositionActiveBar; end;
     if SV.hideCompanionUlt == nil then SV.hideCompanionUlt = d.hideCompanionUlt; end;
