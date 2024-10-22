@@ -1248,12 +1248,23 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
       hasDuration = false;
     end;
   elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
-    duration = effect.endTime - currentTime;
+    if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and (not effect.isDebuff) then
+      local targetData = FancyActionBar.targets[effect.id] or {};
+      local targetEndTime;
+      for unitId, timeData in pairs(targetData.times) do
+        if not targetEndTime or timeData.endTime < targetEndTime then
+          targetEndTime = timeData.endTime;
+        end;
+      end;
+      duration = (targetEndTime and (targetEndTime > currentTime) and (targetEndTime - currentTime)) or (effect.endTime - currentTime);
+    else
+      duration = effect.endTime - currentTime;
+    end;
   else
     effect.endTime = -1;
     hasDuration = false;
   end;
-
+  
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
     local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
@@ -4614,6 +4625,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.barXOffsetGP == nil then SV.barXOffsetGP = d.barXOffsetGP; end;
     if SV.barYOffsetGP == nil then SV.barYOffsetGP = d.barYOffsetGP; end;
     if SV.moveHealthBar == nil then SV.moveHealthBar = d.moveHealthBar; end;
+    if SV.showSoonestExpire == nil then SV.showSoonestExpire = d.showSoonestExpire; end;
     if SV.showFrames == nil then SV.showFrames = d.showFrames; end;
     if SV.frameColor == nil then SV.frameColor = d.frameColor; end;
     if SV.showMarker == nil then SV.showMarker = d.showMarker; end;

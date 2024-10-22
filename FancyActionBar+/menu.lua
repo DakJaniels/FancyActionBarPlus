@@ -4459,6 +4459,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.ignoreTrapPlacement; end;
               setFunc = function (value) SV.ignoreTrapPlacement = value or false; end;
             },
+            {
+              type = "checkbox";
+              name = "Show Timer For Soonest Expiring Target";
+              tooltip = "By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.";
+              default = defaults.showSoonestExpire;
+              getFunc = function () return SV.showSoonestExpire; end;
+              setFunc = function (value) SV.showSoonestExpire = value or false; end;
+            },
           };
         },
       };
