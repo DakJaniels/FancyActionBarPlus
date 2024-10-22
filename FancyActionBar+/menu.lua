@@ -4470,7 +4470,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             {
               type = "checkbox";
               name = "Ignore Ungrouped Allies";
-              tooltip = "By default FAB will track buffs applied to all allied players. With this setting enabled only buffs applied to group memmbers will be tracked.";
+              tooltip = "By default all buffs applied to allies are tracked. With this setting enabled only buffs applied to group members will be tracked.";
               default = defaults.ignoreUngroupedAliies;
               getFunc = function () return SV.ignoreUngroupedAliies; end;
               setFunc = function (value) SV.ignoreUngroupedAliies = value or false; end;
