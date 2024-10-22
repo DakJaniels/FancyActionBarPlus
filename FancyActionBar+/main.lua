@@ -3879,7 +3879,7 @@ function FancyActionBar.Initialize()
       end;
 
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-        if SV.ignoreUngroupedAliies then
+        if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
           if (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
         end;
 
