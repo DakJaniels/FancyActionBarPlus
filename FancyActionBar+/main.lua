@@ -3878,10 +3878,12 @@ function FancyActionBar.Initialize()
         end;
       end;
 
+      if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
+        if abilityType ~= GROUND_EFFECT and (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
+
+      end;
+
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-        if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
-          if (unitTag ~= "") and (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
-        end;
 
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
