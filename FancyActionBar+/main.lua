@@ -1248,7 +1248,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
       hasDuration = false;
     end;
   elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
-    if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and (not effect.isDebuff) then
+    if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and (not effect.isDebuff) then
       local targetData = FancyActionBar.targets[effect.id] or {};
       local targetEndTime;
       for unitId, timeData in pairs(targetData.times) do
@@ -3880,7 +3880,7 @@ function FancyActionBar.Initialize()
 
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
         if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
-          if (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
+          if (unitTag ~= "") and (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
         end;
 
         if FancyActionBar.stackableBuff[abilityId] then
