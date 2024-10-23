@@ -619,14 +619,14 @@ local function GetChangedSkills()
         local scripts = tostring(" [" .. (GetCraftedAbilityScriptDisplayName(scripts[1]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[2]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[3]) or "?") .. "]");
         if cfg[2] and cfg[2][scriptKey] then
           local a = cfg[2][scriptKey][1];
-          str = str .. scripts .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")";
+          str = str .. scripts .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
         else
           local a = cfg[1] or id;
-          str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")";
+          str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
         end;
       else
         local a = cfg[1] or id;
-        str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")";
+        str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
       end;
     elseif cfg == true then
       str = str .. " (" .. tostring(id) .. ")";
@@ -988,7 +988,7 @@ local function GetCurrentFrontBarInfo()
       local priScript = GetCraftedAbilityScriptDisplayName(scripts[1]);
       local secScript = GetCraftedAbilityScriptDisplayName(scripts[2]);
       local terScript = GetCraftedAbilityScriptDisplayName(scripts[3]);
-      line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. "\n  " .. secScript .. "\n  " .. terScript;
+      line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. scripts[1] or 0 .. ")" .. "\n  " .. secScript .. " (" .. scripts[2] or 0 .. ")" .. "\n  " .. terScript .. " (" .. scripts[3] or 0 .. ")";
       -- end;
     else
       if id > 0 then
@@ -1026,7 +1026,7 @@ local function GetCurrentBackBarInfo()
         local priScript = GetCraftedAbilityScriptDisplayName(scripts[1]);
         local secScript = GetCraftedAbilityScriptDisplayName(scripts[2]);
         local terScript = GetCraftedAbilityScriptDisplayName(scripts[3]);
-        line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. "\n  " .. secScript .. "\n  " .. terScript;
+        line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. scripts[1] or 0 .. ")" .. "\n  " .. secScript .. " (" .. scripts[2] or 0 .. ")" .. "\n  " .. terScript .. " (" .. scripts[3] or 0 .. ")";
         -- end;
       end;
     else
@@ -4470,7 +4470,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             {
               type = "checkbox";
               name = "Ignore Ungrouped Allies";
-              tooltip = "By default all buffs applied to allies are tracked. With this setting enabled only buffs applied to group members will be tracked.";
+              tooltip = "By default all buffs applied to allies are tracked. With this setting enabled, while you are in a group only buffs applied to group members will be tracked.";
               default = defaults.ignoreUngroupedAliies;
               getFunc = function () return SV.ignoreUngroupedAliies; end;
               setFunc = function (value) SV.ignoreUngroupedAliies = value or false; end;
