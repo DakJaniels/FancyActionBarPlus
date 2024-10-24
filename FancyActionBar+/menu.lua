@@ -985,10 +985,10 @@ local function GetCurrentFrontBarInfo()
       -- else
       name = GetAbilityName(id);
       local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
-      local priScript = GetCraftedAbilityScriptDisplayName(scripts[1]);
-      local secScript = GetCraftedAbilityScriptDisplayName(scripts[2]);
-      local terScript = GetCraftedAbilityScriptDisplayName(scripts[3]);
-      line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. scripts[1] or 0 .. ")" .. "\n  " .. secScript .. " (" .. scripts[2] or 0 .. ")" .. "\n  " .. terScript .. " (" .. scripts[3] or 0 .. ")";
+      local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or "";
+      local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or "";
+      local terScript = (scripts[3] and scripts[3] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[3]) or "";
+      line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. tostring(scripts[1]) .. ")" .. "\n  " .. secScript .. " (" .. tostring(scripts[2]) .. ")" .. "\n  " .. terScript .. " (" .. tostring(scripts[3]) .. ")";
       -- end;
     else
       if id > 0 then
