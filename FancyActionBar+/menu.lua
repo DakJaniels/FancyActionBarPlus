@@ -610,16 +610,30 @@ local function GetChangedSkills()
   table.insert(skills, default);
 
   for id, cfg in pairs(changes) do
-    local str = GetAbilityName(id) .. " (";
+    local craftedId = GetAbilityCraftedAbilityId(id);
+    local str = GetAbilityName(id);
     if type(cfg) == "table" then
-      local a = cfg[1] or id;
-      str = str .. tostring(id) .. "=>" .. tostring(a) .. ")";
+      if craftedId ~= 0 then
+        local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+        local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+        local scripts = tostring(" [" .. (GetCraftedAbilityScriptDisplayName(scripts[1]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[2]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[3]) or "?") .. "]");
+        if cfg[2] and cfg[2][scriptKey] then
+          local a = cfg[2][scriptKey][1];
+          str = str .. scripts .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
+        else
+          local a = cfg[1] or id;
+          str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
+        end;
+      else
+        local a = cfg[1] or id;
+        str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
+      end;
     elseif cfg == true then
-      str = str .. tostring(id) .. ")";
+      str = str .. " (" .. tostring(id) .. ")";
     elseif cfg == false then
-      str = str .. "Disabled)";
+      str = str .. " (Disabled)";
     else
-      str = str .. "Not Tracked)";
+      str = str .. " (Not Tracked)";
     end;
     changedSkillStrings[id] = str;
     changedSkillIds[str] = id;
@@ -743,8 +757,11 @@ local function ResetUpdateSettings()
 end;
 
 local function UpdateEffectForAbility(track, ability, effect)
-  local config;
+  local config, craftedId, scriptKey;
 
+  craftedId = GetAbilityCraftedAbilityId(ability);
+
+  -- These "track" options need to be updated to check if the ability is a crafted ability and then apply the effect to the correct scriptKey
   if track == 0 then     -- dont track this skill
     config = false;
   elseif track == 1 then -- reset data for skill effect
@@ -754,7 +771,23 @@ local function UpdateEffectForAbility(track, ability, effect)
       --   config = {}
     end;
   elseif track == 2 then -- set new skill effect
-    config = { effect };
+    local customConfig = FancyActionBar.GetAbilityConfigChanges();
+    config = customConfig[ability] or {};
+    if craftedId ~= 0 then
+      local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+      scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+      if scriptKey ~= "0_0_0" then
+        if not config[2] then
+          config[2] = {};
+        end;
+
+        config[2][scriptKey] = { effect };
+      else
+        config[1] = effect;
+      end;
+    else
+      config[1] = effect;
+    end;
   end;
 
   if not CV.useAccountWide then
@@ -941,16 +974,31 @@ local function GetCurrentFrontBarInfo()
 
   for i = 3, 8 do
     local id = FancyActionBar.GetSlotBoundAbilityId(i, 0);
+    local craftedId = GetAbilityCraftedAbilityId(id);
     local line = "empty";
     local name = "";
 
-    if id > 0 then
-      if FancyActionBar.destroSkills[id] then
-        name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
-        line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
-      else
-        name = GetAbilityName(id);
-        line = "|cffa31a" .. name .. "|r (" .. id .. ")";
+    if craftedId ~= 0 then
+      -- if FancyActionBar.destroSkills[id] then
+      --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
+      --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
+      -- else
+      name = GetAbilityName(id);
+      local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+      local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or "";
+      local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or "";
+      local terScript = (scripts[3] and scripts[3] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[3]) or "";
+      line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. tostring(scripts[1]) .. ")" .. "\n  " .. secScript .. " (" .. tostring(scripts[2]) .. ")" .. "\n  " .. terScript .. " (" .. tostring(scripts[3]) .. ")";
+      -- end;
+    else
+      if id > 0 then
+        if FancyActionBar.destroSkills[id] then
+          name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
+          line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
+        else
+          name = GetAbilityName(id);
+          line = "|cffa31a" .. name .. "|r (" .. id .. ")";
+        end;
       end;
     end;
 
@@ -961,22 +1009,37 @@ end;
 
 local function GetCurrentBackBarInfo()
   local list = "";
-
   for i = 3, 8 do
     local id = FancyActionBar.GetSlotBoundAbilityId(i, 1);
+    local craftedId = GetAbilityCraftedAbilityId(id);
     local line = "empty";
     local name = "";
 
-    if id > 0 then
-      if FancyActionBar.destroSkills[id] then
-        name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 1));
-        line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 1) .. ")";
-      else
+    if craftedId ~= 0 then
+      if id > 0 then
+        -- if FancyActionBar.destroSkills[id] then
+        --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 1));
+        --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 1) .. ")";
+        -- else
         name = GetAbilityName(id);
-        line = "|cffa31a" .. name .. "|r (" .. id .. ")";
+        local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+        local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or "";
+        local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or "";
+        local terScript = (scripts[3] and scripts[3] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[3]) or "";
+        line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. tostring(scripts[1]) .. ")" .. "\n  " .. secScript .. " (" .. tostring(scripts[2]) .. ")" .. "\n  " .. terScript .. " (" .. tostring(scripts[3]) .. ")";
+        -- end;
+      end;
+    else
+      if id > 0 then
+        if FancyActionBar.destroSkills[id] then
+          name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 1));
+          line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 1) .. ")";
+        else
+          name = GetAbilityName(id);
+          line = "|cffa31a" .. name .. "|r (" .. id .. ")";
+        end;
       end;
     end;
-
     list = list .. "\n" .. line;
   end;
   return list;
@@ -4395,6 +4458,22 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               default = defaults.ignoreTrapPlacement;
               getFunc = function () return SV.ignoreTrapPlacement; end;
               setFunc = function (value) SV.ignoreTrapPlacement = value or false; end;
+            },
+            {
+              type = "checkbox";
+              name = "Show Timer For Soonest Expiring Target";
+              tooltip = "By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.";
+              default = defaults.showSoonestExpire;
+              getFunc = function () return SV.showSoonestExpire; end;
+              setFunc = function (value) SV.showSoonestExpire = value or false; end;
+            },
+            {
+              type = "checkbox";
+              name = "Ignore Ungrouped Allies";
+              tooltip = "By default all buffs applied to allies are tracked. With this setting enabled, while you are in a group only buffs applied to group members will be tracked.";
+              default = defaults.ignoreUngroupedAliies;
+              getFunc = function () return SV.ignoreUngroupedAliies; end;
+              setFunc = function (value) SV.ignoreUngroupedAliies = value or false; end;
             },
           };
         },
