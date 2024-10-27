@@ -1578,6 +1578,10 @@ FancyActionBar.stackableBuff =
 
   -- Radiating Regen
   [40079] = 40079;
+
+  -- -- Grand Rejuvenation
+  -- [40080] = 40080; -- This is incompatible with showing stacks for Healing Springs Mag Recovey [40062] in stackMap
+
 };
 
 FancyActionBar.confirmBuffFade =
