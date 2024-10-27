@@ -1526,6 +1526,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     WINDOW_MANAGER:GetControlByName("FAB_AB_Toggle").button:SetText(l);
   end;
 
+  local function SetDevsUISettings()
+    for k, v in pairs(FancyActionBar.devConfig) do
+      SV[k] = v;
+    end
+    ReloadUI("ingame");
+  end;
+
   local options =
   {
     {
@@ -1534,7 +1541,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
       tooltip = "Only applies while in this settings menu.";
       func = function () ToggleActionBarInMenu(ACTION_BAR:IsHidden()); end;
       width = "full";
-      reference = "FAB_AB_Toggle";
+    },
+
+    {
+      type = "button";
+      name = "Dev's UI Settings";
+      tooltip = "Configures a number of non-default options to the developer's preferred configuration.";
+      func = function () SetDevsUISettings(); end;
+      width = "full";
+      reference = "FAB_DEV_UI";
+      warning = "Will reload the UI.";
     },
 
     --===========[	Actionbar Scaling	]===================
