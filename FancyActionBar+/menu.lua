@@ -135,7 +135,11 @@ local function IsValidId(id)
   ---@type string|number?
   local abilityId;
   if type(id) == "string" then
-    abilityId = tonumber(id);
+    local extractedAbilityId, extractedScriptKey = id:match("^(%d+)%-(.+)$");
+    if not extractedAbilityId then
+      extractedAbilityId = id:match("^(%d+)$");
+    end;
+    abilityId = tonumber(extractedAbilityId);
   elseif type(id) == "number" then
     abilityId = id;
   end;
@@ -559,17 +563,42 @@ end
 ----------------------------------------------
 -----------[   Ability Config   ]-------------
 ----------------------------------------------
-local function GetTrackedEffectForAbility(id)
+local function GetTrackedEffectForAbility(id, scriptKey)
   local effect = nil;
+  local scribedEffect = nil;
   local cfg = FancyActionBar.GetAbilityConfig();
   local cstcgf = FancyActionBar.GetAbilityConfigChanges();
   local name = "";
 
   if cstcgf[id] or cfg[id] then
-    effect = cstcgf[id] or cfg[id];
+    if cstcgf[id] ~= nil then
+      effect = cstcgf[id];
+    elseif cfg[id] ~= nil then
+      effect = cfg[id];
+    else
+      effect = id;
+    end;
     if type(effect) == "table" then
-      local a = effect[1] or id;
-      name = GetAbilityName(a) .. " (" .. a .. ")";
+      if scriptKey and (cstcgf[id] and cstcgf[id][2] and cstcgf[id][2][scriptKey]) or (cfg[id] and cfg[id][2] and cfg[id][2][scriptKey]) then
+        scribedEffect = cstcgf[id][2][scriptKey] or cfg[id][2][scriptKey];
+        if type(scribedEffect) == "table" then
+          local a = scribedEffect[1] or id;
+          name = GetAbilityName(a) .. " (" .. a .. ")";
+        elseif scribedEffect == true then
+          name = GetAbilityName(id) .. " (" .. id .. ")";
+        elseif scribedEffect == false then
+          name = "Disabled";
+        else
+          name = "Not Tracked";
+        end;
+      else
+        local a = effect[1] ~= nil and effect[1] or id;
+        if a == false then
+          name = "Disabled";
+        else
+          name = GetAbilityName(a) .. " (" .. a .. ")";
+        end;
+      end;
     elseif effect == true then
       name = GetAbilityName(id) .. " (" .. id .. ")";
     elseif effect == false then
@@ -614,61 +643,131 @@ local function GetChangedSkills()
     local str = GetAbilityName(id);
     if type(cfg) == "table" then
       if craftedId ~= 0 then
-        local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
-        local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
-        local scripts = tostring(" [" .. (GetCraftedAbilityScriptDisplayName(scripts[1]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[2]) or "?") .. "/" .. (GetCraftedAbilityScriptDisplayName(scripts[3]) or "?") .. "]");
-        if cfg[2] and cfg[2][scriptKey] then
-          local a = cfg[2][scriptKey][1];
-          str = str .. scripts .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
-        else
-          local a = cfg[1] or id;
-          str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
+        local craftedAbilityDisplayName = GetCraftedAbilityDisplayName(craftedId);
+        if cfg[1] ~= nil then -- Parsing for Fallback IDs
+          if cfg[1] == true then
+            str = str .. " (" .. tostring(id) .. ")";
+          elseif cfg[1] == false then
+            str = str .. " (Disabled)";
+          else
+            str = craftedAbilityDisplayName .. " (" .. tostring(id) .. "=>" .. tostring(cfg[1]) .. ")" .. " " .. GetAbilityName(cfg[1]);
+          end;
+          changedSkillStrings[id] = str;
+          changedSkillIds[str] = id;
+          table.insert(skills, str);
+        end;
+        if cfg[2] then
+          for scriptKey, effect in pairs(cfg[2]) do
+            local scribedId = tostring(id) .. "-" .. tostring(scriptKey);
+            local scripts = { scriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+            local scriptsStr = tostring(" [" ..
+              (GetCraftedAbilityScriptDisplayName(scripts[1]) or "?") ..
+              "/" ..
+              (GetCraftedAbilityScriptDisplayName(scripts[2]) or "?") ..
+              "/" .. (GetCraftedAbilityScriptDisplayName(scripts[3]) or "?") .. "]");
+            local scribedStr = craftedAbilityDisplayName .. scriptsStr;
+            if type(effect) == "table" then
+              local a = effect[1];
+              SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), scripts[1], scripts[2], scripts[3]);
+              local suffixStr = " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
+              scribedStr = scribedStr .. suffixStr;
+              ResetCraftedAbilityScriptSelectionOverride();
+            elseif effect == true then
+              scribedStr = scribedStr .. " (" .. tostring(id) .. ")";
+            elseif effect == false then
+              scribedStr = scribedStr .. " (Disabled)";
+            else
+              scribedStr = scribedStr .. " (Not Tracked)";
+            end;
+            changedSkillStrings[scribedId] = scribedStr;
+            changedSkillIds[scribedStr] = scribedId;
+            table.insert(skills, scribedStr);
+          end;
         end;
       else
         local a = cfg[1] or id;
         str = str .. " (" .. tostring(id) .. "=>" .. tostring(a) .. ")" .. " " .. GetAbilityName(a);
+        changedSkillStrings[id] = str;
+        changedSkillIds[str] = id;
+        table.insert(skills, str);
       end;
-    elseif cfg == true then
-      str = str .. " (" .. tostring(id) .. ")";
-    elseif cfg == false then
-      str = str .. " (Disabled)";
     else
-      str = str .. " (Not Tracked)";
+      if cfg == true then
+        str = str .. " (" .. tostring(id) .. ")";
+      elseif cfg == false then
+        str = str .. " (Disabled)";
+      else
+        str = str .. " (Not Tracked)";
+      end;
+      changedSkillStrings[id] = str;
+      changedSkillIds[str] = id;
+      table.insert(skills, str);
     end;
-    changedSkillStrings[id] = str;
-    changedSkillIds[str] = id;
-    table.insert(skills, str);
   end;
   return skills;
 end;
 
 local function GetSkillToEditID()
   local id = "";
-  if skillToEditID > 0 then
+  if IsValidId(skillToEditID) then
     id = tostring(skillToEditID);
   end;
   return id;
 end;
 
-local function GetSkillToEditName()
+local function GetSkillToEditName() -- Not Working Properly?
   local name = "";
-  if skillToEditID > 0 then
-    name = "|cffa31a" .. GetAbilityName(skillToEditID) .. "|r: " .. GetTrackedEffectForAbility(skillToEditID);
+  local craftedId;
+  local scripts = {};
+  if IsValidId(skillToEditID) then
+    local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
+    if not extractedAbilityId then
+      extractedAbilityId = skillToEditID:match("^(%d+)$");
+    end;
+    extractedAbilityId = tonumber(extractedAbilityId);
+    if extractedAbilityId and extractedScriptKey then
+      craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+      scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+      SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
+      name = "|cffa31a" .. GetAbilityName(extractedAbilityId) .. "|r: " .. GetTrackedEffectForAbility(extractedAbilityId, extractedScriptKey);
+      ResetCraftedAbilityScriptSelectionOverride();
+    else
+      name = "|cffa31a" .. GetAbilityName(extractedAbilityId) .. "|r: " .. GetTrackedEffectForAbility(extractedAbilityId);
+    end;
   end;
   return name;
 end;
 
 local function GetEffectToTrackName()
   local name = "";
-  if effectToTrackID > 0 then
-    name = "|cffa31a" .. GetAbilityName(effectToTrackID) .. "|r";
+  local nameString = "";
+  if IsValidId(effectToTrackID) then
+    if IsValidId(skillToEditID) then
+      local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
+      if not extractedAbilityId then
+        extractedAbilityId = skillToEditID:match("^(%d+)$");
+      end;
+      extractedAbilityId = tonumber(extractedAbilityId);
+      if extractedAbilityId and extractedScriptKey then
+        local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+        local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+        SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
+        name = GetAbilityName(effectToTrackID);
+        ResetCraftedAbilityScriptSelectionOverride();
+      else
+        name = GetAbilityName(effectToTrackID);
+      end;
+    else
+      name = GetAbilityName(effectToTrackID);
+    end;
+    nameString = "|cffa31a" .. name .. "|r";
   end;
-  return name;
+  return nameString;
 end;
 
 local function GetEffectToTrackID()
   local id = "";
-  if effectToTrackID > 0 then
+  if IsValidId(effectToTrackID) then
     id = tostring(effectToTrackID);
   end;
   return id;
@@ -676,7 +775,7 @@ end;
 
 local function GetSelectedChangedSkill()
   local skill = "== Select a Skill ==";
-  if selectedChangedSkill > 0 then
+  if IsValidId(selectedChangedSkill) then
     if changedSkillStrings[selectedChangedSkill] then
       skill = changedSkillStrings[selectedChangedSkill];
     end;
@@ -696,13 +795,53 @@ local function SetSkillToEditID(id)
   end;
 
   local i = nil;
-  if tonumber(id) then
-    i = tonumber(id);
-    skillToEditID = i;
-    skillToEditName = GetAbilityName(skillToEditID);
+
+  local extractedAbilityId, extractedScriptKey = id:match("^(%d+)%-(.+)$");
+  if not extractedAbilityId then
+    extractedAbilityId = id:match("^(%d+)$");
+  end;
+  if tonumber(extractedAbilityId) then
+    i = tonumber(extractedAbilityId);
+    skillToEditName = GetAbilityName(i);
+    local craftedId = GetAbilityCraftedAbilityId(i);
+    if craftedId ~= 0 then
+      local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+      SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
+      local scriptKey = tostring(scripts[1]) .. "_" .. tostring(scripts[2]) .. "_" .. tostring(scripts[3]);
+      local scriptsStr = tostring(" [" ..
+        (GetCraftedAbilityScriptDisplayName(tonumber(scripts[1]))) ..
+        "/" ..
+        (GetCraftedAbilityScriptDisplayName(tonumber(scripts[2]))) ..
+        "/" .. (GetCraftedAbilityScriptDisplayName(tonumber(scripts[3]))) .. "]");
+      skillToEditID = (extractedScriptKey and (extractedAbilityId .. "-" .. scriptKey)) or extractedAbilityId;
+      skillToEditName = GetCraftedAbilityDisplayName(craftedId) .. " " .. scriptsStr;
+      ResetCraftedAbilityScriptSelectionOverride();
+    else
+      skillToEditID = extractedAbilityId;
+    end;
     FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")");
     WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName);
   end;
+end;
+
+
+if IsValidId(skillToEditID) then
+  local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
+  if not extractedAbilityId then
+    extractedAbilityId = skillToEditID:match("^(%d+)$");
+  end;
+  extractedAbilityId = tonumber(extractedAbilityId);
+  if extractedAbilityId and extractedScriptKey then
+    local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+    local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+    SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
+    name = GetAbilityName(effectToTrackID);
+    ResetCraftedAbilityScriptSelectionOverride();
+  else
+    name = GetAbilityName(effectToTrackID);
+  end;
+else
+  name = GetAbilityName(effectToTrackID);
 end;
 
 local function SetEffectToTrackID(id)
@@ -720,7 +859,26 @@ local function SetEffectToTrackID(id)
   if tonumber(id) then
     i = tonumber(id);
     effectToTrackID = i;
-    effectToTrackName = GetAbilityName(effectToTrackID);
+
+    if IsValidId(skillToEditID) then
+      local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
+      if not extractedAbilityId then
+        extractedAbilityId = skillToEditID:match("^(%d+)$");
+      end;
+      extractedAbilityId = tonumber(extractedAbilityId);
+      if extractedAbilityId and extractedScriptKey then
+        local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+        local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+        SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
+        effectToTrackName = GetAbilityName(effectToTrackID);
+        ResetCraftedAbilityScriptSelectionOverride();
+      else
+        effectToTrackName = GetAbilityName(effectToTrackID);
+      end;
+    else
+      effectToTrackName = GetAbilityName(effectToTrackID);
+    end;
+
     FancyActionBar:dbg("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")");
     WM:GetControlByName("EffectToTrackTitle").desc:SetText(effectToTrackName);
   end;
@@ -758,23 +916,52 @@ end;
 
 local function UpdateEffectForAbility(track, ability, effect)
   local config, craftedId, scriptKey;
-
-  craftedId = GetAbilityCraftedAbilityId(ability);
+  local extractedAbilityId, extractedScriptKey = ability:match("^(%d+)%-(.+)$");
+  local hadScriptKey = extractedScriptKey ~= nil;
+  if not extractedAbilityId then
+    extractedAbilityId = ability:match("^(%d+)$");
+  end;
+  extractedAbilityId = tonumber(extractedAbilityId);
+  craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
 
   -- These "track" options need to be updated to check if the ability is a crafted ability and then apply the effect to the correct scriptKey
-  if track == 0 then     -- dont track this skill
-    config = false;
-  elseif track == 1 then -- reset data for skill effect
-    if FancyActionBar.abilityConfig[ability] then
-      config = FancyActionBar.abilityConfig[ability];
-      -- else
+  if track == 0 then -- UNTESTED
+    if craftedId ~= 0 then
+      local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+      scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+      if hadScriptKey and scriptKey ~= "0_0_0" then
+        config = { [2] = { [scriptKey] = false } };
+      else
+        config = { [1] = false };
+      end;
+    else
+      config = { [1] = false };
+    end;
+  elseif track == 1 then -- reset data for skill effect, not working properly?
+    local customConfig = FancyActionBar.GetAbilityConfigChanges();
+    local defaultConfig = FancyActionBar.abilityConfig[extractedAbilityId];
+    config = customConfig[extractedAbilityId] or defaultConfig and defaultConfig[extractedAbilityId] or {};
+    if craftedId ~= 0 then
+      local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+      scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+      if hadScriptKey and scriptKey ~= "0_0_0" then
+        if defaultConfig and defaultConfig[2] and defaultConfig[2][scriptKey] then -- this logic is wrong?
+          config[2][scriptKey] = defaultConfig[2][scriptKey];
+        else
+          config[2][scriptKey] = nil;
+        end;
+      else
+        config[1] = defaultConfig and defaultConfig[1] or nil;
+      end;
+    else
+      config[1] = defaultConfig and defaultConfig[1] or nil;
       --   config = {}
     end;
   elseif track == 2 then -- set new skill effect
     local customConfig = FancyActionBar.GetAbilityConfigChanges();
-    config = customConfig[ability] or {};
+    config = customConfig[extractedAbilityId] or {};
     if craftedId ~= 0 then
-      local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+      local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
       scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
       if scriptKey ~= "0_0_0" then
         if not config[2] then
@@ -791,24 +978,14 @@ local function UpdateEffectForAbility(track, ability, effect)
   end;
 
   if not CV.useAccountWide then
-    CV.configChanges[ability] = config or FancyActionBar.abilityConfig[ability];
-    if track == 1 then
-      CV.configChanges[ability] = nil;
-    else
-      CV.configChanges[ability] = config;
-    end;
+    CV.configChanges[extractedAbilityId] = config;
   else
-    SV.configChanges[ability] = config or FancyActionBar.abilityConfig[ability];
-    if track == 1 then
-      SV.configChanges[ability] = nil;
-    else
-      SV.configChanges[ability] = config;
-    end;
+    SV.configChanges[extractedAbilityId] = config;
   end;
 
   ResetUpdateSettings();
 
-  FancyActionBar.EditCurrentAbilityConfiguration(ability, config);
+  FancyActionBar.EditCurrentAbilityConfiguration(extractedAbilityId, config);
 end;
 
 local function IsChangePossible()
@@ -821,36 +998,65 @@ end;
 
 local function FormatSkillUpdateMessage()
   local newEffect = 0;
+  local newEffectName = "";
+  local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
+  if not extractedAbilityId then
+    extractedAbilityId = skillToEditID:match("^(%d+)$");
+  end;
+  extractedAbilityId = tonumber(extractedAbilityId);
+
+  local craftedId, scripts;
+  craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+
+  if craftedId then
+    scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+    SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
+    skilltoEditId = extractedAbilityId .. "-" .. scripts[1] .. "_" .. scripts[2] .. "_" .. scripts[3];
+    skillToEditName = GetCraftedAbilityDisplayName(craftedId) .. " [" .. GetCraftedAbilityScriptDisplayName(scripts[1]) .. "/" .. GetCraftedAbilityScriptDisplayName(scripts[2]) .. "/" .. GetCraftedAbilityScriptDisplayName(scripts[3]) .. "]";
+  end;
+
   if skillEditType > 0 then
     if skillEditType == 1 then
-      local old = FancyActionBar.abilityConfig[skillToEditID];
+      local old = FancyActionBar.abilityConfig[extractedAbilityId];
       if old ~= nil then
         if old ~= false then
-          if type(old) == "table"
-          then
-            newEffect = old[1] or skillToEditID;
+          if type(old) == "table" then
+            if extractedScriptKey and old[2] and old[2][extractedScriptKey] then
+              newEffect = old[2][extractedScriptKey][1];
+              newEffectName = (tonumber(newEffect) and tonumber(newEffect) > 0) and GetAbilityName(newEffect) or "";
+              ResetCraftedAbilityScriptSelectionOverride();
+            else
+              newEffect = old[1] or extractedAbilityId;
+              newEffectName = (tonumber(newEffect) and tonumber(newEffect) > 0) and GetAbilityName(newEffect) or "";
+            end;
           else
-            newEffect = skillToEditID;
+            newEffect = extractedAbilityId;
+            newEffectName = (tonumber(newEffect) and tonumber(newEffect) > 0) and GetAbilityName(newEffect) or "";
           end;
         end;
       else
-        if GetAbilityDuration(skillToEditID) > 0 then
-          newEffect = skillToEditID;
+        if GetAbilityDuration(extractedAbilityId) > 0 then
+          newEffect = extractedAbilityId;
+          newEffectName = (tonumber(newEffect) and tonumber(newEffect) > 0) and GetAbilityName(newEffect) or "";
         end;
       end;
     elseif skillEditType == 2 then
       newEffect = effectToTrackID;
+      newEffectName = (tonumber(newEffect) and tonumber(newEffect) > 0) and GetAbilityName(newEffect) or "";
     end;
   end;
 
   local message = "";
 
-  if newEffect > 0
-  then
-    message = zo_strformat("Updating |cffa31a<<1>>|r (|cffffff<<2>>|r) effect to: |cffa31a<<3>>|r (|cffffff<<4>>|r)", skillToEditName, skillToEditID, GetAbilityName(newEffect), newEffect);
+  if tonumber(newEffect) > 0 then
+    message = zo_strformat("Updating |cffa31a<<1>>|r (|cffffff<<2>>|r) effect to: |cffa31a<<3>>|r (|cffffff<<4>>|r)", skillToEditName, skillToEditID, newEffectName, newEffect);
   else
     message = zo_strformat("Tracking of |cffa31a<<1>>|r is now disabled.", skillToEditName);
   end;
+  if craftedId then
+    ResetCraftedAbilityScriptSelectionOverride();
+  end;
+
   return message;
 end;
 
@@ -983,7 +1189,7 @@ local function GetCurrentFrontBarInfo()
       --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
       --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
       -- else
-      name = GetAbilityName(id);
+      name = GetCraftedAbilityDisplayName(craftedId);
       local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
       local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or "";
       local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or "";
@@ -1021,7 +1227,7 @@ local function GetCurrentBackBarInfo()
         --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 1));
         --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 1) .. ")";
         -- else
-        name = GetAbilityName(id);
+        name = GetCraftedAbilityDisplayName(craftedId);
         local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
         local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or "";
         local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or "";
@@ -4007,7 +4213,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return CV.useAccountWide; end;
               setFunc = function (value) CV.useAccountWide = value or false; end;
               requiresReload = true;
-              width = "half";
+              width = "full";
             },
 
             { type = "divider" },
