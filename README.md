@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.8.7
+## User Guide and Menu Option Documentation for v2.9.0
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -230,6 +230,8 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 * Show Stack Counter (default: ON) - Show stack count for abilities that can have multiple stacks, or can stack multiple times. 
 * Show Cast/Channel Times on Action Slots (default: ON) – If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled. Abilities must have a cast or channel time longer than 1 second for this timer to display.
 * Ignore Initial Trap Placement (default: OFF) - By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT.
+* Show Timer For Soonest Expiring Target (default: OFF) - By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.
+* Ignore Ungrouped Allies (default: OFF) - By default FAB will track buffs applied to all allied players. With this setting enabled only buffs applied to group members will be tracked. If you are not grouped this setting will be ignored and buffs will be tracked on all players.
 
 ### MISCELLANEOUS
 

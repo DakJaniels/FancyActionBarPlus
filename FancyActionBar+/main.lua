@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.8.8";
+local VERSION = "2.9.0";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -725,16 +725,12 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
 
   local cI, rI = id, false;
 
-  if type(cfg) == "table" then
-    if cfg[1] then cI = cfg[1]; end;
-  end;
-
-  if FancyActionBar.removeInstantly[cI] then rI = true; end;
+  if FancyActionBar.removeInstantly[id] then rI = true; end;
 
   if type(cfg) == "table" then
-    abilityConfig[id] = { cI, true, isToggled, rI };
+    abilityConfig[id] = { cfg[1], cfg[2], isToggled, rI };
   elseif cfg then
-    abilityConfig[id] = { id, true, isToggled, rI };
+    abilityConfig[id] = { id, nil, isToggled, rI };
   elseif cfg == false then
     abilityConfig[id] = false;
   else
@@ -1252,12 +1248,23 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
       hasDuration = false;
     end;
   elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
-    duration = effect.endTime - currentTime;
+    if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and (not (SV.advancedDebuff and effect.isDebuff)) then
+      local targetData = FancyActionBar.targets[effect.id] or {};
+      local targetEndTime;
+      for unitId, timeData in pairs(targetData.times) do
+        if not targetEndTime or timeData.endTime < targetEndTime then
+          targetEndTime = timeData.endTime;
+        end;
+      end;
+      duration = (targetEndTime and (targetEndTime > currentTime) and (targetEndTime - currentTime)) or (effect.endTime - currentTime);
+    else
+      duration = effect.endTime - currentTime;
+    end;
   else
     effect.endTime = -1;
     hasDuration = false;
   end;
-
+  
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
     local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
@@ -1587,7 +1594,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   if cfg == false and stackId == nil then ignore = true; end;
 
-  if cfg ~= nil or FancyActionBar.specialEffects[effectId] then
+  if cfg ~= nil or FancyActionBar.specialEffects[abilityId] then
     if ignore then
       effectId = abilityId;
       custom = true;
@@ -1597,13 +1604,20 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       if abilityId == 81420 then -- guard slot id while active for all morphs
         if guardId > 0 then effectId = guardId; end;
       else
-        effectId = cfg[1] or (FancyActionBar.specialEffects[effectId] and FancyActionBar.specialEffects[effectId].id) or abilityId;
+        local craftedId = GetAbilityCraftedAbilityId(abilityId);
+        if craftedId ~= 0 then
+          local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+          local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+          effectId = (cfg and ((cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1])) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+        else
+          effectId = (cfg and cfg[1]) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+        end;
         if FancyActionBar.guard.ids[abilityId] then guardId = abilityId; end;
       end;
 
       custom = true;
-      toggled = cfg[3] or FancyActionBar.toggled[effectId] or false;
-      instantFade = cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
+      toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or false;
+      instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
     end;
   else
@@ -2030,6 +2044,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
   local parsedCustomConfig = {};
   for id, cfg in pairs(config) do
     local toggled, hide = false, false;
+    local craftedId = GetAbilityCraftedAbilityId(id);
     if customConfig[id] then
       cfg = customConfig[id];
       parsedCustomConfig[id] = true;
@@ -2046,15 +2061,19 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     local cI, rI = id, false;
 
     if type(cfg) == "table" then
-      if cfg[1] then cI = cfg[1]; end;
+      if craftedId ~= 0 then
+        if cfg[1] and cfg[2] and not cfg[2]["0_0_0"] then
+          cfg[2]["0_0_0"] = cfg[1];
+        end;
+      end;
     end;
 
     if FancyActionBar.removeInstantly[cI] then rI = true; end;
 
     if type(cfg) == "table" then
-      abilityConfig[id] = { cI, true, toggled, rI };
+      abilityConfig[id] = { cfg[1], cfg[2], toggled, rI };
     elseif cfg then
-      abilityConfig[id] = { cI, true, toggled, rI };
+      abilityConfig[id] = { cfg[1], nil, toggled, rI };
     elseif cfg == false then
       abilityConfig[id] = false;
     else
@@ -2066,6 +2085,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     if not parsedCustomConfig[id] then
       local toggled, hide = false, false;
       local cI, rI = id, false;
+      local craftedId = GetAbilityCraftedAbilityId(id);
 
       cfg = customConfig[id];
       if FancyActionBar.toggled[id] then
@@ -2074,8 +2094,15 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
       if FancyActionBar.removeInstantly[cI] then rI = true; end;
       if cfg == false then
         abilityConfig[id] = false;
-      elseif cfg and cfg[1] then
-        abilityConfig[id] = { cfg[1], true, toggled, rI };
+      elseif cfg and cfg[1] or cfg[2] then
+        if craftedId ~= 0 then
+          if cfg[1] and cfg[2] and not cfg[2]["0_0_0"] then
+            cfg[2]["0_0_0"] = cfg[1];
+          end;
+          abilityConfig[id] = { cfg[1], cfg[2], toggled, rI };
+        else
+          abilityConfig[id] = { cfg[1], nil, toggled, rI };
+        end;
       else
         abilityConfig[id] = nil;
       end;
@@ -2095,6 +2122,10 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
   --     FancyActionBar.toggles[id]   = false
   --   end
   -- end
+end;
+
+function FancyActionBar.DebugConfig(abilityId)
+  return abilityConfig[abilityId];
 end;
 
 --  ---------------------------------
@@ -3123,7 +3154,16 @@ function FancyActionBar.IdentifyIndex(number, bar)
 end;
 
 function FancyActionBar.IdCheck(index, id)
-  if abilityConfig[id] and abilityConfig[id] == false then return false; end;
+  local craftedId = GetAbilityCraftedAbilityId(id);
+  if craftedId ~= 0 then
+    local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
+    local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
+    if abilityConfig[id] and ((abilityConfig[id] == false) or (abilityConfig[id][scriptKey] and abilityConfig[id][scriptKey][1] == false)) then return false; end;
+  else
+    if abilityConfig[id] and abilityConfig[id] == false then return false; end;
+  end;
+
+
   if slottedIds[index] ~= nil and slottedIds[index].ability ~= slottedIds[index].effect then
     if FancyActionBar.toggled[id] then return true; end;
     if FancyActionBar.specialEffects[id] then return true; end;
@@ -3682,6 +3722,7 @@ function FancyActionBar.Initialize()
       -- local effect = FancyActionBar.effects[id]
       local i = FancyActionBar.GetSlottedEffect(index);
       -- lastButton = index
+      local idCheck = FancyActionBar.IdCheck(index, id);
       if SV.forceGamepadStyle and n ~= ULT_INDEX then
         local btn = ZO_ActionBar_GetButton(n);
         if btn then
@@ -3690,11 +3731,11 @@ function FancyActionBar.Initialize()
         end;
       end;
 
-      if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (abilityConfig[id] and abilityConfig[id] == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
+      if (i and FancyActionBar.activeCasts[i] == nil and not FancyActionBar.ignore[id]) and not (idCheck == false) then -- track when the skill was used and ignore other events for it that is lower than the GCD
         FancyActionBar.activeCasts[i] = { slot = index; cast = t; begin = 0; fade = 0 };
       end;
 
-      if FancyActionBar.IdCheck(index, id) == false then
+      if idCheck == false then
         local E = FancyActionBar.effects[i];
         if E then
           if fakes[i] then activeFakes[i] = true; end;
@@ -3837,7 +3878,13 @@ function FancyActionBar.Initialize()
         end;
       end;
 
+      if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
+        if abilityType ~= GROUND_EFFECT and (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
+
+      end;
+
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
+
         if FancyActionBar.stackableBuff[abilityId] then
           local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
           _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
@@ -4610,6 +4657,8 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.ultFillFrameAlpha == nil then SV.ultFillFrameAlpha = d.ultFillFrameAlpha; end;
     if SV.ultFillBarAlpha == nil then SV.ultFillBarAlpha = d.ultFillBarAlpha; end;
     if SV.ignoreTrapPlacement == nil then SV.ignoreTrapPlacement = d.ignoreTrapPlacement; end;
+    if SV.showSoonestExpire == nil then SV.showSoonestExpire = d.showSoonestExpire; end;
+    if SV.ignoreUngroupedAliies == nil then SV.ignoreUngroupedAliies = d.ignoreUngroupedAliies; end;
     if SV.hideLockedBar == nil then SV.hideLockedBar = d.hideLockedBar; end;
     if SV.repositionActiveBar == nil then SV.repositionActiveBar = d.repositionActiveBar; end;
     if SV.hideCompanionUlt == nil then SV.hideCompanionUlt = d.hideCompanionUlt; end;
