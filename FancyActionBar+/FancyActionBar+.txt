@@ -1,6 +1,6 @@
 ## Title: FancyActionBar+
 ## Version: 2.9.0
-## APIVersion: 101042
+## APIVersion: 101044
 ## AddOnVersion: 290
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
