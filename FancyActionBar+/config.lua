@@ -396,8 +396,6 @@ FancyActionBar.abilityConfig =
   [25255] = { 25256 };                       -- veiled strike (off-balance)
   [25267] = { 34739 };                       -- concealed weapon
   [25260] = { 34733 };                       -- surprise attack (off-balance)
-  [25375] = { 25376 };                       -- shadow cloak
-  [25380] = { 25381 };                       -- shadowy disguise
   [25352] = { 147643 };                      -- aspect of terror
   [37470] = { 147643 };                      -- mass hysteria
   [37475] = {};                              -- manifestation of terror
@@ -1316,7 +1314,8 @@ FancyActionBar.toggled =
   [24804] = true; -- Power Overload
 
   -- Nightblade
-  --[25380] = true; --Shadowy Disguise
+  [25375] = true, -- Shadow Cloak
+  [25380] = true, -- Shadowy Disguise
 };
 
 FancyActionBar.graveLordSacrifice =
