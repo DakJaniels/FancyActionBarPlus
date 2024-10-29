@@ -95,6 +95,7 @@ FancyActionBar.stackIds = {};       -- stack id tables for each effectId
 FancyActionBar.targets = {};        -- ability id => current active target table
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
 ---@type table<integer, boolean>
+FancyActionBar.sourceAbilities = {}
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
 FancyActionBar.debuffs = {};        -- effects for debuffs to update if they are active on target
 FancyActionBar.stashedEffects = {}; -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
@@ -793,6 +794,7 @@ end;
 
 --- Retrieves or creates an effect based on the given parameters.
 --- @param id integer The unique identifier for the effect.
+--- @param sourceAbility table The table of ids that can create the given effect
 --- @param stackId table The table of ids that can contribute stacks to the effect stack coutner
 --- @param config boolean Optional flag to determine if a new effect should be created if it doesn't exist.
 --- @param custom any Custom data associated with the effect.
@@ -803,7 +805,8 @@ end;
 --- @param isChanneled boolean Flag to indicate if the effect is channeled.
 --- @param effectChanged boolean  Flag to indicate if the effect is changed.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged)
+function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, ignore, instantFade, dontFade,
+                                  isChanneled, effectChanged)
   ---@alias effect table
   local effect = FancyActionBar.effects[id] or {};
 
@@ -822,9 +825,14 @@ function FancyActionBar.GetEffect(id, stackId, config, custom, toggled, ignore, 
     effect.isChanneled = isChanneled;
   end;
 
-  -- Portions of the effect table that should always be updated
+    -- Portions of the effect table that should always be updated
+  local sourceAbilites = effect.sourceAbilites or {}
+  for k, v in pairs(sourceAbility) do
+    sourceAbilites[k] = v;
+  end
+  effect.sourceAbilites = sourceAbilites or {};
+  
   effect.stackId = stackId;
-
   if effectChanged or not FancyActionBar.effects[id] and config then
     FancyActionBar.effects[id] = effect;
   end;
@@ -1228,7 +1236,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
 
     if effect and not effect.ignore and effect.id > 0 then
       FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
-        allowStacks, IsSlotToggled((index > SLOT_INDEX_OFFSET) and (index - SLOT_INDEX_OFFSET) or index, index > SLOT_INDEX_OFFSET and 1 or 0));
+        allowStacks, FancyActionBar.toggles[effect.id]);
     else
       FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl);
     end;
@@ -1236,7 +1244,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
 end;
 
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled)
-  if effect.toggled or effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
+  if --[[effect.toggled or]] effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
 
   local currentTime = time();
 
@@ -1545,7 +1553,6 @@ function FancyActionBar.UpdateToggledAbility(id, active) -- toggled effect highl
   if not FancyActionBar.toggles[effect.id] then FancyActionBar.toggles[effect.id] = false; end;
 
   FancyActionBar.toggles[effect.id] = active;
-
   if effect.slot1 then FancyActionBar.UpdateHighlight(effect.slot1); end;
   if effect.slot2 then FancyActionBar.UpdateHighlight(effect.slot2); end;
 end;
@@ -1578,9 +1585,10 @@ function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
   end;
 
   if overlay then
+    FancyActionBar.sourceAbilities[overlay.effect.sourceAbilites[index]] = nil
     overlay.effect = nil;
     FancyActionBar.ResetOverlayDuration(overlay);
-  end;
+    end;
 end;
 
 function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag, effectChanged) -- assign effect and instructions to overlay index.
@@ -1598,6 +1606,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   if not overlay then return; end;
 
   local effectId, stackId, duration, custom, toggled, passive, instantFade, dontFade;
+  local sourceAbility = {};
 
   local cfg = abilityConfig[abilityId];
   local ignore = false;
@@ -1610,6 +1619,8 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       custom = true;
       toggled = false;
       instantFade = FancyActionBar.removeInstantly[effectId] or false;
+      sourceAbility[index] = abilityId;
+      FancyActionBar.sourceAbilities[abilityId] = effectId;
     else
       if abilityId == 81420 then -- guard slot id while active for all morphs
         if guardId > 0 then effectId = guardId; end;
@@ -1624,11 +1635,12 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         end;
         if FancyActionBar.guard.ids[abilityId] then guardId = abilityId; end;
       end;
-
       custom = true;
-      toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or false;
+      toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or FancyActionBar.toggled[abilityId] or false;
       instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
+      sourceAbility[index] = abilityId;
+      FancyActionBar.sourceAbilities[abilityId] = effectId;
     end;
   else
     effectId = abilityId;
@@ -1636,8 +1648,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     toggled = FancyActionBar.toggled[effectId] or false;
     instantFade = FancyActionBar.removeInstantly[effectId] or false;
     dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
+    sourceAbility[index] = abilityId;
+    FancyActionBar.sourceAbilities[abilityId] = effectId;
   end;
-
+  
   FancyActionBar.SetSlottedEffect(index, abilityId, effectId);
 
   if (toggled == false and ignore == false)
@@ -1673,7 +1687,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   stackId = #effectStackId > 0 and effectStackId or #abilityStackId > 0 and abilityStackId or {};
 
-  local effect = FancyActionBar.GetEffect(effectId, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
 
 
   if not ignore then
@@ -3857,16 +3871,15 @@ function FancyActionBar.Initialize()
         return;
       end;
     end;
+
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
-      if effect.toggled then -- update the highlight of toggled abilities.
-        if change == EFFECT_RESULT_FADED
-        then
-          FancyActionBar.UpdateToggledAbility(abilityId, false);
+      if FancyActionBar.toggled[abilityId] and FancyActionBar.sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+        if change == EFFECT_RESULT_FADED then
+          FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = false;
         else
-          FancyActionBar.UpdateToggledAbility(abilityId, true);
+          FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = true;
         end;
-        return;
       end;
 
       if (effectType == DEBUFF) or useSpecialDebuffTracking then -- if the ability is a debuff, check settings and handle accordingly.

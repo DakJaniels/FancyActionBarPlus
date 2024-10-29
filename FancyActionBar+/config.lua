@@ -1316,8 +1316,8 @@ FancyActionBar.toggled =
   [24804] = true; -- Power Overload
 
   -- Nightblade
-  -- [25375] = true, -- Shadow Cloak
-  -- [25380] = true, -- Shadowy Disguise
+  [25375] = true, -- Shadow Cloak
+  [25380] = true, -- Shadowy Disguise
 };
 
 FancyActionBar.graveLordSacrifice =
