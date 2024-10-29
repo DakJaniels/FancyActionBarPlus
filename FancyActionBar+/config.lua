@@ -1318,6 +1318,56 @@ FancyActionBar.toggled =
   -- Nightblade
   [25375] = true, -- Shadow Cloak
   [25380] = true, -- Shadowy Disguise
+
+    -- Banner Bearer
+  [217699] = true; -- Banner Bearer
+  [217704] = true, -- Sundering Banner
+  [217705] = true, -- Magical Banner
+  [217706] = true, -- Shocking Banner
+  [227003] = true, -- Fiery Banner
+  [227004] = true, -- Shattering Banner
+  [227007] = true, -- Restorative Banner
+  [227008] = true, -- Fortifying Banner
+  [227009] = true, -- Binding Banner
+  [227029] = true, -- Binding Banner
+  [227030] = true, -- Bannerman
+  [227066] = true, -- Remedying Banner
+  [227067] = true, -- Resurgent Banner
+  [227069] = true, -- Defensive Banner
+  [227070] = true, -- Defensive Banner
+  [227071] = true, -- Swift Banner
+  [227073] = true, -- Defiant Banner
+  [227082] = true, -- Charging Banner
+  [227085] = true, -- Banner Bearer
+  [227086] = true, -- Dragonknight's Banner
+  [227087] = true, -- Dragonknight's Banner
+  [227088] = true, -- Dragonknight's Banner
+  [227089] = true, -- Dragonknight's Banner
+  [227091] = true, -- Templar's Banner
+  [227092] = true, -- Templar's Banner
+  [227093] = true, -- Sorcerer's Banner
+  [227094] = true, -- Warden's Banner
+  [227095] = true, -- Sorcerer's Banner
+  [227096] = true, -- Sorcerer's Banner
+  [227101] = true, -- Nightblade's Banner
+  [227102] = true, -- Nightblade's Banner
+  [227103] = true, -- Nightblade's Banner
+  [227104] = true, -- Nightblade's Banner
+  [227106] = true, -- Warden's Banner
+  [227107] = true, -- Warden's Banner
+  [227108] = true, -- Warden's Banner
+  [227109] = true, -- Warden's Banner
+  [227110] = true, -- Necromancer's Banner
+  [227111] = true, -- Necromancer's Banner
+  [227112] = true, -- Necromancer's Banner
+  [227113] = true, -- Necromancer's Banner
+  [227115] = true, -- Necromancer's Banner
+  [227116] = true, -- Arcanist's Banner
+  [227120] = true, -- Bannerman
+  [227600] = true, -- Banner Bearer
+  [230289] = true, -- Banner Bearer
+  [230293] = true, -- Charging Banner
+  [231753] = true, -- Sorcerer's Banner
 };
 
 FancyActionBar.graveLordSacrifice =
