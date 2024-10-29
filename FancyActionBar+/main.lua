@@ -1801,6 +1801,15 @@ function FancyActionBar.EffectCheck()
       doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true;
       if hasEffect then
         effect.endTime = checkTime + duration;
+        if FancyActionBar.toggled[id] and FancyActionBar.sourceAbilities[id] then -- update the highlight of toggled abilities.
+          FancyActionBar.toggles[FancyActionBar.sourceAbilities[id]] = hasEffect;
+        elseif FancyActionBar.bannerBearer[id] then
+          for k, v in pairs(FancyActionBar.bannerBearer[id]) do
+            if FancyActionBar.sourceAbilities[k] then
+              FancyActionBar.toggles[FancyActionBar.sourceAbilities[id]] = hasEffect;
+            end;
+          end;
+        end;
       end;
       FancyActionBar.stacks[effect.id] = stacks;
       for i = 1, #effect.stackId do
@@ -1855,7 +1864,15 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
       end;
     end;
   end;
-
+  if FancyActionBar.toggled[effect.id] and FancyActionBar.sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
+    FancyActionBar.toggles[FancyActionBar.sourceAbilities[effect.id]] = hasEffect;
+  elseif FancyActionBar.bannerBearer[effect.id] then
+    for k, v in pairs(FancyActionBar.bannerBearer[effect.id]) do
+      if FancyActionBar.sourceAbilities[k] then
+        FancyActionBar.toggles[FancyActionBar.sourceAbilities[effect.id]] = hasEffect;
+      end;
+    end;
+  end;
   UpdateEffect(effect);
   HandleStackUpdate(effect.id);
 end;
@@ -3875,10 +3892,12 @@ function FancyActionBar.Initialize()
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
       if FancyActionBar.toggled[abilityId] and FancyActionBar.sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-        if change == EFFECT_RESULT_FADED then
-          FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = false;
-        else
-          FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = true;
+        FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
+      elseif FancyActionBar.bannerBearer[abilityId] then
+        for k, v in pairs(FancyActionBar.bannerBearer[abilityId]) do
+          if FancyActionBar.sourceAbilities[k] then
+            FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
+          end;
         end;
       end;
 
