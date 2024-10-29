@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.0";
+local VERSION = "2.9.1";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -4263,7 +4263,7 @@ function FancyActionBar.Initialize()
     if initial then
       zo_callLater(function ()
         FancyActionBar.ApplyActiveHotbarStyle();
-      end, 500);
+      end, 750);
     end;
   end;
 

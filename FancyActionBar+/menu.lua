@@ -717,7 +717,6 @@ end;
 
 local function GetSkillToEditName() -- Not Working Properly?
   local name = "";
-  local craftedId;
   local scripts = {};
   if IsValidId(skillToEditID) then
     local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
@@ -725,8 +724,8 @@ local function GetSkillToEditName() -- Not Working Properly?
       extractedAbilityId = skillToEditID:match("^(%d+)$");
     end;
     extractedAbilityId = tonumber(extractedAbilityId);
-    if extractedAbilityId and extractedScriptKey then
-      craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+    local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+    if extractedAbilityId and (craftedId ~= 0) and extractedScriptKey then
       scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
       SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
       name = "|cffa31a" .. GetAbilityName(extractedAbilityId) .. "|r: " .. GetTrackedEffectForAbility(extractedAbilityId, extractedScriptKey);
@@ -748,8 +747,8 @@ local function GetEffectToTrackName()
         extractedAbilityId = skillToEditID:match("^(%d+)$");
       end;
       extractedAbilityId = tonumber(extractedAbilityId);
-      if extractedAbilityId and extractedScriptKey then
-        local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+      local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+      if extractedAbilityId and (craftedId ~= 0) and extractedScriptKey then
         local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
         SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
         name = GetAbilityName(effectToTrackID);
@@ -831,8 +830,8 @@ if IsValidId(skillToEditID) then
     extractedAbilityId = skillToEditID:match("^(%d+)$");
   end;
   extractedAbilityId = tonumber(extractedAbilityId);
-  if extractedAbilityId and extractedScriptKey then
-    local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+  local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+  if extractedAbilityId and (craftedId ~= 0) and extractedScriptKey then
     local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
     SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
     name = GetAbilityName(effectToTrackID);
@@ -866,8 +865,8 @@ local function SetEffectToTrackID(id)
         extractedAbilityId = skillToEditID:match("^(%d+)$");
       end;
       extractedAbilityId = tonumber(extractedAbilityId);
-      if extractedAbilityId and extractedScriptKey then
-        local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+      local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+      if extractedAbilityId and (craftedId ~= 0) and extractedScriptKey then
         local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
         SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
         effectToTrackName = GetAbilityName(effectToTrackID);
@@ -939,22 +938,20 @@ local function UpdateEffectForAbility(track, ability, effect)
     end;
   elseif track == 1 then -- reset data for skill effect, not working properly?
     local customConfig = FancyActionBar.GetAbilityConfigChanges();
-    local defaultConfig = FancyActionBar.abilityConfig[extractedAbilityId];
-    config = customConfig[extractedAbilityId] or defaultConfig and defaultConfig[extractedAbilityId] or {};
+    config = customConfig[extractedAbilityId];
     if craftedId ~= 0 then
       local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
       scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
       if hadScriptKey and scriptKey ~= "0_0_0" then
-        if defaultConfig and defaultConfig[2] and defaultConfig[2][scriptKey] then -- this logic is wrong?
-          config[2][scriptKey] = defaultConfig[2][scriptKey];
-        else
-          config[2][scriptKey] = nil;
-        end;
+        config[2][scriptKey] = nil;
+        if next(config[2]) == nil then config[2] = nil; end;
+        if next(config) == nil then config = nil; end;
       else
-        config[1] = defaultConfig and defaultConfig[1] or nil;
+        config[1] = nil;
+        if next(config) == nil then config = nil; end;
       end;
     else
-      config[1] = defaultConfig and defaultConfig[1] or nil;
+      config = nil;
       --   config = {}
     end;
   elseif track == 2 then -- set new skill effect
@@ -1005,11 +1002,10 @@ local function FormatSkillUpdateMessage()
   end;
   extractedAbilityId = tonumber(extractedAbilityId);
 
-  local craftedId, scripts;
-  craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
+  local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
 
-  if craftedId then
-    scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
+  if craftedId ~= 0 then
+    local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
     SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
     skilltoEditId = extractedAbilityId .. "-" .. scripts[1] .. "_" .. scripts[2] .. "_" .. scripts[3];
     skillToEditName = GetCraftedAbilityDisplayName(craftedId) .. " [" .. GetCraftedAbilityScriptDisplayName(scripts[1]) .. "/" .. GetCraftedAbilityScriptDisplayName(scripts[2]) .. "/" .. GetCraftedAbilityScriptDisplayName(scripts[3]) .. "]";
