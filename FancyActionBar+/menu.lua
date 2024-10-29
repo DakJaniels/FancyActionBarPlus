@@ -982,7 +982,9 @@ local function UpdateEffectForAbility(track, ability, effect)
 
   ResetUpdateSettings();
 
-  FancyActionBar.EditCurrentAbilityConfiguration(extractedAbilityId, config);
+  --FancyActionBar.EditCurrentAbilityConfiguration(extractedAbilityId, config); -- Needs to be rewritten
+  FancyActionBar.BuildAbilityConfig(); -- Workaround until the above is rewritten
+  FancyActionBar.SlotEffects();        -- Workaround until the above is rewritten
 end;
 
 local function IsChangePossible()
