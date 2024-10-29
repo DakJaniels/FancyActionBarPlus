@@ -396,7 +396,9 @@ FancyActionBar.abilityConfig =
   [25255] = { 25256 };                       -- veiled strike (off-balance)
   [25267] = { 34739 };                       -- concealed weapon
   [25260] = { 34733 };                       -- surprise attack (off-balance)
-  [25352] = { 147643 };                      -- aspect of terror
+  [25375] = { 234617 },                      -- shadow cloak (born from shadow)
+  [25380] = { 234617 },                      -- shadowy disguise (born from shadow)
+  [25352] = { 147643 },                      -- aspect of terror
   [37470] = { 147643 };                      -- mass hysteria
   [37475] = {};                              -- manifestation of terror
   [33211] = { GetSummonShade(summonShade) }; -- summon shade
@@ -1314,8 +1316,8 @@ FancyActionBar.toggled =
   [24804] = true; -- Power Overload
 
   -- Nightblade
-  [25375] = true, -- Shadow Cloak
-  [25380] = true, -- Shadowy Disguise
+  -- [25375] = true, -- Shadow Cloak
+  -- [25380] = true, -- Shadowy Disguise
 };
 
 FancyActionBar.graveLordSacrifice =

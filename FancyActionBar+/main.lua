@@ -1128,25 +1128,29 @@ function FancyActionBar.UpdateTimerLabel(label, text, color)
   -- label:SetAlpha(a)
 end;
 
-function FancyActionBar.GetHighlightColor(fading, effect)
+function FancyActionBar.GetHighlightColor(fading, toggled, effect)
   local color = nil;
-
   if fading then
-    if SV.highlightExpire
-    then
+    if SV.highlightExpire then
       color = SV.highlightExpireColor;
-    else
-      if SV.showHighlight then color = SV.highlightColor; end;
+    elseif SV.showHighlight then
+      color = SV.highlightColor;
     end;
-  else
-    if SV.showHighlight then color = SV.highlightColor; end;
+  elseif toggled then
+    if SV.toggledHighlight then
+      color = SV.toggledColor;
+    elseif SV.showHighlight then
+      color = SV.highlightColor;
+    end;
+  elseif SV.showHighlight then
+    color = SV.highlightColor;
   end;
   return color;
 end;
 
 local bgHidden = {};
 
-function FancyActionBar.UpdateBackgroundVisuals(background, color, index)
+function FancyActionBar.UpdateBackgroundVisuals(background, color, index, isToggled)
   if color ~= nil then
     background:SetHidden(false);
     background:SetColor(color[1], color[2], color[3], color[4]);
@@ -1223,14 +1227,15 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     local targetsControl = overlay.target;
 
     if effect and not effect.ignore and effect.id > 0 then
-      FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks);
+      FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
+        allowStacks, IsSlotToggled((index > SLOT_INDEX_OFFSET) and (index - SLOT_INDEX_OFFSET) or index, index > SLOT_INDEX_OFFSET and 1 or 0));
     else
       FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl);
     end;
   end;
 end;
 
-function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks)
+function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled)
   if effect.toggled or effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
 
   local currentTime = time();
@@ -1282,8 +1287,13 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
 
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration, currentTime);
-  local bc = duration > 0 and FancyActionBar.GetHighlightColor(isFading) or nil;
-
+  local bc
+  if duration > 0 then
+      bc = FancyActionBar.GetHighlightColor(isFading, isToggled)
+  elseif isToggled then
+    bc = FancyActionBar.GetHighlightColor(nil, isToggled)
+  end
+  
   FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime);
   FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime);
   FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
