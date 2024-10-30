@@ -3894,7 +3894,7 @@ function FancyActionBar.Initialize()
       if FancyActionBar.toggled[abilityId] and FancyActionBar.sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
         FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
       elseif FancyActionBar.bannerBearer[abilityId] then
-        for k, v in pairs(FancyActionBar.bannerBearer[abilityId]) do
+        for k, v in pairs(FancyActionBar.bannerBearer) do
           if FancyActionBar.sourceAbilities[k] then
             FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
           end;
