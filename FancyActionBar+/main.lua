@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.3";
+local VERSION = "2.9.4";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -95,7 +95,6 @@ FancyActionBar.stackIds = {};       -- stack id tables for each effectId
 FancyActionBar.targets = {};        -- ability id => current active target table
 FancyActionBar.activeCasts = {};    -- updating timers to account for delay and expiration ( mostly for debugging )
 ---@type table<integer, boolean>
-FancyActionBar.sourceAbilities = {}
 FancyActionBar.toggles = {};        -- works together with effects to update toggled abilities activation
 FancyActionBar.debuffs = {};        -- effects for debuffs to update if they are active on target
 FancyActionBar.stashedEffects = {}; -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
@@ -225,7 +224,8 @@ local abilityConfig = {};                               -- parsed FancyActionBar
 local specialIds = {};                                  -- abilities that needs to be updated individually when fired ( cause too special to be tracked by effect changed events, or if I wanna do something more with them )
 local fakes = {};                                       -- problematic abilities from current class and shared skill lines ( mostly ground AoE's and traps )
 local activeFakes = {};                                 -- enables OnCombatEvent to update timers with hard coded durations if the button for the effect has been pressed (:4House:)
-local slottedIds = {};                                  -- to match skills with their tracked effect ( not in use cause I smooth brained the parts that might benefit from this )
+local sourceAbilities = {};                             -- to track which abilities are currently slotting effects
+local slottedIds = {};                                  -- to match skills with their tracked effect
 local effectSlots = {};                                 -- to indentify slots that track the same effect
 local debuffTargets = {};                               -- not used, but might be needed when I get better at writing tracking for debuffs on enemies
 local lastAreaTargets = {};                             -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
@@ -1585,7 +1585,8 @@ function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
   end;
 
   if overlay then
-    FancyActionBar.sourceAbilities[overlay.effect.sourceAbilites[index]] = nil
+    local e, a = FancyActionBar.GetSlottedEffect(index);
+    sourceAbilities[a] = nil
     overlay.effect = nil;
     FancyActionBar.ResetOverlayDuration(overlay);
     end;
@@ -1620,7 +1621,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       toggled = false;
       instantFade = FancyActionBar.removeInstantly[effectId] or false;
       sourceAbility[index] = abilityId;
-      FancyActionBar.sourceAbilities[abilityId] = effectId;
+      sourceAbilities[abilityId] = effectId;
     else
       if abilityId == 81420 then -- guard slot id while active for all morphs
         if guardId > 0 then effectId = guardId; end;
@@ -1640,7 +1641,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
       sourceAbility[index] = abilityId;
-      FancyActionBar.sourceAbilities[abilityId] = effectId;
+      sourceAbilities[abilityId] = effectId;
     end;
   else
     effectId = abilityId;
@@ -1649,7 +1650,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     instantFade = FancyActionBar.removeInstantly[effectId] or false;
     dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
     sourceAbility[index] = abilityId;
-    FancyActionBar.sourceAbilities[abilityId] = effectId;
+    sourceAbilities[abilityId] = effectId;
   end;
   
   FancyActionBar.SetSlottedEffect(index, abilityId, effectId);
@@ -1801,12 +1802,12 @@ function FancyActionBar.EffectCheck()
       doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true;
       if hasEffect then
         effect.endTime = checkTime + duration;
-        if FancyActionBar.toggled[id] and FancyActionBar.sourceAbilities[id] then -- update the highlight of toggled abilities.
-          FancyActionBar.toggles[FancyActionBar.sourceAbilities[id]] = hasEffect;
+        if FancyActionBar.toggled[id] and sourceAbilities[id] then -- update the highlight of toggled abilities.
+          FancyActionBar.toggles[sourceAbilities[id]] = hasEffect;
         elseif FancyActionBar.bannerBearer[id] then
           for k, v in pairs(FancyActionBar.bannerBearer[id]) do
-            if FancyActionBar.sourceAbilities[k] then
-              FancyActionBar.toggles[FancyActionBar.sourceAbilities[id]] = hasEffect;
+            if sourceAbilities[k] then
+              FancyActionBar.toggles[sourceAbilities[id]] = hasEffect;
             end;
           end;
         end;
@@ -1864,12 +1865,12 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
       end;
     end;
   end;
-  if FancyActionBar.toggled[effect.id] and FancyActionBar.sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
-    FancyActionBar.toggles[FancyActionBar.sourceAbilities[effect.id]] = hasEffect;
+  if FancyActionBar.toggled[effect.id] and sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
+    FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect;
   elseif FancyActionBar.bannerBearer[effect.id] then
     for k, v in pairs(FancyActionBar.bannerBearer[effect.id]) do
-      if FancyActionBar.sourceAbilities[k] then
-        FancyActionBar.toggles[FancyActionBar.sourceAbilities[effect.id]] = hasEffect;
+      if sourceAbilities[k] then
+        FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect;
       end;
     end;
   end;
@@ -3891,12 +3892,12 @@ function FancyActionBar.Initialize()
 
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
-      if FancyActionBar.toggled[abilityId] and FancyActionBar.sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-        FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
+      if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+        FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
       elseif FancyActionBar.bannerBearer[abilityId] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
-          if FancyActionBar.sourceAbilities[k] then
-            FancyActionBar.toggles[FancyActionBar.sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED);
+          if sourceAbilities[k] then
+            FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED);
           end;
         end;
       end;
