@@ -2897,10 +2897,10 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
 end;
 
 function FancyActionBar.ClearAnchors()
-  ActionButton3:ClearAnchors();
-  ActionButton23:ClearAnchors();
-  ActionButtonOverlay3:ClearAnchors();
-  ActionButtonOverlay23:ClearAnchors();
+  if ActionButton3 then ActionButton3:ClearAnchors(); end;
+  if ActionButton23 then ActionButton23:ClearAnchors(); end;
+  if ActionButtonOverlay3 then ActionButtonOverlay3:ClearAnchors(); end;
+  if ActionButtonOverlay23 then ActionButtonOverlay23:ClearAnchors(); end;
 end;
 
 function FancyActionBar.DetermineBarAndHide(locked)
