@@ -3896,7 +3896,7 @@ function FancyActionBar.Initialize()
       elseif FancyActionBar.bannerBearer[abilityId] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
           if FancyActionBar.sourceAbilities[k] then
-            FancyActionBar.toggles[FancyActionBar.sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
+            FancyActionBar.toggles[FancyActionBar.sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED);
           end;
         end;
       end;
