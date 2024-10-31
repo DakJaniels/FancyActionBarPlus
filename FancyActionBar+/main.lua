@@ -806,7 +806,7 @@ end;
 --- @param isChanneled boolean Flag to indicate if the effect is channeled.
 --- @param effectChanged boolean  Flag to indicate if the effect is changed.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, ignore, instantFade, dontFade,
+function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, ignore, passive, instantFade, dontFade,
                                   isChanneled, effectChanged)
   ---@alias effect table
   local effect = FancyActionBar.effects[id] or {};
@@ -817,7 +817,7 @@ function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, to
     effect.custom = custom;
     effect.toggled = toggled;
     effect.ignore = ignore;
-    effect.passive = false;
+    effect.passive = passive;
     effect.isDebuff = false;
     effect.activeOnTarget = false;
     effect.instantFade = instantFade;
@@ -1618,7 +1618,8 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   local cfg = abilityConfig[abilityId];
   local ignore = false;
-
+  local passive = false;
+  
   if cfg == false and stackId == nil then ignore = true; end;
 
   if cfg ~= nil or FancyActionBar.specialEffects[abilityId] then
@@ -1695,7 +1696,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   stackId = #effectStackId > 0 and effectStackId or #abilityStackId > 0 and abilityStackId or {};
 
-  local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, ignore, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, ignore, passive, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
 
 
   if not ignore then
