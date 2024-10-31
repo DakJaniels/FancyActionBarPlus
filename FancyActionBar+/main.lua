@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.4";
+local VERSION = "2.9.6";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -966,6 +966,12 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
           duration = endTime - time();
         end;
       end;
+    elseif FancyActionBar.bannerBearer[abilityId] then
+        for k, v in pairs(FancyActionBar.bannerBearer) do
+          if sourceAbilities[k] == id then
+            hasEffect = true;
+          end;
+        end;
     elseif abilityId == id then
       currentStacks = fixedStacks[id] or (specialEffects[abilityId] and specialEffects[abilityId].stacks) or stackCount or 0;
       hasEffect = true;
@@ -1630,7 +1636,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         if craftedId ~= 0 then
           local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) };
           local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0);
-          effectId = (cfg and ((cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1])) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
+          effectId = (cfg and ((cfg[2] and cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1])) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
         else
           effectId = (cfg and cfg[1]) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId;
         end;
@@ -1792,6 +1798,7 @@ function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the ef
 end;
 
 function FancyActionBar.EffectCheck()
+  FancyActionBar.toggles = {};
   local checkTime = time();
   for id, effect in pairs(FancyActionBar.effects) do
     local doStackUpdate = false;
@@ -3442,6 +3449,7 @@ end;
 
 function FancyActionBar.RefreshEffects()
   FancyActionBar.activeCasts = {};
+  FancyActionBar.toggles = {};
 
   for effect, data in pairs(FancyActionBar.effects) do data.endTime = 0; end;
 
@@ -3510,9 +3518,15 @@ function FancyActionBar.RefreshEffects()
 
       local effect = FancyActionBar.effects[abilityId];
       if effect then
-        if FancyActionBar.toggles[abilityId] then
-          FancyActionBar.UpdateToggledAbility(abilityId, true);
-          return;
+        if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+          FancyActionBar.toggles[sourceAbilities[abilityId]] = true;
+        elseif FancyActionBar.bannerBearer[abilityId] then
+          for k, v in pairs(FancyActionBar.bannerBearer) do
+            if sourceAbilities[k] then
+              FancyActionBar.toggles[sourceAbilities[k]] = true;
+            end;
+          end;
+          --FancyActionBar.UpdateToggledAbility(abilityId, true);
         end;
 
         if endTime - t > 0 then
