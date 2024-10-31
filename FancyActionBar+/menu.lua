@@ -931,10 +931,10 @@ local function UpdateEffectForAbility(track, ability, effect)
       if hadScriptKey and scriptKey ~= "0_0_0" then
         config = { [2] = { [scriptKey] = false } };
       else
-        config = { [1] = false };
+        config = false;
       end;
     else
-      config = { [1] = false };
+      config = false;
     end;
   elseif track == 1 then -- reset data for skill effect, not working properly?
     local customConfig = FancyActionBar.GetAbilityConfigChanges();
@@ -980,11 +980,9 @@ local function UpdateEffectForAbility(track, ability, effect)
     SV.configChanges[extractedAbilityId] = config;
   end;
 
+  FancyActionBar.BuildAbilityConfig();
+  FancyActionBar.EditCurrentAbilityConfiguration(extractedAbilityId);
   ResetUpdateSettings();
-
-  --FancyActionBar.EditCurrentAbilityConfiguration(extractedAbilityId, config); -- Needs to be rewritten
-  FancyActionBar.BuildAbilityConfig(); -- Workaround until the above is rewritten
-  FancyActionBar.SlotEffects();        -- Workaround until the above is rewritten
 end;
 
 local function IsChangePossible()

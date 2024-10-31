@@ -710,7 +710,8 @@ function FancyActionBar.OnlyUpdateEffectForUsedSkill(id)
 
 end;
 
-function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
+function FancyActionBar.EditCurrentAbilityConfiguration(id)
+  local cfg = abilityConfig[id];
   local isToggled, noTarget = false, false;
 
   if FancyActionBar.toggled[id] then
@@ -735,7 +736,7 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id, cfg)
   elseif cfg == false then
     abilityConfig[id] = false;
   else
-    abilityConfig[id] = nil;
+    abilityConfig[id] = { id };
   end;
 
   local currentSlots = {};
@@ -2084,6 +2085,7 @@ end;
 --  Load Saved Ability Configuration
 --  ---------------------------------
 function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConfig for faster access.
+  abilityConfig = {};
   local config = FancyActionBar.GetAbilityConfig();
   local customConfig = FancyActionBar.GetAbilityConfigChanges();
 
