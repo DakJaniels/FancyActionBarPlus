@@ -1422,6 +1422,10 @@ FancyActionBar.bannerBearer = {
   [231753] = true; -- Sorcerer's Banner
 };
 
+FancyActionBar.toggleTickRate = {
+  [227116] = 5000;
+};
+
 FancyActionBar.graveLordSacrifice =
 {
   id = 117749;

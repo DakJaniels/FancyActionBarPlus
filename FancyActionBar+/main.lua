@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.6";
+local VERSION = "2.9.7";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -1284,7 +1284,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     effect.endTime = -1;
     hasDuration = false;
   end;
-  
+
   if SV.showCastDuration and effect.castDuration then
     local isBlockActive = IsBlockActive();
     local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
@@ -1299,16 +1299,27 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     end;
   end;
 
-  local isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
+  local blockFade = false;
+  local tickRate = FancyActionBar.toggleTickRate[effect.id] or GetAbilityFrequencyMS(effect.id);
+  if isToggled and (effect.endTime == -1 or effect.endTime <= currentTime) and (tickRate ~= 0) then
+    effect.endTime = tickRate / 1000 + currentTime;
+    blockFade = true;
+    hasDuration = false;
+  elseif effect.toggled and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
+    effect.endTime = -1;
+    hasDuration = false;
+  end;
+
+  local isFading = (not blockFade) and hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
 
   local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration, currentTime);
   local bc
-  if duration > 0 then
+  if duration > 0 and (not (effect.toggled or toggled)) and (tickRate ~= 0) then
       bc = FancyActionBar.GetHighlightColor(isFading, isToggled)
   elseif isToggled then
     bc = FancyActionBar.GetHighlightColor(nil, isToggled)
   end
-  
+
   FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime);
   FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime);
   FancyActionBar.UpdateTimerLabel(durationControl, lt, lc);
@@ -1814,7 +1825,7 @@ function FancyActionBar.EffectCheck()
         if FancyActionBar.toggled[id] and sourceAbilities[id] then -- update the highlight of toggled abilities.
           FancyActionBar.toggles[sourceAbilities[id]] = hasEffect;
         elseif FancyActionBar.bannerBearer[id] then
-          for k, v in pairs(FancyActionBar.bannerBearer[id]) do
+          for k, v in pairs(FancyActionBar.bannerBearer) do
             if sourceAbilities[k] then
               FancyActionBar.toggles[sourceAbilities[id]] = hasEffect;
             end;
@@ -1877,7 +1888,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
   if FancyActionBar.toggled[effect.id] and sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
     FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect;
   elseif FancyActionBar.bannerBearer[effect.id] then
-    for k, v in pairs(FancyActionBar.bannerBearer[effect.id]) do
+    for k, v in pairs(FancyActionBar.bannerBearer) do
       if sourceAbilities[k] then
         FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect;
       end;
@@ -3910,10 +3921,18 @@ function FancyActionBar.Initialize()
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
       if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+        -- if (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
+        --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
+        --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
+        -- end;
         FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
       elseif FancyActionBar.bannerBearer[abilityId] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
           if sourceAbilities[k] then
+            -- if (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
+            --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
+            --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
+            -- end;
             FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED);
           end;
         end;
