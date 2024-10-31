@@ -1251,7 +1251,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
 end;
 
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled)
-  if --[[effect.toggled or]] effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
+  --if --[[effect.toggled or]] effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
 
   local currentTime = time();
 
@@ -1638,6 +1638,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       effectId = abilityId;
       custom = true;
       toggled = false;
+      passive = false;
       instantFade = FancyActionBar.removeInstantly[effectId] or false;
       sourceAbility[index] = abilityId;
       sourceAbilities[abilityId] = effectId;
@@ -1657,6 +1658,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       end;
       custom = true;
       toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or FancyActionBar.toggled[abilityId] or false;
+      passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false;
       instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
       sourceAbility[index] = abilityId;
@@ -1666,6 +1668,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     effectId = abilityId;
     custom = false;
     toggled = FancyActionBar.toggled[effectId] or false;
+    passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false;
     instantFade = FancyActionBar.removeInstantly[effectId] or false;
     dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
     sourceAbility[index] = abilityId;

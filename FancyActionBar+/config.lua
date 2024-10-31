@@ -1275,6 +1275,7 @@ FancyActionBar.traps =
   [40382] = true; -- barbed trap
   [40465] = true; -- scalding rune
 };
+
 ---@type table<integer, boolean>
 FancyActionBar.toggled =
 {
@@ -1370,7 +1371,9 @@ FancyActionBar.toggled =
   [231753] = true; -- Sorcerer's Banner
 };
 
-FancyActionBar.bannerBearer = {
+---@type table<integer, boolean>
+FancyActionBar.bannerBearer =
+{
   -- Banner Bearer
   [217699] = true; -- Banner Bearer
   [227085] = true; -- Banner Bearer
@@ -1422,9 +1425,15 @@ FancyActionBar.bannerBearer = {
   [231753] = true; -- Sorcerer's Banner
 };
 
-FancyActionBar.toggleTickRate = {
+FancyActionBar.toggleTickRate = 
+{
   [227116] = 5000;
 };
+
+FancyActionBar.passive =
+{
+  --[186229] = true; -- Zena's Empowering Disc
+}
 
 FancyActionBar.graveLordSacrifice =
 {
