@@ -1809,7 +1809,7 @@ function FancyActionBar.EffectCheck()
       local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id);
       doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true;
       if hasEffect then
-        effect.endTime = checkTime + duration;
+        effect.endTime = (duration ~= 0) and (checkTime + duration) or -1;
         if FancyActionBar.toggled[id] and sourceAbilities[id] then -- update the highlight of toggled abilities.
           FancyActionBar.toggles[sourceAbilities[id]] = hasEffect;
         elseif FancyActionBar.bannerBearer[id] then
@@ -1855,7 +1855,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
   stacks = stacks ~= 0 and stacks or 0;
   if stacks ~= 0 or (specialEffect.stacks and specialEffect.stacks ~= 0) then
     effect.stacks = stacks;
-    effect.endTime = checkTime + duration;
+    effect.endTime = (duration ~= 0) and (checkTime + duration) or -1;
     FancyActionBar.stacks[effect.id] = stacks;
   end;
 
@@ -2215,7 +2215,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
     elseif (change == EFFECT_RESULT_FADED) then
       local hasEffect, duration, currentStacks = FancyActionBar.CheckForActiveEffect(abilityId);
       if hasEffect then
-        effect.endTime = t + duration;
+        effect.endTime = (duration ~= 0) and (t + duration) or -1;
         FancyActionBar.UpdateEffect(effect);
       else
         effect.endTime = t;
