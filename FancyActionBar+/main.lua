@@ -1573,6 +1573,7 @@ function FancyActionBar.UpdateToggledAbility(id, active) -- toggled effect highl
   if not FancyActionBar.toggles[effect.id] then FancyActionBar.toggles[effect.id] = false; end;
 
   FancyActionBar.toggles[effect.id] = active;
+
   if effect.slot1 then FancyActionBar.UpdateHighlight(effect.slot1); end;
   if effect.slot2 then FancyActionBar.UpdateHighlight(effect.slot2); end;
 end;
@@ -1832,7 +1833,7 @@ function FancyActionBar.EffectCheck()
         elseif FancyActionBar.bannerBearer[id] then
           for k, v in pairs(FancyActionBar.bannerBearer) do
             if sourceAbilities[k] then
-              FancyActionBar.toggles[sourceAbilities[id]] = hasEffect;
+              FancyActionBar.toggles[sourceAbilities[k]] = hasEffect;
             end;
           end;
         end;
@@ -3527,27 +3528,29 @@ function FancyActionBar.RefreshEffects()
           end;
         end;
       end;
-      local id = abilityId;
-      if (id == 61905 or id == 61919 or id == 61927) then
+      local updateToggleEffect = false
+      if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+        FancyActionBar.toggles[sourceAbilities[abilityId]] = true;
+        FancyActionBar.UpdateToggledAbility(abilityId, true);
+        return;
+      elseif FancyActionBar.bannerBearer[abilityId] then
+        for k, v in pairs(FancyActionBar.bannerBearer) do
+          if sourceAbilities[k] then
+            FancyActionBar.toggles[sourceAbilities[k]] = true;
+            FancyActionBar.UpdateToggledAbility(abilityId, true);
+            return;
+          end;
+        end;
+      end;
+      if (abilityId == 61905 or abilityId == 61919 or abilityId == 61927) then
         if GFC then -- Manually update GrimFocusCounter if enabled
           local _;
-          GFC.OnEffectChanged(_, 3, _, GetAbilityName(id), "player", _, _, 0, _, _, _, _, _, _, _, id);
+          GFC.OnEffectChanged(_, 3, _, GetAbilityName(abilityId), "player", _, _, 0, _, _, _, _, _, _, _, id);
         end;
       end;
 
       local effect = FancyActionBar.effects[abilityId];
       if effect then
-        if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-          FancyActionBar.toggles[sourceAbilities[abilityId]] = true;
-        elseif FancyActionBar.bannerBearer[abilityId] then
-          for k, v in pairs(FancyActionBar.bannerBearer) do
-            if sourceAbilities[k] then
-              FancyActionBar.toggles[sourceAbilities[k]] = true;
-            end;
-          end;
-          --FancyActionBar.UpdateToggledAbility(abilityId, true);
-        end;
-
         if endTime - t > 0 then
           if not FancyActionBar.activeCasts[effect.id] then
             local slot = nil;
