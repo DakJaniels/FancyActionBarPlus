@@ -53,6 +53,7 @@ FancyActionBar.defaultSettings =
   durationMin = 2;
   durationMax = 120;
   showCastDuration = true;
+  showToggleTicks = false;
 
   showStackCount = true;
   showOvertauntStacks = false;
@@ -61,7 +62,7 @@ FancyActionBar.defaultSettings =
   ignoreTrapPlacement = false;
   showSoonestExpire = false;
   ignoreUngroupedAliies = false;
-  
+
   -- general
   lockInTrade = true;
   staticBars = true;

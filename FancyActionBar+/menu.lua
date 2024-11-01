@@ -4671,6 +4671,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             {
               type = "checkbox";
+              name = "[EXPERIMENTAL] Show Tick Rate for Toggles";
+              tooltip = "Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the abilty is retoggled.";
+              default = defaults.showToggleTicks;
+              getFunc = function() return SV.showToggleTicks; end;
+              setFunc = function( value ) SV.showToggleTicks = value or false; end;
+            },
+            {
+              type = "checkbox";
               name = "Ignore Initial Trap Placement";
               tooltip = "By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT";
               default = defaults.ignoreTrapPlacement;

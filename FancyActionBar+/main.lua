@@ -1302,12 +1302,12 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   end;
 
   local blockFade = false;
-  local tickRate = FancyActionBar.toggleTickRate[effect.id] or GetAbilityFrequencyMS(effect.id);
-  if isToggled and (effect.endTime == -1 or effect.endTime <= currentTime) and (tickRate ~= 0) then
+  local tickRate = SV.showToggleTicks and (FancyActionBar.toggleTickRate[effect.id] or GetAbilityFrequencyMS(effect.id) or 0) or 0;
+  if SV.showToggleTicks and isToggled and (effect.endTime == -1 or effect.endTime <= currentTime) and (tickRate ~= 0) then
     effect.endTime = tickRate / 1000 + currentTime;
     blockFade = true;
     hasDuration = false;
-  elseif effect.toggled and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
+  elseif SV.showToggleTicks and effect.toggled and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
     effect.endTime = -1;
     hasDuration = false;
   end;
@@ -3931,7 +3931,7 @@ function FancyActionBar.Initialize()
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
     if effect then
       if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-        -- if (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
+        -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
         --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
         --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
         -- end;
@@ -3939,7 +3939,7 @@ function FancyActionBar.Initialize()
       elseif FancyActionBar.bannerBearer[abilityId] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
           if sourceAbilities[k] then
-            -- if (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
+            -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
             --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
             --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
             -- end;
@@ -4735,6 +4735,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showSingleTargetInstance == nil then SV.showSingleTargetInstance = d.showSingleTargetInstance; end;
     if SV.applyActionBarSkillStyles == nil then SV.applyActionBarSkillStyles = d.applyActionBarSkillStyles; end;
     if SV.showCastDuration == nil then SV.showCastDuration = d.showCastDuration; end;
+    if SV.showToggleTicks == nil then SV.showToggleTicks = d.showToggleTicks; end;
     if SV.ultValueThresholdKB == nil then SV.ultValueThresholdKB = d.ultValueThresholdKB; end;
     if SV.ultUsableThresholdColorKB == nil then SV.ultUsableThresholdColorKB = d.ultUsableThresholdColorKB; end;
     if SV.ultUsableValueColorKB == nil then SV.ultUsableValueColorKB = d.ultUsableValueColorKB; end;
