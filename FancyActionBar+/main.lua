@@ -1302,9 +1302,9 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   end;
 
   local blockFade = false;
-  local tickRate = SV.showToggleTicks and (FancyActionBar.toggleTickRate[effect.id] or GetAbilityFrequencyMS(effect.id) or 0) or 0;
+  local tickRate = SV.showToggleTicks and ((FancyActionBar.toggleTickRate[effect.id] or GetAbilityFrequencyMS(effect.id) or 0) / 1000) or 0;
   if SV.showToggleTicks and isToggled and (effect.endTime == -1 or effect.endTime <= currentTime) and (tickRate ~= 0) then
-    effect.endTime = tickRate / 1000 + currentTime;
+    effect.endTime = (effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate) + currentTime;
     blockFade = true;
     hasDuration = false;
   elseif SV.showToggleTicks and effect.toggled and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
@@ -3934,7 +3934,8 @@ function FancyActionBar.Initialize()
         -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
         --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
         --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
-        -- end;
+                -- end;
+        effect.beginTime = (beginTime ~= 0) and beginTime or t;
         FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
       elseif FancyActionBar.bannerBearer[abilityId] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
@@ -3944,6 +3945,7 @@ function FancyActionBar.Initialize()
             --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
             -- end;
             FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED);
+            FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t;
           end;
         end;
       end;
