@@ -1202,7 +1202,7 @@ function FancyActionBar.ResolveLabelAlphaForDebuff(debuff)
   return alpha;
 end;
 
-function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, duration, currentTime)
+function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effect, duration, currentTime)
   local timer, color = "", nil;
   if duration <= 0 then
     if (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))) then
@@ -1221,7 +1221,9 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, effect, dura
     end;
   end;
 
-  if (fading and SV.showExpire)
+  if toggle then
+    color = SV.toggledColor;
+  elseif (fading and SV.showExpire)
   then
     color = SV.expireColor;
   else
@@ -1312,8 +1314,8 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 
   local isFading = (not blockFade) and hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false;
 
-  local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, effect, duration, currentTime);
-  local bc
+  local lt, lc, bc;
+  lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime);
   if duration > 0 and (not (effect.toggled or toggled)) and (tickRate ~= 0) then
       bc = FancyActionBar.GetHighlightColor(isFading, isToggled)
   elseif isToggled then
