@@ -3715,6 +3715,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked);
       end;
       FancyActionBar.SlotEffects();
+      FancyActionBar.RefreshEffects()
     elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
       specialHotbarActive = false;
       if FancyActionBar.oakensoulEquipped then
@@ -3728,6 +3729,7 @@ function FancyActionBar.Initialize()
       end;
       FancyActionBar.SwapControls(specialHotbarActive);
       FancyActionBar.SlotEffects();
+      FancyActionBar.RefreshEffects()
     end;
     FancyActionBar.ApplyAbilityFxOverrides();
   end;
