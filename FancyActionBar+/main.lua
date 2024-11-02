@@ -1316,8 +1316,8 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 
   local lt, lc, bc;
   lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime);
-  if duration > 0 and (not (effect.toggled or toggled)) and (tickRate ~= 0) then
-      bc = FancyActionBar.GetHighlightColor(isFading, isToggled)
+  if duration > 0 and (not (effect.toggled or toggled) or tickRate ~= 0) then
+    bc = FancyActionBar.GetHighlightColor(isFading, isToggled);
   elseif isToggled then
     bc = FancyActionBar.GetHighlightColor(nil, isToggled)
   end
