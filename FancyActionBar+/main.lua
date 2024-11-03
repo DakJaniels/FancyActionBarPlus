@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.7";
+local VERSION = "2.9.8";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -806,7 +806,7 @@ end;
 --- @param isChanneled boolean Flag to indicate if the effect is channeled.
 --- @param effectChanged boolean  Flag to indicate if the effect is changed.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, ignore, passive, instantFade, dontFade,
+function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, tickRate, ignore, passive, instantFade, dontFade,
                                   isChanneled, effectChanged)
   ---@alias effect table
   local effect = FancyActionBar.effects[id] or {};
@@ -816,6 +816,7 @@ function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, to
     effect.endTime = 0;
     effect.custom = custom;
     effect.toggled = toggled;
+    effect.tickRate = tickRate;
     effect.ignore = ignore;
     effect.passive = passive;
     effect.isDebuff = false;
@@ -1143,17 +1144,15 @@ function FancyActionBar.UpdateTimerLabel(label, text, color)
   -- label:SetAlpha(a)
 end;
 
-function FancyActionBar.GetHighlightColor(fading, toggled, effect)
+function FancyActionBar.GetHighlightColor(fading, isToggle)
   local color = nil;
-  if fading then
-    if SV.highlightExpire then
-      color = SV.highlightExpireColor;
-    elseif SV.showHighlight then
-      color = SV.highlightColor;
-    end;
-  elseif toggled then
+  if isToggle then
     if SV.toggledHighlight then
       color = SV.toggledColor;
+    end;
+  elseif fading then
+    if SV.highlightExpire then
+      color = SV.highlightExpireColor;
     elseif SV.showHighlight then
       color = SV.highlightColor;
     end;
@@ -1302,7 +1301,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   end;
 
   local blockFade = false;
-  local tickRate = SV.showToggleTicks and ((FancyActionBar.toggleTickRate[effect.id] or GetAbilityFrequencyMS(effect.id) or 0) / 1000) or 0;
+  local tickRate = SV.showToggleTicks and effect.tickRate or 0;
   if SV.showToggleTicks and isToggled and (effect.endTime == -1 or effect.endTime <= currentTime) and (tickRate ~= 0) then
     effect.endTime = (effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate) + currentTime;
     blockFade = true;
@@ -1316,10 +1315,10 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 
   local lt, lc, bc;
   lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime);
-  if duration > 0 and (not (effect.toggled or toggled) or tickRate ~= 0) then
-    bc = FancyActionBar.GetHighlightColor(isFading, isToggled);
+  if duration > 0 and ((not (effect.toggled or isToggled)) or ((effect.toggled or isToggled) and tickRate ~= 0)) then
+    bc = FancyActionBar.GetHighlightColor(isFading, effect.toggled);
   elseif isToggled then
-    bc = FancyActionBar.GetHighlightColor(nil, isToggled)
+    bc = FancyActionBar.GetHighlightColor(nil, effect.toggled);
   end
 
   FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime);
@@ -1627,7 +1626,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
   local overlay = FancyActionBar.GetOverlay(index);
   if not overlay then return; end;
 
-  local effectId, stackId, duration, custom, toggled, passive, instantFade, dontFade;
+  local effectId, stackId, duration, custom, toggled, tickRate, passive, instantFade, dontFade;
   local sourceAbility = {};
 
   local cfg = abilityConfig[abilityId];
@@ -1641,6 +1640,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       effectId = abilityId;
       custom = true;
       toggled = false;
+      tickRate = 0;
       passive = false;
       instantFade = FancyActionBar.removeInstantly[effectId] or false;
       sourceAbility[index] = abilityId;
@@ -1661,6 +1661,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       end;
       custom = true;
       toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or FancyActionBar.toggled[abilityId] or false;
+      tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId) or 0) / 1000);
       passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false;
       instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false;
       dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
@@ -1671,6 +1672,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     effectId = abilityId;
     custom = false;
     toggled = FancyActionBar.toggled[effectId] or false;
+    tickRate = ((FancyActionBar.toggleTickRate[effectId] or GetAbilityFrequencyMS(effectId) or 0) / 1000);
     passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false;
     instantFade = FancyActionBar.removeInstantly[effectId] or false;
     dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false;
@@ -1713,7 +1715,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
   stackId = #effectStackId > 0 and effectStackId or #abilityStackId > 0 and abilityStackId or {};
 
-  local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, ignore, passive, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
+  local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged); -- FancyActionBar.effects[effectId]
 
 
   if not ignore then
