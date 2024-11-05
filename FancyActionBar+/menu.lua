@@ -823,26 +823,6 @@ local function SetSkillToEditID(id)
   end;
 end;
 
-
-if IsValidId(skillToEditID) then
-  local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$");
-  if not extractedAbilityId then
-    extractedAbilityId = skillToEditID:match("^(%d+)$");
-  end;
-  extractedAbilityId = tonumber(extractedAbilityId);
-  local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId);
-  if extractedAbilityId and (craftedId ~= 0) and extractedScriptKey then
-    local scripts = { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
-    SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
-    name = GetAbilityName(effectToTrackID);
-    ResetCraftedAbilityScriptSelectionOverride();
-  else
-    name = GetAbilityName(effectToTrackID);
-  end;
-else
-  name = GetAbilityName(effectToTrackID);
-end;
-
 local function SetEffectToTrackID(id)
   if id == "" or not IsValidId(id) then
     if id ~= "" then
