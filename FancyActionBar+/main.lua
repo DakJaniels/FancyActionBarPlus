@@ -2898,6 +2898,7 @@ end;
 local function ApplyBarPosition(active, inactive, firstTop, locked)
   local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2;
   local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2;
+  local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap");
   if locked == true and SV.repositionActiveBar then
     active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains());
     inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains());
