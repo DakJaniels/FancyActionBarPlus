@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.8";
+local VERSION = "2.9.9";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -968,7 +968,7 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
           duration = endTime - time();
         end;
       end;
-    elseif FancyActionBar.bannerBearer[abilityId] then
+    elseif castByPlayer and FancyActionBar.bannerBearer[abilityId] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
           if sourceAbilities[k] == id then
             hasEffect = true;
@@ -3939,7 +3939,7 @@ function FancyActionBar.Initialize()
                 -- end;
         effect.beginTime = (beginTime ~= 0) and beginTime or t;
         FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
-      elseif FancyActionBar.bannerBearer[abilityId] then
+      elseif FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and AreUnitsEqual("player", unitTag) then
         for k, v in pairs(FancyActionBar.bannerBearer) do
           if sourceAbilities[k] then
             -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
