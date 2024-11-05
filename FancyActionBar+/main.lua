@@ -3973,8 +3973,7 @@ function FancyActionBar.Initialize()
       end;
 
       if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
-        if abilityType ~= GROUND_EFFECT and (not FancyActionBar.IsLocalPlayerOrEnemy(unitTag)) and (not FancyActionBar.IsGroupUnit(unitTag)) then return; end;
-
+        if abilityType ~= GROUND_EFFECT and not (FancyActionBar.IsLocalPlayerOrEnemy(unitTag) or ZO_Group_IsGroupUnitTag(unitTag) or FancyActionBar.IsPlayerPet(unitTag) or IsGroupCompanionUnitTag(unitTag) or unitTag == "companion") then return; end;
       end;
 
       if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then

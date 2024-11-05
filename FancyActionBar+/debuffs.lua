@@ -130,6 +130,15 @@ function FancyActionBar.IsLocalPlayerOrEnemy(tag, name, id)
   return false;
 end;
 
+function FancyActionBar.IsPlayerPet(tag)
+  for i = 1, MAX_PET_UNIT_TAGS do
+    if tag == "playerpet" .. i then
+      return true;
+    end;
+  end;
+  return false;
+end;
+
 function FancyActionBar.HasEnemyTarget()
   local tag = "reticleover";
 
