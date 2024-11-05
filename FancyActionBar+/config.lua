@@ -476,7 +476,6 @@ FancyActionBar.abilityConfig =
   [201296] = { 182989 }; -- fulminating rune (Mag)
   [189791] = { 189792 }; -- the unblinking eye
   [189837] = { 191367 }; -- the tide king's gaze
-  [189867] = { 189868 }; -- the languid eye
   [183165] = { 38254 };  -- runic jolt (taunt)
   [183430] = { 187742 }; -- runic sunder (armor steal)
   [186531] = { 38254 };  -- runic embrace (taunt)
