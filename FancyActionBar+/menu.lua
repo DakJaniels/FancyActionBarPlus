@@ -1007,7 +1007,7 @@ local function FormatSkillUpdateMessage()
   if craftedId ~= 0 then
     local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) };
     SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]));
-    skilltoEditId = extractedAbilityId .. "-" .. scripts[1] .. "_" .. scripts[2] .. "_" .. scripts[3];
+    skillToEditID = extractedAbilityId .. "-" .. scripts[1] .. "_" .. scripts[2] .. "_" .. scripts[3];
     skillToEditName = GetCraftedAbilityDisplayName(craftedId) .. " [" .. GetCraftedAbilityScriptDisplayName(scripts[1]) .. "/" .. GetCraftedAbilityScriptDisplayName(scripts[2]) .. "/" .. GetCraftedAbilityScriptDisplayName(scripts[3]) .. "]";
   end;
 
