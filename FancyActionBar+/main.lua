@@ -3012,7 +3012,7 @@ function FancyActionBar.ToggleUltimateOverlays(hide)
   end;
   local ultOverlayBackup = FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET];
   if ultOverlayBackup then
-    ultOverlayBackup:SetHidden(hide);
+    ultOverlayBackup:SetHidden(not hide);
   end;
 end;
 
