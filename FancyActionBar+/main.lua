@@ -1272,12 +1272,14 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and (not (SV.advancedDebuff and effect.isDebuff)) then
       local targetData = FancyActionBar.targets[effect.id] or {};
       local targetEndTime;
-      for unitId, timeData in pairs(targetData.times) do
-        if not targetEndTime or timeData.endTime < targetEndTime then
-          targetEndTime = timeData.endTime;
+      if targetData.times then
+        for unitId, timeData in pairs(targetData.times) do
+          if not targetEndTime or (timeData.endTime > currentTime and timeData.endTime < targetEndTime) then
+            targetEndTime = timeData.endTime;
+          end;
         end;
       end;
-      duration = (targetEndTime and (targetEndTime > currentTime) and (targetEndTime - currentTime)) or (effect.endTime - currentTime);
+      duration = targetEndTime and (targetEndTime - currentTime) or (effect.endTime - currentTime);
     else
       duration = effect.endTime - currentTime;
     end;
