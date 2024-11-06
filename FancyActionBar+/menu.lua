@@ -5717,6 +5717,7 @@ function FancyActionBar.RepositionHealthBar()
     local scale = FancyActionBar.GetScale();
     local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB;
     local abTop = ACTION_BAR:GetTop();
+    ZO_PlayerAttributeHealth:ClearAnchors();
     ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - ((c.dimensions * scale) + 4 + barYOffset)));
   end;
 end;
