@@ -347,10 +347,12 @@ local function OnReticleTargetChanged()
           for dId, dEffect in pairs(debuff) do effect[dId] = dEffect; end;
           debuff = effect;
         end;
+
+        debuff.stackId = debuff.stackId or { debuff.id };
         for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
           for t = 1, #targetIds do
             if targetIds[t] == debuff.id then
-              debuff.stackId = { stackSourceId };
+              table.insert(debuff.stackId, stackSourceId);
               break;
             end;
           end;
@@ -457,14 +459,16 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     return;
   end;
 
+  debuff.stackId = debuff.stackId or { abilityId };
   for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
     for i = 1, #targetIds do
       if targetIds[i] == abilityId then
-        debuff.stackId = { stackSourceId };
+        table.insert(debuff.stackId, stackSourceId);
         break;
       end;
     end;
   end;
+
   if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
     if specialEffect then
       for sId, effect in pairs(specialEffect) do debuff[sId] = effect; end;
@@ -476,7 +480,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
     elseif debuff.stackId then
       for i = 1, #debuff.stackId do
-        if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not FancyActionBar.debuffStackMap[debuff.stackId[i]]) then
+        if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not ((debuff.stackId[i] == debuff.id) or FancyActionBar.debuffStackMap[debuff.stackId[i]])) then
           stackCount = false;
           break;
         end;
@@ -530,7 +534,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
       end;
     elseif debuff.stackId then
       for i = 1, #debuff.stackId do
-        if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not FancyActionBar.debuffStackMap[debuff.stackId[i]]) then
+        if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not ((debuff.stackId[i] == debuff.id) or FancyActionBar.debuffStackMap[debuff.stackId[i]])) then
           stackCount = false;
           break;
         elseif FancyActionBar.stacks[debuff.stackId[i]] then
