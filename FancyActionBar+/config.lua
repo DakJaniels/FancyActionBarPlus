@@ -821,6 +821,12 @@ FancyActionBar.debuffStackMap =
   };
 
   -- [134336] = 134336;  -- Stone Giant (stacks on target)
+
+  -- Carve Bleed
+  [38747] =
+  {
+    38747, -- carve bleed
+  };
 };
 
 FancyActionBar.allowExternalStacks =
