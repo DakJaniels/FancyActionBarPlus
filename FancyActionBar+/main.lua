@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.9.10";
+local VERSION = "2.10.0";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -3609,6 +3609,13 @@ end;
 -----------------------------[      Initialize      ]--------------------------
 -------------------------------------------------------------------------------
 local noget = false;
+
+local function SetAbilityBarTimersEnabled()
+  if tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS)) == 0 then
+    SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "true");
+  end;
+end;
+
 function FancyActionBar.Initialize()
   defaultSettings = FancyActionBar.defaultSettings;
   SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName());
@@ -3916,6 +3923,41 @@ function FancyActionBar.Initialize()
       end;
     end;
     -- Chat('button ' .. n .. ' used.')
+  end;
+
+  local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
+    local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
+    local effect = FancyActionBar.effects[abilityId];
+    -- Effect must be slotted and not have custom duration specified in config.lua
+    if effect and not effect.custom then
+      local duration = GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) / 1000;
+      local stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory);
+      if duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax then
+        local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000;
+        -- Adjustment for Power of the Light.
+        -- TODO: find a better place to do it.
+        if SV.potlfix and remain > 6 and effect.id == 21763 then
+          remain = 6;
+        end;
+        effect.endTime = time() + remain;
+        FancyActionBar.UpdateEffect(effect);
+        --else
+        --effect.endTime = 0
+      end;
+      if FancyActionBar.fixedStacks[abilityId] then
+        stackCount = FancyActionBar.fixedStacks[abilityId];
+      end;
+      for id, effect in pairs(FancyActionBar.effects) do
+        if effect.stackId then
+          for j = 1, #effect.stackId do
+            if effect.stackId[j] == abilityId then
+              FancyActionBar.stacks[abilityId] = stackCount or 0;
+              FancyActionBar.HandleStackUpdate(id);
+            end;
+          end;
+        end;
+      end;
+    end;
   end;
 
   local ABILITY_TYPE_DAMAGE = ABILITY_TYPE_DAMAGE;
@@ -4326,6 +4368,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
+  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_EFFECT_UPDATE, OnActionSlotEffectUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, OnActiveHotbarUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
   EM:RegisterForEvent(NAME, EVENT_ARMORY_BUILD_RESTORE_RESPONSE, OnArmory);
@@ -4355,6 +4398,7 @@ function FancyActionBar.Initialize()
   end);
 
   EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
+    SetAbilityBarTimersEnabled();
     EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged);
     FancyActionBar.ApplyStyle();
     OnAllHotbarsUpdated();
@@ -4424,6 +4468,13 @@ function FancyActionBar.Initialize()
       CompanionUltimateButton:SetHidden(true);
     end;
   end);
+
+  -- Unregister some default stuff from action buttons.
+  EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTION_SLOT_EFFECT_UPDATE);
+  for i = MIN_INDEX, ULT_INDEX do
+    EM:UnregisterForEvent("ActionButton" .. i, EVENT_INTERFACE_SETTING_CHANGED);
+    EM:UnregisterForEvent("ActionBarTimer" .. i, EVENT_INTERFACE_SETTING_CHANGED);
+  end;
 
   class = GetUnitClassId("player");
   if FancyActionBar.fakeClassEffects[class] then
