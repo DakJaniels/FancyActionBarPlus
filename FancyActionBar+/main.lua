@@ -3944,15 +3944,14 @@ function FancyActionBar.Initialize()
         --else
         --effect.endTime = 0
       end;
-      if FancyActionBar.fixedStacks[abilityId] then
-        stackCount = FancyActionBar.fixedStacks[abilityId];
-      end;
-      for id, effect in pairs(FancyActionBar.effects) do
-        if effect.stackId then
-          for j = 1, #effect.stackId do
-            if effect.stackId[j] == abilityId then
-              FancyActionBar.stacks[abilityId] = stackCount or 0;
-              FancyActionBar.HandleStackUpdate(id);
+      if not FancyActionBar.fixedStacks[abilityId] then
+        for id, effect in pairs(FancyActionBar.effects) do
+          if effect.stackId then
+            for j = 1, #effect.stackId do
+              if effect.stackId[j] == abilityId then
+                FancyActionBar.stacks[abilityId] = stackCount or 0;
+                FancyActionBar.HandleStackUpdate(id);
+              end;
             end;
           end;
         end;
