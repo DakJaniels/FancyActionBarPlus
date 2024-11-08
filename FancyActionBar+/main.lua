@@ -1233,6 +1233,10 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
 end;
 
 function FancyActionBar.UpdateOverlay(index) -- timer label updates.
+  if index == ULT_INDEX or index == ULT_INDEX + SLOT_INDEX_OFFSET then
+    FancyActionBar.UpdateUltOverlay(index);
+    return;
+  end;
   local overlay = FancyActionBar.overlays[index];
   if overlay then
     local effect = overlay.effect;
