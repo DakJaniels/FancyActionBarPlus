@@ -1233,7 +1233,7 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
 end;
 
 function FancyActionBar.UpdateOverlay(index) -- timer label updates.
-  if index == ULT_INDEX or index == ULT_INDEX + SLOT_INDEX_OFFSET then
+  if (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET) then
     FancyActionBar.UpdateUltOverlay(index);
     return;
   end;
@@ -2554,6 +2554,7 @@ local applyButtonStyles = function (style)
   local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
   local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL);
   ultButton:ApplyStyle(style.ultButtonTemplate);
+  ultButton.showTimer = false;
   ultButtonC:ApplyStyle(style.ultButtonTemplate);
   QSButton:ApplyStyle(style.buttonTemplate);
 end;
@@ -2807,7 +2808,7 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
       button.slot:ClearAnchors();
       button.slot:SetAnchor(LEFT, ZO_ActionBar_GetButton(i - 1).slot, RIGHT, 0, 0);
     end;
-
+    button.showTimer = false;
     lastButton = button;
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
@@ -4166,14 +4167,13 @@ function FancyActionBar.Initialize()
   end;
 
   -- Update overlays.
-  local function Update()
-    FancyActionBar.UpdateUltOverlay(ULT_INDEX);
-    FancyActionBar.UpdateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET);
-    if AreCompanionSkillsInitialized() then
-      FancyActionBar.UpdateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET);
-    end;
-    for i, overlay in pairs(FancyActionBar.overlays) do
+    local function Update()
+    for i = MIN_INDEX, ULT_INDEX do
       FancyActionBar.UpdateOverlay(i);
+      FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET);
+    end;
+    if (not SV.hideCompanionUlt) and AreCompanionSkillsInitialized() and HasActiveCompanion() and DoesUnitExist("companion") and (ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction) then
+      FancyActionBar.UpdateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET);
     end;
   end;
 
