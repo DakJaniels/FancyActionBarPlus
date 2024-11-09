@@ -1574,13 +1574,14 @@ end;
 
 function FancyActionBar.UpdateToggledAbility(id, active) -- toggled effect highligh update.
   local effect = FancyActionBar.effects[id];
+  if effect then
+    if not FancyActionBar.toggles[effect.id] then FancyActionBar.toggles[effect.id] = false; end;
 
-  if not FancyActionBar.toggles[effect.id] then FancyActionBar.toggles[effect.id] = false; end;
+    FancyActionBar.toggles[effect.id] = active;
 
-  FancyActionBar.toggles[effect.id] = active;
-
-  if effect.slot1 then FancyActionBar.UpdateHighlight(effect.slot1); end;
-  if effect.slot2 then FancyActionBar.UpdateHighlight(effect.slot2); end;
+    if effect.slot1 then FancyActionBar.UpdateHighlight(effect.slot1); end;
+    if effect.slot2 then FancyActionBar.UpdateHighlight(effect.slot2); end;
+  end;
 end;
 
 function FancyActionBar.UpdatePassiveEffect(id, active) -- passive effect highligh update.
