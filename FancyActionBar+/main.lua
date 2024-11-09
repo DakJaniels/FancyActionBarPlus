@@ -3934,6 +3934,7 @@ function FancyActionBar.Initialize()
   end;
 
   local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
+    local t = time();
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
@@ -3946,8 +3947,10 @@ function FancyActionBar.Initialize()
         -- TODO: find a better place to do it.
         if SV.potlfix and remain > 6 and effect.id == 21763 then
           remain = 6;
-        end;
-        effect.endTime = time() + remain;
+                end;
+        effect.duration = duration > 0 and duration or nil;
+        effect.beginTime = t - (duration - remain);
+        effect.endTime = t + remain;
         FancyActionBar.UpdateEffect(effect);
         --else
         --effect.endTime = 0
