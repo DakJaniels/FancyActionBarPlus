@@ -2554,7 +2554,6 @@ local applyButtonStyles = function (style)
   local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
   local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL);
   ultButton:ApplyStyle(style.ultButtonTemplate);
-  ultButton.showTimer = false;
   ultButtonC:ApplyStyle(style.ultButtonTemplate);
   QSButton:ApplyStyle(style.buttonTemplate);
 end;
@@ -2808,7 +2807,6 @@ function FancyActionBar.SetupButtons(style, weaponSwapControl)
       button.slot:ClearAnchors();
       button.slot:SetAnchor(LEFT, ZO_ActionBar_GetButton(i - 1).slot, RIGHT, 0, 0);
     end;
-    button.showTimer = false;
     lastButton = button;
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
@@ -3771,6 +3769,10 @@ function FancyActionBar.Initialize()
   -- Any skill swapped. Setup buttons and slot effects.
   local function OnAllHotbarsUpdated()
     local style = FancyActionBar.GetContants();
+    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX);
+    if ultButton then
+      ultButton.showTimer = false;
+    end;
     for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
       local button = ZO_ActionBar_GetButton(i);
       if button then
