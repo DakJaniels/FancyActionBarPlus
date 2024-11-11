@@ -2315,8 +2315,7 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
       QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
     end;
   else
-    QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale,
-      QSB:GetResizeToFitConstrains());
+    QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains());
     FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor));
   end;
 
@@ -3934,13 +3933,20 @@ function FancyActionBar.Initialize()
   end;
 
   local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
+    local stackCount;
     local t = time();
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
     if effect and not effect.custom then
       local duration = GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) / 1000;
-      local stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory);
+      if FancyActionBar.stackableBuff[abilityId] then
+        local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
+        _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
+        FancyActionBar.stacks[stackableBuffId] = stackCount;
+      else
+        stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory);
+      end;
       if duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax then
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000;
         -- Adjustment for Power of the Light.
