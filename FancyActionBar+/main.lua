@@ -1245,17 +1245,25 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     local bgControl = overlay.bg;
     local stacksControl = overlay.stack;
     local targetsControl = overlay.target;
+    local sourceEndTime;
 
     if effect and not effect.ignore and effect.id > 0 then
+      local sourceId = effect.sourceAbilites and effect.sourceAbilites[index];
+      if sourceId and sourceId ~= effect.id then
+        local sourceEffect = FancyActionBar.effects[sourceId];
+        if sourceEffect then
+          sourceEndTime = sourceEffect.endTime;
+        end;
+      end
       FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
-        allowStacks, FancyActionBar.toggles[effect.id]);
+        allowStacks, FancyActionBar.toggles[effect.id], sourceEndTime);
     else
       FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl);
     end;
   end;
 end;
 
-function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled)
+function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled, sourceEndTime)
   --if --[[effect.toggled or]] effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
 
   local currentTime = time();
@@ -1283,11 +1291,14 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
           end;
         end;
       end;
-      duration = targetEndTime and (targetEndTime - currentTime) or (effect.endTime - currentTime);
+      duration = targetEndTime and (targetEndTime - currentTime) or (effect.endTime - currentTime) or (sourceEndTime - currentTime);
     else
       duration = effect.endTime - currentTime;
     end;
   else
+    if sourceEndTime and sourceEndTime > currentTime then
+      duration = sourceEndTime - currentTime;
+    end;
     effect.endTime = -1;
     hasDuration = false;
   end;
@@ -4009,6 +4020,9 @@ function FancyActionBar.Initialize()
     end;
 
     local effect = FancyActionBar.effects[abilityId] or { id = abilityId };
+    if sourceAbilities[abilityId] and not FancyActionBar.effects[abilityId] then
+      FancyActionBar.effects[abilityId] = effect;
+    end;
     if effect then
       if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
         -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
