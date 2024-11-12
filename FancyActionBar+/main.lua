@@ -1302,7 +1302,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     hasDuration = false;
   end;
 
-  if (not isCastTime) and duration and duration <= 0 then
+  if SV.allowParentTime and (not isCastTime) and duration and duration <= 0 then
     if sourceEndTime and sourceEndTime > currentTime then
       duration = sourceEndTime - currentTime;
       isParentTime = true;
@@ -4694,6 +4694,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
     if SV.showExpire == nil then SV.showExpire = d.showExpire; end;
     if SV.showExpireStart == nil then SV.showExpireStart = d.showExpireStart; end;
     if SV.expireColor == nil then SV.expireColor = d.expireColor; end;
+    if SV.allowParentTime == nil then SV.allowParentTime = d.allowParentTime; end;
     if SV.forceGamepadStyle == nil then SV.forceGamepadStyle = d.forceGamepadStyle; end;
 
     if IsInGamepadPreferredMode() or SV.forceGamepadStyle then

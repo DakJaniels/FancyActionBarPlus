@@ -98,6 +98,7 @@ FancyActionBar.defaultSettings =
   showExpire = true;
   showExpireStart = 2;
   expireColor = { 1, 1, 0 };
+  allowParentTime = false;
   -- keyboard UI visuals
   -- duration
   fontNameKB = "Univers 67";
