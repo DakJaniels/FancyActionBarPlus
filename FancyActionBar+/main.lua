@@ -1144,13 +1144,13 @@ function FancyActionBar.UpdateTimerLabel(label, text, color)
   -- label:SetAlpha(a)
 end;
 
-function FancyActionBar.GetHighlightColor(fading, isToggle)
+function FancyActionBar.GetHighlightColor(fading, isToggle, isParentTime)
   local color = nil;
   if isToggle then
     if SV.toggledHighlight then
       color = SV.toggledColor;
     end;
-  elseif fading then
+  elseif fading or isParentTime then
     if SV.highlightExpire then
       color = SV.highlightExpireColor;
     elseif SV.showHighlight then
@@ -1271,7 +1271,9 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
   local hasDuration = true;
   local duration = 0;
+  local isCastTime, isParentTime = false, false;
   if SV.showCastDuration and effect.castEndTime then
+    isCastTime = true;
     if effect.castEndTime >= currentTime then
       duration = effect.castEndTime - currentTime;
     elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
@@ -1291,16 +1293,20 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
           end;
         end;
       end;
-      duration = targetEndTime and (targetEndTime - currentTime) or (effect.endTime - currentTime) or (sourceEndTime - currentTime);
+      duration = targetEndTime and (targetEndTime - currentTime) or (effect.endTime - currentTime);
     else
       duration = effect.endTime - currentTime;
     end;
   else
-    if sourceEndTime and sourceEndTime > currentTime then
-      duration = sourceEndTime - currentTime;
-    end;
     effect.endTime = -1;
     hasDuration = false;
+  end;
+
+  if (not isCastTime) and duration and duration <= 0 then
+    if sourceEndTime and sourceEndTime > currentTime then
+      duration = sourceEndTime - currentTime;
+      isParentTime = true;
+    end;
   end;
 
   if SV.showCastDuration and effect.castDuration then
@@ -1333,7 +1339,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
   local lt, lc, bc;
   lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime);
   if duration > 0 and ((not (effect.toggled or isToggled)) or ((effect.toggled or isToggled) and tickRate ~= 0)) then
-    bc = FancyActionBar.GetHighlightColor(isFading, effect.toggled);
+    bc = FancyActionBar.GetHighlightColor(isFading, effect.toggled, isParentTime);
   elseif isToggled then
     bc = FancyActionBar.GetHighlightColor(nil, effect.toggled);
   end
@@ -1346,9 +1352,11 @@ end;
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
   if effect.forceExpireStacks and (effect.endTime <= currentTime) then
-    for i = 1, #effect.stackId do
-      local stackId = effect.stackId[i];
-      FancyActionBar.stacks[stackId] = 0;
+    if effect.stackId and #effect.stackId > 0 then
+      for i = 1, #effect.stackId do
+        local stackId = effect.stackId[i];
+        FancyActionBar.stacks[stackId] = 0;
+      end;
     end;
     stacksControl:SetText("");
   elseif allowStacks and effect.stackId then
@@ -1404,9 +1412,11 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
       local stackCounts = {};
       stackCount = FancyActionBar.stacks[effect.id];
       table.insert(stackCounts, stackCount);
-      for i = 1, #stackId do
-        stackCount = FancyActionBar.stacks[stackId[i]];
-        table.insert(stackCounts, stackCount);
+      if effect.stackId and #effect.stackId > 0 then
+        for i = 1, #stackId do
+          stackCount = FancyActionBar.stacks[stackId[i]];
+          table.insert(stackCounts, stackCount);
+        end;
       end;
       stacks = FancyActionBar.getStackValue(stackCounts);
       if stacks and stacks ~= 0 then
@@ -1541,10 +1551,12 @@ function FancyActionBar.HasDebuffStacks(effectId)
   local hasStacks = false;
   local debuffStackMap = FancyActionBar.debuffStackMap;
   for stackId, abilityIds in pairs(debuffStackMap) do
-    for i = 1, #abilityIds do
-      if abilityIds[i] == effectId then
-        hasStacks = true;
-        break;
+    if abilityIds and #abilityIds > 0 then
+      for i = 1, #abilityIds do
+        if abilityIds[i] == effectId then
+          hasStacks = true;
+          break;
+        end;
       end;
     end;
   end;
@@ -1751,7 +1763,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
     if has then effect.endTime = time() + dur; end;
 
-    if effect.stackId then
+    if effect.stackId and #effect.stackId > 0 then
       local _, stackCount;
       for i = 1, #effect.stackId do
         _, _, stackCount = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
@@ -1800,11 +1812,13 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
       FancyActionBar.UpdateOverlay(index);
       FancyActionBar.UpdateStacks(index);
     end;
-    for i = 1, #effect.stackId do
-      if FancyActionBar.stacks[effect.stackId[i]] then
-        FancyActionBar.UpdateOverlay(index);
-        FancyActionBar.UpdateStacks(index);
-        break;
+    if effect.stackId and #effect.stackId > 0 then
+      for i = 1, #effect.stackId do
+        if FancyActionBar.stacks[effect.stackId[i]] then
+          FancyActionBar.UpdateOverlay(index);
+          FancyActionBar.UpdateStacks(index);
+          break;
+        end;
       end;
     end;
   end;
@@ -1859,11 +1873,13 @@ function FancyActionBar.EffectCheck()
         end;
       end;
       FancyActionBar.stacks[effect.id] = stacks;
-      for i = 1, #effect.stackId do
-        if effect.stackId[i] ~= effect.id then
-          local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
-          doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks ~= 0 and true;
-          FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
+      if effect.stackId and #effect.stackId > 0 then
+        for i = 1, #effect.stackId do
+          if effect.stackId[i] ~= effect.id then
+            local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckForActiveEffect(effect.stackId[i]);
+            doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks ~= 0 and true;
+            FancyActionBar.stacks[effect.stackId[i]] = mappedStacks;
+          end;
         end;
       end;
       if doStackUpdate then
@@ -3554,7 +3570,7 @@ function FancyActionBar.RefreshEffects()
           stackCount = FancyActionBar.fixedStacks[abilityId];
         end;
         for id, effect in pairs(FancyActionBar.effects) do
-          if effect.stackId then
+          if effect.stackId and #effect.stackId > 0 then
             for j = 1, #effect.stackId do
               if effect.stackId[j] == abilityId then
                 FancyActionBar.stacks[abilityId] = stackCount or 0;
@@ -3735,10 +3751,12 @@ function FancyActionBar.Initialize()
         local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397);
         local stackIds = effect.stackId;
         local stacks = 0;
-        for i = 1, #stackIds do
-          if stackIds[i] == 184220 then
-            stacks = FancyActionBar.stacks[184220] or 0;
-            break;
+        if stackIds and #stackIds > 0 then
+          for i = 1, #stackIds do
+            if stackIds[i] == 184220 then
+              stacks = FancyActionBar.stacks[184220] or 0;
+              break;
+            end;
           end;
         end;
         local adjust = adjustFatecarver and (stacks * .338) or 0;
@@ -3974,7 +3992,7 @@ function FancyActionBar.Initialize()
       end;
       if not FancyActionBar.fixedStacks[abilityId] then
         for id, effect in pairs(FancyActionBar.effects) do
-          if effect.stackId then
+          if effect.stackId and #effect.stackId > 0 then
             for j = 1, #effect.stackId do
               if effect.stackId[j] == abilityId then
                 FancyActionBar.stacks[abilityId] = stackCount or 0;
@@ -4237,7 +4255,7 @@ function FancyActionBar.Initialize()
 
     if FancyActionBar.stackMap[abilityId] then
       for id, effect in pairs(FancyActionBar.effects) do
-        if effect.stackId then
+        if effect.stackId and #effect.stackId > 0 then
           for i = 1, #effect.stackId do
             if effect.stackId[i] == abilityId then
               FancyActionBar.HandleStackUpdate(id);
