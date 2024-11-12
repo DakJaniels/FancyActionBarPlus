@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.10.4";
+local VERSION = "2.10.5";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -896,9 +896,11 @@ function FancyActionBar.UpdateCompanionOverlayOnChange()
 end;
 
 function FancyActionBar.HandleCompanionStateChanged() -- prevents quick slot from being moved when a companion is summoned / unsummoned
-  local c = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
-  c:HandleSlotChanged();
-  c:UpdateUltimateMeter();
+    local c = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
+  if c then
+    c:HandleSlotChanged();
+    c:UpdateUltimateMeter();
+  end;
   zo_callLater(function () FancyActionBar.UpdateCompanionOverlayOnChange(); end, 2000);
 end;
 
@@ -2813,8 +2815,11 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     button:ApplyStyle(style.buttonTemplate);
     FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i);
     FancyActionBar.SetupButtonStatus(button);
+    end;
+  local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory());
+  if ult then
+    ult:UpdateUltimateMeter();
   end;
-  ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory()):UpdateUltimateMeter();
 end;
 
 --- Setup the buttons with the given style.
