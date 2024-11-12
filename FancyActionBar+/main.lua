@@ -3967,7 +3967,7 @@ function FancyActionBar.Initialize()
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
-    if effect and not effect.custom then
+    if effect and (not effect.custom) and (not effect.castDuration) then
       local duration = GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) / 1000;
       if FancyActionBar.stackableBuff[abilityId] then
         local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
