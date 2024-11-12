@@ -4681,6 +4681,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
               getFunc = function () return SV.ignoreUngroupedAliies; end;
               setFunc = function (value) SV.ignoreUngroupedAliies = value or false; end;
             },
+            {
+              type = "checkbox";
+              name = "Allow Fallback Timers";
+              tooltip = "By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.";
+              default = defaults.allowParentTime;
+              getFunc = function () return SV.allowParentTime; end;
+              setFunc = function (value) SV.allowParentTime = value or false; end;
+            },
           };
         },
       };

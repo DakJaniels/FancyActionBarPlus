@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.10.3
+## User Guide and Menu Option Documentation for v2.10.4
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -232,6 +232,7 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 * [EXPERIMENTAL] Show Tick Rate for Toggles (default: OFF) – Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.* Ignore Initial Trap Placement (default: OFF) - By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT.
 * Show Timer For Soonest Expiring Target (default: OFF) - By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.
 * Ignore Ungrouped Allies (default: OFF) - By default FAB will track buffs applied to all allied players. With this setting enabled only buffs applied to group members will be tracked. If you are not grouped this setting will be ignored and buffs will be tracked on all players.
+* Allow Fallback Timers (default: OFF) – By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the game’s duration for the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.
 
 ### MISCELLANEOUS
 
