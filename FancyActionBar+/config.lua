@@ -2057,6 +2057,7 @@ FancyActionBar.devConfig =
     [2] = 0;
     [3] = 0;
   };
+  ["allowParentTime"] = true;
   ["qsYKB"] = 7;
   ["targetColorKB"] =
   {
