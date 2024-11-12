@@ -3968,6 +3968,8 @@ function FancyActionBar.Initialize()
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
     if effect and (not effect.custom) and (not effect.castDuration) then
+      -- This function doesn't work for channeled/cast duration abilities as it stores the 
+      -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
       local duration = GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) / 1000;
       if FancyActionBar.stackableBuff[abilityId] then
         local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
