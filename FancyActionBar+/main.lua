@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.10.5";
+local VERSION = "2.10.6";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -896,12 +896,12 @@ function FancyActionBar.UpdateCompanionOverlayOnChange()
 end;
 
 function FancyActionBar.HandleCompanionStateChanged() -- prevents quick slot from being moved when a companion is summoned / unsummoned
-    local c = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
+  local c = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
   if c then
     c:HandleSlotChanged();
     c:UpdateUltimateMeter();
+    zo_callLater(function () FancyActionBar.UpdateCompanionOverlayOnChange(); end, 2000);
   end;
-  zo_callLater(function () FancyActionBar.UpdateCompanionOverlayOnChange(); end, 2000);
 end;
 
 function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
@@ -2026,18 +2026,14 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value, hotbar) -- upda
     end;
   else
     local o3 = FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET];
-    CompanionUltimateButtonLeadingEdge:SetAlpha(alpha);
-
-    if SV.hideCompanionUlt then
-      CompanionUltimateButton:SetHidden(true);
-      if o3 and o3.value then
-        o3.value:SetText("");
-      end;
-    else
-      CompanionUltimateButton:SetHidden(false);
-      if o3 and o3.value then
-        o3.value:SetText(FancyActionBar.GetValueString(modeC, value, cost3));
-      end;
+    if CompanionUltimateButtonLeadingEdge then
+      CompanionUltimateButtonLeadingEdge:SetAlpha(SV.hideCompanionUlt and 0 or alpha);
+    end;
+    if CompanionUltimateButton then
+      CompanionUltimateButton:SetHidden(SV.hideCompanionUlt);
+    end;
+    if o3 and o3.value then
+      o3.value:SetText(SV.hideCompanionUlt and "" or FancyActionBar.GetValueString(modeC, value, cost3));
     end;
   end;
 end;
@@ -2817,7 +2813,7 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     FancyActionBar.SetupButtonStatus(button);
     end;
   local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory());
-  if ult then
+  if ult and ult.hasAction then
     ult:UpdateUltimateMeter();
   end;
 end;
@@ -4223,7 +4219,9 @@ function FancyActionBar.Initialize()
       FancyActionBar.UpdateOverlay(i);
       FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET);
     end;
-    if (not SV.hideCompanionUlt) and AreCompanionSkillsInitialized() and HasActiveCompanion() and DoesUnitExist("companion") and (ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction) then
+    if (not SV.hideCompanionUlt) and AreCompanionSkillsInitialized() and HasActiveCompanion() and DoesUnitExist("companion") then
+      local companionUlt = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
+      if (not companionUlt) or (not companionUlt.hasAction) then return; end;
       FancyActionBar.UpdateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET);
     end;
   end;
