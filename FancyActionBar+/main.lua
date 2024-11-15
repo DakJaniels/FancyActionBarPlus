@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.10.6";
+local VERSION = "2.10.7";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
@@ -710,34 +710,34 @@ function FancyActionBar.OnlyUpdateEffectForUsedSkill(id)
 
 end;
 
-function FancyActionBar.EditCurrentAbilityConfiguration(id)
-  local cfg = abilityConfig[id];
-  local isToggled, noTarget = false, false;
+function FancyActionBar.SlotCurrentAbilityConfiguration(id)
+  -- local cfg = abilityConfig[id];
+  -- local isToggled, noTarget = false, false;
 
-  if FancyActionBar.toggled[id] then
-    FancyActionBar.toggles[id] = false;
-    isToggled = true;
-  end;
+  -- if FancyActionBar.toggled[id] then
+  --   FancyActionBar.toggles[id] = false;
+  --   isToggled = true;
+  -- end;
 
-  -- if FancyActionBar.constants.hideOnNoTargetList[id] then
-  --   noTarget = FancyActionBar.constants.hideOnNoTargetList[id]
+  -- -- if FancyActionBar.constants.hideOnNoTargetList[id] then
+  -- --   noTarget = FancyActionBar.constants.hideOnNoTargetList[id]
+  -- -- else
+  -- --   noTarget = FancyActionBar.GetHideOnNoTargetGlobalSetting()
+  -- -- end
+
+  -- local cI, rI = id, false;
+
+  -- if FancyActionBar.removeInstantly[id] then rI = true; end;
+
+  -- if type(cfg) == "table" then
+  --   abilityConfig[id] = { cfg[1], cfg[2], isToggled, rI };
+  -- elseif cfg then
+  --   abilityConfig[id] = { id, nil, isToggled, rI };
+  -- elseif cfg == false then
+  --   abilityConfig[id] = false;
   -- else
-  --   noTarget = FancyActionBar.GetHideOnNoTargetGlobalSetting()
-  -- end
-
-  local cI, rI = id, false;
-
-  if FancyActionBar.removeInstantly[id] then rI = true; end;
-
-  if type(cfg) == "table" then
-    abilityConfig[id] = { cfg[1], cfg[2], isToggled, rI };
-  elseif cfg then
-    abilityConfig[id] = { id, nil, isToggled, rI };
-  elseif cfg == false then
-    abilityConfig[id] = false;
-  else
-    abilityConfig[id] = { id };
-  end;
+  --   abilityConfig[id] = { id };
+  -- end;
 
   local currentSlots = {};
 
@@ -749,6 +749,7 @@ function FancyActionBar.EditCurrentAbilityConfiguration(id)
   end;
 
   for slot in pairs(currentSlots) do
+    if slot then FancyActionBar.UnslotEffect(slot); end;
     if slot then FancyActionBar.SlotEffect(slot, id, nil, nil, true); end;
   end;
 end;
@@ -3727,6 +3728,10 @@ function FancyActionBar.Initialize()
 
   -- Button (usable) state changed.
   local function OnSlotStateChanged(_, n)
+    if IsPlayerGroundTargeting() then
+      zo_callLater(function() OnSlotStateChanged(_, n); end, 1);
+        return
+    end;
     local isBlockActive = IsBlockActive();
     local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false));
     if blockCancelled then
@@ -3968,10 +3973,17 @@ function FancyActionBar.Initialize()
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
-    if effect and (not effect.custom) and (not effect.castDuration) then
+    if effect and (not effect.custom) then
+      effect.slotEffecTime = true
       -- This function doesn't work for channeled/cast duration abilities as it stores the 
       -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
       local duration = GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) / 1000;
+      local effectDuration = GetAbilityDuration(abilityId) / 1000;
+      if duration ~= effectDuration then
+        effect.ignoreFadeTime = true
+      else
+        effect.ignoreFadeTime = false
+      end
       if FancyActionBar.stackableBuff[abilityId] then
         local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
         _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
@@ -3981,17 +3993,24 @@ function FancyActionBar.Initialize()
       end;
       if duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax then
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000;
-        -- Adjustment for Power of the Light.
-        -- TODO: find a better place to do it.
-        if SV.potlfix and remain > 6 and effect.id == 21763 then
-          remain = 6;
-                end;
-        effect.duration = duration > 0 and duration or nil;
-        effect.beginTime = t - (duration - remain);
-        effect.endTime = t + remain;
-        FancyActionBar.UpdateEffect(effect);
-        --else
-        --effect.endTime = 0
+        if effect.isChanneled and effect.castDuration and isChanneling then
+          effect.castEndTime = t + remain;
+        else
+          if effect.castDuration then
+            effect.castDuration = nil
+          end;
+          -- Adjustment for Power of the Light.
+          -- TODO: find a better place to do it.
+          if SV.potlfix and remain > 6 and effect.id == 21763 then
+            remain = 6;
+                  end;
+          effect.duration = duration > 0 and duration or nil;
+          effect.beginTime = t - (duration - remain);
+          effect.endTime = t + remain;
+          FancyActionBar.UpdateEffect(effect);
+          --else
+          --effect.endTime = 0
+        end;
       end;
       if not FancyActionBar.fixedStacks[abilityId] then
         for id, effect in pairs(FancyActionBar.effects) do
@@ -4129,6 +4148,7 @@ function FancyActionBar.Initialize()
           end;
 
           effect.endTime = endTime;
+
           for id, effect in pairs(FancyActionBar.effects) do
             if effect.stackId and ((effectType ~= DEBUFF) or FancyActionBar.fixedStacks[abilityId]) then
               if FancyActionBar.fixedStacks[abilityId] then
@@ -4142,11 +4162,13 @@ function FancyActionBar.Initialize()
               end;
             end;
           end;
+
         else
           effect.endTime = 0; -- duration too long or too short. don't track.
         end;
         FancyActionBar.UpdateEffect(effect);
       elseif (change == EFFECT_RESULT_FADED) then
+        if effect.ignoreFadeTime then return; end;
         local hasActiveTargets = false;
         if FancyActionBar.targets[effect.id] then
           local targetData = FancyActionBar.targets[effect.id];
@@ -4214,7 +4236,7 @@ function FancyActionBar.Initialize()
   end;
 
   -- Update overlays.
-    local function Update()
+  local function Update()
     for i = MIN_INDEX, ULT_INDEX do
       FancyActionBar.UpdateOverlay(i);
       FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET);

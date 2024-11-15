@@ -961,7 +961,7 @@ local function UpdateEffectForAbility(track, ability, effect)
   end;
 
   FancyActionBar.BuildAbilityConfig();
-  FancyActionBar.EditCurrentAbilityConfiguration(extractedAbilityId);
+  FancyActionBar.SlotCurrentAbilityConfiguration(extractedAbilityId);
   ResetUpdateSettings();
 end;
 
