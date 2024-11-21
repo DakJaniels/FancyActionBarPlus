@@ -3727,9 +3727,9 @@ function FancyActionBar.Initialize()
   end;
 
   -- Button (usable) state changed.
-  local function OnSlotStateChanged(_, n)
+  local function OnHotbarSlotStateUpdated(_, slot, hotbar)
     if IsPlayerGroundTargeting() then
-      zo_callLater(function() OnSlotStateChanged(_, n); end, 1);
+      zo_callLater(function () OnHotbarSlotStateUpdated(_, slot, hotbar); end, 1);
         return
     end;
     local isBlockActive = IsBlockActive();
@@ -3739,7 +3739,7 @@ function FancyActionBar.Initialize()
       isChanneling = false;
     end;
 
-    local btn = ZO_ActionBar_GetButton(n);
+    local btn = FancyActionBar.GetActionButton((hotbar == HOTBAR_CATEGORY_SECONDARY) and (slot + SLOT_INDEX_OFFSET) or slot);
     if btn then
       btn:UpdateState();
       --FancyActionBar.SetActionButtonAbilityFxOverride(n);
@@ -4441,7 +4441,7 @@ function FancyActionBar.Initialize()
   EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionStateChanged);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged);
-  EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_STATE_UPDATED, OnSlotStateChanged);
+  EM:RegisterForEvent(NAME, EVENT_HOTBAR_SLOT_STATE_UPDATED, OnHotbarSlotStateUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_EFFECT_UPDATE, OnActionSlotEffectUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, OnActiveHotbarUpdated);
   EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated);
