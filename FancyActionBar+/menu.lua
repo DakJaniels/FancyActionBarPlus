@@ -1348,6 +1348,7 @@ end;
 ---------[   Actionbar Position   ]-----------
 ----------------------------------------------
 local function SaveCurrentLocation()
+  if not FancyActionBar.wasMoved then return; end;
   local x = FAB_Mover:GetLeft();
   local y = FAB_Mover:GetTop();
   -- if IsInGamepadPreferredMode() then
@@ -5608,7 +5609,7 @@ function FancyActionBar.UndoMove()
   ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, prevX, prevY);
   ReanchorMover();
   FancyActionBar.SaveMoverPosition();
-  FAB_Mover:SetHidden(true);
+  FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked());
 end;
 
 function FancyActionBar.ResetMoveActionBar()
@@ -5619,7 +5620,7 @@ function FancyActionBar.ResetMoveActionBar()
   ReanchorMover();
   FancyActionBar.SaveMoverPosition();
   FancyActionBar.SetMoved(false);
-  FAB_Mover:SetHidden(true);
+  FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked());
 end;
 
 function FancyActionBar.CenterActionBar(horiz, vert)
@@ -5637,12 +5638,11 @@ function FancyActionBar.CenterActionBar(horiz, vert)
     x = zo_floor((GuiRoot:GetWidth() - width) / 2);
   end;
 
-  SaveCurrentLocation();
   ACTION_BAR:ClearAnchors();
   ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y);
   ReanchorMover();
   FancyActionBar.SaveMoverPosition();
-  FancyActionBar.SetMoved(false);
+  FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked());
 end;
 
 function FancyActionBar.ToggleMover(enableMove)
@@ -5665,6 +5665,7 @@ end;
 
 function FancyActionBar.MoveActionBar()
   local v, d = FancyActionBar:GetMovableVarsForUI();
+  FancyActionBar.SetMoved(v.enable or false);
   if v.enable then
     ACTION_BAR:ClearAnchors();
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y);
