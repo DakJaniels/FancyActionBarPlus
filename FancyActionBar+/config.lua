@@ -233,7 +233,6 @@ FancyActionBar.abilityConfig =
   -- Assault
   [61503] = { 61504 }; -- vigor
   [61505] = { 61506 }; -- echoing vigor
-  [61507] = { 61693 }; -- resolving vigor
   [38566] = { 61736 }; -- rapid maneuver
   [40211] = { 61736 }; -- retreating maneuver
   [40215] = { 61736 }; -- charging maneuver
