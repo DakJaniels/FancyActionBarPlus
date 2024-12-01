@@ -681,7 +681,7 @@ FancyActionBar.stackMap =
     23277, -- Ball of Lightning
   };
 
-  [29032] = { 29032 };         -- Stone Fist (stacks on self)
+  [29032] = { 29032, 133037 }; -- Stone Fist (stacks on self)
   [31816] = { 31816, 133027 }; -- Stone Giant (stacks on self)
 
   -- Seething Fury
