@@ -3973,7 +3973,11 @@ function FancyActionBar.Initialize()
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
-    if effect and (not effect.custom) then
+    if effect and (not effect.custom) or SV.allowParentTime then
+      if not effect and SV.allowParentTime then
+        effect = { id = abilityId };
+        FancyActionBar.effects[abilityId] = effect;
+      end
       effect.slotEffecTime = true
       -- This function doesn't work for channeled/cast duration abilities as it stores the 
       -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
