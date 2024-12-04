@@ -731,6 +731,7 @@ FancyActionBar.stackMap =
     198567, -- tidal chakram
     183241, -- impervious runeward
     184362, -- impervious runeward
+    185901, -- spiteward
   };
 
   -- Leeching Strikes
@@ -1868,6 +1869,31 @@ FancyActionBar.idsForStaff =
       [WEAPONTYPE_LIGHTNING_STAFF] = 85130;
     };
   };
+};
+
+FancyActionBar.styleFix =
+{
+  -- Arcanist, Stam Cost Abilities
+  [193331] = 185805; -- Fatecarver
+  [193398] = 186366; -- Pragmatic Fatecarver
+  [193397] = 183122; -- Exhausting Fatecarver
+  [198282] = 183261; -- Runemend
+  [198288] = 186189; -- Evolving Runemend
+  [198292] = 186191; -- Audacious Runemend
+  [188658] = 185794; -- Runeblades
+  [188780] = 182977; -- Escalating Runeblades
+  [188787] = 185803; -- Writhing Runeblades
+
+  -- Arcanist, Mag Cost Abilities
+  [185805] = 185805; -- Fatecarver
+  [186366] = 186366; -- Pragmatic Fatecarver
+  [183122] = 183122, -- Exhausting Fatecarver
+  [183261] = 183261; -- Runemend
+  [186189] = 186189; -- Rvolving Runemend
+  [186191] = 186191; -- audacious runemend
+  [185794] = 185794; -- Runeblades
+  [182977] = 182977; -- Escalating Runeblades
+  [185803] = 185803; -- Writhing Runeblades
 };
 
 FancyActionBar.devConfig =

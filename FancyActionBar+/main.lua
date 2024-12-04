@@ -391,6 +391,8 @@ end;
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
   if FancyActionBar.destroSkills[abilityId] then
     abilityId = FancyActionBar.GetBaseIdForDestroSkill(abilityId);
+  elseif FancyActionBar.styleFix[abilityId] then
+    abilityId = FancyActionBar.styleFix[abilityId];
   end;
   if abilityId == 31816 then
     local hyper = CheckHyperTools();
