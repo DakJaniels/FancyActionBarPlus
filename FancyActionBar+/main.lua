@@ -3741,7 +3741,7 @@ function FancyActionBar.Initialize()
       isChanneling = false;
     end;
 
-    local btn = FancyActionBar.GetActionButton((hotbar == HOTBAR_CATEGORY_SECONDARY) and (slot + SLOT_INDEX_OFFSET) or slot);
+    local btn = FancyActionBar.GetActionButton((hotbar == HOTBAR_CATEGORY_BACKUP) and (slot + SLOT_INDEX_OFFSET) or slot);
     if btn then
       btn:UpdateState();
       --FancyActionBar.SetActionButtonAbilityFxOverride(n);
