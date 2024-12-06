@@ -3976,7 +3976,6 @@ function FancyActionBar.Initialize()
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
     if effect and (not effect.custom) or SV.allowParentTime then
-
       if not effect then
         if SV.allowParentTime then
           effect = { id = abilityId };
@@ -3985,6 +3984,8 @@ function FancyActionBar.Initialize()
           return;
         end;
       end;
+
+      if FancyActionBar.specialEffects[effect.id] then return; end;
 
       effect.slotEffecTime = true;
       -- This function doesn't work for channeled/cast duration abilities as it stores the 
