@@ -3972,7 +3972,7 @@ function FancyActionBar.Initialize()
   local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
     local stackCount;
     local t = time();
-    local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
+    local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory);
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
     if effect and (not effect.custom) or SV.allowParentTime then
