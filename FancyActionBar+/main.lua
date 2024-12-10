@@ -3973,6 +3973,9 @@ function FancyActionBar.Initialize()
     local stackCount;
     local t = time();
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory);
+    
+    if FancyActionBar.ignoreFallbackTimers[abilityId] then return; end;
+
     local effect = FancyActionBar.effects[abilityId];
     -- Effect must be slotted and not have custom duration specified in config.lua
     if effect and (not effect.custom) or SV.allowParentTime then

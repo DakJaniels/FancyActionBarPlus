@@ -459,7 +459,6 @@ FancyActionBar.abilityConfig =
   [115410] = false;      -- reanimate
   [118367] = false;      -- renewing animation
   [118379] = false;      -- animate blastbones
-  [117805] = { 117805 }; -- boneyard (needed to fix a bug with effect durations)
 
   -- Arcanist
   [185794] = { 184220 }; -- runeblades
@@ -1465,6 +1464,11 @@ FancyActionBar.ignore =
   [61744] = true;  -- minor berserk
   [114716] = true; -- crystal frags
 };
+
+FancyActionBar.ignoreFallbackTimers =
+{
+  [117805] = true; -- boneyard
+}
 
 FancyActionBar.dontFade =
 {
