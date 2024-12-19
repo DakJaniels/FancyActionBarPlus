@@ -4087,7 +4087,7 @@ function FancyActionBar.Initialize()
                 -- end;
         effect.beginTime = (beginTime ~= 0) and beginTime or t;
         FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED);
-      elseif FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and AreUnitsEqual("player", unitTag) then
+      elseif (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and (AreUnitsEqual("player", unitTag)) then
         for k, v in pairs(FancyActionBar.bannerBearer) do
           if sourceAbilities[k] then
             -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
