@@ -3768,7 +3768,7 @@ function FancyActionBar.Initialize()
           end;
         end;
         local adjust = adjustFatecarver and (stacks * .338) or 0;
-        effect.castEndTime = effect.castDuration + adjust + time();
+        effect.castEndTime = effect.castDuration and (effect.castDuration + adjust + time()) or 0;
         wasBlockActive = isBlockActive;
         channeledAbilityUsed = nil;
         isChanneling = true;
