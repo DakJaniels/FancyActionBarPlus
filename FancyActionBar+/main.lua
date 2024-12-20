@@ -874,7 +874,7 @@ end;
 
 function FancyActionBar.UpdateCompanionOverlayOnChange()
   local cUltButton = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
-  if (not companionUltimateButton) then return; end;
+  if (not cUltButton) then return; end;
   if (not SV.hideCompanionUlt) and HasActiveCompanion() and DoesUnitExist("companion") and cUltButton.hasAction then
     local current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE);
     cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION);
@@ -3182,7 +3182,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     ultimateReadyBurstTexture:SetHidden(true);
     ultimateReadyLoopTexture:SetHidden(true);
     self:StopUltimateReadyAnimations();
-    self:ResetUltimateFillAnimations();
+    --self:ResetUltimateFillAnimations();
 
     --hide progress bar for all platforms
     barTexture:SetHidden(true);
