@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar;
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+";
-local VERSION = "2.10.11";
+local VERSION = "2.10.12";
 local slashCommand = "/fab" or "/FAB";
 local EM = GetEventManager();
 local WM = GetWindowManager();
