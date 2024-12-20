@@ -873,27 +873,35 @@ function FancyActionBar.IsSameEffect(index, abilityId)
 end;
 
 function FancyActionBar.UpdateCompanionOverlayOnChange()
-  if (not SV.hideCompanionUlt) and HasActiveCompanion() and DoesUnitExist("companion") and (ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction) then
+  local cUltButton = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION);
+  if (not companionUltimateButton) then return; end;
+  if (not SV.hideCompanionUlt) and HasActiveCompanion() and DoesUnitExist("companion") and cUltButton.hasAction then
     local current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE);
     cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION);
     if cost3 == nil or cost3 == 0 then
       if CompanionUltimateButton then
         CompanionUltimateButton:SetHidden(true);
-        ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
+        if cUltButton.buttonText then
+          cUltButton.buttonText:SetHidden(true);
+        end;
       end;
     else
       CompanionUltimateButton:SetHidden(false);
       FancyActionBar.UpdateUltimateValueLabels(false, current);
-      if FancyActionBar.style == 2 then
-        ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
+      if FancyActionBar.style == 2 and cUltButton.buttonText then
+        cUltButton.buttonText:SetHidden(true);
       else
-        ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(not SV.showHotkeys);
+        if cUltButton.buttonText then
+          cUltButton.buttonText:SetHidden(not SV.showHotkeys);
+        end;
       end;
     end;
   else
     if CompanionUltimateButton then
       CompanionUltimateButton:SetHidden(true);
-      ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).buttonText:SetHidden(true);
+      if cUltButton.buttonText then
+        cUltButton.buttonText:SetHidden(true);
+      end;
     end;
   end;
 end;
