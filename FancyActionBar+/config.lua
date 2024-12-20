@@ -1468,6 +1468,7 @@ FancyActionBar.ignore =
 FancyActionBar.ignoreFallbackTimers =
 {
   [117805] = true; -- boneyard
+  [39192] = true; -- elude
 }
 
 FancyActionBar.dontFade =
@@ -1649,6 +1650,7 @@ FancyActionBar.removeInstantly =
   [19118] = true;  -- endless fury debuff
   [19125] = true;  -- mages' wrath debuff
   [51392] = true;  -- Streak Fatigue
+  [61500] = true;  -- proximity detonation
 };
 
 FancyActionBar.allowedChanneled =
