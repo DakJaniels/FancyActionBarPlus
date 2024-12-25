@@ -2824,9 +2824,6 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     FancyActionBar.SetupButtonStatus(button);
     end;
   local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory());
-  if ult and ult.hasAction then
-    ult:UpdateUltimateMeter();
-  end;
 end;
 
 --- Setup the buttons with the given style.
@@ -4514,11 +4511,6 @@ function FancyActionBar.Initialize()
     end;
     FancyActionBar.OnPlayerActivated();
     FancyActionBar.ApplyAbilityFxOverrides();
-    if initial then
-      zo_callLater(function ()
-        FancyActionBar.ApplyActiveHotbarStyle();
-      end, 750);
-    end;
   end;
 
   EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated);
