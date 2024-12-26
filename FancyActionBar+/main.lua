@@ -4012,7 +4012,7 @@ function FancyActionBar.Initialize()
       else
         stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory);
       end;
-      if duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax then
+      if duraton == 0 or (duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax) then
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000;
         if effect.isChanneled and effect.castDuration and isChanneling then
           effect.castEndTime = t + remain;
