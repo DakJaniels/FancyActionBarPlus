@@ -4001,10 +4001,12 @@ function FancyActionBar.Initialize()
       local duration = (GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) or 0) / 1000;
       local effectDuration = (GetAbilityDuration(abilityId) or 0) / 1000;
       if duration ~= effectDuration then
-        effect.ignoreFadeTime = true
+        effect.ignoreFadeTime = true;
       else
-        effect.ignoreFadeTime = false
-      end
+        effect.ignoreFadeTime = false;
+      end;
+      duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1;
+
       if FancyActionBar.stackableBuff[abilityId] then
         local stackableBuffId = FancyActionBar.stackableBuff[abilityId];
         _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId);
@@ -4012,8 +4014,8 @@ function FancyActionBar.Initialize()
       else
         stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory);
       end;
-      if duraton == 0 or (duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax) then
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000;
+        remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1;
         if effect.isChanneled and effect.castDuration and isChanneling then
           effect.castEndTime = t + remain;
         else
@@ -4032,7 +4034,6 @@ function FancyActionBar.Initialize()
           --else
           --effect.endTime = 0
         end;
-      end;
       if not FancyActionBar.fixedStacks[abilityId] then
         for id, effect in pairs(FancyActionBar.effects) do
           if effect.stackId and #effect.stackId > 0 then
