@@ -4016,24 +4016,24 @@ function FancyActionBar.Initialize()
       end;
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000;
         remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1;
-        if effect.isChanneled and effect.castDuration and isChanneling then
-          effect.castEndTime = t + remain;
-        else
-          if effect.castDuration then
-            effect.castDuration = nil
-          end;
-          -- Adjustment for Power of the Light.
-          -- TODO: find a better place to do it.
-          if SV.potlfix and remain > 6 and effect.id == 21763 then
-            remain = 6;
-                  end;
-          effect.duration = duration > 0 and duration or nil;
-          effect.beginTime = t - (duration - remain);
-          effect.endTime = t + remain;
-          FancyActionBar.UpdateEffect(effect);
-          --else
-          --effect.endTime = 0
+      if effect.isChanneled and effect.castDuration and isChanneling then
+        effect.castEndTime = t + remain;
+      else
+        if effect.castDuration then
+          effect.castDuration = nil
         end;
+        -- Adjustment for Power of the Light.
+        -- TODO: find a better place to do it.
+        if SV.potlfix and remain > 6 and effect.id == 21763 then
+          remain = 6;
+                end;
+        effect.duration = duration > 0 and duration or nil;
+        effect.beginTime = t - (duration - remain);
+        effect.endTime = t + remain;
+        FancyActionBar.UpdateEffect(effect);
+        --else
+        --effect.endTime = 0
+      end;
       if not FancyActionBar.fixedStacks[abilityId] then
         for id, effect in pairs(FancyActionBar.effects) do
           if effect.stackId and #effect.stackId > 0 then
