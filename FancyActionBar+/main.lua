@@ -1260,7 +1260,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     local targetsControl = overlay.target;
     local sourceEndTime;
 
-    if effect and not effect.ignore and effect.id > 0 then
+    if effect and effect.id > 0 and not effect.ignore then
       local sourceId = effect.sourceAbilites and effect.sourceAbilites[index];
       if sourceId and sourceId ~= effect.id then
         local sourceEffect = FancyActionBar.effects[sourceId];
