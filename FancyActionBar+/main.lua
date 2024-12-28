@@ -5296,6 +5296,9 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         if SV.moveHealthBar == nil then
             SV.moveHealthBar = d.moveHealthBar
         end
+        if SV.moveResourceBars == nil then
+            SV.moveResourceBars = d.moveResourceBars
+        end
         if SV.showFrames == nil then
             SV.showFrames = d.showFrames
         end

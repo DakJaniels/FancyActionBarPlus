@@ -86,6 +86,7 @@ FancyActionBar.defaultSettings =
     barXOffsetGP = 0,
     barYOffsetGP = 0,
     moveHealthBar = true,
+    moveResourceBars = false,
 
     -- back bar visibility
     alphaInactive = 20,

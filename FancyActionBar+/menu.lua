@@ -5298,6 +5298,27 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     requiresReload = true,
                     width = "half",
                 },
+                {
+                    type = "checkbox",
+                    name = "Adjust Mag/Stam Bars",
+                    tooltip = "Also adjust the position of the magicka and stamina bars to align with health bar.",
+                    default = defaults.moveResourceBars,
+                    getFunc = function ()
+                        return SV.moveResourceBars
+                    end,
+                    setFunc = function (value)
+                        SV.moveResourceBars = value or false
+                        if not FancyActionBar.wasMoved then
+                            FancyActionBar.ResetMoveActionBar()
+                            FancyActionBar.RepositionHealthBar()
+                        end
+                    end,
+                    disabled = function ()
+                        return not SV.moveHealthBar
+                    end,
+                    requiresReload = true,
+                    width = "half",
+                },
                 { type = "description", text = "", width = "half" },
 
                 -- ============[	Enemy Markers	]=======================
@@ -6229,6 +6250,20 @@ function FancyActionBar.ResetMoveActionBar()
     ReanchorMover()
     FancyActionBar.SaveMoverPosition()
     FancyActionBar.SetMoved(false)
+    if FancyActionBar.style == 2
+    then
+        SV.abMove.gp.x = d.x
+        SV.abMove.gp.y = d.y
+        SV.abMove.gp.enable = false
+    else
+        SV.abMove.kb.x = d.x
+        SV.abMove.kb.y = d.y
+        SV.abMove.kb.enable = false
+    end
+
+    FancyActionBar.constants.move.x = d.x
+    FancyActionBar.constants.move.y = d.y
+    FancyActionBar.constants.move.enable = false
     FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
 end
 
@@ -6344,8 +6379,24 @@ function FancyActionBar.RepositionHealthBar()
         local scale = FancyActionBar.GetScale()
         local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
         local abTop = ACTION_BAR:GetTop()
+
+        -- Reposition Health Bar
         ZO_PlayerAttributeHealth:ClearAnchors()
         ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - ((c.dimensions * scale) + 4 + barYOffset)))
+
+        if SV.moveResourceBars then
+            local healthTop = ZO_PlayerAttributeHealth:GetTop()
+
+            -- Reposition Magicka Bar
+            local magX = ZO_PlayerAttributeMagicka:GetLeft()
+            ZO_PlayerAttributeMagicka:ClearAnchors()
+            ZO_PlayerAttributeMagicka:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, magX, healthTop)
+
+            -- Reposition Stamina Bar
+            local stamX = ZO_PlayerAttributeStamina:GetLeft()
+            ZO_PlayerAttributeStamina:ClearAnchors()
+            ZO_PlayerAttributeStamina:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, stamX, healthTop)
+        end
     end
 end
 
