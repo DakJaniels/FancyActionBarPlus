@@ -1545,7 +1545,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             ACTION_BAR:SetHidden(true)
             l = "Show Actionbar"
         end
-        WINDOW_MANAGER:GetControlByName("FAB_AB_Toggle").button:SetText(l)
+
+        -- Get the toggle button control
+        local toggleButton = WINDOW_MANAGER:GetControlByName("FAB_AB_Toggle")
+
+        -- If the button exists, update its text
+        if toggleButton and toggleButton.button then
+            toggleButton.button:SetText(l)
+        end
     end
 
     local function SetDevsUISettings()
