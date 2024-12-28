@@ -4,7 +4,7 @@
 ## AddOnVersion: 21014
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
-## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage
+## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage LibMediaProvider
 ## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
 ## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles
 

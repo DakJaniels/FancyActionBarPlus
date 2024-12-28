@@ -1,6 +1,7 @@
 --- @class (partial) FancyActionBar
 local FancyActionBar = FancyActionBar
 local LAM = LibAddonMenu2
+local LMP = LibMediaProvider
 local EM = GetEventManager()
 local WM = GetWindowManager()
 local SM = SCENE_MANAGER
@@ -112,9 +113,23 @@ end
 
 function FancyActionBar.GetFonts()
     local fonts = {}
+
+    -- Add built-in fonts
     for k in pairs(FAB_Fonts) do
         table.insert(fonts, k)
     end
+
+    -- Add fonts from LibMediaProvider if available
+    if LMP then
+        for _, fontName in pairs(LMP:List(LMP.MediaType.FONT)) do
+            -- Only add if we don't already have this font
+            if not FAB_Fonts[fontName] then
+                FAB_Fonts[fontName] = LMP:Fetch(LMP.MediaType.FONT, fontName)
+                table.insert(fonts, fontName)
+            end
+        end
+    end
+
     return fonts
 end
 
