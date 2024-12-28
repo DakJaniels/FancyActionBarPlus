@@ -1,7 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://sir.insidi.at/or/schema/esoui.xsd">
+<GuiXml
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://sir.insidi.at/or/schema/esoui.xsd">
   <Controls>
     <!-- Misc Templates -->
+    <Control name="FAB_ActionButton_FlipCardControl" virtual="true">
+      <Anchor point="TOPLEFT" relativeTo="$(parent)FlipCard" />
+      <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)FlipCard" />
+    </Control>
+    <Control name="FAB_ActionButton_Keyboard_Template" virtual="true">
+      <Dimensions x="50" y="50" />
+      <Controls>
+        <Control name="$(parent)FlipCard">
+          <Dimensions x="47" y="47" />
+        </Control>
+        <Texture name="$(parent)Icon" inherits="FAB_ActionButton_FlipCardControl" />
+        <Texture name="$(parent)CooldownIcon" hidden="true" />
+        <Label name="$(parent)ButtonText" font="ZoFontGameSmall">
+          <Dimensions x="50" y="18" />
+          <Anchor point="TOP" relativePoint="BOTTOM" offsetY="1" />
+        </Label>
+        <Label name="$(parent)StackCountText" font="ZoFontGameBold" color="DCD822">
+          <Dimensions x="50" y="18" />
+          <Anchor point="CENTER" relativePoint="CENTER" offsetX="15" offsetY="-15" />
+        </Label>
+        <Label name="$(parent)TimerText" font="ZoFontGameBold" color="DCD822">
+          <Dimensions x="50" y="18" />
+          <Anchor point="CENTER" relativePoint="CENTER" offsetY="ACTION_BUTTON_TIMER_TEXT_OFFSET_Y_DEFAULT_KEYBOARD" />
+        </Label>
+        <Texture name="$(parent)TimerOverlay" />
+        <Texture name="$(parent)Glow" hidden="true" alpha="0" />
+        <Texture name="$(parent)BG" hidden="false" />
+        <Backdrop name="$(parent)Backdrop" hidden="true" />
+      </Controls>
+    </Control>
+    <Control name="FAB_ActionButton_Gamepad_Template" virtual="true">
+      <Dimensions x="64" y="64" />
+      <Controls>
+        <Control name="$(parent)FlipCard">
+          <Dimensions x="ZO_GAMEPAD_ACTION_BUTTON_SIZE" y="ZO_GAMEPAD_ACTION_BUTTON_SIZE" />
+        </Control>
+        <Texture name="$(parent)Icon">
+          <Dimensions x="ZO_GAMEPAD_ACTION_BUTTON_SIZE" y="ZO_GAMEPAD_ACTION_BUTTON_SIZE" />
+        </Texture>
+        <Texture name="$(parent)CooldownIcon" hidden="true" />
+        <Label name="$(parent)ButtonText" font="ZoFontGamepad18">
+          <!-- Setting the width back to 0 makes it use the suggested width based on the text rendering -->
+          <Dimensions x="0" y="25" />
+          <Anchor point="TOP" relativePoint="BOTTOM" offsetY="-6" />
+        </Label>
+        <Label name="$(parent)StackCountText" font="ZoFontGamepad27" color="DCD822">
+          <Dimensions x="0" y="25" />
+          <Anchor point="CENTER" relativePoint="CENTER" offsetX="23" offsetY="-20" />
+        </Label>
+        <Label name="$(parent)TimerText" font="ZoFontGamepad27" color="DCD822">
+          <Dimensions x="0" y="25" />
+          <Anchor point="CENTER" relativePoint="CENTER" offsetY="ACTION_BUTTON_TIMER_TEXT_OFFSET_Y_DEFAULT_GAMEPAD" />
+        </Label>
+        <Texture name="$(parent)TimerOverlay">
+          <Dimensions x="ZO_GAMEPAD_ACTION_BUTTON_SIZE" y="ZO_GAMEPAD_ACTION_BUTTON_SIZE" />
+        </Texture>
+        <Texture name="$(parent)Glow" hidden="false" alpha="0" />
+        <Texture name="$(parent)BG" hidden="true" />
+        <Backdrop name="$(parent)Backdrop" hidden="false" />
+      </Controls>
+    </Control>
+    <Control name="FAB_UltimateActionButton_Keyboard_Template" virtual="true" inherits="FAB_ActionButton_Keyboard_Template" />
+    <Control name="FAB_UltimateActionButton_Gamepad_Template" virtual="true" inherits="FAB_ActionButton_Gamepad_Template">
+      <Dimensions x="70" y="70" />
+      <Controls>
+        <Control name="$(parent)FlipCard" override="true">
+          <Dimensions x="ZO_GAMEPAD_ULTIMATE_BUTTON_SIZE" y="ZO_GAMEPAD_ULTIMATE_BUTTON_SIZE" />
+        </Control>
+        <Texture name="$(parent)Icon" override="true" inherits="FAB_ActionButton_FlipCardControl" />
+      </Controls>
+    </Control>
     <!-- Proc -->
     <Texture name="FAB_ReadyBurst" blendMode="ADD" textureFile="EsoUI/Art/ActionBar/coolDown_completeEFX.dds" hidden="true" level="2" virtual="true" />
     <!-- Frame -->
@@ -22,8 +94,8 @@
     <!-- Main Control -->
     <Control name="FAB_ActionBar" inheritAlpha="false">
       <OnInitialized>
-        FancyActionBar.OnActionBarInitialized(self)
-			</OnInitialized>
+        <![CDATA[FancyActionBar.OnActionBarInitialized(self)]]>
+      </OnInitialized>
       <Controls>
         <Texture name="$(parent)Arrow" textureFile="esoui/art/buttons/large_rightarrow_up.dds" color="00FF00">
           <Dimensions x="64" y="64" />
@@ -68,7 +140,7 @@
         <Texture name="$(parent)BG" alpha="1" tier="HIGH" level="4" textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds" inheritAlpha="false" hidden="true">
           <AnchorFill />
         </Texture>
-        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6" textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inherits="ZO_ActionButton_FlipCardControl" inheritAlpha="false" hidden="true">
+        <Texture name="$(parent)Frame" alpha="1" tier="HIGH" level="6" textureFile="/FancyActionBar+/texture/abilityframe64_up.dds" inherits="FAB_ActionButton_FlipCardControl" inheritAlpha="false" hidden="true">
           <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
         </Texture>
@@ -81,7 +153,7 @@
         <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
           <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
         </Label>
-        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_20)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="ZO_ActionButton_FlipCardControl" text="">
+        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_20)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="FAB_ActionButton_FlipCardControl" text="">
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="0" />
         </Label>
       </Controls>
@@ -102,7 +174,7 @@
         <Label name="$(parent)Targets" color="FFCC00" font="$(BOLD_FONT)|$(KB_20)|thick-outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" text="">
           <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="3" offsetY="-1" />
         </Label>
-        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_22)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="ZO_ActionButton_FlipCardControl" text="">
+        <Label name="$(parent)Value" color="FFFFFF" font="$(BOLD_FONT)|$(KB_22)|outline" tier="HIGH" level="5" wrapMode="TRUNCATE" inheritAlpha="false" verticalAlignment="BOTTOM" horizontalAlignment="RIGHT" inherits="FAB_ActionButton_FlipCardControl" text="">
           <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="0" />
         </Label>
       </Controls>
@@ -153,16 +225,16 @@
     <TopLevelControl name="FAB_GCD" tier="HIGH" inheritScale="false" resizeToFitConstrains="XY">
       <Dimensions x="100" y="100" />
       <OnMoveStop>
-				FancyActionBar.SaveGCDPosition()
-			</OnMoveStop>
+        <![CDATA[FancyActionBar.SaveGCDPosition()]]>
+      </OnMoveStop>
     </TopLevelControl>
     <!-- Actionbar Mover -->
     <TopLevelControl name="FAB_Mover" hidden="true" alpha="1" resizeToFitConstrains="XY" movable="false" mouseEnabled="false" tier="HIGH">
       <Dimensions x="1" y="1" />
       <Anchor point="BOTTOM" relativeTo="ZO_ActionBar1" relativePoint="BOTTOM" />
       <OnMoveStop>
-				FancyActionBar.SaveMoverPosition()
-			</OnMoveStop>
+        <![CDATA[FancyActionBar.SaveMoverPosition()]]>
+      </OnMoveStop>
       <Controls>
         <Backdrop name="$(parent)BG" inherits="FAB_BG" />
       </Controls>

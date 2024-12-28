@@ -18,23 +18,22 @@ max_line_length = 0
 
 # see https://github.com/CppCXY/EmmyLuaCodeStyle
 [*.lua]
-charset = utf-8
 # [basic]
 
 # optional space/tab
 indent_style = space
 # if indent_style is space, this is valid
-indent_size = 2
+indent_size = 4
 # if indent_style is tab, this is valid
-tab_width = 2
+tab_width = 4
 # none/single/double
 quote_style = double
 
-continuation_indent = 2
+continuation_indent = 4
 ## extend option
-# continuation_indent.before_block = 2
-# continuation_indent.in_expr = 2
-# continuation_indent.in_table = 2
+continuation_indent.before_block = 4
+continuation_indent.in_expr = 4
+continuation_indent.in_table = 4
 
 # this mean utf8 length , if this is 'unset' then the line width is no longer checked
 # this option decides when to chopdown the code
@@ -42,10 +41,10 @@ max_line_length = unset
 
 # optional crlf/lf/cr/auto, if it is 'auto', in windows it is crlf other platforms are lf
 # in neovim the value 'auto' is not a valid option, please use 'unset' 
-end_of_line = auto
+end_of_line = crlf
 
 #  none/ comma / semicolon / only_kv_colon
-table_separator_style = only_kv_colon
+table_separator_style = comma
 
 #optional keep/never/always/smart
 trailing_table_separator = keep
@@ -95,11 +94,11 @@ ignore_spaces_inside_function_call = false
 space_before_inline_comment = 1
 
 # convert '---' to '--- ' or '--' to '-- '
-space_after_comment_dash = false
+space_after_comment_dash = true
 
 # [operator space]
 space_around_math_operator = true
-# space_around_math_operator.exponent = false
+space_around_math_operator.exponent = false
 
 space_after_comma = true
 
@@ -119,9 +118,9 @@ align_call_args = false
 
 align_function_params = false
 
-align_continuous_assign_statement = false
+align_continuous_assign_statement = true
 
-align_continuous_rect_table_field = false
+align_continuous_rect_table_field = true
 
 align_continuous_line_space = 2
 
@@ -185,4 +184,4 @@ ignore_space_after_colon = false
 
 remove_call_expression_list_finish_comma = false
 # keep / always / same_line / replace_with_newline / never
-end_statement_with_semicolon = always
+end_statement_with_semicolon = replace_with_newline
