@@ -261,18 +261,19 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
 -----------------------------[ 		Utility    ]----------------------------------
 --------------------------------------------------------------------------------
 
+--- @class LibChatMessage
+local LibChatMessage = LibChatMessage
+
 ---
 --- @param msg string
 --- @param ... any
 FancyActionBar.Chat = function (msg, ...)
-    --- @class LibChatMessage
-    local LibChatMessage = LibChatMessage
     if LibChatMessage then
         --- @type LibChatMessage
         local chat = LibChatMessage("FancyActionBar+", "FAB+")
         chat:Printf(msg, ...)
-    elseif LibChatMessage == nil then
-        d(strformat(msg, ...))
+    elseif not LibChatMessage then
+        CHAT_ROUTER:AddSystemMessage(strformat(msg, ...))
     end
 end
 
@@ -4783,14 +4784,14 @@ function FancyActionBar.Initialize()
         end
         FancyActionBar.OnPlayerActivated()
         FancyActionBar.ApplyAbilityFxOverrides()
-      if initial then
-        zo_callLater(function()
-          local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
-          if ult and ult.hasAction then
-            ult:UpdateUltimateMeter()
-          end
-        end, 750)
-      end
+        if initial then
+            zo_callLater(function ()
+                local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
+                if ult and ult.hasAction then
+                    ult:UpdateUltimateMeter()
+                end
+            end, 750)
+        end
     end
 
     EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated)
