@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.10.14
+## User Guide and Menu Option Documentation for v2.11.0
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -236,4 +236,4 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 
 ### MISCELLANEOUS
 
-Additional miscellaneous options include the ability to show the action bar while dead (default: OFF), prevent casting abilities while trading (default: ON), enable compatibility with the Perfect Weave addon (default: OFF), setting to adjust the health bar position to prevent overlap with FAB (default: ON), showing markers on enemies you are currently in combat with, and enabling a global cooldown tracker widget.
+Additional miscellaneous options include the ability to show the action bar while dead (default: OFF), prevent casting abilities while trading (default: ON), enable compatibility with the Perfect Weave addon (default: OFF), setting to adjust the health bar position to prevent overlap with FAB (default: ON), setting to also adjust the mag and stam bar positions to align (default: OFF), showing markers on enemies you are currently in combat with, and enabling a global cooldown tracker widget.
