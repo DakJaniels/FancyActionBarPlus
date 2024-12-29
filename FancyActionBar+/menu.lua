@@ -3382,6 +3382,85 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     end,
                                     width = "half",
                                 },
+                                { type = "divider" },
+                                {
+                                    type = "dropdown",
+                                    name = "Quickslot stack font",
+                                    scrollable = true,
+                                    tooltip = "Select which font to display the timer in.",
+                                    choices = FancyActionBar.GetFonts(),
+                                    sort = "name-up",
+                                    getFunc = function ()
+                                        return SV.qsStackNameKB
+                                    end,
+                                    setFunc = function (value)
+                                        SV.qsStackNameKB = value
+                                        if FancyActionBar.style == 1 then
+                                            FancyActionBar.constants.qs.stackFont = value
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                    default = defaults.qsStackNameKB,
+                                },
+                                {
+                                    type = "slider",
+                                    name = "Quickslot stack font size",
+                                    min = 10,
+                                    max = 30,
+                                    step = 1,
+                                    getFunc = function ()
+                                        return SV.qsStackSizeKB
+                                    end,
+                                    setFunc = function (value)
+                                        SV.qsStackSizeKB = value
+                                        if FancyActionBar.style == 1 then
+                                            FancyActionBar.constants.qs.stackSize = value
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                    default = defaults.qsStackSizeKB,
+                                },
+                                {
+                                    type = "dropdown",
+                                    name = "Quickslot stack font style",
+                                    tooltip = "Select which effect to display the timer font in.",
+                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                    sort = "name-up",
+                                    getFunc = function ()
+                                        return SV.qsStackTypeKB
+                                    end,
+                                    setFunc = function (value)
+                                        SV.qsStackTypeKB = value
+                                        if FancyActionBar.style == 1 then
+                                            FancyActionBar.constants.qs.stackOutline = value
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                    default = defaults.qsStackTypeKB,
+                                },
+                                {
+                                    type = "colorpicker",
+                                    name = "Quickslot stack color",
+                                    default = ZO_ColorDef:New(unpack(defaults.qsStackColorKB)),
+                                    getFunc = function ()
+                                        return unpack(SV.qsStackColorKB)
+                                    end,
+                                    setFunc = function (r, g, b)
+                                        SV.qsStackColorKB = { r, g, b }
+                                        if FancyActionBar.style == 1 then
+                                            FancyActionBar.constants.qs.stackColor = { r, g, b }
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                },
                             },
                         },
                     },
@@ -4350,6 +4429,85 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 2 then
                                             FancyActionBar.constants.qs.x = value
                                             FancyActionBar.AdjustQuickSlotTimer()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                },
+                                { type = "divider" },
+                                {
+                                    type = "dropdown",
+                                    name = "Quickslot stack font",
+                                    scrollable = true,
+                                    tooltip = "Select which font to display the timer in.",
+                                    choices = FancyActionBar.GetFonts(),
+                                    sort = "name-up",
+                                    getFunc = function ()
+                                        return SV.qsStackNameGP
+                                    end,
+                                    setFunc = function (value)
+                                        SV.qsStackNameGP = value
+                                        if FancyActionBar.style == 2 then
+                                            FancyActionBar.constants.qs.stackFont = value
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                    default = defaults.qsStackNameGP,
+                                },
+                                {
+                                    type = "slider",
+                                    name = "Quickslot stack font size",
+                                    min = 10,
+                                    max = 30,
+                                    step = 1,
+                                    getFunc = function ()
+                                        return SV.qsStackSizeGP
+                                    end,
+                                    setFunc = function (value)
+                                        SV.qsStackSizeGP = value
+                                        if FancyActionBar.style == 2 then
+                                            FancyActionBar.constants.qs.stackSize = value
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                    default = defaults.qsStackSizeGP,
+                                },
+                                {
+                                    type = "dropdown",
+                                    name = "Quickslot stack font style",
+                                    tooltip = "Select which effect to display the timer font in.",
+                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                    sort = "name-up",
+                                    getFunc = function ()
+                                        return SV.qsStackTypeGP
+                                    end,
+                                    setFunc = function (value)
+                                        SV.qsStackTypeGP = value
+                                        if FancyActionBar.style == 2 then
+                                            FancyActionBar.constants.qs.stackOutline = value
+                                            FancyActionBar.ApplyQuickSlotFont()
+                                            DisplayQuickSlotLabelChanges()
+                                        end
+                                    end,
+                                    width = "half",
+                                    default = defaults.qsStackTypeGP,
+                                },
+                                {
+                                    type = "colorpicker",
+                                    name = "Quickslot stack color",
+                                    default = ZO_ColorDef:New(unpack(defaults.qsStackColorGP)),
+                                    getFunc = function ()
+                                        return unpack(SV.qsStackColorGP)
+                                    end,
+                                    setFunc = function (r, g, b)
+                                        SV.qsStackColorGP = { r, g, b }
+                                        if FancyActionBar.style == 2 then
+                                            FancyActionBar.constants.qs.stackColor = { r, g, b }
+                                            FancyActionBar.ApplyQuickSlotFont()
                                             DisplayQuickSlotLabelChanges()
                                         end
                                     end,
@@ -5938,16 +6096,20 @@ function FancyActionBar.AdjustQuickSlotTimer()
 end
 
 function FancyActionBar.ApplyQuickSlotFont()
-    local function GetCurrentQuickSlotFont()
+    local function GetCurrentQuickSlotTimerFont()
         local c = FancyActionBar.constants.qs
-        return c.font, c.size, c.outline
+        return c.font, c.size, c.outline, c.stackFont, c.stackSize, c.stackOutline
     end
 
-    local name, size, type = GetCurrentQuickSlotFont()
+    local name, size, type, stackName, stackSize, stackType = GetCurrentQuickSlotTimerFont()
     if name == "" then
         name = "$(BOLD_FONT)"
     end
     FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+
+    local QSB = GetControl("QuickslotButton")
+    QSB:GetNamedChild("CountText"):SetFont(FAB_Fonts[stackName] .. "|" .. stackSize .. "|" .. stackType)
+    QSB:GetNamedChild("CountText"):SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsStackColorGP or SV.qsStackColorKB))
 end
 
 function FancyActionBar.UpdateHighlight(index)

@@ -155,6 +155,12 @@ FancyActionBar.defaultSettings =
     qsXKB = 0,
     qsYKB = 10,
     qsColorKB = { 1, 0.5, 0.2 },
+    qsStackNameKB = "Univers 67",
+    qsStackSizeKB = 18,
+    qsStackTypeKB = "soft-shadow-thin",
+    qsStackColorKB = { 1, 1, 1 },
+    quickSlotCustomXOffsetKB = 0,
+    quickSlotCustomYOffsetKB = 0,
     -- gamepad UI visuals
     useThinFrames = false,
     -- duration
@@ -217,8 +223,10 @@ FancyActionBar.defaultSettings =
     qsXGP = 0,
     qsYGP = 10,
     qsColorGP = { 1, 0.5, 0.2 },
-    quickSlotCustomXOffsetKB = 0,
-    quickSlotCustomYOffsetKB = 0,
+    qsStackNameGP = "Univers 67",
+    qsStackSizeGP = 24,
+    qsStackTypeGP = "soft-shadow-thin",
+    qsStackColorGP = { 1, 1, 1 },
     quickSlotCustomXOffsetGP = 0,
     quickSlotCustomYOffsetGP = 0,
     -- both
@@ -471,6 +479,10 @@ function FancyActionBar:UpdateContants(mode, vars, style)
                 x = SV.qsXKB,
                 y = SV.qsYKB,
                 color = SV.qsColorKB,
+                stackFont = SV.qsStackNameKB,
+                stackSize = SV.qsStackSizeKB,
+                stackOutline = SV.qsStackTypeKB,
+                stackColor = SV.qsStackColorKB,
             },
             abScale =
             {
@@ -563,6 +575,10 @@ function FancyActionBar:UpdateContants(mode, vars, style)
                 x = SV.qsXGP,
                 y = SV.qsYGP,
                 color = SV.qsColorGP,
+                stackFont = SV.qsStackNameGP,
+                stackSize = SV.qsStackSizeGP,
+                stackOutline = SV.qsStackTypeGP,
+                stackColor = SV.qsStackColorGP,
             },
             abScale =
             {
