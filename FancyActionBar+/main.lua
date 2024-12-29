@@ -4258,9 +4258,10 @@ function FancyActionBar.Initialize()
                 if SV.potlfix and remain > 6 and effect.id == 21763 then
                     remain = 6
                 end
-                effect.duration = duration > 0 and duration or nil
+                local lastDuration = effect.duration or -1
+                effect.duration = (lastDuration > 0 or duration > 0) and duration or nil
                 effect.beginTime = t - (duration - remain)
-                effect.endTime = t + remain
+                effect.endTime = (lastDuration > 0 or duration > 0) and (t + remain) or -1
                 FancyActionBar.UpdateEffect(effect)
                 -- else
                 -- effect.endTime = 0
