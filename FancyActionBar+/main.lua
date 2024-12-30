@@ -2971,6 +2971,10 @@ function FancyActionBar.ApplyActiveHotbarStyle()
         button:ApplyStyle(style.buttonTemplate)
         FancyActionBar.SetupButtonText(button, weaponSwapControl, style, i)
         FancyActionBar.SetupButtonStatus(button)
+        local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
+        if ult and ult.hasAction then
+            ult:UpdateUltimateMeter()
+        end
     end
 end
 
@@ -4786,10 +4790,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.ApplyAbilityFxOverrides()
         if initial then
             zo_callLater(function ()
-                local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
-                if ult and ult.hasAction then
-                    ult:UpdateUltimateMeter()
-                end
+                FancyActionBar.ApplyActiveHotbarStyle()
             end, 750)
         end
     end
