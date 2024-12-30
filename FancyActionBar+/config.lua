@@ -1488,6 +1488,7 @@ FancyActionBar.ignore =
 
 FancyActionBar.ignoreFallbackTimers =
 {
+    [39089] = true,  -- ele sus
     [117805] = true, -- boneyard
     [39192] = true,  -- elude
 }
