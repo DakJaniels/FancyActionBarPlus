@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.11.0
+## User Guide and Menu Option Documentation for v2.11.1
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -143,7 +143,7 @@ Options in this menu include settings to show or hide the companion ultimate (de
 
 #### QUICKSLOT DISPLAY SETTINGS
 
-Options for customizing the display of the quickslot. Options in this menu include settings to show or hide the cooldown duration for the slotted item (default: ON), as well as to set the timer font, font size, style, color (default: Tangerine), and vertical and horizontal alignment of the cooldown timer within the slot (default: upper middle center).
+Options for customizing the display of the quickslot. Options in this menu include settings to show or hide the cooldown duration for the slotted item (default: ON), as well as to set the timer font, font size, style, color (default: Tangerine), and vertical and horizontal alignment of the cooldown timer within the slot (default: upper middle center), and the quickslot stack count font style.
 
 ### KEYBOARD & GAMEPAD SHARED
 

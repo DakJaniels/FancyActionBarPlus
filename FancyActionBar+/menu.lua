@@ -3387,7 +3387,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     type = "dropdown",
                                     name = "Quickslot stack font",
                                     scrollable = true,
-                                    tooltip = "Select which font to display the timer in.",
+                                    tooltip = "Select which font to display the stack count in.",
                                     choices = FancyActionBar.GetFonts(),
                                     sort = "name-up",
                                     getFunc = function ()
@@ -3427,7 +3427,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 {
                                     type = "dropdown",
                                     name = "Quickslot stack font style",
-                                    tooltip = "Select which effect to display the timer font in.",
+                                    tooltip = "Select which effect to display the stack count font in.",
                                     choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
                                     sort = "name-up",
                                     getFunc = function ()
@@ -4439,7 +4439,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     type = "dropdown",
                                     name = "Quickslot stack font",
                                     scrollable = true,
-                                    tooltip = "Select which font to display the timer in.",
+                                    tooltip = "Select which font to display the stack count in.",
                                     choices = FancyActionBar.GetFonts(),
                                     sort = "name-up",
                                     getFunc = function ()
@@ -4450,7 +4450,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 2 then
                                             FancyActionBar.constants.qs.stackFont = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -4479,7 +4478,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 {
                                     type = "dropdown",
                                     name = "Quickslot stack font style",
-                                    tooltip = "Select which effect to display the timer font in.",
+                                    tooltip = "Select which effect to display the stack count font in.",
                                     choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
                                     sort = "name-up",
                                     getFunc = function ()
