@@ -9,6 +9,7 @@
 ## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles
 
 init.lua
+presets.lua
 ui_templates.xml
 main.lua
 config.lua

@@ -1570,6 +1570,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         end
     end
 
+    local function SetDefaultUISettings()
+        for k, v in pairs(FancyActionBar.defaultSettings) do
+            SV[k] = v
+        end
+        ReloadUI("ingame")
+    end
+
     local function SetDevsUISettings()
         for k, v in pairs(FancyActionBar.devConfig) do
             SV[k] = v
@@ -1587,18 +1594,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 ToggleActionBarInMenu(ACTION_BAR:IsHidden())
             end,
             width = "full",
-        },
-
-        {
-            type = "button",
-            name = "Dev's UI Settings",
-            tooltip = "Configures a number of non-default options to the developer's preferred configuration.",
-            func = function ()
-                SetDevsUISettings()
-            end,
-            width = "full",
-            reference = "FAB_DEV_UI",
-            warning = "Will reload the UI.",
         },
 
         -- ===========[	Actionbar Scaling	]===================
@@ -5617,7 +5612,36 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
         },
         { type = "divider" },
-
+        {
+            type = "submenu",
+            name = "|cFFFACDUI Presets|r",
+            controls =
+            {
+                {
+                    type = "button",
+                    name = "Default UI Settings",
+                    tooltip = "Restores all UI Settings to the default configuration (this does not change configured abilities).",
+                    func = function ()
+                        SetDefaultUISettings()
+                    end,
+                    width = "full",
+                    reference = "FAB_DEFAULT_UI",
+                    warning = "Will reload the UI.",
+                },
+                {
+                    type = "button",
+                    name = "Dev's UI Settings",
+                    tooltip = "Configures a number of non-default options to the developer's preferred configuration (this does not change configured abilities).",
+                    func = function ()
+                        SetDevsUISettings()
+                    end,
+                    width = "full",
+                    reference = "FAB_DEV_UI",
+                    warning = "Will reload the UI.",
+                },
+            },
+        },
+        { type = "divider" },
         -- ===============[  Debugging  ]========================
         {
             type = "description",
