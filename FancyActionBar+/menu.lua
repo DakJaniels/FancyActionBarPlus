@@ -1570,9 +1570,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         end
     end
 
+    local ignoreKeys =
+    {
+        ["configChanges"] = true,
+        ["externalBlackList"] = true,
+        ["multiTargetBlacklist"] = true,
+        ["hideOnNoTargetList"] = true,
+    }
     local function SetDefaultUISettings()
         for k, v in pairs(FancyActionBar.defaultSettings) do
-            SV[k] = v
+            if not ignoreKeys[k] then
+                SV[k] = v
+            end
         end
         ReloadUI("ingame")
     end
