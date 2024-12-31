@@ -102,6 +102,8 @@ FancyActionBar.stashedEffects = {} -- Used with specalEffects to track prioritiz
 
 -- Backbar buttons.
 FancyActionBar.buttons = {} -- Contains: abilities duration, number of stacks and debuffed targets, and visual effects.
+FancyActionBar.slotHidden = {}
+
 -- FancyActionBar.abilitySlots                  = {} -- TODO enable tooltip, mouse click and drag functions
 -- @type {[1]:(FAB_ActionButtonOverlay_Keyboard_Template|FAB_ActionButtonOverlay_Gamepad_Template),[any] : any|object}
 FancyActionBar.overlays = {}                 -- normal skill button overlays
@@ -1175,7 +1177,6 @@ function FancyActionBar.ResetOverlayDuration(overlay)
                 FancyActionBar.CheckTargetEndtimes(effect.id)
                 FancyActionBar.HandleTargetUpdate(effect.id, true)
             end
-            -- else
         end
     end
 end
@@ -1307,11 +1308,13 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
 end
 
 function FancyActionBar.UpdateOverlay(index) -- timer label updates.
+    local overlay
+    local hasDuration = false
     if (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET) then
         FancyActionBar.UpdateUltOverlay(index)
         return
     end
-    local overlay = FancyActionBar.overlays[index]
+    overlay = FancyActionBar.overlays[index]
     if overlay then
         local effect = overlay.effect
         local allowStacks = overlay.stacks
@@ -1320,7 +1323,6 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         local stacksControl = overlay.stack
         local targetsControl = overlay.target
         local sourceEndTime
-
         if effect and effect.id > 0 and not effect.ignore then
             local sourceId = effect.sourceAbilites and effect.sourceAbilites[index]
             if sourceId and sourceId ~= effect.id then
@@ -1329,11 +1331,14 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
                     sourceEndTime = sourceEffect.endTime
                 end
             end
-            FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
+            hasDuration = FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
                 allowStacks, FancyActionBar.toggles[effect.id], sourceEndTime)
         else
             FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
         end
+    end
+    if SV.hideInactiveSlots then
+        FancyActionBar.hideSlot(index, overlay, hasDuration)
     end
 end
 
@@ -1422,6 +1427,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
     FancyActionBar.UpdateTimerLabel(durationControl, lt, lc)
     FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index)
+    return hasDuration
 end
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
@@ -1468,6 +1474,30 @@ function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksC
     bgControl:SetHidden(true)
     stacksControl:SetText("")
     targetsControl:SetText("")
+end
+
+function FancyActionBar.hideSlot(index, overlay, hasDuration) -- hide slot
+    local currentHotbar = GetActiveHotbarCategory()
+    local updateBar = index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
+
+    local button = FancyActionBar.GetActionButton(index)
+    if updateBar == currentHotbar then
+        if button then
+            button.icon:SetHidden(false)
+            button.slot:SetHidden(false)
+        end
+        if overlay then
+            overlay:SetHidden(false)
+        end
+    else
+        if button then
+            button.icon:SetHidden(not hasDuration)
+            button.slot:SetHidden(not hasDuration)
+        end
+        if overlay then
+            overlay:SetHidden(not hasDuration)
+        end
+    end
 end
 
 function FancyActionBar.UpdateStacks(index) -- stacks label.
@@ -5395,6 +5425,10 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         end
         if SV.hideCompanionUlt == nil then
             SV.hideCompanionUlt = d.hideCompanionUlt
+        end
+
+        if SV.hideInactiveSlots == nil then
+            SV.hideInactiveSlots = d.hideInactiveSlots
         end
 
         SV.variablesValidated = true

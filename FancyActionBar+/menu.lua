@@ -2427,6 +2427,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     width = "full"
                 },
+                {
+                    type = "checkbox",
+                    name = "Hide inactive slots on inactive bars",
+                    tooltip = "Hide inactive action bar slots (slots without an active timer) on the inactive action bar.",
+                    default = defaults.hideInactiveSlots,
+                    getFunc = function ()
+                        return SV.hideInactiveSlots
+                    end,
+                    setFunc = function (value)
+                        SV.hideInactiveSlots = value or false
+                    end,
+                    width = "full"
+                },
                 -- =============[  Skill Styles  ]==================
                 {
                     type = "checkbox",
