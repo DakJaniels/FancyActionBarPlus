@@ -1486,7 +1486,7 @@ function FancyActionBar.UpdateButton(index) -- hide inactive bar buttons.
     if not SV.hideInactiveSlots then return end
     local button = FancyActionBar.GetActionButton(index)
     local slotState = FancyActionBar.slotHidden[index]
-    if button then
+    if button and button.hasAction then
         if button.icon then
             button.icon:SetHidden(slotState)
         end
@@ -1502,8 +1502,14 @@ function FancyActionBar.SetSlotHiddenState(index, overlay, hasDuration) -- hide 
     local updateBar = index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
     if updateBar == currentHotbar then
         FancyActionBar.slotHidden[index] = false
+        if overlay then
+            overlay:SetHidden(false)
+        end
     else
         FancyActionBar.slotHidden[index] = not hasDuration
+        if overlay then
+            overlay:SetHidden(not hasDuration)
+        end
     end
     FancyActionBar.UpdateButton(index)
 end
@@ -3158,15 +3164,16 @@ local function ApplyBarPosition(active, inactive, firstTop, locked)
 end
 
 function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
-    local hide, bar
+    local hide, activeBar, inactiveBar
 
     FancyActionBar.ClearAnchors()
-    bar, hide = FancyActionBar.DetermineBarAndHide(locked)
+    activeBar, inactiveBar, hide = FancyActionBar.DetermineBarAndHide(locked)
 
-    FancyActionBar.SetBarPositions(bar)
+    FancyActionBar.SetBarPositions(inactiveBar)
     FancyActionBar.ToggleUltimateOverlays(hide)
 
-    FancyActionBar.UpdateInactiveBarIcons(bar)
+    FancyActionBar.UpdateActiveBarIcons(activeBar)
+    FancyActionBar.UpdateInactiveBarIcons(inactiveBar)
 end
 
 function FancyActionBar.ClearAnchors()
@@ -3193,7 +3200,7 @@ function FancyActionBar.DetermineBarAndHide(locked)
             ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked)
             ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.activeBarTop, locked)
         end
-        return HOTBAR_CATEGORY_PRIMARY, true
+        return HOTBAR_CATEGORY_BACKUP, HOTBAR_CATEGORY_PRIMARY, true
     else
         if SV.staticBars then
             ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop, locked)
@@ -3202,7 +3209,7 @@ function FancyActionBar.DetermineBarAndHide(locked)
             ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked)
             ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.activeBarTop, locked)
         end
-        return HOTBAR_CATEGORY_BACKUP, false
+        return HOTBAR_CATEGORY_PRIMARY, HOTBAR_CATEGORY_BACKUP, false
     end
 end
 
@@ -3252,6 +3259,13 @@ function FancyActionBar.ToggleUltimateOverlays(hide)
     local ultOverlayBackup = FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
     if ultOverlayBackup then
         ultOverlayBackup:SetHidden(not hide)
+    end
+end
+
+function FancyActionBar.UpdateActiveBarIcons()
+    for i = MIN_INDEX, MAX_INDEX do
+        local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
+        FancyActionBar.UpdateButton(index)
     end
 end
 
