@@ -1138,12 +1138,13 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
                 icon = GetAbilityIcon(id)
             end
         end
-        local slotState = FancyActionBar.slotHidden[index + SLOT_INDEX_OFFSET]
-        btn.icon:SetTexture(icon)
+        local slotState = FancyActionBar.slotHidden[bar == HOTBAR_CATEGORY_BACKUP and index + SLOT_INDEX_OFFSET or index]
+        btn.icon:SetTexture(SV.hideInactiveSlots and slotState and "" or icon)
         btn.icon:SetHidden(SV.hideInactiveSlots and slotState or false)
         btn.slot:SetHidden(SV.hideInactiveSlots and slotState or false)
     else
         btn.icon:SetHidden(true)
+        btn.slot:SetHidden(SV.hideInactiveSlots)
     end
 end
 
@@ -1329,6 +1330,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         local stacksControl = overlay.stack
         local targetsControl = overlay.target
         local sourceEndTime
+
         if effect and effect.id > 0 and not effect.ignore then
             local sourceId = effect.sourceAbilites and effect.sourceAbilites[index]
             if sourceId and sourceId ~= effect.id then
@@ -1342,9 +1344,8 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         else
             FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
         end
-    end
-    if SV.hideInactiveSlots then
-        FancyActionBar.SetSlotHiddenState(index, overlay, hasDuration)
+        FancyActionBar.slotHidden[index] = SV.hideInactiveSlots and not hasDuration
+        overlay:SetHidden(SV.hideInactiveSlots and not hasDuration)
     end
 end
 
@@ -1480,38 +1481,6 @@ function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksC
     bgControl:SetHidden(true)
     stacksControl:SetText("")
     targetsControl:SetText("")
-end
-
-function FancyActionBar.UpdateButton(index) -- hide inactive bar buttons.
-    if not SV.hideInactiveSlots then return end
-    local button = FancyActionBar.GetActionButton(index)
-    local slotState = FancyActionBar.slotHidden[index]
-    if button and button.hasAction then
-        if button.icon then
-            button.icon:SetHidden(slotState)
-        end
-        if button.slot then
-            button.slot:SetHidden(slotState)
-        end
-    end
-end
-
-function FancyActionBar.SetSlotHiddenState(index, overlay, hasDuration) -- hide slot
-    if not SV.hideInactiveSlots then return end
-    local currentHotbar = GetActiveHotbarCategory()
-    local updateBar = index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
-    if updateBar == currentHotbar then
-        FancyActionBar.slotHidden[index] = false
-        if overlay then
-            overlay:SetHidden(false)
-        end
-    else
-        FancyActionBar.slotHidden[index] = not hasDuration
-        if overlay then
-            overlay:SetHidden(not hasDuration)
-        end
-    end
-    FancyActionBar.UpdateButton(index)
 end
 
 function FancyActionBar.UpdateStacks(index) -- stacks label.
@@ -3265,7 +3234,6 @@ end
 function FancyActionBar.UpdateActiveBarIcons()
     for i = MIN_INDEX, MAX_INDEX do
         local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
-        FancyActionBar.UpdateButton(index)
     end
 end
 
