@@ -6137,7 +6137,10 @@ function FancyActionBar.ApplyQuickSlotFont()
     if name == "" then
         name = "$(BOLD_FONT)"
     end
-    FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+
+    if FancyActionBar.qsOverlay then
+        FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+    end
 
     local QSB = GetControl("QuickslotButton")
     QSB:GetNamedChild("CountText"):SetFont(FAB_Fonts[stackName] .. "|" .. stackSize .. "|" .. stackType)

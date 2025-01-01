@@ -196,6 +196,10 @@ FancyActionBar.constants =
         x = 0,
         y = 10,
         color = { 1, 0.5, 0.2 },
+        stackFont = "Univers 67",
+        stackSize = 18,
+        stackOutline = "soft-shadow-thin",
+        stackColor = { 1, 1, 1 },
     },
     abScale =
     {
@@ -4833,6 +4837,7 @@ function FancyActionBar.Initialize()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
         setFlipCardDimensions(style)
         FancyActionBar.UpdateCompanionOverlayOnChange()
+        FancyActionBar.ApplyQuickSlotFont()
     end)
 
     ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
