@@ -1344,8 +1344,12 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         else
             FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
         end
-        FancyActionBar.slotHidden[index] = SV.hideInactiveSlots and not hasDuration
-        overlay:SetHidden(SV.hideInactiveSlots and not hasDuration)
+        if (index > SLOT_INDEX_OFFSET and currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP) or
+            (index <= SLOT_INDEX_OFFSET and currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
+            FancyActionBar.slotHidden[index] = SV.hideInactiveSlots and not hasDuration
+            overlay:SetHidden(SV.hideInactiveSlots and not hasDuration)
+            FancyActionBar.UpdateInactiveBarIcon(index > SLOT_INDEX_OFFSET and index - SLOT_INDEX_OFFSET or index, index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
+        end
     end
 end
 
@@ -3234,6 +3238,10 @@ end
 function FancyActionBar.UpdateActiveBarIcons()
     for i = MIN_INDEX, MAX_INDEX do
         local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
+        local overlay = FancyActionBar.overlays[index]
+        if overlay then
+            overlay:SetHidden(false)
+        end
     end
 end
 
