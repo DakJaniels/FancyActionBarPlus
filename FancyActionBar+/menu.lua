@@ -146,6 +146,67 @@ function FancyActionBar.IsUnlocked()
 end
 
 -------------------------------------------------------------------------------
+-----------------------------[   Font Functions   ]---------------------------
+-------------------------------------------------------------------------------
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentFont()
+    local c = FancyActionBar.constants.duration
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentStackFont()
+    local c = FancyActionBar.constants.stacks
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentTargetFont()
+    local c = FancyActionBar.constants.targets
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+--- @return string stackFont
+--- @return integer stackSize
+--- @return string stackOutline
+local function GetCurrentQuickSlotTimerFont()
+    local c = FancyActionBar.constants.qs
+    return c.font, c.size, c.outline, c.stackFont, c.stackSize, c.stackOutline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentUltFont()
+    local c = FancyActionBar.constants.ult.duration
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentUltValueFont()
+    local c = FancyActionBar.constants.ult.value
+    return c.font, c.size, c.outline
+end
+
+-------------------------------------------------------------------------------
 -----------------------------[   Local Functions   ]---------------------------
 -------------------------------------------------------------------------------
 
