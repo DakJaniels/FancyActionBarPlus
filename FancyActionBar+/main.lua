@@ -20,6 +20,7 @@ local COMPANION_INDEX_OFFSET = 30            -- offset for companion ultimate
 local SLOT_COUNT = MAX_INDEX - MIN_INDEX + 1 -- total number of slots
 local ACTION_BAR = GetControl("ZO_ActionBar1")
 local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
+local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
 local currentWeaponPair = GetActiveWeaponPairInfo()
 local currentHotbarCategory = GetActiveHotbarCategory()
@@ -105,9 +106,9 @@ FancyActionBar.buttons = {} -- Contains: abilities duration, number of stacks an
 FancyActionBar.slotHidden = {}
 
 -- FancyActionBar.abilitySlots                  = {} -- TODO enable tooltip, mouse click and drag functions
--- @type {[1]:(FAB_ActionButtonOverlay_Keyboard_Template|FAB_ActionButtonOverlay_Gamepad_Template),[any] : any|object}
+--- @type {[1]:(FAB_ActionButtonOverlay_Keyboard_Template|FAB_ActionButtonOverlay_Gamepad_Template),[any] : any|userdata}
 FancyActionBar.overlays = {}                 -- normal skill button overlays
--- @type {[1]:(FAB_UltimateButtonOverlay_Keyboard_Template|FAB_UltimateButtonOverlay_Gamepad_Template),[any] : any|object}
+--- @type {[1]:(FAB_UltimateButtonOverlay_Keyboard_Template|FAB_UltimateButtonOverlay_Gamepad_Template),[any] : any|userdata}
 FancyActionBar.ultOverlays = {}              -- player and companion ultimate skill button overlays
 FancyActionBar.style = nil                   -- Gamepad or Keyboard UI for compatibility
 
@@ -267,7 +268,7 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
 -----------------------------[ 		Utility    ]----------------------------------
 --------------------------------------------------------------------------------
 
---- @class LibChatMessage
+--- @type LibChatMessage
 local LibChatMessage = LibChatMessage
 
 ---
@@ -2161,7 +2162,7 @@ function FancyActionBar.GetValueString(mode, value, cost) -- format label text
     return string
 end
 
-function FancyActionBar.UpdateUltimateValueLabels(player, value, hotbar) -- update ultimate value displays
+function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultimate value displays
     local modeP = FancyActionBar.constants.ult.value.mode
     local modeC = FancyActionBar.constants.ult.companion.mode
     local alpha = (value < 10) and 0 or 1
@@ -2198,7 +2199,7 @@ end
 function FancyActionBar.OnUltChanged(eventCode, unitTag, powerIndex, powerType, powerValue, powerMax, powerEffectiveMax)
     if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE then
         local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(true, current, currentHotbarCategory)
+        FancyActionBar.UpdateUltimateValueLabels(true, current)
     end
 end
 
@@ -2857,6 +2858,14 @@ local configureFillAnimationsAndFrames = function (style)
         leftFillC:SetHidden(not isGamepad)
         rightFillC:SetHidden(not isGamepad)
 
+        -- Set textures for gamepad mode
+        if isGamepad then
+            leftFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            rightFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            leftFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            rightFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+        end
+
         -- Set fill animations
         configureFillAnimation(leftFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
         configureFillAnimation(rightFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
@@ -3348,6 +3357,14 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
         ultimateFillFrame:SetHidden(not isGamepad)
         ultimateFillLeftTexture:SetHidden(not isGamepad)
         ultimateFillRightTexture:SetHidden(not isGamepad)
+
+        -- Set textures for gamepad mode
+        if isGamepad then
+            ultimateFillLeftTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            ultimateFillRightTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            ultimateFillLeftTexture:SetWidth(70)
+            ultimateFillRightTexture:SetWidth(70)
+        end
 
         if ultimateCount >= self.currentUltimateMax then
             -- hide progress bar

@@ -10,7 +10,6 @@ local SV = ...
 --- @class FAB_DC_SV
 local CV = ...
 local ACTION_BAR = GetControl("ZO_ActionBar1")
-local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local MIN_INDEX = 3          -- first ability index
 local MAX_INDEX = 7          -- last ability index
 local ULT_INDEX = MAX_INDEX + 1
@@ -19,7 +18,6 @@ local COMPANION_INDEX_OFFSET = 30
 local ULT_SLOT = 8           -- ACTION_BAR_ULTIMATE_SLOT_INDEX + 1
 local QUICK_SLOT = 9         -- ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1
 local COMPANION = HOTBAR_CATEGORY_COMPANION
-local hideStatus = false
 local inMenu = false
 local settingsPageCreated = false
 local unlocked = false
@@ -143,6 +141,67 @@ end
 
 function FancyActionBar.IsUnlocked()
     return unlocked
+end
+
+-------------------------------------------------------------------------------
+-----------------------------[   Font Functions   ]---------------------------
+-------------------------------------------------------------------------------
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentFont()
+    local c = FancyActionBar.constants.duration
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentStackFont()
+    local c = FancyActionBar.constants.stacks
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentTargetFont()
+    local c = FancyActionBar.constants.targets
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+--- @return string stackFont
+--- @return integer stackSize
+--- @return string stackOutline
+local function GetCurrentQuickSlotTimerFont()
+    local c = FancyActionBar.constants.qs
+    return c.font, c.size, c.outline, c.stackFont, c.stackSize, c.stackOutline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentUltFont()
+    local c = FancyActionBar.constants.ult.duration
+    return c.font, c.size, c.outline
+end
+
+---
+--- @return string font
+--- @return integer size
+--- @return string outline
+local function GetCurrentUltValueFont()
+    local c = FancyActionBar.constants.ult.value
+    return c.font, c.size, c.outline
 end
 
 -------------------------------------------------------------------------------
@@ -1288,14 +1347,6 @@ end
 ----------------------------------------------
 -----------[   Label Functions   ]------------
 ----------------------------------------------
-local function UpdateHiglightSettings()
-    if ((not SV.showHighlight) and (not SV.toggledHighlight))
-    then
-        hideStatus = false
-    else
-        hideStatus = true
-    end
-end
 
 local function GetUltValueOptions()
     local options = {}
@@ -1546,10 +1597,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         author = "|cFFFF00@andy.s|r, @nogetrandom\nModified by: @dack_janiels, @Incanus",
         version = string.format("|c00FF00%s|r", FancyActionBar.GetVersion()),
         registerForRefresh = true,
+        -- registerForDefaults = true
     }
     local FAB_Panel = LAM:RegisterAddonPanel(name, panel)
-
-    UpdateHiglightSettings()
 
     local function ToggleActionBarInMenu(isHidden)
         local l
@@ -1634,11 +1684,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.kb.enable = value or false
                         if FancyActionBar.style == 1 then
                             FancyActionBar.constants.abScale.enable = value
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1664,12 +1714,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     setFunc = function (value)
                         SV.abScaling.kb.scale = value
                         if FancyActionBar.style == 1 then
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.constants.abScale.enable = value
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1716,11 +1766,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.enable = value or false
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.enable = value
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1747,11 +1797,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.scale = value
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.scale = value
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -2201,7 +2251,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.showHighlight = value or false
-                        UpdateHiglightSettings()
                     end,
                     width = "half",
                 },
@@ -2238,7 +2287,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.toggledHighlight = value or false
-                        UpdateHiglightSettings()
                     end,
                     width = "half",
                 },
@@ -5931,12 +5979,7 @@ function FancyActionBar.ApplyDesaturationInactiveInactive(desaturation)
 end
 
 function FancyActionBar.ApplyTimerFont()
-    local function GetCurrentFont()
-        local c = FancyActionBar.constants.duration
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentFont()
+    local name, size, outline = GetCurrentFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -5946,13 +5989,13 @@ function FancyActionBar.ApplyTimerFont()
         local overlay = FancyActionBar.overlays[i]
         local timer = overlay:GetNamedChild("Duration")
 
-        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         timer:SetHidden(false)
 
         overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET]
         timer = overlay:GetNamedChild("Duration")
 
-        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         timer:SetHidden(false)
     end
 end
@@ -5985,12 +6028,7 @@ function FancyActionBar.AdjustTimerY()
 end
 
 function FancyActionBar.ApplyStackFont()
-    local function GetCurrentStackFont()
-        local c = FancyActionBar.constants.stacks
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentStackFont()
+    local name, size, outline = GetCurrentStackFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6000,13 +6038,13 @@ function FancyActionBar.ApplyStackFont()
         local overlay = FancyActionBar.GetOverlay(i)
         local stack = overlay:GetNamedChild("Stacks")
 
-        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         stack:SetHidden(false)
 
         overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
         stack = overlay:GetNamedChild("Stacks")
 
-        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         stack:SetHidden(false)
     end
 end
@@ -6054,12 +6092,7 @@ function FancyActionBar.AdjustStackY()
 end
 
 function FancyActionBar.ApplyTargetFont()
-    local function GetCurrentTargetFont()
-        local c = FancyActionBar.constants.targets
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentTargetFont()
+    local name, size, outline = GetCurrentTargetFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6069,13 +6102,13 @@ function FancyActionBar.ApplyTargetFont()
         local overlay = FancyActionBar.GetOverlay(i)
         local target = overlay:GetNamedChild("Targets")
 
-        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         target:SetHidden(false)
 
         overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
         target = overlay:GetNamedChild("Targets")
 
-        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         target:SetHidden(false)
     end
 end
@@ -6141,11 +6174,6 @@ function FancyActionBar.AdjustQuickSlotTimer()
 end
 
 function FancyActionBar.ApplyQuickSlotFont()
-    local function GetCurrentQuickSlotTimerFont()
-        local c = FancyActionBar.constants.qs
-        return c.font, c.size, c.outline, c.stackFont, c.stackSize, c.stackOutline
-    end
-
     local name, size, type, stackName, stackSize, stackType = GetCurrentQuickSlotTimerFont()
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6221,12 +6249,7 @@ function FancyActionBar.AdjustUltTimer(sample)
 end
 
 function FancyActionBar.ApplyUltFont(sample)
-    local function GetCurrentUltFont()
-        local c = FancyActionBar.constants.ult.duration
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentUltFont()
+    local name, size, outline = GetCurrentUltFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6235,7 +6258,7 @@ function FancyActionBar.ApplyUltFont(sample)
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
         overlay = FancyActionBar.ultOverlays[i]
         if overlay then
-            overlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+            overlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         end
     end
 
@@ -6289,12 +6312,7 @@ function FancyActionBar.AdjustCompanionUltValue()
 end
 
 function FancyActionBar.ApplyUltValueFont()
-    local function GetCurrentUltValueFont()
-        local c = FancyActionBar.constants.ult.value
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentUltValueFont()
+    local name, size, outline = GetCurrentUltValueFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6304,7 +6322,7 @@ function FancyActionBar.ApplyUltValueFont()
         overlay = FancyActionBar.ultOverlays[i]
         if overlay then
             local l = overlay:GetNamedChild("Value")
-            l:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+            l:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         end
     end
 end
@@ -6322,16 +6340,16 @@ end
 function FancyActionBar.UpdateUltValueMode()
     local e = FancyActionBar.constants.ult.value.show
     local c = FancyActionBar.constants.ult.companion.show
-    local u, _, _
+    local current, max, effectiveMax
 
     if e then
-        u, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(true, u)
+        current, max, effectiveMax = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        FancyActionBar.UpdateUltimateValueLabels(true, current)
     end
 
     if c then
-        u, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(false, u)
+        current, max, effectiveMax = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        FancyActionBar.UpdateUltimateValueLabels(false, current)
     end
 end
 
@@ -6556,7 +6574,7 @@ function FancyActionBar.SaveMoverPosition()
     FancyActionBar.constants.move.y = y
     FancyActionBar.constants.move.enable = true
 
-    UpdateAzurahDb()
+    if Azurah then UpdateAzurahDb() end
 
     if BUI and BUI.Vars["ZO_ActionBar1"] then
         BUI.Vars["ZO_ActionBar1"][1] = TOPLEFT
@@ -6573,7 +6591,7 @@ function FancyActionBar.SaveMoverPosition()
     ACTION_BAR:ClearAnchors()
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
     FancyActionBar.SetMoved(true)
-    local _, locked = GetActiveWeaponPairInfo()
+    local activeWeaponPair, locked = GetActiveWeaponPairInfo()
     SetBarTheme(locked)
 end
 
