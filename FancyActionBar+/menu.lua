@@ -1350,12 +1350,8 @@ end
 -----------[   Label Functions   ]------------
 ----------------------------------------------
 local function UpdateHiglightSettings()
-    if ((not SV.showHighlight) and (not SV.toggledHighlight))
-    then
-        hideStatus = false
-    else
-        hideStatus = true
-    end
+    hideStatus = ((not SV.showHighlight) and (not SV.toggledHighlight)) == false
+    return hideStatus
 end
 
 local function GetUltValueOptions()
@@ -5979,12 +5975,7 @@ function FancyActionBar.ApplyDesaturationInactiveInactive(desaturation)
 end
 
 function FancyActionBar.ApplyTimerFont()
-    local function GetCurrentFont()
-        local c = FancyActionBar.constants.duration
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentFont()
+    local name, size, outline = GetCurrentFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -5994,13 +5985,13 @@ function FancyActionBar.ApplyTimerFont()
         local overlay = FancyActionBar.overlays[i]
         local timer = overlay:GetNamedChild("Duration")
 
-        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         timer:SetHidden(false)
 
         overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET]
         timer = overlay:GetNamedChild("Duration")
 
-        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         timer:SetHidden(false)
     end
 end
@@ -6033,12 +6024,7 @@ function FancyActionBar.AdjustTimerY()
 end
 
 function FancyActionBar.ApplyStackFont()
-    local function GetCurrentStackFont()
-        local c = FancyActionBar.constants.stacks
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentStackFont()
+    local name, size, outline = GetCurrentStackFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6048,13 +6034,13 @@ function FancyActionBar.ApplyStackFont()
         local overlay = FancyActionBar.GetOverlay(i)
         local stack = overlay:GetNamedChild("Stacks")
 
-        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         stack:SetHidden(false)
 
         overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
         stack = overlay:GetNamedChild("Stacks")
 
-        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         stack:SetHidden(false)
     end
 end
@@ -6102,12 +6088,7 @@ function FancyActionBar.AdjustStackY()
 end
 
 function FancyActionBar.ApplyTargetFont()
-    local function GetCurrentTargetFont()
-        local c = FancyActionBar.constants.targets
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentTargetFont()
+    local name, size, outline = GetCurrentTargetFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6117,13 +6098,13 @@ function FancyActionBar.ApplyTargetFont()
         local overlay = FancyActionBar.GetOverlay(i)
         local target = overlay:GetNamedChild("Targets")
 
-        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         target:SetHidden(false)
 
         overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
         target = overlay:GetNamedChild("Targets")
 
-        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         target:SetHidden(false)
     end
 end
@@ -6189,11 +6170,6 @@ function FancyActionBar.AdjustQuickSlotTimer()
 end
 
 function FancyActionBar.ApplyQuickSlotFont()
-    local function GetCurrentQuickSlotTimerFont()
-        local c = FancyActionBar.constants.qs
-        return c.font, c.size, c.outline, c.stackFont, c.stackSize, c.stackOutline
-    end
-
     local name, size, type, stackName, stackSize, stackType = GetCurrentQuickSlotTimerFont()
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6269,12 +6245,7 @@ function FancyActionBar.AdjustUltTimer(sample)
 end
 
 function FancyActionBar.ApplyUltFont(sample)
-    local function GetCurrentUltFont()
-        local c = FancyActionBar.constants.ult.duration
-        return c.font, c.size, c.outline
-    end
-
-    local name, size, type = GetCurrentUltFont()
+    local name, size, outline = GetCurrentUltFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6283,7 +6254,7 @@ function FancyActionBar.ApplyUltFont(sample)
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
         overlay = FancyActionBar.ultOverlays[i]
         if overlay then
-            overlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+            overlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         end
     end
 
@@ -6334,15 +6305,6 @@ function FancyActionBar.AdjustCompanionUltValue()
         value:ClearAnchors()
         value:SetAnchor(BOTTOMRIGHT, overlay, BOTTOMRIGHT, x, y)
     end
-end
-
----
----@return string font
----@return integer size
----@return string outline
-local function GetCurrentUltValueFont()
-    local c = FancyActionBar.constants.ult.value
-    return c.font, c.size, c.outline
 end
 
 function FancyActionBar.ApplyUltValueFont()
