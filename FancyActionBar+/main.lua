@@ -20,6 +20,7 @@ local COMPANION_INDEX_OFFSET = 30            -- offset for companion ultimate
 local SLOT_COUNT = MAX_INDEX - MIN_INDEX + 1 -- total number of slots
 local ACTION_BAR = GetControl("ZO_ActionBar1")
 local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
+local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
 local currentWeaponPair = GetActiveWeaponPairInfo()
 local currentHotbarCategory = GetActiveHotbarCategory()
@@ -103,9 +104,9 @@ FancyActionBar.stashedEffects = {} -- Used with specalEffects to track prioritiz
 -- Backbar buttons.
 FancyActionBar.buttons = {} -- Contains: abilities duration, number of stacks and debuffed targets, and visual effects.
 -- FancyActionBar.abilitySlots                  = {} -- TODO enable tooltip, mouse click and drag functions
--- @type {[1]:(FAB_ActionButtonOverlay_Keyboard_Template|FAB_ActionButtonOverlay_Gamepad_Template),[any] : any|object}
+--- @type {[1]:(FAB_ActionButtonOverlay_Keyboard_Template|FAB_ActionButtonOverlay_Gamepad_Template),[any] : any|userdata}
 FancyActionBar.overlays = {}                 -- normal skill button overlays
--- @type {[1]:(FAB_UltimateButtonOverlay_Keyboard_Template|FAB_UltimateButtonOverlay_Gamepad_Template),[any] : any|object}
+--- @type {[1]:(FAB_UltimateButtonOverlay_Keyboard_Template|FAB_UltimateButtonOverlay_Gamepad_Template),[any] : any|userdata}
 FancyActionBar.ultOverlays = {}              -- player and companion ultimate skill button overlays
 FancyActionBar.style = nil                   -- Gamepad or Keyboard UI for compatibility
 

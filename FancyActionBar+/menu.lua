@@ -10,7 +10,6 @@ local SV = ...
 --- @class FAB_DC_SV
 local CV = ...
 local ACTION_BAR = GetControl("ZO_ActionBar1")
-local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local MIN_INDEX = 3          -- first ability index
 local MAX_INDEX = 7          -- last ability index
 local ULT_INDEX = MAX_INDEX + 1
@@ -19,7 +18,6 @@ local COMPANION_INDEX_OFFSET = 30
 local ULT_SLOT = 8           -- ACTION_BAR_ULTIMATE_SLOT_INDEX + 1
 local QUICK_SLOT = 9         -- ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1
 local COMPANION = HOTBAR_CATEGORY_COMPANION
-local hideStatus = false
 local inMenu = false
 local settingsPageCreated = false
 local unlocked = false
@@ -1349,10 +1347,6 @@ end
 ----------------------------------------------
 -----------[   Label Functions   ]------------
 ----------------------------------------------
-local function UpdateHiglightSettings()
-    hideStatus = ((not SV.showHighlight) and (not SV.toggledHighlight)) == false
-    return hideStatus
-end
 
 local function GetUltValueOptions()
     local options = {}
@@ -1603,10 +1597,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         author = "|cFFFF00@andy.s|r, @nogetrandom\nModified by: @dack_janiels, @Incanus",
         version = string.format("|c00FF00%s|r", FancyActionBar.GetVersion()),
         registerForRefresh = true,
+        -- registerForDefaults = true
     }
     local FAB_Panel = LAM:RegisterAddonPanel(name, panel)
-
-    UpdateHiglightSettings()
 
     local function ToggleActionBarInMenu(isHidden)
         local l
@@ -1691,11 +1684,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.kb.enable = value or false
                         if FancyActionBar.style == 1 then
                             FancyActionBar.constants.abScale.enable = value
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1721,12 +1714,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     setFunc = function (value)
                         SV.abScaling.kb.scale = value
                         if FancyActionBar.style == 1 then
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.constants.abScale.enable = value
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1773,11 +1766,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.enable = value or false
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.enable = value
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1804,11 +1797,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.scale = value
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.scale = value
-                            local _, locked = GetActiveWeaponPairInfo()
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            UpdateAzurahDb()
+                            if Azurah then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -2258,7 +2251,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.showHighlight = value or false
-                        UpdateHiglightSettings()
                     end,
                     width = "half",
                 },
@@ -2295,7 +2287,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.toggledHighlight = value or false
-                        UpdateHiglightSettings()
                     end,
                     width = "half",
                 },
@@ -6570,7 +6561,7 @@ function FancyActionBar.SaveMoverPosition()
     FancyActionBar.constants.move.y = y
     FancyActionBar.constants.move.enable = true
 
-    UpdateAzurahDb()
+    if Azurah then UpdateAzurahDb() end
 
     if BUI and BUI.Vars["ZO_ActionBar1"] then
         BUI.Vars["ZO_ActionBar1"][1] = TOPLEFT
@@ -6587,7 +6578,7 @@ function FancyActionBar.SaveMoverPosition()
     ACTION_BAR:ClearAnchors()
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
     FancyActionBar.SetMoved(true)
-    local _, locked = GetActiveWeaponPairInfo()
+    local activeWeaponPair, locked = GetActiveWeaponPairInfo()
     SetBarTheme(locked)
 end
 
