@@ -6279,10 +6279,10 @@ end
 ---@return string font
 ---@return integer size
 ---@return string outline
-    local function GetCurrentUltValueFont()
-        local c = FancyActionBar.constants.ult.value
-        return c.font, c.size, c.outline
-    end
+local function GetCurrentUltValueFont()
+    local c = FancyActionBar.constants.ult.value
+    return c.font, c.size, c.outline
+end
 
 function FancyActionBar.ApplyUltValueFont()
     local name, size, outline = GetCurrentUltValueFont()
@@ -6313,16 +6313,16 @@ end
 function FancyActionBar.UpdateUltValueMode()
     local e = FancyActionBar.constants.ult.value.show
     local c = FancyActionBar.constants.ult.companion.show
-    local u, _, _
+    local current, max, effectiveMax
 
     if e then
-        u, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(true, u)
+        current, max, effectiveMax = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        FancyActionBar.UpdateUltimateValueLabels(true, current)
     end
 
     if c then
-        u, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(false, u)
+        current, max, effectiveMax = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        FancyActionBar.UpdateUltimateValueLabels(false, current)
     end
 end
 

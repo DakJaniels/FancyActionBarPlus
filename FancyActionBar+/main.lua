@@ -2148,7 +2148,7 @@ function FancyActionBar.GetValueString(mode, value, cost) -- format label text
     return string
 end
 
-function FancyActionBar.UpdateUltimateValueLabels(player, value, hotbar) -- update ultimate value displays
+function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultimate value displays
     local modeP = FancyActionBar.constants.ult.value.mode
     local modeC = FancyActionBar.constants.ult.companion.mode
     local alpha = (value < 10) and 0 or 1
@@ -2185,7 +2185,7 @@ end
 function FancyActionBar.OnUltChanged(eventCode, unitTag, powerIndex, powerType, powerValue, powerMax, powerEffectiveMax)
     if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE then
         local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(true, current, currentHotbarCategory)
+        FancyActionBar.UpdateUltimateValueLabels(true, current)
     end
 end
 
