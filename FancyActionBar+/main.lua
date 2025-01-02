@@ -265,7 +265,7 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
 -----------------------------[ 		Utility    ]----------------------------------
 --------------------------------------------------------------------------------
 
---- @class LibChatMessage
+--- @type LibChatMessage
 local LibChatMessage = LibChatMessage
 
 ---
