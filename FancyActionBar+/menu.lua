@@ -6275,13 +6275,17 @@ function FancyActionBar.AdjustCompanionUltValue()
     end
 end
 
-function FancyActionBar.ApplyUltValueFont()
+---
+---@return string font
+---@return integer size
+---@return string outline
     local function GetCurrentUltValueFont()
         local c = FancyActionBar.constants.ult.value
         return c.font, c.size, c.outline
     end
 
-    local name, size, type = GetCurrentUltValueFont()
+function FancyActionBar.ApplyUltValueFont()
+    local name, size, outline = GetCurrentUltValueFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -6291,7 +6295,7 @@ function FancyActionBar.ApplyUltValueFont()
         overlay = FancyActionBar.ultOverlays[i]
         if overlay then
             local l = overlay:GetNamedChild("Value")
-            l:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+            l:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         end
     end
 end
