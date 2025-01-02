@@ -3384,7 +3384,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
         ultimateReadyBurstTexture:SetHidden(true)
         ultimateReadyLoopTexture:SetHidden(true)
         self:StopUltimateReadyAnimations()
-        -- self:ResetUltimateFillAnimations();
+        -- self:ResetUltimateFillAnimations()
 
         -- hide progress bar for all platforms
         barTexture:SetHidden(true)
