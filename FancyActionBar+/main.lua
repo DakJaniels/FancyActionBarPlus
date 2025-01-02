@@ -2845,6 +2845,14 @@ local configureFillAnimationsAndFrames = function (style)
         leftFillC:SetHidden(not isGamepad)
         rightFillC:SetHidden(not isGamepad)
 
+        -- Set textures for gamepad mode
+        if isGamepad then
+            leftFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            rightFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            leftFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            rightFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+        end
+
         -- Set fill animations
         configureFillAnimation(leftFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
         configureFillAnimation(rightFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
@@ -3307,6 +3315,14 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
         ultimateFillFrame:SetHidden(not isGamepad)
         ultimateFillLeftTexture:SetHidden(not isGamepad)
         ultimateFillRightTexture:SetHidden(not isGamepad)
+
+        -- Set textures for gamepad mode
+        if isGamepad then
+            ultimateFillLeftTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            ultimateFillRightTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            ultimateFillLeftTexture:SetWidth(70)
+            ultimateFillRightTexture:SetWidth(70)
+        end
 
         if ultimateCount >= self.currentUltimateMax then
             -- hide progress bar
