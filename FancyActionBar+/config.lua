@@ -245,9 +245,10 @@ FancyActionBar.abilityConfig =
     [40223] = { 40224 }, -- aggressive warhorn (30 sec); 61747: 10 sec major force
 
     -- Support
-    [61511] = {},        -- guard  -- [80923] = { 61511 }; -- guard
-    [61529] = {},        -- stalwart guard  -- [80983] = { 81420 }; -- stalwart guard gain
-    [61536] = {},        -- mystic guard -- [80947] = { 61536 }; -- mystic guard
+    [61511] = { 78338 }, -- guard  -- [80923] = { 61511 }; -- guard
+    [61529] = { 81415 }, -- stalwart guard  -- [80983] = { 81420 }; -- stalwart guard gain
+    [61536] = { 81415 }, -- mystic guard -- [80947] = { 61536 }; -- mystic guard
+
     [81420] = { 61529 }, -- guard slot id while link is acitve
     [61489] = { 61498 }, -- revealing flare
     [61519] = { 61522 }, -- lingering flare
