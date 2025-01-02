@@ -3114,6 +3114,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked)
         end
         if inactive then
             inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains())
+            inactive:SetHidden(SV.hideInactiveSlots)
         end
     elseif firstTop then
         if active then
@@ -3123,6 +3124,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked)
         if inactive then
             inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
                 2 + barYOffset, inactive:GetResizeToFitConstrains())
+            inactive:SetHidden(SV.hideInactiveSlots)
         end
     else
         if active then
@@ -3132,6 +3134,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked)
         if inactive then
             inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
                 -2 - barYOffset, inactive:GetResizeToFitConstrains())
+            inactive:SetHidden(SV.hideInactiveSlots)
         end
     end
 end
