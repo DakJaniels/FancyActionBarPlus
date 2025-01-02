@@ -3143,6 +3143,7 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
     activeBar, inactiveBar, hide = FancyActionBar.DetermineBarAndHide(locked)
 
     FancyActionBar.SetBarPositions(inactiveBar)
+    FancyActionBar.ToggleOverlays(hide)
     FancyActionBar.ToggleUltimateOverlays(hide)
 
     FancyActionBar.UpdateActiveBarIcons(activeBar)
@@ -3202,22 +3203,24 @@ function FancyActionBar.ToggleInactiveBar(bar, hide)
     local hideOffset = bar == HOTBAR_CATEGORY_PRIMARY and 0 or SLOT_INDEX_OFFSET
     for i = MIN_INDEX, MAX_INDEX do
         local hideOverlay = FancyActionBar.overlays[i + hideOffset]
+        local hideSlotHidden = FancyActionBar.slotHidden[i + hideOffset]
         if hideOverlay then
-            hideOverlay:SetHidden(hide)
+            hideOverlay:SetHidden(SV.hideInactiveSlots and hideSlotHidden or hide)
         end
         -- bar to hide
         local hideButton = FancyActionBar.GetActionButton(i + hideOffset)
         if hideButton then
-            hideButton.slot:SetHidden(hide)
+            hideButton.slot:SetHidden(SV.hideInactiveSlots and hideSlotHidden or hide)
         end
         if not hide then
             local showOverlay = FancyActionBar.overlays[i + showOffset]
+            local showSlotHidden = FancyActionBar.slotHidden[i + showOffset]
             if showOverlay then
-                showOverlay:SetHidden(hide)
+                showOverlay:SetHidden(SV.hideInactiveSlots and showSlotHidden or hide)
             end
             local showButton = FancyActionBar.GetActionButton(i + showOffset)
             if showButton then
-                showButton.slot:SetHidden(hide)
+                showButton.slot:SetHidden(SV.hideInactiveSlots and showSlotHidden or hide)
             end
         end
     end
@@ -3235,7 +3238,19 @@ function FancyActionBar.ToggleUltimateOverlays(hide)
     end
 end
 
-function FancyActionBar.UpdateActiveBarIcons()
+function FancyActionBar.ToggleOverlays(hide)
+    for i = MIN_INDEX, MAX_INDEX do
+        local index = hide == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
+        local overlay = FancyActionBar.overlays[index]
+        local slotState = FancyActionBar.slotHidden[index]
+        if overlay then
+            overlay:SetHidden(SV.hideInactiveSlots and slotState)
+        end
+    end
+end
+
+function
+FancyActionBar.UpdateActiveBarIcons()
     for i = MIN_INDEX, MAX_INDEX do
         local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
         local overlay = FancyActionBar.overlays[index]
