@@ -100,9 +100,9 @@ local selectedDebuff = 0
 
 local uiPresets =
 {
-    ["default"] = FancyActionBar.defaultSettings,
-    ["dev"] = FancyActionBar.devConfig,
-    ["adr"] = FancyActionBar.adrConfig,
+    ["UI Defaults"] = FancyActionBar.defaultSettings,
+    ["Dev's Preferred UI"] = FancyActionBar.devConfig,
+    ["ADR-like UI"] = FancyActionBar.adrConfig,
 }
 
 local presetIgnoreKeys =
@@ -144,6 +144,15 @@ function FancyActionBar.GetFonts()
     end
 
     return fonts
+end
+
+function FancyActionBar.GetPresets()
+    local presets = {}
+    for k in pairs(uiPresets) do
+        table.insert(presets, k)
+    end
+
+    return presets
 end
 
 function FancyActionBar.GetDecimalOptions()
@@ -1656,7 +1665,31 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             end,
             width = "full",
         },
-
+        -- ===========[	UI Presets	]===================
+        {
+            type = "submenu",
+            name = "|cFFFACDUI Presets|r",
+            controls =
+            {
+                {
+                    type = "dropdown",
+                    name = "Select UI Preset",
+                    scrollable = true,
+                    tooltip = "Set a preset UI configuration.",
+                    choices = FancyActionBar.GetPresets(),
+                    sort = "name-up",
+                    getFunc = function ()
+                        return "UI Defaults"
+                    end,
+                    setFunc = function (value)
+                        SetUIPreset(value)
+                    end,
+                    default = "UI Defaults",
+                    warning = "Will reload the UI.",
+                },
+            },
+        },
+        { type = "divider" },
         -- ===========[	Actionbar Scaling	]===================
         {
             type = "submenu",
@@ -5680,47 +5713,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             width = "half",
                         },
                     },
-                },
-            },
-        },
-        { type = "divider" },
-        {
-            type = "submenu",
-            name = "|cFFFACDUI Presets|r",
-            controls =
-            {
-                {
-                    type = "button",
-                    name = "Default UI Settings",
-                    tooltip = "Restores all UI Settings to the default configuration (this does not change configured abilities).",
-                    func = function ()
-                        SetUIPreset("default")
-                    end,
-                    width = "full",
-                    reference = "FAB_DEFAULT_UI",
-                    warning = "Will reload the UI.",
-                },
-                {
-                    type = "button",
-                    name = "Dev's UI Settings",
-                    tooltip = "Configures a number of non-default options to the developer's preferred configuration (this does not change configured abilities).",
-                    func = function ()
-                        SetUIPreset("dev")
-                    end,
-                    width = "full",
-                    reference = "FAB_DEV_UI",
-                    warning = "Will reload the UI.",
-                },
-                {
-                    type = "button",
-                    name = "ADR-like UI Settings",
-                    tooltip = "Configures the action bar to an approximation of the visual behavior of Action Duration Reminder.",
-                    func = function ()
-                        SetUIPreset("adr")
-                    end,
-                    width = "full",
-                    reference = "FAB_ADR_UI",
-                    warning = "Will reload the UI.",
                 },
             },
         },
