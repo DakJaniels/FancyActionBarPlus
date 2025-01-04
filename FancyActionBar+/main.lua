@@ -3337,6 +3337,27 @@ local function ApplySwapAnimationStyle(button)
     end
 end
 
+local origHideKeys = ActionButton["HideKeys"]
+function FancyHideKeys(self, hide)
+    if SV and (not SV.showHotkeysUltGP) then
+        hide = true
+    end
+    self.leftKey:SetHidden(hide)
+    self.rightKey:SetHidden(hide)
+end
+
+ActionButton["HideKeys"] = FancyHideKeys
+
+local origSetShowBindingText = ActionButton["SetShowBindingText"]
+function FancySetShowBindingText(self, visible)
+    if SV and (not SV.showHotkeys) then
+        visible = false
+    end
+    self.buttonText:SetHidden(not visible)
+end
+
+ActionButton["SetShowBindingText"] = FancySetShowBindingText
+
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     local isSlotUsed = IsSlotUsed(ULT_INDEX, self.button.hotbarCategory)
@@ -3716,41 +3737,79 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
 end
 
 function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
+    -- Early return if effect was too recent
     if effect.beginTime and (updateTime - effect.beginTime < 0.3) then
         return
     end
 
+    -- Handle multi-target effects
     if specialEffect.isMultiTarget and FancyActionBar.targets[effect.id] then
-        local targetData = FancyActionBar.targets[effect.id]
-        targetData.times[unitId] = nil
-        FancyActionBar.targets[effect.id] = targetData
-        local targetCount = FancyActionBar.CheckTargetEndtimes(effect.id)
-        FancyActionBar.HandleTargetUpdate(effect.id)
+        local targetCount = FancyActionBar.HandleMultiTargetFade(effect.id, unitId)
         if targetCount >= 1 then
             return
         end
     end
 
-    if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced ~= specialEffect.hasProced) then
+    -- Check proc state compatibility
+    if effect.hasProced and specialEffect.hasProced and effect.hasProced ~= specialEffect.hasProced then
         return
     end
 
+    -- Handle special effect procs
     if FancyActionBar.specialEffectProcs[effect.id] then
-        local procUpdates = FancyActionBar.specialEffectProcs[effect.id]
-        local procValues = procUpdates[effect.procs]
-        for i, x in pairs(procValues) do
-            effect[i] = x
+        local success = FancyActionBar.UpdateEffectProcs(effect, specialEffect, stackCount)
+        if not success then
+            -- If proc update fails, just update the end time
+            effect.endTime = endTime
+            FancyActionBar.UpdateEffect(effect)
+            return
         end
-        if effect.stacks and effect.stackId and #effect.stackId > 0 then
-            FancyActionBar.stacks[effect.stackId[1]] = effect.stacks
-        elseif effect.stackId and #effect.stackId > 0 and stackCount then
-            FancyActionBar.stacks[effect.stackId[1]] = stackCount
-        end
-        FancyActionBar.effects[effect.id] = effect
     end
 
+    -- Update effect end time and trigger update
     effect.endTime = endTime
     FancyActionBar.UpdateEffect(effect)
+end
+
+-- function to handle multi-target fade
+function FancyActionBar.HandleMultiTargetFade(effectId, unitId)
+    local targetData = FancyActionBar.targets[effectId]
+    if not targetData then return 0 end
+
+    targetData.times[unitId] = nil
+    FancyActionBar.targets[effectId] = targetData
+
+    local targetCount = FancyActionBar.CheckTargetEndtimes(effectId)
+    FancyActionBar.HandleTargetUpdate(effectId, true)
+
+    return targetCount
+end
+
+-- function to update effect procs
+function FancyActionBar.UpdateEffectProcs(effect, specialEffect, stackCount)
+    local procUpdates = FancyActionBar.specialEffectProcs[effect.id]
+    if not procUpdates then return false end
+
+    local procValues = procUpdates[effect.procs]
+    if not procValues then return false end
+
+    -- Update effect values from proc
+    for key, value in pairs(procValues) do
+        effect[key] = value
+    end
+
+    -- Handle stacks
+    if effect.stackId and #effect.stackId > 0 then
+        local stackId = effect.stackId[1]
+        if effect.stacks then
+            FancyActionBar.stacks[stackId] = effect.stacks
+        elseif stackCount then
+            FancyActionBar.stacks[stackId] = stackCount
+        end
+    end
+
+    FancyActionBar.effects[effect.id] = effect
+    return true
 end
 
 function FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
@@ -4273,7 +4332,7 @@ function FancyActionBar.Initialize()
         local stackCount
         local t = time()
         local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
-        if FancyActionBar.ignoreFallbackTimers[abilityId] then
+        if FancyActionBar.specialEffects[abilityId] or FancyActionBar.ignoreFallbackTimers[abilityId] then
             return
         end
 
@@ -4288,11 +4347,6 @@ function FancyActionBar.Initialize()
                     return
                 end
             end
-
-            if FancyActionBar.specialEffects[effect.id] then
-                return
-            end
-
             effect.slotEffecTime = SV.allowParentTime
             -- This function doesn't work for channeled/cast duration abilities as it stores the
             -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
@@ -4979,9 +5033,273 @@ function FancyActionBar.OnAddOnLoaded(event, addonName)
     end
 end
 
+local function ValidateBasicSettings(sv, d)
+    sv = SV
+    d = d or defaultSettings
+
+    local settings =
+    {
+        "dynamicAbilityConfig",
+        "showDecimal",
+        "alphaInactive",
+        "desaturationInactive",
+        "showDecimalStart",
+        "showExpire",
+        "showExpireStart",
+        "expireColor",
+        "allowParentTime",
+        "forceGamepadStyle",
+        "useThinFrames",
+        "showFrames",
+        "frameColor",
+        "showMarker",
+        "markerSize",
+        "showHighlight",
+        "highlightColor",
+        "showArrow",
+        "arrowColor",
+        "moveQS",
+        "moveHealthBar",
+        "moveResourceBars",
+        "showStackCount",
+        "showOvertauntStacks",
+        "showTargetCount",
+        "showSingleTargetInstance",
+        "applyActionBarSkillStyles",
+        "showCastDuration",
+        "showToggleTicks",
+        "ignoreTrapPlacement",
+        "showSoonestExpire",
+        "ignoreUngroupedAliies",
+        "hideLockedBar",
+        "repositionActiveBar",
+        "hideCompanionUlt",
+        "debug",
+        "showToggle",
+        "toggleColor"
+        "hideInactiveSlots"
+    }
+
+    for _, setting in ipairs(settings) do
+        if sv[setting] == nil then
+            sv[setting] = d[setting]
+        end
+    end
+end
+
+local function ValidateBlacklists(sv)
+    sv = SV
+
+    -- External blacklist validation
+    if not sv.externalBlackListRun then
+        -- just add all resto staff skills by default and player can take it from there.
+        sv.externalBlackList =
+        {
+            [28385] = "Grand Healing",
+            [28536] = "Regeneration",
+            [29224] = "Igneous Shield",
+            [31531] = "Force Siphon",
+            [37232] = "Steadfast Ward",
+            [38552] = "Panacea",
+            [40058] = "Illustrious Healing",
+            [40060] = "Healing Springs",
+            [40076] = "Rapid Regeneration",
+            [40079] = "Radiating Regeneration",
+            [40109] = "Siphon Spirit",
+            [40116] = "Quick Siphon",
+            [40126] = "Healing Ward",
+            [40130] = "Ward Ally",
+            [61504] = "Vigor",
+            [61506] = "Echoing Vigor",
+            [61665] = "Major Brutality",
+            [61687] = "Major Sorcery",
+            [61693] = "Minor Resolve",
+            [61694] = "Major Resolve",
+            [61697] = "Minor Fortitude",
+            [61704] = "Minor Endurance",
+            [61706] = "Minor Intellect",
+            [61721] = "Minor Protection",
+            [76518] = "Major Brutality",
+            [83850] = "Life Giver",
+            [85132] = "Lights Champion",
+            [88758] = "Major Resolve",
+            [92503] = "Major Sorcery",
+            [176991] = "Minor Resolve",
+            [186493] = "Minor Protection",
+        }
+        sv.externalBlackListRun = true
+    end
+
+    -- Multi-target blacklist validation
+    if not sv.multiTargetBlackListRun then
+        sv.multiTargetBlacklist =
+        {
+            [18746] = "Mages' Fury",
+            [19118] = "Endless Fury",
+            [19125] = "Mages' Wrath",
+            [24326] = "Daedric Curse",
+            [24328] = "Daedric Prey",
+            [24330] = "Haunting Curse",
+            [40229] = "Siege Weapon Shield",
+            [51392] = "Bolt Escape Fatigue",
+        }
+        sv.multiTargetBlackListRun = true
+    end
+end
+
+local function ValidateGamepadSettings(sv, d)
+    sv = SV
+    d = d or defaultSettings
+
+    if IsInGamepadPreferredMode() or sv.forceGamepadStyle then
+        -- Migrate old settings
+        local oldToNewMappings =
+        {
+            fontName = "fontNameGP",
+            fontSize = "fontSizeGP",
+            fontType = "fontTypeGP",
+            timerY = "timerYGP",
+            ultimateSlotCustomXOffset = "ultimateSlotCustomXOffsetGP",
+            ultimateSlotCustomYOffset = "ultimateSlotCustomYOffsetGP",
+            quickSlotCustomXOffset = "quickSlotCustomXOffsetGP",
+            quickSlotCustomYOffset = "quickSlotCustomYOffsetGP"
+        }
+
+        for old, new in pairs(oldToNewMappings) do
+            if sv[old] then
+                sv[new] = sv[old]
+                sv[old] = nil
+            end
+        end
+
+        -- Set default values if nil
+        d =
+        {
+            fontNameGP = d.fontNameGP,
+            fontSizeGP = d.fontSizeGP,
+            fontTypeGP = d.fontTypeGP,
+            timeYGP = d.timeYGP,
+            fontNameStackGP = d.fontNameStackGP,
+            fontSizeStackGP = d.fontSizeStackGP,
+            fontTypeStackGP = d.fontTypeStackGP,
+            stackXGP = d.stackXGP,
+            stackYGP = d.stackYGP,
+            fontNameTargetGP = d.fontNameTargetGP,
+            fontSizeTargetGP = d.fontSizeTargetGP,
+            fontTypeTargetGP = d.fontTypeTargetGP,
+            targetXGP = d.targetXGP,
+            targetYGP = d.targetYGP,
+            abilitySlotOffsetXGP = d.abilitySlotOffsetXGP,
+            barXOffsetGP = d.barXOffsetGP,
+            barYOffsetGP = d.barYOffsetGP,
+            ultimateSlotCustomXOffsetGP = d.ultimateSlotCustomXOffsetGP,
+            ultimateSlotCustomYOffsetGP = d.ultimateSlotCustomYOffsetGP,
+            quickSlotCustomXOffsetGP = d.quickSlotCustomXOffsetGP,
+            quickSlotCustomYOffsetGP = d.quickSlotCustomYOffsetGP,
+            ultValueThresholdGP = d.ultValueThresholdGP,
+            ultUsableThresholdColorGP = d.ultUsableThresholdColorGP,
+            ultUsableValueColorGP = d.ultUsableValueColorGP,
+            ultMaxValueColorGP = d.ultMaxValueColorGP
+        }
+
+        for setting, default in pairs(d) do
+            if sv[setting] == nil then
+                sv[setting] = default
+            end
+        end
+    end
+end
+
+local function ValidateKeyboardSettings(sv, d)
+    sv = SV
+    d = d or defaultSettings
+
+    if not (IsInGamepadPreferredMode() or sv.forceGamepadStyle) then
+        -- Migrate old settings
+        local oldToNewMappings =
+        {
+            fontName = "fontNameKB",
+            fontSize = "fontSizeKB",
+            fontType = "fontTypeKB",
+            timerY = "timerYKB",
+            ultimateSlotCustomXOffset = "ultimateSlotCustomXOffsetKB",
+            ultimateSlotCustomYOffset = "ultimateSlotCustomYOffsetKB",
+            quickSlotCustomXOffset = "quickSlotCustomXOffsetKB",
+            quickSlotCustomYOffset = "quickSlotCustomYOffsetKB"
+        }
+
+        for old, new in pairs(oldToNewMappings) do
+            if sv[old] then
+                sv[new] = sv[old]
+                sv[old] = nil
+            end
+        end
+
+        -- Set default values if nil
+        d =
+        {
+            fontNameKB = d.fontNameKB,
+            fontSizeKB = d.fontSizeKB,
+            fontTypeKB = d.fontTypeKB,
+            timeYKB = d.timeYKB,
+            fontNameStackKB = d.fontNameStackKB,
+            fontSizeStackKB = d.fontSizeStackKB,
+            fontTypeStackKB = d.fontTypeStackKB,
+            stackXKB = d.stackXKB,
+            stackYKB = d.stackYKB,
+            fontNameTargetKB = d.fontNameTargetKB,
+            fontSizeTargetKB = d.fontSizeTargetKB,
+            fontTypeTargetKB = d.fontTypeTargetKB,
+            targetXKB = d.targetXKB,
+            targetYKB = d.targetYKB,
+            abilitySlotOffsetXKB = d.abilitySlotOffsetXKB,
+            barXOffsetKB = d.barXOffsetKB,
+            barYOffsetKB = d.barYOffsetKB,
+            ultimateSlotCustomXOffsetKB = d.ultimateSlotCustomXOffsetKB,
+            ultimateSlotCustomYOffsetKB = d.ultimateSlotCustomYOffsetKB,
+            quickSlotCustomXOffsetKB = d.quickSlotCustomXOffsetKB,
+            quickSlotCustomYOffsetKB = d.quickSlotCustomYOffsetKB,
+            ultValueThresholdKB = d.ultValueThresholdKB,
+            ultUsableThresholdColorKB = d.ultUsableThresholdColorKB,
+            ultUsableValueColorKB = d.ultUsableValueColorKB,
+            ultMaxValueColorKB = d.ultMaxValueColorKB
+        }
+
+        for setting, default in pairs(d) do
+            if sv[setting] == nil then
+                sv[setting] = default
+            end
+        end
+    end
+end
+
+local function ValidateScalingSettings(sv, d)
+    sv = SV
+    d = d or defaultSettings
+
+    if sv.abScaling == nil then
+        sv.abScaling = d.abScaling
+    end
+
+    -- Migrate old scaling settings
+    if SV.scaleEnable ~= nil then
+        sv.abScaling.kb.enable = sv.scaleEnable
+        sv.abScaling.gp.enable = sv.scaleEnable
+        sv.scaleEnable = nil
+    end
+
+    if sv.abScale ~= nil then
+        sv.abScaling.kb.scale = sv.abScale
+        sv.abScaling.gp.scale = sv.abScale
+        sv.abScale = nil
+    end
+end
+
 function FancyActionBar.ValidateVariables() -- all about safety checks these days..
     local d = defaultSettings
+    local sv = SV
 
+    -- Validate SV settings
     if SV.dynamicAbilityConfig == false then
         if SV.abilityConfig then
             SV.abilityConfig = nil
@@ -4989,6 +5307,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         SV.dynamicAbilityConfig = true
     end
 
+    -- Validate CV settings
     if CV.dynamicAbilityConfig == false then
         if CV.abilityConfig then
             CV.abilityConfig = nil
@@ -4996,477 +5315,17 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         CV.dynamicAbilityConfig = true
     end
 
+    -- Main validation flow
+    if sv.variablesValidated == false or sv.addonVersion ~= FancyActionBar.GetVersion() then
+        ValidateBasicSettings(sv, d)
+        ValidateBlacklists(sv)
+        ValidateScalingSettings(sv, d)
+        ValidateGamepadSettings(sv, d)
+        ValidateKeyboardSettings(sv, d)
 
-    if (not SV.externalBlackListRun) or (SV.externalBlackListRun == false) then
-        SV.externalBlackList =
-        { -- just add all resto staff skills by default and player can take it from there.
-            [61504] = "Vigor",
-            [28385] = "Grand Healing",
-            [40130] = "Ward Ally",
-            [29224] = "Igneous Shield",
-            [76518] = "Major Brutality",
-            [61665] = "Major Brutality",
-            [61704] = "Minor Endurance",
-            [61694] = "Major Resolve",
-            [83850] = "Life Giver",
-            [31531] = "Force Siphon",
-            [85132] = "Lights Champion",
-            [40109] = "Siphon Spirit",
-            [61693] = "Minor Resolve",
-            [61706] = "Minor Intellect",
-            [37232] = "Steadfast Ward",
-            [61697] = "Minor Fortitude",
-            [61506] = "Echoing Vigor",
-            [92503] = "Major Sorcery",
-            [40116] = "Quick Siphon",
-            [28536] = "Regeneration",
-            [40079] = "Radiating Regeneration",
-            [88758] = "Major Resolve",
-            [61687] = "Major Sorcery",
-            [38552] = "Panacea",
-            [61721] = "Minor Protection",
-            [40058] = "Illustrious Healing",
-            [40076] = "Rapid Regeneration",
-            [40060] = "Healing Springs",
-            [186493] = "Minor Protection",
-            [40126] = "Healing Ward",
-            [176991] = "Minor Resolve",
-        }
-
-        SV.externalBlackListRun = true
-    end
-
-    if (not SV.multiTargetBlackListRun) or (SV.multiTargetBlackListRun == false) then
-        SV.multiTargetBlacklist =
-        {
-            [40229] = "Siege Weapon Shield",
-            [24326] = "Daedric Curse",
-            [24330] = "Haunting Curse",
-            [24328] = "Daedric Prey",
-            [18746] = "Mages' Fury",
-            [19118] = "Endless Fury",
-            [19125] = "Mages' Wrath",
-            [51392] = "Bolt Escape Fatigue",
-        }
-
-        SV.multiTargetBlackListRun = true
-    end
-
-    -- if SV.debuffConfigUpgraded == false then
-    --   local debuffs = {}
-    --   for skill, id in pairs(FancyActionBar.abilityConfig) do
-    --     c[skill] = id
-    --   end
-    -- end
-
-    if SV.variablesValidated == false or SV.addonVersion ~= FancyActionBar.GetVersion() then
-        if SV.abScaling == nil then
-            SV.abScaling = d.abScaling
-        end
-        if SV.scaleEnable ~= nil then
-            SV.abScaling.kb.enable = SV.scaleEnable
-            SV.abScaling.gp.enable = SV.scaleEnable
-            SV.scaleEnable = nil
-        end
-
-        if SV.abScale ~= nil then
-            SV.abScaling.kb.scale = SV.abScale
-            SV.abScaling.gp.scale = SV.abScale
-            SV.abScale = nil
-        end
-
-        if (SV.showDecimal == nil or type(SV.showDecimal) ~= "string") then
-            SV.showDecimal = d.showDecimal
-        end
-
-        if SV.alphaInactive == nil then
-            SV.alphaInactive = d.alphaInactive
-        end
-        if SV.desaturationInactive == nil then
-            SV.desaturationInactive = d.desaturationInactive
-        end
-        if SV.showDecimalStart == nil then
-            SV.showDecimalStart = d.showDecimalStart
-        end
-        if SV.showExpire == nil then
-            SV.showExpire = d.showExpire
-        end
-        if SV.showExpireStart == nil then
-            SV.showExpireStart = d.showExpireStart
-        end
-        if SV.expireColor == nil then
-            SV.expireColor = d.expireColor
-        end
-        if SV.allowParentTime == nil then
-            SV.allowParentTime = d.allowParentTime
-        end
-        if SV.forceGamepadStyle == nil then
-            SV.forceGamepadStyle = d.forceGamepadStyle
-        end
-
-        if IsInGamepadPreferredMode() or SV.forceGamepadStyle then
-            if SV.fontName then
-                SV.fontNameGP = SV.fontName
-                SV.fontName = nil
-            end
-            if SV.fontSize then
-                SV.fontSizeGP = SV.fontSize
-                SV.fontSize = nil
-            end
-            if SV.fontType then
-                SV.fontTypeGP = SV.fontType
-                SV.fontType = nil
-            end
-            if SV.timerY then
-                SV.timerYGP = SV.timerY
-                SV.timerY = nil
-            end
-            if SV.timerYGP then
-                local y
-                if SV.timerYGP == 0 then
-                    y = 0
-                elseif SV.timerYGP < 0 then
-                    y = SV.timerYGP + (SV.timerYGP * -2)
-                elseif SV.timerYGP > 0 then
-                    y = SV.timerYGP - (SV.timerYGP + SV.timerYGP)
-                end
-                SV.timeYGP = y
-                SV.timerYGP = nil
-            end
-            if SV.fontNameGP == nil then
-                SV.fontNameGP = d.fontNameGP
-            end
-            if SV.fontSizeGP == nil then
-                SV.fontSizeGP = d.fontSizeGP
-            end
-            if SV.fontTypeGP == nil then
-                SV.fontTypeGP = d.fontTypeGP
-            end
-            if SV.timeYGP == nil then
-                SV.timeYGP = d.timerYGP
-            end
-            if SV.abMove == nil then
-                SV.abMove = {}
-            end
-            if SV.abMove.gp.x == nil or SV.abMove.gp.x == 0 then
-                SV.abMove.gp.x = ACTION_BAR:GetLeft()
-            end
-            if SV.abMove.gp.y == nil or SV.abMove.gp.y == 0 then
-                SV.abMove.gp.y = ACTION_BAR:GetTop()
-            end
-            if SV.ultimateSlotCustomXOffset then
-                SV.ultimateSlotCustomXOffsetGP = SV.ultimateSlotCustomXOffset
-                SV.ultimateSlotCustomXOffset = nil
-            end
-            if SV.ultimateSlotCustomYOffset then
-                SV.ultimateSlotCustomYOffsetGP = SV.ultimateSlotCustomYOffset
-                SV.ultimateSlotCustomYOffset = nil
-            end
-            if SV.quickSlotCustomXOffset then
-                SV.quickSlotCustomXOffsetGP = SV.quickSlotCustomXOffset
-                SV.quickSlotCustomXOffset = nil
-            end
-            if SV.quickSlotCustomYOffset then
-                SV.quickSlotCustomYOffsetGP = SV.quickSlotCustomYOffset
-                SV.quickSlotCustomYOffset = nil
-            end
-        else
-            if SV.fontName then
-                SV.fontNameKB = SV.fontName
-                SV.fontName = nil
-            end
-            if SV.fontSize then
-                SV.fontSizeKB = SV.fontSize
-                SV.fontSize = nil
-            end
-            if SV.fontType then
-                SV.fontTypeKB = SV.fontType
-                SV.fontType = nil
-            end
-            if SV.timerY then
-                SV.timerYKB = SV.timerY
-                SV.timerY = nil
-            end
-            if SV.timerYKB then
-                local y
-                if SV.timerYKB == 0 then
-                    y = 0
-                elseif SV.timerYKB < 0 then
-                    y = SV.timerYKB + (SV.timerYKB * -2)
-                elseif SV.timerYKB > 0 then
-                    y = SV.timerYKB - (SV.timerYKB + SV.timerYKB)
-                end
-                SV.timeYKB = y
-                SV.timerYKB = nil
-            end
-            if SV.fontNameKB == nil then
-                SV.fontNameKB = d.fontNameKB
-            end
-            if SV.fontTypeKB == nil then
-                SV.fontTypeKB = d.fontTypeKB
-            end
-            if SV.fontSizeKB == nil then
-                SV.fontSizeKB = d.fontSizeKB
-            end
-            if SV.timeYKB == nil then
-                SV.timeYKB = d.timeYKB
-            end
-
-            if SV.abMove.kb.x == nil or SV.abMove.kb.x == 0 then
-                SV.abMove.kb.x = ACTION_BAR:GetLeft()
-            end
-            if SV.abMove.kb.y == nil or SV.abMove.kb.y == 0 then
-                SV.abMove.kb.y = ACTION_BAR:GetTop()
-            end
-            if SV.ultimateSlotCustomXOffset then
-                SV.ultimateSlotCustomXOffsetKB = SV.ultimateSlotCustomXOffset
-                SV.ultimateSlotCustomXOffset = nil
-            end
-            if SV.ultimateSlotCustomYOffset then
-                SV.ultimateSlotCustomYOffsetKB = SV.ultimateSlotCustomYOffset
-                SV.ultimateSlotCustomYOffset = nil
-            end
-            if SV.quickSlotCustomXOffset then
-                SV.quickSlotCustomXOffsetKB = SV.quickSlotCustomXOffset
-                SV.quickSlotCustomXOffset = nil
-            end
-            if SV.quickSlotCustomYOffset then
-                SV.quickSlotCustomYOffsetKB = SV.quickSlotCustomYOffset
-                SV.quickSlotCustomYOffset = nil
-            end
-        end
-        if SV.useThinFrames == nil then
-            SV.useThinFrames = d.useThinFrames
-        end
-        if SV.fontNameStackKB == nil then
-            SV.fontNameStackKB = d.fontNameStackKB
-        end
-        if SV.fontSizeStackKB == nil then
-            SV.fontSizeStackKB = d.fontSizeStackKB
-        end
-        if SV.fontTypeStackKB == nil then
-            SV.fontTypeStackKB = d.fontTypeStackKB
-        end
-        if SV.stackXKB == nil then
-            SV.stackXKB = d.stackXKB
-        end
-        if SV.stackYKB == nil then
-            SV.stackYKB = d.stackYKB
-        end
-        if SV.fontNameStackGP == nil then
-            SV.fontNameStackGP = d.fontNameStackGP
-        end
-        if SV.fontSizeStackGP == nil then
-            SV.fontSizeStackGP = d.fontSizeStackGP
-        end
-        if SV.fontTypeStackGP == nil then
-            SV.fontTypeStackGP = d.fontTypeStackGP
-        end
-        if SV.stackXGP == nil then
-            SV.stackXGP = d.stackXGP
-        end
-        if SV.stackYGP == nil then
-            SV.stackYGP = d.stackYGP
-        end
-        if SV.fontNameTargetKB == nil then
-            SV.fontNameTargetKB = d.fontNameTargetKB
-        end
-        if SV.fontSizeTargetKB == nil then
-            SV.fontSizeTargetKB = d.fontSizeTargetKB
-        end
-        if SV.fontTypeTargetKB == nil then
-            SV.fontTypeTargetKB = d.fontTypeTargetKB
-        end
-        if SV.targetXKB == nil then
-            SV.targetXKB = d.targetXKB
-        end
-        if SV.targetYKB == nil then
-            SV.targetYKB = d.targetYKB
-        end
-        if SV.fontNameTargetGP == nil then
-            SV.fontNameTargetGP = d.fontNameTargetGP
-        end
-        if SV.fontSizeTargetGP == nil then
-            SV.fontSizeTargetGP = d.fontSizeTargetGP
-        end
-        if SV.fontTypeTargetGP == nil then
-            SV.fontTypeTargetGP = d.fontTypeTargetGP
-        end
-        if SV.targetXGP == nil then
-            SV.targetXGP = d.targetXGP
-        end
-        if SV.targetYGP == nil then
-            SV.targetYGP = d.targetYGP
-        end
-        if SV.showHotkeys == nil then
-            SV.showHotkeys = d.showHotkeys
-        end
-        if SV.showHighlight == nil then
-            SV.showHighlight = d.showHighlight
-        end
-        if SV.highlightColor == nil then
-            SV.highlightColor = d.highlightColor
-        end
-        if SV.showArrow == nil then
-            SV.showArrow = d.showArrow
-        end
-        if SV.arrowColor == nil then
-            SV.arrowColor = d.arrowColor
-        end
-        if SV.moveQS == nil then
-            SV.moveQS = d.moveQS
-        end
-        if SV.ultimateSlotCustomXOffsetKB == nil then
-            SV.ultimateSlotCustomXOffsetKB = d.ultimateSlotCustomXOffsetKB
-        end
-        if SV.ultimateSlotCustomYOffsetKB == nil then
-            SV.ultimateSlotCustomYOffsetKB = d.ultimateSlotCustomYOffsetKB
-        end
-        if SV.quickSlotCustomXOffsetKB == nil then
-            SV.quickSlotCustomXOffsetKB = d.quickSlotCustomXOffsetKB
-        end
-        if SV.quickSlotCustomYOffsetKB == nil then
-            SV.quickSlotCustomYOffsetKB = d.quickSlotCustomYOffsetKB
-        end
-        if SV.ultimateSlotCustomXOffsetGP == nil then
-            SV.ultimateSlotCustomXOffsetGP = d.ultimateSlotCustomXOffsetGP
-        end
-        if SV.ultimateSlotCustomYOffsetGP == nil then
-            SV.ultimateSlotCustomYOffsetGP = d.ultimateSlotCustomYOffsetGP
-        end
-        if SV.quickSlotCustomXOffsetGP == nil then
-            SV.quickSlotCustomXOffsetGP = d.quickSlotCustomXOffsetGP
-        end
-        if SV.quickSlotCustomYOffsetGP == nil then
-            SV.quickSlotCustomYOffsetGP = d.quickSlotCustomYOffsetGP
-        end
-        if SV.abilitySlotOffsetXKB == nil then
-            SV.abilitySlotOffsetXKB = d.abilitySlotOffsetXKB
-        end
-        if SV.barXOffsetKB == nil then
-            SV.barXOffsetKB = d.barXOffsetKB
-        end
-        if SV.barYOffsetKB == nil then
-            SV.barYOffsetKB = d.barYOffsetKB
-        end
-        if SV.abilitySlotOffsetXGP == nil then
-            SV.abilitySlotOffsetXGP = d.abilitySlotOffsetXGP
-        end
-        if SV.barXOffsetGP == nil then
-            SV.barXOffsetGP = d.barXOffsetGP
-        end
-        if SV.barYOffsetGP == nil then
-            SV.barYOffsetGP = d.barYOffsetGP
-        end
-        if SV.moveHealthBar == nil then
-            SV.moveHealthBar = d.moveHealthBar
-        end
-        if SV.moveResourceBars == nil then
-            SV.moveResourceBars = d.moveResourceBars
-        end
-        if SV.showFrames == nil then
-            SV.showFrames = d.showFrames
-        end
-        if SV.frameColor == nil then
-            SV.frameColor = d.frameColor
-        end
-        if SV.showMarker == nil then
-            SV.showMarker = d.showMarker
-        end
-        if SV.markerSize == nil then
-            SV.markerSize = d.markerSize
-        end
-        if SV.abScaleEnable == nil then
-            SV.abScaleEnable = d.abScaleEnable
-        end
-        if SV.abScale == nil then
-            SV.abScale = d.abScale
-        end
-        if SV.debug == nil then
-            SV.debug = d.debug
-        end
-        if SV.showToggle == nil then
-            SV.showToggle = d.showToggle
-        end
-        if SV.toggleColor == nil then
-            SV.toggleColor = d.toggleColor
-        end
-        if SV.showStackCount == nil then
-            SV.showStackCount = d.showStackCount
-        end
-        if SV.showOvertauntStacks == nil then
-            SV.showOvertauntStacks = d.showOvertauntStacks
-        end
-        if SV.showTargetCount == nil then
-            SV.showTargetCount = d.showTargetCount
-        end
-        if SV.showSingleTargetInstance == nil then
-            SV.showSingleTargetInstance = d.showSingleTargetInstance
-        end
-        if SV.applyActionBarSkillStyles == nil then
-            SV.applyActionBarSkillStyles = d.applyActionBarSkillStyles
-        end
-        if SV.showCastDuration == nil then
-            SV.showCastDuration = d.showCastDuration
-        end
-        if SV.showToggleTicks == nil then
-            SV.showToggleTicks = d.showToggleTicks
-        end
-        if SV.ultValueThresholdKB == nil then
-            SV.ultValueThresholdKB = d.ultValueThresholdKB
-        end
-        if SV.ultUsableThresholdColorKB == nil then
-            SV.ultUsableThresholdColorKB = d.ultUsableThresholdColorKB
-        end
-        if SV.ultUsableValueColorKB == nil then
-            SV.ultUsableValueColorKB = d.ultUsableValueColorKB
-        end
-        if SV.ultMaxValueColorKB == nil then
-            SV.ultMaxValueColorKB = d.ultMaxValueColorKB
-        end
-        if SV.ultValueThresholdGP == nil then
-            SV.ultValueThresholdGP = d.ultValueThresholdGP
-        end
-        if SV.ultUsableThresholdColorGP == nil then
-            SV.ultUsableThresholdColorGP = d.ultUsableThresholdColorGP
-        end
-        if SV.ultUsableValueColorGP == nil then
-            SV.ultUsableValueColorGP = d.ultUsableValueColorGP
-        end
-        if SV.ultMaxValueColorGP == nil then
-            SV.ultMaxValueColorGP = d.ultMaxValueColorGP
-        end
-        if SV.ultFillFrameAlpha == nil then
-            SV.ultFillFrameAlpha = d.ultFillFrameAlpha
-        end
-        if SV.ultFillBarAlpha == nil then
-            SV.ultFillBarAlpha = d.ultFillBarAlpha
-        end
-        if SV.ignoreTrapPlacement == nil then
-            SV.ignoreTrapPlacement = d.ignoreTrapPlacement
-        end
-        if SV.showSoonestExpire == nil then
-            SV.showSoonestExpire = d.showSoonestExpire
-        end
-        if SV.ignoreUngroupedAliies == nil then
-            SV.ignoreUngroupedAliies = d.ignoreUngroupedAliies
-        end
-        if SV.hideLockedBar == nil then
-            SV.hideLockedBar = d.hideLockedBar
-        end
-        if SV.repositionActiveBar == nil then
-            SV.repositionActiveBar = d.repositionActiveBar
-        end
-        if SV.hideCompanionUlt == nil then
-            SV.hideCompanionUlt = d.hideCompanionUlt
-        end
-
-        if SV.hideInactiveSlots == nil then
-            SV.hideInactiveSlots = d.hideInactiveSlots
-        end
-
-        SV.variablesValidated = true
-        SV.addonVersion = FancyActionBar.GetVersion()
+        -- Update validation status
+        sv.variablesValidated = true
+        sv.addonVersion = FancyActionBar.GetVersion()
     end
 end
 
