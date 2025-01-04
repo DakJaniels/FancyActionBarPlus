@@ -3695,41 +3695,79 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
 end
 
 function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
+    -- Early return if effect was too recent
     if effect.beginTime and (updateTime - effect.beginTime < 0.3) then
         return
     end
 
+    -- Handle multi-target effects
     if specialEffect.isMultiTarget and FancyActionBar.targets[effect.id] then
-        local targetData = FancyActionBar.targets[effect.id]
-        targetData.times[unitId] = nil
-        FancyActionBar.targets[effect.id] = targetData
-        local targetCount = FancyActionBar.CheckTargetEndtimes(effect.id)
-        FancyActionBar.HandleTargetUpdate(effect.id)
+        local targetCount = FancyActionBar.HandleMultiTargetFade(effect.id, unitId)
         if targetCount >= 1 then
             return
         end
     end
 
-    if (effect.hasProced and specialEffect.hasProced) and (effect.hasProced ~= specialEffect.hasProced) then
+    -- Check proc state compatibility
+    if effect.hasProced and specialEffect.hasProced and effect.hasProced ~= specialEffect.hasProced then
         return
     end
 
+    -- Handle special effect procs
     if FancyActionBar.specialEffectProcs[effect.id] then
-        local procUpdates = FancyActionBar.specialEffectProcs[effect.id]
-        local procValues = procUpdates[effect.procs]
-        for i, x in pairs(procValues) do
-            effect[i] = x
+        local success = FancyActionBar.UpdateEffectProcs(effect, specialEffect, stackCount)
+        if not success then
+            -- If proc update fails, just update the end time
+            effect.endTime = endTime
+            FancyActionBar.UpdateEffect(effect)
+            return
         end
-        if effect.stacks and effect.stackId and #effect.stackId > 0 then
-            FancyActionBar.stacks[effect.stackId[1]] = effect.stacks
-        elseif effect.stackId and #effect.stackId > 0 and stackCount then
-            FancyActionBar.stacks[effect.stackId[1]] = stackCount
-        end
-        FancyActionBar.effects[effect.id] = effect
     end
 
+    -- Update effect end time and trigger update
     effect.endTime = endTime
     FancyActionBar.UpdateEffect(effect)
+end
+
+-- function to handle multi-target fade
+function FancyActionBar.HandleMultiTargetFade(effectId, unitId)
+    local targetData = FancyActionBar.targets[effectId]
+    if not targetData then return 0 end
+
+    targetData.times[unitId] = nil
+    FancyActionBar.targets[effectId] = targetData
+
+    local targetCount = FancyActionBar.CheckTargetEndtimes(effectId)
+    FancyActionBar.HandleTargetUpdate(effectId, true)
+
+    return targetCount
+end
+
+-- function to update effect procs
+function FancyActionBar.UpdateEffectProcs(effect, specialEffect, stackCount)
+    local procUpdates = FancyActionBar.specialEffectProcs[effect.id]
+    if not procUpdates then return false end
+
+    local procValues = procUpdates[effect.procs]
+    if not procValues then return false end
+
+    -- Update effect values from proc
+    for key, value in pairs(procValues) do
+        effect[key] = value
+    end
+
+    -- Handle stacks
+    if effect.stackId and #effect.stackId > 0 then
+        local stackId = effect.stackId[1]
+        if effect.stacks then
+            FancyActionBar.stacks[stackId] = effect.stacks
+        elseif stackCount then
+            FancyActionBar.stacks[stackId] = stackCount
+        end
+    end
+
+    FancyActionBar.effects[effect.id] = effect
+    return true
 end
 
 function FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
