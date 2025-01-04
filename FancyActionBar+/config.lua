@@ -1674,6 +1674,7 @@ FancyActionBar.removeInstantly =
     [19125] = true,  -- mages' wrath debuff
     [51392] = true,  -- Streak Fatigue
     [61500] = true,  -- proximity detonation
+    [122658] = true, -- seething fury (molten whip)
 }
 
 FancyActionBar.allowedChanneled =
