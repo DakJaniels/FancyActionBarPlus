@@ -266,6 +266,7 @@ FancyActionBar.defaultSettings =
         gp = { enable = false, x = 0, y = -75, prevX = 0, prevY = -75 }, -- y =      -(25 + 52)
     },
     showDeath = false,
+    hideInactiveSlots = false,
     -- compatibility
     perfectWeave = false,
     -- debug

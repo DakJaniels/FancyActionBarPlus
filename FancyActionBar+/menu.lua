@@ -98,6 +98,21 @@ local debuffNames = {}
 local debuffIds = {}
 local selectedDebuff = 0
 
+local uiPresets =
+{
+    ["default"] = FancyActionBar.defaultSettings,
+    ["dev"] = FancyActionBar.devConfig,
+    ["adr"] = FancyActionBar.adrConfig,
+}
+
+local presetIgnoreKeys =
+{
+    ["configChanges"] = true,
+    ["externalBlackList"] = true,
+    ["multiTargetBlacklist"] = true,
+    ["hideOnNoTargetList"] = true,
+}
+
 --- @param msg string
 --- @param ... any
 local function Chat(msg, ...)
@@ -1620,25 +1635,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         end
     end
 
-    local ignoreKeys =
-    {
-        ["configChanges"] = true,
-        ["externalBlackList"] = true,
-        ["multiTargetBlacklist"] = true,
-        ["hideOnNoTargetList"] = true,
-    }
-    local function SetDefaultUISettings()
-        for k, v in pairs(FancyActionBar.defaultSettings) do
-            if not ignoreKeys[k] then
+    local function SetUIPreset(preset)
+        local presetTable = uiPresets[preset]
+        for k, v in pairs(presetTable) do
+            if not presetIgnoreKeys[k] then
                 SV[k] = v
             end
-        end
-        ReloadUI("ingame")
-    end
-
-    local function SetDevsUISettings()
-        for k, v in pairs(FancyActionBar.devConfig) do
-            SV[k] = v
         end
         ReloadUI("ingame")
     end
@@ -2472,6 +2474,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.repositionActiveBar = value or false
                         local _, locked = GetActiveWeaponPairInfo()
                         FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar)
+                    end,
+                    width = "full"
+                },
+                {
+                    type = "checkbox",
+                    name = "Hide inactive slots on inactive bars",
+                    tooltip = "Hide inactive action bar slots (slots without an active timer) on the inactive action bar.",
+                    default = defaults.hideInactiveSlots,
+                    getFunc = function ()
+                        return SV.hideInactiveSlots
+                    end,
+                    setFunc = function (value)
+                        SV.hideInactiveSlots = value or false
                     end,
                     width = "full"
                 },
@@ -5679,7 +5694,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     name = "Default UI Settings",
                     tooltip = "Restores all UI Settings to the default configuration (this does not change configured abilities).",
                     func = function ()
-                        SetDefaultUISettings()
+                        SetUIPreset("default")
                     end,
                     width = "full",
                     reference = "FAB_DEFAULT_UI",
@@ -5690,10 +5705,21 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     name = "Dev's UI Settings",
                     tooltip = "Configures a number of non-default options to the developer's preferred configuration (this does not change configured abilities).",
                     func = function ()
-                        SetDevsUISettings()
+                        SetUIPreset("dev")
                     end,
                     width = "full",
                     reference = "FAB_DEV_UI",
+                    warning = "Will reload the UI.",
+                },
+                {
+                    type = "button",
+                    name = "ADR-like UI Settings",
+                    tooltip = "Configures the action bar to an approximation of the visual behavior of Action Duration Reminder.",
+                    func = function ()
+                        SetUIPreset("adr")
+                    end,
+                    width = "full",
+                    reference = "FAB_ADR_UI",
                     warning = "Will reload the UI.",
                 },
             },

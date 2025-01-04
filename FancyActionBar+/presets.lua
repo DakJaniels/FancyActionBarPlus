@@ -315,4 +315,16 @@ FancyActionBar.devConfig =
     ["qsSizeKB"] = 24,
     ["desaturationInactive"] = 50,
     ["qsTimerEnableGP"] = true,
+    ["hideInactiveSlots"] = false,
+}
+
+FancyActionBar.adrConfig =
+{
+    ["hideInactiveSlots"] = true,
+    ["staticBars"] = false,
+    ["frontBarTop"] = true,
+    ["ultimateSlotCustomYOffsetKB"] = 27,
+    ["quickSlotCustomYOffsetKB"] = 27,
+    ["ultimateSlotCustomYOffsetGP"] = 34,
+    ["quickSlotCustomYOffsetGP"] = 34,
 }
