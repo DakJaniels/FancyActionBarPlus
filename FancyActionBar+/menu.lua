@@ -5795,23 +5795,42 @@ function FancyActionBar.HideHotkeys(hide)
             local b = ZO_ActionBar_GetButton(i)
             b.buttonText:SetHidden(hide)
             b.buttonText:SetAlpha(alpha)
+            if hide then
+                ZO_Keybindings_UnregisterLabelForBindingUpdate(b.buttonText)
+            end
         end
         QSB:SetHidden(hide)
         QSB:SetAlpha(alpha)
+        if hide then
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL).buttonText)
+        end
         -- ZO_ActionBar_GetButton(QUICK_SLOT).buttonText:SetHidden(hide)
         -- ZO_ActionBar_GetButton(QUICK_SLOT).buttonText:SetAlpha(alpha)
         ZO_ActionBar_GetButton(ULT_SLOT).buttonText:SetHidden(hide)
         ZO_ActionBar_GetButton(ULT_SLOT).buttonText:SetAlpha(alpha)
+        if hide then
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(ULT_SLOT).buttonText)
+        end
         ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(hide)
         ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetAlpha(alpha)
     else
         for i = 3, 7 do
-            ZO_ActionBar_GetButton(i).buttonText:SetHidden(hide)
+            local b = ZO_ActionBar_GetButton(i)
+            b.buttonText:SetHidden(hide)
+            if hide then
+                ZO_Keybindings_UnregisterLabelForBindingUpdate(b.buttonText)
+            end
         end
         QSB:SetHidden(true)
+        if hide then
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL).buttonText)
+        end
         -- ZO_ActionBar_GetButton(QUICK_SLOT).buttonText:SetHidden(true)
         ZO_ActionBar_GetButton(ULT_SLOT).buttonText:SetHidden(true)
         ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(true)
+        if hide and not SV.showHotkeysUltGP then
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(ULT_SLOT).buttonText)
+        end
         local uAlpha = SV.showHotkeysUltGP == true and 1 or 0
         if ActionButton8 then
             if ActionButton8LeftKeybind then

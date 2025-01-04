@@ -3295,6 +3295,27 @@ local function ApplySwapAnimationStyle(button)
     end
 end
 
+local origHideKeys = ActionButton["HideKeys"]
+function FancyHideKeys(self, hide)
+    if SV and (not SV.showHotkeysUltGP) then
+        hide = true
+    end
+    self.leftKey:SetHidden(hide)
+    self.rightKey:SetHidden(hide)
+end
+
+ActionButton["HideKeys"] = FancyHideKeys
+
+local origSetShowBindingText = ActionButton["SetShowBindingText"]
+function FancySetShowBindingText(self, visible)
+    if SV and (not SV.showHotkeys) then
+        visible = false
+    end
+    self.buttonText:SetHidden(not visible)
+end
+
+ActionButton["SetShowBindingText"] = FancySetShowBindingText
+
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     local isSlotUsed = IsSlotUsed(ULT_INDEX, self.button.hotbarCategory)
