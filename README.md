@@ -2,7 +2,10 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.11.1
+## User Guide and Menu Option Documentation for v2.12.0
+
+### UI Presets
+Set a preset UI configuration from a list of options. Includes a "Defaults UI" preset that will reset the action bar visual configuration (but not custom ability configurations) to default settings, a "Dev's Preferred UI" that toggles a number of non-default settings including forcing the gamepad action bar UI, enabling the "soonest expiring" timers configuration, displaying toggle tick rates, and more, and an "ADR-like UI" (in development), that configures the action bar to have the inactive bar slots on top, and hidden when there isn’t a timer active for those slots (Hide inactive slots on inactive bars) setting.
 
 ### ACTIONBAR SIZE & POSITION
 
@@ -65,7 +68,7 @@ Button frames options only apply to Keyboard UI
 
 * Show frames (default: ON) – show a colored frame around the action bar icons
 * Frame color (default: R:0;G:0;B:0;A:255 –  Black) – allows customization of the ability frame color
-* Hide default frames (default: OFF) – if “Show Frames” is disabled, then the default ESO action bar frames will be shown around ability Icons. If both show frames is off, and hide default frames is on, then ability icons will be shown entirely without frame borders
+* Hide default frames (default: OFF) – if "Show Frames" is disabled, then the default ESO action bar frames will be shown around ability Icons. If both show frames is off, and hide default frames is on, then ability icons will be shown entirely without frame borders
 
 #### Active Ability Highlight
 
@@ -80,10 +83,11 @@ Button frames options only apply to Keyboard UI
 * Show gamepad ultimate hotkeys (default: ON) – Show the LB RB labels for gamepad UI. Set this to OFF to allow quickslot placement adjustments in gamepad UI
 * •	Use thin gamepad button frames borders (default: OFF) – Replaces the default gamepad frames with a minimal 1px black frame border with no backdrop
 * Hide companion ultimate slot (default: OFF) – When enabled, the companion ultimate slot, normally anchored to the right of the player ultimate slot when a companion has an ultimate ability slotted will always be hidden
-* Hide locked Action Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a “one bar” mode that only shows the active bar.
+* Hide locked Action Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a "one bar" mode that only shows the active bar.
 [![Hide locked Action Bars](https://i.imgur.com/SEVGXcd.png)](https://i.imgur.com/SEVGXcd.png)
 * Reposition active bar when locked (default: ON) - When the locked action bar is hidden the ui will reposition the active bar to center it, aligned with the default quickslot and ult slot positions. If disabled, the inactive bar will be hidden but the action bar will not be repositioned (this does not work properly for when the back bar is the active bar.) 
-* Apply Skill Styles to Action Bar Slots (default: ON) – by default Fancy Action Bar + will apply the icons for skill style ability overrides to the icon on the action bar. Note that different ability morphs share the same skill icon which can make determining slotted skill morphs difficult. For maximum compatibility with skill style icon overrides, it is recommended to also install the separate, optional, “Action Bar Skill Styles” addon.
+* Hide inactive slots on inactive bars (default: OFF) - Hide inactive action bar slots (slots without an active timer) on the inactive action bar. This is designed to work in conjunction with several other settings as part of the "ADR-like" UI Preset.
+* Apply Skill Styles to Action Bar Slots (default: ON) – by default Fancy Action Bar + will apply the icons for skill style ability overrides to the icon on the action bar. Note that different ability morphs share the same skill icon which can make determining slotted skill morphs difficult. For maximum compatibility with skill style icon overrides, it is recommended to also install the separate, optional, "Action Bar Skill Styles" addon.
 
 [![Skill Styles](https://i.imgur.com/mZt3Rjn.png)](https://i.imgur.com/mZt3Rjn.png)
 
@@ -97,7 +101,7 @@ Options in this menu include settings to configure the font, font size, font sty
 
 #### STACKS DISPLAY SETTINGS
 
-Abilities that can “stack” effects (e.g. charges on crystal weapon, damage stacks on simmering frenzy, instances of echoing vigor applied by allies, etc.) can display a counter showing the value of these effects. These settings configure the display settings for the stack counter. 
+Abilities that can "stack" effects (e.g. charges on crystal weapon, damage stacks on simmering frenzy, instances of echoing vigor applied by allies, etc.) can display a counter showing the value of these effects. These settings configure the display settings for the stack counter. 
 
 Ulfsild's Contingency variants will display a special stack icon (¤ symbol) to indicate that the initial effect has been cast and is available to be consumed.
 
@@ -127,7 +131,7 @@ Options in this menu include settings to disable the timer (enabled by default),
 Options for configuring display of your current ultimate value.
 
 By default showing the current ultimate value is enabled. Several modes for displaying the ultimate value are supported through the "Display Mode" setting:
-“Current” (default) displays the current ultimate value. “Current  / Cost (dynamic)” displays the current value / ultimate cost when the current value is less than the cost, but switches to just displaying the current value if the current value is enough to cast the ultimate. “Current / Cost (static)” always displays both the current value and the cost of the ultimate.
+"Current" (default) displays the current ultimate value. "Current  / Cost (dynamic)" displays the current value / ultimate cost when the current value is less than the cost, but switches to just displaying the current value if the current value is enough to cast the ultimate. "Current / Cost (static)" always displays both the current value and the cost of the ultimate.
 
 Additional options in this menu include settings to configure the font, font size, font style, and adjust the vertical and horizontal position of the ultimate number relative to the ultimate slot. The default position is aligned to the inside bottom right border of the ultimate slot.
 
@@ -152,25 +156,25 @@ This menu contains settings that are shared across both keyboard and gamepad UI 
 #### Timer Fade
 
 * Delay timer fade (default: ON) – Allow the timer label to display 0 for a set duration as a reminder that the ability has expired
-* Fade delay (default: 2 seconds) – duration to keep the 0 timer if “Delay timer fade” is on
+* Fade delay (default: 2 seconds) – duration to keep the 0 timer if "Delay timer fade" is on
 
 #### Duration Display Decimals
 
 * Enable timer decimals (default: Expire) – Options: Always; will always display decimals for the ability timer. Expire; show ability timer decimals when abilities are near expiration.
-* Decimals threshold – (default: 2 seconds) the time remaining thresholds below which abilities will display decimals if “Enable timer decimals” is set to “expire”
+* Decimals threshold – (default: 2 seconds) the time remaining thresholds below which abilities will display decimals if "Enable timer decimals" is set to "expire"
 
 #### Display Changes for Expiring Effects
 
-Expiring timer threshold (default: 2 seconds) – timers will be considered “expiring” and change to display decimals, or change their highlight color, when they fall below the selected amount of seconds remaining if their individual settings are enabled.
+Expiring timer threshold (default: 2 seconds) – timers will be considered "expiring" and change to display decimals, or change their highlight color, when they fall below the selected amount of seconds remaining if their individual settings are enabled.
 
 #### Timer Text
 
-* Change expiring timer text color (default: ON) – change the timer text color when the ability timer is below the “Expiring timer threshold” value.
+* Change expiring timer text color (default: ON) – change the timer text color when the ability timer is below the "Expiring timer threshold" value.
 * Select timer text color for expiring effect (default: Yellow)
 
 #### Highlight
 
-* Change expiring timer highlight color (default: OFF) – when enabled the ability highlight will change color when the effect duration is below the “Expiring timer threshold” value
+* Change expiring timer highlight color (default: OFF) – when enabled the ability highlight will change color when the effect duration is below the "Expiring timer threshold" value
 * Select highlight color for expiring effects (default: Red)
 
 ### ABILITY CONFIGURATION
@@ -187,7 +191,7 @@ Here you can edit which effect you want the timer for a specific skill to track.
 * Saved Changes – A list of saved skill tracking configuration changes. Selecting a Skill from the dropdown menu will automatically populate it’s Skill ID
 * Skill ID – enter the ID of the skill you want to change the configuration for
 * Change Type – Options: Disable (Disable tracking for this skill), Reset (Resets the skill configuration to the FAB+ Default), New ID (assign a new effect to track to this skill
-* New Effect ID – the ability id for the new effect that you want the selected skill to track. If Change Type is “Reset” or “Disable” leave this blank.
+* New Effect ID – the ability id for the new effect that you want the selected skill to track. If Change Type is "Reset" or "Disable" leave this blank.
 * Confirm Change – after entering the configuration changes, select confirm change to apply the new configuration. Configuration changes will print a message to the chatbox describing the change made when confirmed
 
 Example configuration change:
@@ -199,7 +203,7 @@ Enable ability timers to track the duration of buffs gained from allies. You can
 
 * Track Buffs From Others (default: OFF) – by default only effect durations for effects applied by you will be tracked
 
-Blacklisting Options for Buffs Gained from Others: this menu contains a configuration tool to blacklist certain which will prevent other player's application of them from starting an action bar timer. By default this includes miscellaneous Restoration Staff Abilities, Vigor, Resolve, and some other common buffs. Blacklisted abilities can be removed by selecting an ability from the list and clicking “Remove from Blacklist”
+Blacklisting Options for Buffs Gained from Others: this menu contains a configuration tool to blacklist certain which will prevent other player's application of them from starting an action bar timer. By default this includes miscellaneous Restoration Staff Abilities, Vigor, Resolve, and some other common buffs. Blacklisted abilities can be removed by selecting an ability from the list and clicking "Remove from Blacklist"
 
 #### DEBUFFS ON TARGET
 
@@ -207,7 +211,7 @@ By default FancyActionBar+ configures effect timers to track the basic ability d
 
 This supports several options:
 
-* Debuff timers for current target (default: OFF) – enable the alternative “debuff on target” tracking behavior. Without this enabled, tracked debuffs will always display their longest active duration
+* Debuff timers for current target (default: OFF) – enable the alternative "debuff on target" tracking behavior. Without this enabled, tracked debuffs will always display their longest active duration
 * Keep Timers For Last Target (default: ON) – with this enabled, when you move your reticle away from the debuffed target it will keep the active duration for the target until a new enemy is targeted. With this OFF, the timer will only show while the reticle is on the debuffed target.
 * Show Stack Count for Overtaunt Debuff (default: OFF) - Multiple taunt sources can cause an enemy to gain taunt immunity, this enables a stack counter to track the status of this debuff on skills that can taunt. Note, this feature is experimental and may not appear.
 
@@ -232,7 +236,7 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 * [EXPERIMENTAL] Show Tick Rate for Toggles (default: OFF) – Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.* Ignore Initial Trap Placement (default: OFF) - By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT.
 * Show Timer For Soonest Expiring Target (default: OFF) - By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.
 * Ignore Ungrouped Allies (default: OFF) - By default FAB will track buffs applied to all allied players. With this setting enabled only buffs applied to group members will be tracked. If you are not grouped this setting will be ignored and buffs will be tracked on all players.
-* Allow Fallback Timers (default: OFF) – By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the game’s duration for the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.
+* Allow Fallback Timers (default: OFF) – By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the game’s duration for the "parent" (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.
 
 ### MISCELLANEOUS
 

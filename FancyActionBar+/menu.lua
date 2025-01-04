@@ -100,7 +100,7 @@ local selectedDebuff = 0
 
 local uiPresets =
 {
-    ["UI Defaults"] = FancyActionBar.defaultSettings,
+    ["Default UI"] = FancyActionBar.defaultSettings,
     ["Dev's Preferred UI"] = FancyActionBar.devConfig,
     ["ADR-like UI"] = FancyActionBar.adrConfig,
 }
