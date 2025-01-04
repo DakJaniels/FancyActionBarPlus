@@ -5019,37 +5019,37 @@ local function ValidateBlacklists(sv)
         -- just add all resto staff skills by default and player can take it from there.
         sv.externalBlackList =
         {
-            [61504] = "Vigor",
             [28385] = "Grand Healing",
-            [40130] = "Ward Ally",
-            [29224] = "Igneous Shield",
-            [76518] = "Major Brutality",
-            [61665] = "Major Brutality",
-            [61704] = "Minor Endurance",
-            [61694] = "Major Resolve",
-            [83850] = "Life Giver",
-            [31531] = "Force Siphon",
-            [85132] = "Lights Champion",
-            [40109] = "Siphon Spirit",
-            [61693] = "Minor Resolve",
-            [61706] = "Minor Intellect",
-            [37232] = "Steadfast Ward",
-            [61697] = "Minor Fortitude",
-            [61506] = "Echoing Vigor",
-            [92503] = "Major Sorcery",
-            [40116] = "Quick Siphon",
             [28536] = "Regeneration",
-            [40079] = "Radiating Regeneration",
-            [88758] = "Major Resolve",
-            [61687] = "Major Sorcery",
+            [29224] = "Igneous Shield",
+            [31531] = "Force Siphon",
+            [37232] = "Steadfast Ward",
             [38552] = "Panacea",
-            [61721] = "Minor Protection",
             [40058] = "Illustrious Healing",
-            [40076] = "Rapid Regeneration",
             [40060] = "Healing Springs",
-            [186493] = "Minor Protection",
+            [40076] = "Rapid Regeneration",
+            [40079] = "Radiating Regeneration",
+            [40109] = "Siphon Spirit",
+            [40116] = "Quick Siphon",
             [40126] = "Healing Ward",
-            [176991] = "Minor Resolve"
+            [40130] = "Ward Ally",
+            [61504] = "Vigor",
+            [61506] = "Echoing Vigor",
+            [61665] = "Major Brutality",
+            [61687] = "Major Sorcery",
+            [61693] = "Minor Resolve",
+            [61694] = "Major Resolve",
+            [61697] = "Minor Fortitude",
+            [61704] = "Minor Endurance",
+            [61706] = "Minor Intellect",
+            [61721] = "Minor Protection",
+            [76518] = "Major Brutality",
+            [83850] = "Life Giver",
+            [85132] = "Lights Champion",
+            [88758] = "Major Resolve",
+            [92503] = "Major Sorcery",
+            [176991] = "Minor Resolve",
+            [186493] = "Minor Protection",
         }
         sv.externalBlackListRun = true
     end
@@ -5058,14 +5058,14 @@ local function ValidateBlacklists(sv)
     if not sv.multiTargetBlackListRun then
         sv.multiTargetBlacklist =
         {
-            [40229] = "Siege Weapon Shield",
-            [24326] = "Daedric Curse",
-            [24330] = "Haunting Curse",
-            [24328] = "Daedric Prey",
             [18746] = "Mages' Fury",
             [19118] = "Endless Fury",
             [19125] = "Mages' Wrath",
-            [51392] = "Bolt Escape Fatigue"
+            [24326] = "Daedric Curse",
+            [24328] = "Daedric Prey",
+            [24330] = "Haunting Curse",
+            [40229] = "Siege Weapon Shield",
+            [51392] = "Bolt Escape Fatigue",
         }
         sv.multiTargetBlackListRun = true
     end
