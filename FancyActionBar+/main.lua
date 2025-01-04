@@ -4290,7 +4290,7 @@ function FancyActionBar.Initialize()
         local stackCount
         local t = time()
         local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
-        if FancyActionBar.ignoreFallbackTimers[abilityId] then
+        if FancyActionBar.specialEffects[abilityId] or FancyActionBar.ignoreFallbackTimers[abilityId] then
             return
         end
 
@@ -4305,11 +4305,6 @@ function FancyActionBar.Initialize()
                     return
                 end
             end
-
-            if FancyActionBar.specialEffects[effect.id] then
-                return
-            end
-
             effect.slotEffecTime = SV.allowParentTime
             -- This function doesn't work for channeled/cast duration abilities as it stores the
             -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
