@@ -5076,7 +5076,7 @@ local function ValidateBasicSettings(sv, d)
         "hideCompanionUlt",
         "debug",
         "showToggle",
-        "toggleColor"
+        "toggleColor",
         "hideInactiveSlots"
     }
 
