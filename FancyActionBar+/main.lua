@@ -1347,9 +1347,13 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         end
         if (index > SLOT_INDEX_OFFSET and currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP) or
             (index <= SLOT_INDEX_OFFSET and currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
-            FancyActionBar.slotHidden[index] = SV.hideInactiveSlots and not hasDuration
-            overlay:SetHidden(SV.hideInactiveSlots and not hasDuration)
-            FancyActionBar.UpdateInactiveBarIcon(index > SLOT_INDEX_OFFSET and index - SLOT_INDEX_OFFSET or index, index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
+            local shouldHideSlot = SV.hideInactiveSlots and not hasDuration
+            local doHideSlot = FancyActionBar.slotHidden[index] ~= shouldHideSlot
+            FancyActionBar.slotHidden[index] = shouldHideSlot
+            if doHideSlot then
+                overlay:SetHidden(shouldHideSlot)
+                FancyActionBar.UpdateInactiveBarIcon(index > SLOT_INDEX_OFFSET and index - SLOT_INDEX_OFFSET or index, index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
+            end
         end
     end
 end
