@@ -3266,7 +3266,7 @@ function FancyActionBar.ToggleOverlays(hide)
 end
 
 function
-FancyActionBar.UpdateActiveBarIcons()
+FancyActionBar.UpdateActiveBarIcons(currentHotbarCategory)
     for i = MIN_INDEX, MAX_INDEX do
         local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
         local overlay = FancyActionBar.overlays[index]
@@ -4445,20 +4445,12 @@ function FancyActionBar.Initialize()
             FancyActionBar.effects[abilityId] = effect
         end
         if effect then
-            if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-                -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
-                --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
-                --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
-                -- end;
+            if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then
                 effect.beginTime = (beginTime ~= 0) and beginTime or t
                 FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED)
-            elseif (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and (AreUnitsEqual("player", unitTag)) then
+            elseif (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and (AreUnitsEqual("player", unitTag)) and (change ~= EFFECT_RESULT_UPDATED) then
                 for k, v in pairs(FancyActionBar.bannerBearer) do
                     if sourceAbilities[k] then
-                        -- if SV.showToggleTicks and (beginTime == endTime) and (change ~= EFFECT_RESULT_FADED) then
-                        --   local freq = FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(abilityId);
-                        --   endTime = freq ~= 0 and (freq / 1000 + t) or endTime;
-                        -- end;
                         FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED)
                         FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t
                     end
