@@ -3,6 +3,7 @@
 
 *.txt  eol=crlf
 *.lua  eol=crlf
+*.md  eol=crlf
 
 *.dds binary
 *.DDS binary
@@ -10,3 +11,6 @@
 *.ico binary
 *.ttf binary
 *.otf binary
+*.slug binary
+*.pdf binary
+*.docx binary
