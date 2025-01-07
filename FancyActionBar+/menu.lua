@@ -4725,7 +4725,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         {
                             type = "slider",
                             name = "Expiring timer threshold",
-                            tooltip = " The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
+                            tooltip = "The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
                             default = defaults.showExpireStart,
                             min = 0,
                             max = 10,
@@ -4805,6 +4805,74 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             end,
                             width = "full",
                         },
+                        {
+                            type = "description",
+                            title = "[ |cffdf80Display Changes For Toggled Effects|r ]",
+                            width = "full",
+                        },
+                        {
+                            type = "checkbox",
+                            name = "Show Tick Rate for Toggles",
+                            tooltip = "Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.",
+                            default = defaults.showToggleTicks,
+                            getFunc = function ()
+                                return SV.showToggleTicks
+                            end,
+                            setFunc = function (value)
+                                SV.showToggleTicks = value or false
+                            end,
+                        },
+                        {
+                            type = "slider",
+                            name = "Tick alert threshold",
+                            tooltip = "The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
+                            default = defaults.showTickStart,
+                            min = 0,
+                            max = 10,
+                            step = 0.1,
+                            decimals = 1,
+                            clampInput = true,
+                            getFunc = function ()
+                                return SV.showTickStart
+                            end,
+                            setFunc = function (value)
+                                SV.showTickStart = value
+                            end,
+                            width = "half",
+                        },
+
+                        -- ============[	Tick Alert Color	]=============
+                        { type = "description", title = "[ |cffdf80Toggle Timer Text|r ]", width = "full",
+                        },
+                        {
+                            type = "checkbox",
+                            name = "Change tick alert text color",
+                            tooltip = "Change timer text color when the tick alert threshold is reached, or a toggled effect becomes untoggled.",
+                            default = defaults.showTickExpire,
+                            getFunc = function ()
+                                return SV.showTickExpire
+                            end,
+                            setFunc = function (value)
+                                SV.showTickExpire = value or false
+                            end,
+                            width = "full",
+                        },
+                        {
+                            type = "colorpicker",
+                            name = "Select timer text color for tick alert effect",
+                            default = ZO_ColorDef:New(unpack(defaults.tickColor)),
+                            disabled = function ()
+                                return (not SV.showTickExpire)
+                            end,
+                            getFunc = function ()
+                                return unpack(SV.tickColor)
+                            end,
+                            setFunc = function (r, g, b)
+                                SV.tickColor = { r, g, b }
+                            end,
+                            width = "full",
+                        },
+                        { type = "description", text = "", width = "full" },
                     },
                 },
             },
@@ -5420,18 +5488,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             end,
                             setFunc = function (value)
                                 SV.showCastDuration = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Tick Rate for Toggles",
-                            tooltip = "Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.",
-                            default = defaults.showToggleTicks,
-                            getFunc = function ()
-                                return SV.showToggleTicks
-                            end,
-                            setFunc = function (value)
-                                SV.showToggleTicks = value or false
                             end,
                         },
                         {

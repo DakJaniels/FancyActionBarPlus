@@ -99,6 +99,9 @@ FancyActionBar.defaultSettings =
     showExpire = true,
     showExpireStart = 2,
     expireColor = { 1, 1, 0 },
+    showTickExpire = false,
+    showTickStart = 2,
+    tickColor = { 1, 1, 0 },
     allowParentTime = false,
     -- keyboard UI visuals
     -- duration

@@ -165,12 +165,23 @@ This menu contains settings that are shared across both keyboard and gamepad UI 
 
 #### Display Changes for Expiring Effects
 
-Expiring timer threshold (default: 2 seconds) – timers will be considered "expiring" and change to display decimals, or change their highlight color, when they fall below the selected amount of seconds remaining if their individual settings are enabled.
+* Expiring timer threshold (default: 2 seconds) – timers will be considered "expiring" and change to display decimals, or change their highlight color, when they fall below the selected amount of seconds remaining if their individual settings are enabled.
 
 #### Timer Text
 
 * Change expiring timer text color (default: ON) – change the timer text color when the ability timer is below the "Expiring timer threshold" value.
 * Select timer text color for expiring effect (default: Yellow)
+
+#### Display Changes for Toggled Effects
+
+* Show Tick Rate for Toggles (default: OFF) – Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.* Ignore Initial Trap Placement (default: OFF) - By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT.
+
+* Tick alert threshold (default: 2 seconds) – The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled
+
+#### Toggle Timer Text
+
+* Change tick alert text color (default: OFF) – change timer text color when the tick alert threshold is reached, or a toggled effect becomes untoggled. If set to OFF, but Change expiring timer text color is ON the timer text will change to the text color for expiring effects when abilities become untoggled
+* Select timer text color for tick alert effect (default: R:255; G:255;B:0 –  Yellow)
 
 #### Highlight
 
@@ -233,7 +244,6 @@ Additionally a menu is provided to allow blacklisting effects that you do not wa
 
 * Show Stack Counter (default: ON) - Show stack count for abilities that can have multiple stacks, or can stack multiple times. 
 * Show Cast/Channel Times on Action Slots (default: ON) – If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled. Abilities must have a cast or channel time longer than 1 second for this timer to display.
-* [EXPERIMENTAL] Show Tick Rate for Toggles (default: OFF) – Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.* Ignore Initial Trap Placement (default: OFF) - By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT.
 * Show Timer For Soonest Expiring Target (default: OFF) - By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.
 * Ignore Ungrouped Allies (default: OFF) - By default FAB will track buffs applied to all allied players. With this setting enabled only buffs applied to group members will be tracked. If you are not grouped this setting will be ignored and buffs will be tracked on all players.
 * Allow Fallback Timers (default: OFF) – By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the game’s duration for the "parent" (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.

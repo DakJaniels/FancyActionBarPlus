@@ -1303,15 +1303,18 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
         end
     end
 
-    if toggle then
-        color = SV.toggledColor
-    elseif (fading and SV.showExpire)
-    then
+    if effect.toggled or toggle then
+        local expire = fading or (not toggle)
+        if SV.showTickExpire and expire then
+            color = SV.tickColor
+        else
+            color = (expire and SV.showExpire) and SV.expireColor or SV.toggledColor
+        end
+    elseif (fading and SV.showExpire) then
         color = SV.expireColor
     else
         color = FancyActionBar.constants.duration.color
     end
-
     return timer, color
 end
 
@@ -1366,7 +1369,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
     local hasDuration = true
     local duration = 0
-    local isCastTime, isParentTime = false, false
+    local isCastTime, isParentTime, isFading = false, false, false
     if SV.showCastDuration and effect.castEndTime then
         isCastTime = true
         if effect.castEndTime >= currentTime then
@@ -1418,18 +1421,21 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         end
     end
 
-    local blockFade = false
     local tickRate = SV.showToggleTicks and effect.tickRate or 0
-    if SV.showToggleTicks and isToggled and (effect.endTime == -1 or effect.endTime <= currentTime) and (tickRate ~= 0) then
-        effect.endTime = (effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate) + currentTime
-        blockFade = true
-        hasDuration = false
-    elseif SV.showToggleTicks and effect.toggled and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
-        effect.endTime = -1
-        hasDuration = false
+
+    if effect.toggled then
+        if SV.showToggleTicks and isToggled and effect.endTime <= currentTime and (tickRate ~= 0) then
+            duration = (effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate)
+            isFading = duration <= SV.showTickStart and SV.showTickExpire or false
+            hasDuration = true
+        elseif SV.showToggleTicks and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
+            isFading = SV.showTickExpire or SV.showExpire
+            hasDuration = false
+        end
+    else
+        isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
     end
 
-    local isFading = (not blockFade) and hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
 
     local lt, lc, bc
     lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
@@ -5043,6 +5049,9 @@ local function ValidateBasicSettings(sv, d)
         "showExpire",
         "showExpireStart",
         "expireColor",
+        "showTickExpire",
+        "showTickStart",
+        "tickColor",
         "allowParentTime",
         "forceGamepadStyle",
         "useThinFrames",
