@@ -1449,7 +1449,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
     FancyActionBar.UpdateTimerLabel(durationControl, lt, lc)
     FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index)
-    return hasDuration or isFading or isParentTime
+    return hasDuration or isToggled or isFading or isParentTime
 end
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
@@ -3124,7 +3124,7 @@ end
 --- @param inactive userdata
 --- @param firstTop boolean
 --- @param locked boolean
-local function ApplyBarPosition(active, inactive, firstTop, locked, currentHotbarCategory)
+local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotbarCategory)
     local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2
     local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2
     if locked == true and SV.repositionActiveBar then
@@ -3133,7 +3133,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked, currentHotba
         end
         if inactive then
             inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains())
-            FancyActionBar.ToggleOverlays(currentHotbarCategory)
+            FancyActionBar.ToggleOverlays(inactiveHotbarCategory)
         end
     elseif firstTop then
         if active then
@@ -3143,7 +3143,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked, currentHotba
         if inactive then
             inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
                 2 + barYOffset, inactive:GetResizeToFitConstrains())
-            FancyActionBar.ToggleOverlays(currentHotbarCategory)
+            FancyActionBar.ToggleOverlays(inactiveHotbarCategory)
         end
     else
         if active then
@@ -3153,7 +3153,7 @@ local function ApplyBarPosition(active, inactive, firstTop, locked, currentHotba
         if inactive then
             inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
                 -2 - barYOffset, inactive:GetResizeToFitConstrains())
-            FancyActionBar.ToggleOverlays(currentHotbarCategory)
+            FancyActionBar.ToggleOverlays(inactiveHotbarCategory)
         end
     end
 end
@@ -3166,6 +3166,7 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
 
     FancyActionBar.SetBarPositions(inactiveBar)
     FancyActionBar.ToggleOverlays(hide)
+    FancyActionBar.ToggleOverlays(inactiveBar)
     FancyActionBar.ToggleUltimateOverlays(hide)
 
     FancyActionBar.UpdateActiveBarIcons(activeBar)
@@ -3260,9 +3261,9 @@ function FancyActionBar.ToggleUltimateOverlays(hide)
     end
 end
 
-function FancyActionBar.ToggleOverlays(hide)
+function FancyActionBar.ToggleOverlays(bar)
     for i = MIN_INDEX, MAX_INDEX do
-        local index = hide == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
+        local index = bar == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
         local overlay = FancyActionBar.overlays[index]
         local slotState = FancyActionBar.slotHidden[index]
         if overlay then
