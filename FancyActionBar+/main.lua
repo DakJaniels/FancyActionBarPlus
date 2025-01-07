@@ -3165,7 +3165,6 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
     activeBar, inactiveBar, hide = FancyActionBar.DetermineBarAndHide(locked)
 
     FancyActionBar.SetBarPositions(inactiveBar)
-    FancyActionBar.ToggleOverlays(hide)
     FancyActionBar.ToggleOverlays(inactiveBar)
     FancyActionBar.ToggleUltimateOverlays(hide)
 
