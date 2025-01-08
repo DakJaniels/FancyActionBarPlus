@@ -323,6 +323,7 @@ FancyActionBar.adrConfig =
     ["hideInactiveSlots"] = true,
     ["staticBars"] = false,
     ["frontBarTop"] = true,
+    ["repositionActiveBar"] = false,
     ["ultimateSlotCustomYOffsetKB"] = 27,
     ["quickSlotCustomYOffsetKB"] = 27,
     ["ultimateSlotCustomYOffsetGP"] = 34,
