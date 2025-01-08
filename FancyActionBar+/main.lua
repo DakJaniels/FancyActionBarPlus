@@ -1014,6 +1014,7 @@ end
 function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reload.
     local hasEffect = false
     local duration = 0
+    local begin = 0
     local currentStacks = 0
     local GetNumBuffs = GetNumBuffs
     local GetUnitBuffInfo = GetUnitBuffInfo
@@ -1042,9 +1043,10 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
             hasEffect = true
             duration = endTime - time()
         end
+        begin = beginTime
     end
 
-    return hasEffect, duration, currentStacks
+    return hasEffect, duration, currentStacks, begin
 end
 
 function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarget abilities.
@@ -2022,7 +2024,7 @@ function FancyActionBar.EffectCheck()
                 FancyActionBar.ReCheckSpecialEffect(effect)
             end, (effect.endTime - checkTime) * 1000)
         else
-            local hasEffect, duration, stacks = FancyActionBar.CheckForActiveEffect(effect.id)
+            local hasEffect, duration, stacks, beginTime = FancyActionBar.CheckForActiveEffect(effect.id)
             doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true
             if hasEffect then
                 effect.endTime = (duration ~= 0) and (checkTime + duration) or -1
@@ -2032,6 +2034,7 @@ function FancyActionBar.EffectCheck()
                     for k, v in pairs(FancyActionBar.bannerBearer) do
                         if sourceAbilities[k] then
                             FancyActionBar.toggles[sourceAbilities[k]] = hasEffect
+                            FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or checkTime
                         end
                     end
                 end
@@ -2071,7 +2074,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
         return
     end
 
-    local hasEffect, duration, stacks = CheckForActiveEffect(effect.id)
+    local hasEffect, duration, stacks, beginTime = CheckForActiveEffect(effect.id)
     stacks = stacks ~= 0 and stacks or 0
     if stacks ~= 0 or (specialEffect.stacks and specialEffect.stacks ~= 0) then
         effect.stacks = stacks
@@ -2099,6 +2102,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
         for k, v in pairs(FancyActionBar.bannerBearer) do
             if sourceAbilities[k] then
                 FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect
+                FancyActionBar.effects[sourceAbilities[effect.id]].beginTime = (beginTime ~= 0) and beginTime or checkTime
             end
         end
     end
@@ -3934,6 +3938,7 @@ function FancyActionBar.RefreshEffects()
                 for k, v in pairs(FancyActionBar.bannerBearer) do
                     if sourceAbilities[k] then
                         FancyActionBar.toggles[sourceAbilities[k]] = true
+                        FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t
                         FancyActionBar.UpdateToggledAbility(abilityId, true)
                         return
                     end
@@ -4454,7 +4459,7 @@ function FancyActionBar.Initialize()
             if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then
                 effect.beginTime = (beginTime ~= 0) and beginTime or t
                 FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED)
-            elseif (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and (AreUnitsEqual("player", unitTag)) and (change ~= EFFECT_RESULT_UPDATED) then
+            elseif (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and (AreUnitsEqual("player", unitTag)) then
                 for k, v in pairs(FancyActionBar.bannerBearer) do
                     if sourceAbilities[k] then
                         FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED)
