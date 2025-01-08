@@ -1030,20 +1030,22 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
                 if abilityId == id then
                     hasEffect = true
                     duration = endTime - time()
+                    begin = beginTime
                 end
             end
-        elseif castByPlayer and FancyActionBar.bannerBearer[abilityId] then
+        elseif FancyActionBar.bannerBearer[abilityId] then
             for k, v in pairs(FancyActionBar.bannerBearer) do
                 if sourceAbilities[k] == id then
                     hasEffect = true
+                    begin = beginTime
                 end
             end
         elseif abilityId == id then
             currentStacks = fixedStacks[id] or (specialEffects[abilityId] and specialEffects[abilityId].stacks) or stackCount or 0
             hasEffect = true
             duration = endTime - time()
+            begin = beginTime
         end
-        begin = beginTime
     end
 
     return hasEffect, duration, currentStacks, begin
@@ -2028,15 +2030,15 @@ function FancyActionBar.EffectCheck()
             doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true
             if hasEffect then
                 effect.endTime = (duration ~= 0) and (checkTime + duration) or -1
-                if FancyActionBar.toggled[id] and sourceAbilities[id] then -- update the highlight of toggled abilities.
-                    FancyActionBar.toggles[sourceAbilities[id]] = hasEffect
-                elseif FancyActionBar.bannerBearer[id] then
+                if FancyActionBar.bannerBearer[id] then
                     for k, v in pairs(FancyActionBar.bannerBearer) do
                         if sourceAbilities[k] then
                             FancyActionBar.toggles[sourceAbilities[k]] = hasEffect
                             FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or checkTime
                         end
                     end
+                elseif FancyActionBar.toggled[id] and sourceAbilities[id] then -- update the highlight of toggled abilities.
+                    FancyActionBar.toggles[sourceAbilities[id]] = hasEffect
                 end
             end
             FancyActionBar.stacks[effect.id] = stacks
@@ -2096,15 +2098,15 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
             end
         end
     end
-    if FancyActionBar.toggled[effect.id] and sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
-        FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect
-    elseif FancyActionBar.bannerBearer[effect.id] then
+    if FancyActionBar.bannerBearer[effect.id] then
         for k, v in pairs(FancyActionBar.bannerBearer) do
             if sourceAbilities[k] then
                 FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect
                 FancyActionBar.effects[sourceAbilities[effect.id]].beginTime = (beginTime ~= 0) and beginTime or checkTime
             end
         end
+    elseif FancyActionBar.toggled[effect.id] and sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
+        FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect
     end
     UpdateEffect(effect)
     HandleStackUpdate(effect.id)
@@ -3930,11 +3932,7 @@ function FancyActionBar.RefreshEffects()
                 end
             end
             local updateToggleEffect = false
-            if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-                FancyActionBar.toggles[sourceAbilities[abilityId]] = true
-                FancyActionBar.UpdateToggledAbility(abilityId, true)
-                return
-            elseif FancyActionBar.bannerBearer[abilityId] then
+            if FancyActionBar.bannerBearer[abilityId] then
                 for k, v in pairs(FancyActionBar.bannerBearer) do
                     if sourceAbilities[k] then
                         FancyActionBar.toggles[sourceAbilities[k]] = true
@@ -3943,6 +3941,10 @@ function FancyActionBar.RefreshEffects()
                         return
                     end
                 end
+            elseif FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+                FancyActionBar.toggles[sourceAbilities[abilityId]] = true
+                FancyActionBar.UpdateToggledAbility(abilityId, true)
+                return
             end
             if (abilityId == 61905 or abilityId == 61919 or abilityId == 61927) then
                 if GFC then -- Manually update GrimFocusCounter if enabled
@@ -4424,6 +4426,9 @@ function FancyActionBar.Initialize()
         end
         local _
         local t = time()
+        local isTargetPlayer = AreUnitsEqual("player", unitTag)
+        local isTargetPlayerOrCompanion = isTargetPlayer or (HasActiveCompanion() and unitTag == "companion")
+
         if isChanneling and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then
             isChanneling = false
         end
@@ -4456,16 +4461,18 @@ function FancyActionBar.Initialize()
             FancyActionBar.effects[abilityId] = effect
         end
         if effect then
-            if FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then
-                effect.beginTime = (beginTime ~= 0) and beginTime or t
-                FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED)
-            elseif (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and (AreUnitsEqual("player", unitTag)) then
+            if (FancyActionBar.bannerBearer[abilityId]) and (sourceType == COMBAT_UNIT_TYPE_PLAYER) and isTargetPlayerOrCompanion then
                 for k, v in pairs(FancyActionBar.bannerBearer) do
                     if sourceAbilities[k] then
-                        FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED)
                         FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t
+                        if isTargetPlayer then
+                            FancyActionBar.toggles[sourceAbilities[k]] = (change ~= EFFECT_RESULT_FADED)
+                        end
                     end
                 end
+            elseif FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then
+                effect.beginTime = (beginTime ~= 0) and beginTime or t
+                FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED)
             end
 
             if (effectType == DEBUFF) or useSpecialDebuffTracking then -- if the ability is a debuff, check settings and handle accordingly.
