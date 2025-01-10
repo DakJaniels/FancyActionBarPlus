@@ -4162,6 +4162,7 @@ function FancyActionBar.Initialize()
             FancyActionBar.SlotEffects()
             FancyActionBar.RefreshEffects()
         end
+        FancyActionBar.UpdateUltimateCost()
         FancyActionBar.ApplyAbilityFxOverrides()
     end
 
