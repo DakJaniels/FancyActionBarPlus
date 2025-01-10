@@ -1,5 +1,5 @@
 ## Title: FancyActionBar+
-## Version: 2.12.0
+## Version: 2.12.1
 ## APIVersion: 101044
 ## AddOnVersion: 21200
 ## SavedVariables: FancyActionBarSV

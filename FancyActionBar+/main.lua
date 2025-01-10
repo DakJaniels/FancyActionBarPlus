@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.12.0"
+local VERSION = "2.12.1"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -4145,19 +4145,23 @@ function FancyActionBar.Initialize()
             if SV.hideLockedBar == true then
                 FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
             end
+            FancyActionBar.SlotEffects()
+            FancyActionBar.RefreshEffects()
         elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
             specialHotbarActive = false
-            if not FancyActionBar.oakensoulEquipped then
-                if SV.hideLockedBar == true then
-                    FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
-                else
-                    isWeaponSwapLocked = false
-                end
-                FancyActionBar.SwapControls(specialHotbarActive)
+            if FancyActionBar.oakensoulEquipped then
+                FancyActionBar.SlotEffects()
+                return
             end
+            if SV.hideLockedBar == true then
+                FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
+            else
+                isWeaponSwapLocked = false
+            end
+            FancyActionBar.SwapControls(specialHotbarActive)
+            FancyActionBar.SlotEffects()
+            FancyActionBar.RefreshEffects()
         end
-        FancyActionBar.SlotEffects()
-        FancyActionBar.RefreshEffects()
         FancyActionBar.UpdateUltimateCost()
         FancyActionBar.ApplyAbilityFxOverrides()
     end
