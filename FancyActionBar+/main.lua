@@ -4147,16 +4147,14 @@ function FancyActionBar.Initialize()
             end
         elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
             specialHotbarActive = false
-            if FancyActionBar.oakensoulEquipped then
-                FancyActionBar.SlotEffects()
-                return
+            if not FancyActionBar.oakensoulEquipped then
+                if SV.hideLockedBar == true then
+                    FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
+                else
+                    isWeaponSwapLocked = false
+                end
+                FancyActionBar.SwapControls(specialHotbarActive)
             end
-            if SV.hideLockedBar == true then
-                FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
-            else
-                isWeaponSwapLocked = false
-            end
-            FancyActionBar.SwapControls(specialHotbarActive)
         end
         FancyActionBar.SlotEffects()
         FancyActionBar.RefreshEffects()
