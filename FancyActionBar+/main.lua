@@ -266,45 +266,61 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
 -----------------------------[ 		Utility    ]----------------------------------
 --------------------------------------------------------------------------------
 
---- @type LibChatMessage
-local LibChatMessage = LibChatMessage
+--- @class ChatManager
+local ChatManager =
+{
+    prefix = "[FAB+]",
+    libChat = nil
+}
 
----
+--- Initialize the chat manager
+--- @param addonName string
+--- @param shortName string
+function ChatManager:Initialize(addonName, shortName)
+    if LibChatMessage then
+        self.libChat = LibChatMessage(addonName, shortName)
+    end
+end
+
+--- Send a message to chat
 --- @param msg string
 --- @param ... any
-FancyActionBar.Chat = function (msg, ...)
-    if LibChatMessage then
-        --- @type LibChatMessage
-        local chat = LibChatMessage("FancyActionBar+", "FAB+")
-        chat:Printf(msg, ...)
-    elseif not LibChatMessage then
+function ChatManager:Print(msg, ...)
+    if self.libChat then
+        self.libChat:Printf(msg, ...)
+    else
         CHAT_ROUTER:AddSystemMessage(strformat(msg, ...))
     end
 end
 
+--- Send a debug message if debug mode is enabled
 --- @param msg string
 --- @param ... any
+function ChatManager:Debug(msg, ...)
+    if not SV.debug then return end
+
+    local formattedMsg = strformat(self.prefix .. " " .. msg, ...)
+    self:Print(formattedMsg)
+end
+
+-- Initialize chat manager
+ChatManager:Initialize("FancyActionBar+", "FAB+")
+
+-- Update FancyActionBar to use new chat manager
+FancyActionBar.Chat = function (msg, ...)
+    ChatManager:Print(msg, ...)
+end
+
+FancyActionBar.dbg = function (self, ...)
+    ChatManager:Debug(...)
+end
+
 local function Chat(msg, ...)
-    FancyActionBar.Chat(msg, ...)
+    ChatManager:Print(msg, ...)
 end
 
---- Debugging
---- @param msg string
---- @param ... any
 local function dbg(msg, ...)
-    if SV.debug then
-        Chat(msg, ...)
-    end
-end
-
---- Debugging
---- @param ... any
-function FancyActionBar:dbg(...)
-    -- if SV.debugAll then return end
-    if SV.debug then
-        local str = zo_strformat(...)
-        Chat("[FAB+] " .. str)
-    end
+    ChatManager:Debug(msg, ...)
 end
 
 --- Slash command handler
@@ -4338,7 +4354,7 @@ function FancyActionBar.Initialize()
                         FancyActionBar.activeCasts[E.id].cast = t
                     end
                     local D = E.toggled == true and "0" or tostring((GetAbilityDuration(i) or 0) / 1000)
-                    dbg("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id)
+                    FancyActionBar:dbg("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id)
                     -- return
                 end
             end
@@ -4346,7 +4362,7 @@ function FancyActionBar.Initialize()
             if effect and FancyActionBar.toggled[effect.id] then
                 local o = not FancyActionBar.toggles[effect.id]
                 local O = o == true and "On" or "Off"
-                dbg("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
+                FancyActionBar:dbg("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
             end
 
             if effect then
@@ -4356,7 +4372,7 @@ function FancyActionBar.Initialize()
                         if fakes[i] then
                             activeFakes[i] = true
                         end
-                        dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000)
+                        FancyActionBar:dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000)
                         if SV.showCastDuration then
                             wasBlockActive = IsBlockActive()
                             local isChanneled, castDuration = GetAbilityCastInfo(id, nil, "player") --[[(e.id == e.stackId and e.id or id);]]
@@ -4374,7 +4390,7 @@ function FancyActionBar.Initialize()
                     end
                 else
                     if effect.duration and not effect.custom then
-                        dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
+                        FancyActionBar:dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
                     elseif FancyActionBar.specialEffects[id] then
                         local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id])
                         if not specialEffect.onAbilityUsed then
@@ -4397,7 +4413,7 @@ function FancyActionBar.Initialize()
                         if fakes[id] then
                             activeFakes[id] = true
                         end
-                        dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
+                        FancyActionBar:dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
                     end
                     if SV.showCastDuration then
                         wasBlockActive = IsBlockActive()
@@ -4415,9 +4431,9 @@ function FancyActionBar.Initialize()
                     end
                 end
             elseif FancyActionBar.effects[i] then
-                dbg("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (GetAbilityDuration(FancyActionBar.effects[i].id) or 0) / 1000)
+                FancyActionBar:dbg("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (GetAbilityDuration(FancyActionBar.effects[i].id) or 0) / 1000)
             else
-                dbg("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id))
+                FancyActionBar:dbg("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id))
             end
         end
         -- Chat('button ' .. n .. ' used.')
