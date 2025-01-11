@@ -282,123 +282,123 @@ FancyActionBar.strings =
     -- outdated and mostly unused. will make settings more managable eventually.
 
     -- submenu names
-    subGeneral = "|cFFFACDGeneral|r",
-    subCustomUI = "|cFFFACDUI Customization|r",
-    subTimer = "|cFFFACDTimer Display|r",
-    subTimerKB = "|cFFFACDKeyboard UI|r",
-    subDecimals = "|cFFFACDTimer Decimals|r",
-    subMisc = "|cFFFACDMiscellaneous|r",
+    subGeneral = GetString(FANCYAB_SUBMENU_GENERAL),
+    subCustomUI = GetString(FANCYAB_SUBMENU_CUSTOMUI),
+    subTimer = GetString(FANCYAB_SUBMENU_TIMER),
+    subTimerKB = GetString(FANCYAB_SUBMENU_TIMERKB),
+    subDecimals = GetString(FANCYAB_SUBMENU_DECIMALS),
+    subMisc = GetString(FANCYAB_SUBMENU_MISC),
 
     -- submenu descriptions
-    subTimerDesc = "Here you can adjust size and postion of the timer, stacks, and target counts displays.\nThe settings are individual to the keyboard and gamepad UI's in their respective submenu, and can be changed regardless of which mode your UI is currently in.\nThe timer decimals options apply to both UI modes",
-    subTimerKBDesc = "Keyboard UI timer display settings",
-    subStackKBDesc = "Keyboard UI target count display settings",
-    subTargetKBDesc = "Keyboard UI target count display settings",
+    subTimerDesc = GetString(FANCYAB_SUBMENU_TIMER_DESC),
+    subTimerKBDesc = GetString(FANCYAB_SUBMENU_TIMERKB_DESC),
+    subStackKBDesc = GetString(FANCYAB_SUBMENU_STACKKB_DESC),
+    subTargetKBDesc = GetString(FANCYAB_SUBMENU_TARGETKB_DESC),
 
-    -- submenu category titles (desription titles)
-    catBBVisual = "[ |cffdf80Back Bar Visibility|r ]",
-    catHotkey = "[ |cffdf80Hotkey Text|r ]",
-    catFrames = "[ |cffdf80Button Frames|r ]",
-    catHighlight = "[ |cffdf80Active Ability Highlight|r ]",
-    catArrow = "[ |cffdf80Active Bar Arrow|r ]",
-    catMarker = "[ |cffdf80Enemy Markers|r ]",
-    catDebug = "[ |cffdf80Debugging|r ]",
+    -- submenu category titles
+    catBBVisual = GetString(FANCYAB_CAT_BBVISUAL),
+    catHotkey = GetString(FANCYAB_CAT_HOTKEY),
+    catFrames = GetString(FANCYAB_CAT_FRAMES),
+    catHighlight = GetString(FANCYAB_CAT_HIGHLIGHT),
+    catArrow = GetString(FANCYAB_CAT_ARROW),
+    catMarker = GetString(FANCYAB_CAT_MARKER),
+    catDebug = GetString(FANCYAB_CAT_DEBUG),
 
-    -- submenu category decriptions
-    catFramesDesc = "Only for keyboard UI.",
-    catArrowDesc = "Weapon swap once after clicking the Show arrow button to make the change take effect.",
-    catMarkerDesc = "yes.. I completely stole this from Untaunted.",
+    -- submenu category descriptions
+    catFramesDesc = GetString(FANCYAB_CAT_FRAMES_DESC),
+    catArrowDesc = GetString(FANCYAB_CAT_ARROW_DESC),
+    catMarkerDesc = GetString(FANCYAB_CAT_MARKER_DESC),
 
     -- settings names and tooltips
     -- back bar alpha
-    alphaName = "Inactive bar alpha",
-    alphaTT = "Higher value = more solid.\nLower value = more see through.",
+    alphaName = GetString(FANCYAB_ALPHA_NAME),
+    alphaTT = GetString(FANCYAB_ALPHA_TT),
 
     -- backbar desaturation
-    desatName = "Inactive bar desaturation",
-    desatTT = "Higher value = more grey.\nLower value = more colors.",
+    desatName = GetString(FANCYAB_DESAT_NAME),
+    desatTT = GetString(FANCYAB_DESAT_TT),
 
     -- keybinds
-    hotkeyName = "Show hotkeys",
-    hotkeyTT = "Show hotkeys under the action bar.",
+    hotkeyName = GetString(FANCYAB_HOTKEY_NAME),
+    hotkeyTT = GetString(FANCYAB_HOTKEY_TT),
 
-    -- button trames
-    frameName = "Show frames",
-    frameTT = "Show a frame around buttons on the actionbar.",
-    frameColor = "Frame color",
+    -- button frames
+    frameName = GetString(FANCYAB_FRAME_NAME),
+    frameTT = GetString(FANCYAB_FRAME_TT),
+    frameColor = GetString(FANCYAB_FRAME_COLOR),
 
     -- highlight
-    highlightName = "Show highlight",
-    highlightTT = "Active skills will be highlighted.",
-    highlightColor = "Highlight color",
+    highlightName = GetString(FANCYAB_HIGHLIGHT_NAME),
+    highlightTT = GetString(FANCYAB_HIGHLIGHT_TT),
+    highlightColor = GetString(FANCYAB_HIGHLIGHT_COLOR),
 
     -- arrow
-    arrowName = "Show arrow",
-    arrowTT = "Show an arrow near the currently active bar.",
-    arrowColor = "Arrow color",
-    arrowAdjustQSName = "Adjust Quick Slot placement",
-    arrowAdjustQSTT = "Move Quick Slot closer to the Action Bar if the arrow is hidden.\nFor keyboard UI only.",
+    arrowName = GetString(FANCYAB_ARROW_NAME),
+    arrowTT = GetString(FANCYAB_ARROW_TT),
+    arrowColor = GetString(FANCYAB_ARROW_COLOR),
+    arrowAdjustQSName = GetString(FANCYAB_ARROW_ADJUSTQS_NAME),
+    arrowAdjustQSTT = GetString(FANCYAB_ARROW_ADJUSTQS_TT),
 
     -- KB UI tooltips
-    timerFontKBTT = "Timer font for keyboard UI timer.",
-    timerStyleKBTT = "Edge effect for Keyboard UI timer numbers.",
-    stackFontKBTT = "Stacks Counter font for keyboard UI.",
-    stackStyleKBTT = "Edge effect of the Keyboard UI stacks counter.",
-    targetFontKBTT = "Target Counter font for keyboard UI.",
-    targetStyleKBTT = "Edge effect of the Keyboard UI targets counter.",
+    timerFontKBTT = GetString(FANCYAB_TIMER_FONTKB_TT),
+    timerStyleKBTT = GetString(FANCYAB_TIMER_STYLEKB_TT),
+    stackFontKBTT = GetString(FANCYAB_STACK_FONTKB_TT),
+    stackStyleKBTT = GetString(FANCYAB_STACK_STYLEKB_TT),
+    targetFontKBTT = GetString(FANCYAB_TARGET_FONTKB_TT),
+    targetStyleKBTT = GetString(FANCYAB_TARGET_STYLEKB_TT),
 
     -- GP UI tooltips
-    timerFontGPTT = "Timer font for Gamepad UI timer.",
-    timerStyleGPTT = "Edge effect for Gamepad UI timer numbers.",
-    stackFontGPTT = "Stacks Counter font for Gamepad UI.",
-    stackStyleGPTT = "Edge effect of the Gamepad UI stacks counter.",
-    targetFontGPTT = "Target Counter font for Gamepad UI.",
-    targetStyleGPTT = "Edge effect of the Gamepad UI targets counter.",
+    timerFontGPTT = GetString(FANCYAB_TIMER_FONTGP_TT),
+    timerStyleGPTT = GetString(FANCYAB_TIMER_STYLEGP_TT),
+    stackFontGPTT = GetString(FANCYAB_STACK_FONTGP_TT),
+    stackStyleGPTT = GetString(FANCYAB_STACK_STYLEGP_TT),
+    targetFontGPTT = GetString(FANCYAB_TARGET_FONTGP_TT),
+    targetStyleGPTT = GetString(FANCYAB_TARGET_STYLEGP_TT),
 
     -- timer for both KB and GP
-    timerFont = "Timer font",
-    timerSize = "Timer size",
-    timerStyle = "Timer style",
-    timerYName = "Adjust timer hight",
-    timerYTT = "Move timer [<- down] or [up ->]",
+    timerFont = GetString(FANCYAB_TIMER_FONT),
+    timerSize = GetString(FANCYAB_TIMER_SIZE),
+    timerStyle = GetString(FANCYAB_TIMER_STYLE),
+    timerYName = GetString(FANCYAB_TIMER_Y_NAME),
+    timerYTT = GetString(FANCYAB_TIMER_Y_TT),
 
     -- stacks for both KB and GP
-    stackFont = "Stack counter font",
-    stackSize = "Stacks counter size",
-    stackStyle = "Stacks counter style",
-    stackXName = "Adjust stacks position",
-    stackXTT = "Move stacks counter [<- left] or [right ->]",
+    stackFont = GetString(FANCYAB_STACK_FONT),
+    stackSize = GetString(FANCYAB_STACK_SIZE),
+    stackStyle = GetString(FANCYAB_STACK_STYLE),
+    stackXName = GetString(FANCYAB_STACK_X_NAME),
+    stackXTT = GetString(FANCYAB_STACK_X_TT),
 
     -- targets for both KB and GP
-    targetFont = "Target counter font",
-    targetSize = "Targets counter size",
-    targetStyle = "Targets counter style",
-    targetXName = "Adjust targets position",
-    targetXTT = "Move targets counter [<- left] or [right ->]",
+    targetFont = GetString(FANCYAB_TARGET_FONT),
+    targetSize = GetString(FANCYAB_TARGET_SIZE),
+    targetStyle = GetString(FANCYAB_TARGET_STYLE),
+    targetXName = GetString(FANCYAB_TARGET_X_NAME),
+    targetXTT = GetString(FANCYAB_TARGET_X_TT),
 
     -- timer decimals and expiration color
-    decimalChoiceName = "Enable timer decimals",
-    decimalChoiceTT = "Always = Will always display decimals if the timer is active.\nExpire = Will enable more options.\nNever = Never.",
-    decimalTholdName = "Decimals threshold",
-    decimalTholdTT = "Decimals will show when timers fall below selected amount of seconds remaining",
+    decimalChoiceName = GetString(FANCYAB_DECIMAL_CHOICE_NAME),
+    decimalChoiceTT = GetString(FANCYAB_DECIMAL_CHOICE_TT),
+    decimalTholdName = GetString(FANCYAB_DECIMAL_THOLD_NAME),
+    decimalTholdTT = GetString(FANCYAB_DECIMAL_THOLD_TT),
 
-    expireName = "Change expiring timer color",
-    expireTT = "Change timer color when duration is running out.",
-    expireTholdName = "Expiring timer threshold",
-    expireTholdTT = "Color will change when timers fall below selected amount of seconds remaining if the setting is enabled",
-    expirecolor = "Expiring timer color",
+    expireName = GetString(FANCYAB_EXPIRE_NAME),
+    expireTT = GetString(FANCYAB_EXPIRE_TT),
+    expireTholdName = GetString(FANCYAB_EXPIRE_THOLD_NAME),
+    expireTholdTT = GetString(FANCYAB_EXPIRE_THOLD_TT),
+    expirecolor = GetString(FANCYAB_EXPIRE_COLOR),
 
     -- enemy markers
-    markerName = "Show Enemy Markers",
-    markerTT = "Display a red arrow over the head of enemies you are currently in combat with.",
-    markerSize = "Enemy Marker Size",
+    markerName = GetString(FANCYAB_MARKER_NAME),
+    markerTT = GetString(FANCYAB_MARKER_TT),
+    markerSize = GetString(FANCYAB_MARKER_SIZE),
 
     -- debug
-    dbgName = "Debug mode",
-    dbgTT = "Display ability update events in the chat (|cFF0000SPAM WARNING!|r).",
+    dbgName = GetString(FANCYAB_DBG_NAME),
+    dbgTT = GetString(FANCYAB_DBG_TT),
 
     -- disclaimer
-    disclaimer = "All credit goes to |cFFFF00@andy.s|r for his incredible work and dedication to the community.\nAt first I only made a few customization changes to better suit myself personally and added options to enable adjustments of these.\nThe tracking functions for the ability timers are inspired by the work of Solinur and Phinix, and I've learned all I know about it from reading their code (and I still have much to learn).",
+    disclaimer = GetString(FANCYAB_DISCLAIMER),
 }
 
 --- Returns a table with the configuration for the given mode and style

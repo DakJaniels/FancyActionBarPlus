@@ -1,12 +1,17 @@
 ## Title: FancyActionBar+
+## Author: andy.s, Incanus, dack_janiels, nogetrandom
+## Description: A *fancy* action bar addon for the Elder Scrolls Online.
 ## Version: 2.12.1
 ## APIVersion: 101044
-## AddOnVersion: 21200
+## AddOnVersion: 21210
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage LibMediaProvider
 ## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
 ## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles
+
+lang/en.lua
+lang/$(language).lua
 
 init.lua
 presets.lua
