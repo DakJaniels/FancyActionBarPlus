@@ -4739,42 +4739,59 @@ function FancyActionBar.Initialize()
         end
     end
 
-    -- Abilities stacks.
-    --- @param change EffectResult
+    --- @param eventId integer
+    --- @param changeType EffectResult
+    --- @param effectSlot integer
+    --- @param effectName string
     --- @param unitTag string
+    --- @param beginTime integer
+    --- @param endTime integer
     --- @param stackCount integer
+    --- @param iconName string
+    --- @param deprecatedBuffType string
     --- @param effectType BuffEffectType
+    --- @param abilityType AbilityType
+    --- @param statusEffectType StatusEffectType
     --- @param unitName string
     --- @param unitId integer
     --- @param abilityId integer
-    local function OnStackChanged(_, change, _, _, unitTag, _, _, stackCount, _, _, effectType, _, _, unitName, unitId, abilityId)
+    --- @param sourceType CombatUnitType
+    local function OnStackChanged(eventId, changeType, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, deprecatedBuffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
+        -- Skip if this is a debuff and advanced debuff tracking is enabled
         if (SV.advancedDebuff and effectType == DEBUFF) then
             return
-        end -- is handled by debuff.lua
-        local c = ""
-        if change == EFFECT_RESULT_FADED then
-            c = "faded"
-            stackCount = 0
-        elseif change == EFFECT_RESULT_GAINED then
-            c = "gained"
-        elseif change == EFFECT_RESULT_UPDATED then
-            c = "updated"
         end
 
+        -- Determine change type string for debugging
+        local changeTypeString = ""
+        if changeType == EFFECT_RESULT_FADED then
+            changeTypeString = "faded"
+            stackCount = 0
+        elseif changeType == EFFECT_RESULT_GAINED then
+            changeTypeString = "gained"
+        elseif changeType == EFFECT_RESULT_UPDATED then
+            changeTypeString = "updated"
+        end
+
+        -- Handle stackable buffs
         if FancyActionBar.stackableBuff[abilityId] then
             abilityId = FancyActionBar.stackableBuff[abilityId]
-            local _
-            _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId)
+            local _, _, newStackCount = FancyActionBar.CheckForActiveEffect(abilityId)
+            stackCount = newStackCount
         end
 
+        -- Handle fixed stacks
         if FancyActionBar.fixedStacks[abilityId] then
             stackCount = FancyActionBar.fixedStacks[abilityId]
-            if change == EFFECT_RESULT_FADED then
+            if changeType == EFFECT_RESULT_FADED then
                 stackCount = 0
             end
         end
+
+        -- Update stack count
         FancyActionBar.stacks[abilityId] = stackCount
 
+        -- Process stack map updates
         if FancyActionBar.stackMap[abilityId] then
             for id, effect in pairs(FancyActionBar.effects) do
                 if effect.stackId and #effect.stackId > 0 then
@@ -4788,13 +4805,16 @@ function FancyActionBar.Initialize()
             end
         end
 
+        -- Handle special case for Seething Fury
         if stackCount == 0 then
-            -- Remove Seething Fury effect manually, otherwise it will keep counting down.
             if abilityId == 122658 and FancyActionBar.effects[122658] then
                 FancyActionBar.effects[122658].endTime = time()
             end
         end
-        -- Chat("[" .. abilityId .. "] " .. c .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
+
+        -- Debug output (commented out)
+        -- unitName = zo_strformat("<<1>>", unitName)
+        -- Chat("[" .. abilityId .. "] " .. changeTypeString .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
     end
 
     for abilityId, stackAbilities in pairs(FancyActionBar.stackMap) do
@@ -4809,132 +4829,204 @@ function FancyActionBar.Initialize()
         end
     end
 
-    local function OnEquippedGearChanged(eventCode, bagId, slotId, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange)
+    --- @param eventId integer
+    --- @param bagId Bag
+    --- @param slotIndex integer
+    --- @param isNewItem boolean
+    --- @param itemSoundCategory ItemUISoundCategory
+    --- @param inventoryUpdateReason integer
+    --- @param stackCountChange integer
+    --- @param triggeredByCharacterName string
+    --- @param triggeredByDisplayName string
+    --- @param isLastUpdateForMessage boolean
+    --- @param bonusDropSource BonusDropSource
+    local function OnEquippedGearChanged(eventId, bagId, slotIndex, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange, triggeredByCharacterName, triggeredByDisplayName, isLastUpdateForMessage, bonusDropSource)
+        -- Only process worn equipment changes
         if bagId ~= BAG_WORN then
             return
         end
-        if slotId == EQUIP_SLOT_MAIN_HAND or slotId == EQUIP_SLOT_BACKUP_MAIN then
+
+        -- Handle weapon slot changes
+        if slotIndex == EQUIP_SLOT_MAIN_HAND or slotIndex == EQUIP_SLOT_BACKUP_MAIN then
             FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT))
             FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT))
         end
-        if slotId == EQUIP_SLOT_RING1 or slotId == EQUIP_SLOT_RING2 then
+
+        -- Handle ring slot changes for Oakensoul
+        if slotIndex == EQUIP_SLOT_RING1 or slotIndex == EQUIP_SLOT_RING2 then
             local wasOakensoulEquipped = FancyActionBar.oakensoulEquipped
             local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
             FancyActionBar.oakensoulEquipped = isOakensoulEquipped
+
             if SV.hideLockedBar and isOakensoulEquipped or wasOakensoulEquipped then
                 FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked)
             end
         end
     end
 
-    local function OnDeath(eventCode, unitTag, isDead)
+    --- @param eventId integer
+    --- @param unitTag string
+    --- @param isDead boolean
+    local function OnDeath(eventId, unitTag, isDead)
+        -- Only process if player is dead
         if not isDead or not AreUnitsEqual("player", unitTag) then
             return
         end
+
+        -- Reset channeling states
         channeledAbilityUsed = nil
         isChanneling = false
+
+        -- Update effects and tracking
         FancyActionBar.RefreshEffects()
         FancyActionBar.EffectCheck()
         FancyActionBar:UpdateDebuffTracking()
     end
 
-    local function OnCombatEvent(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
+    -- function to handle combat events
+    --- @param eventId integer
+    --- @param result ActionResult
+    --- @param isError boolean
+    --- @param abilityName string
+    --- @param abilityGraphic integer
+    --- @param abilityActionSlotType ActionSlotType
+    --- @param sourceName string
+    --- @param sourceType CombatUnitType
+    --- @param targetName string
+    --- @param targetType CombatUnitType
+    --- @param hitValue integer
+    --- @param powerType CombatMechanicFlags
+    --- @param damageType DamageType
+    --- @param log boolean
+    --- @param sourceUnitId integer
+    --- @param targetUnitId integer
+    --- @param abilityId integer
+    --- @param overflow integer
+    local function OnCombatEvent(eventId, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId, overflow)
         local effect
-        local t = time()
+        local currentTime = time()
 
-        local specialEffect = FancyActionBar.specialEffects[aId] and ZO_DeepTableCopy(FancyActionBar.specialEffects[aId])
+        -- Debug logging
+        if SV.debugAll then
+            local ts = tostring
+            Chat("===================")
+            Chat(abilityName .. " (" .. ts(abilityId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hitValue))
+            Chat("===================")
+        end
+
+        -- Handle special effects
+        local specialEffect = FancyActionBar.specialEffects[abilityId] and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId])
         local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff
+
         if specialEffect and not useSpecialDebuffTracking then
-            FancyActionBar.HandleSpecialEffect(aId, result, t, t, t + GetAbilityDuration(aId), _, _, _, tId)
+            FancyActionBar.HandleSpecialEffect(abilityId, result, currentTime, currentTime, currentTime + GetAbilityDuration(abilityId), nil, nil, nil, targetUnitId)
             return
         end
 
-        if (FancyActionBar.needCombatEvent[aId] and result == FancyActionBar.needCombatEvent[aId].result) then
-            effect = FancyActionBar.effects[aId]
+        -- Handle needed combat events
+        if FancyActionBar.needCombatEvent[abilityId] and result == FancyActionBar.needCombatEvent[abilityId].result then
+            effect = FancyActionBar.effects[abilityId]
             if effect then
-                effect.endTime = time() + FancyActionBar.needCombatEvent[aId].duration
-                -- effect.faded = false
-
+                effect.endTime = currentTime + FancyActionBar.needCombatEvent[abilityId].duration
+                -- Debug logging for needed combat events
                 -- local ts = tostring
                 -- Chat('===================')
-                -- Chat(aName..' ('..ts(aId)..') || result: '..ts(result)..' || hit: '..ts(hit))
+                -- Chat(abilityName..' ('..ts(abilityId)..') || result: '..ts(result)..' || hit: '..ts(hitValue))
                 -- Chat('===================')
-
                 FancyActionBar.UpdateEffect(effect)
                 return
             end
         end
 
-        if (result == ACTION_RESULT_EFFECT_GAINED and activeFakes[aId]) then
-            activeFakes[aId] = false
-            effect = FancyActionBar.effects[aId]
+        -- Handle fake effects
+        if result == ACTION_RESULT_EFFECT_GAINED and activeFakes[abilityId] then
+            activeFakes[abilityId] = false
+            effect = FancyActionBar.effects[abilityId]
             if effect then
-                effect.endTime = time() + fakes[aId].duration
-
-                -- if effect.stackId and effect.stacks then
-                --   for i = 1, #effect.stackId do
-                --     FancyActionBar.stacks[effect.stackId[i]] = effect.stacks;
-                --     FancyActionBar.HandleStackUpdate(aId);
-                --   end;
-                -- end;
-
-                -- effect.faded = false
-
+                effect.endTime = currentTime + fakes[abilityId].duration
+                -- Debug logging for fake effects
                 -- local ts = tostring
                 -- Chat('===================')
-                -- Chat(aName..' ('..ts(aId)..') || result: '..ts(result)..' || hit: '..ts(hit))
+                -- Chat(abilityName..' ('..ts(abilityId)..') || result: '..ts(result)..' || hit: '..ts(hitValue))
                 -- Chat('===================')
-
                 FancyActionBar.UpdateEffect(effect)
             end
         end
 
-        if aId == FancyActionBar.graveLordSacrifice.eventId then
+        -- Handle Grave Lord Sacrifice
+        if abilityId == FancyActionBar.graveLordSacrifice.eventId then
             effect = FancyActionBar.effects[FancyActionBar.graveLordSacrifice.id]
             if effect then
-                effect.endTime = time() + FancyActionBar.graveLordSacrifice.duration
+                effect.endTime = currentTime + FancyActionBar.graveLordSacrifice.duration
                 FancyActionBar.UpdateEffect(effect)
             end
         end
     end
 
-    local function OnReflect(_, result, _, aName, _, _, _, _, tName, tType, hit, _, _, _, _, tId, aId)
-        if (tType ~= COMBAT_UNIT_TYPE_PLAYER) then
+    --- @param eventId integer
+    --- @param result ActionResult
+    --- @param isError boolean
+    --- @param abilityName string
+    --- @param abilityGraphic integer
+    --- @param abilityActionSlotType ActionSlotType
+    --- @param sourceName string
+    --- @param sourceType CombatUnitType
+    --- @param targetName string
+    --- @param targetType CombatUnitType
+    --- @param hitValue integer
+    --- @param powerType CombatMechanicFlags
+    --- @param damageType DamageType
+    --- @param log boolean
+    --- @param sourceUnitId integer
+    --- @param targetUnitId integer
+    --- @param abilityId integer
+    --- @param overflow integer
+    local function OnReflect(eventId, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId, overflow)
+        -- Only process if target is player
+        if (targetType ~= COMBAT_UNIT_TYPE_PLAYER) then
             return
         end
-        local t = time()
+
+        local currentTime = time()
         local doStackUpdate = false
 
+        -- Debug logging
         if SV.debugAll then
             local ts = tostring
             Chat("===================")
-            Chat(aName .. " (" .. ts(aId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hit))
+            Chat(abilityName .. " (" .. ts(abilityId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hitValue))
             Chat("===================")
         end
 
-        local specialEffect = FancyActionBar.specialEffects[aId]
+        local specialEffect = FancyActionBar.specialEffects[abilityId]
         local reflectStacks = specialEffect.stackId[1]
         local effect = FancyActionBar.effects[specialEffect.id]
-        if effect.beginTime and (t - effect.beginTime < 0.3) then
+
+        -- Prevent rapid updates
+        if effect.beginTime and (currentTime - effect.beginTime < 0.3) then
             return
         end
 
+        -- Handle effect gain
         if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
             FancyActionBar.stacks[reflectStacks] = specialEffect.stacks
             doStackUpdate = true
         end
 
+        -- Handle damage shield
         if result == ACTION_RESULT_DAMAGE_SHIELDED and FancyActionBar.stacks[reflectStacks] and FancyActionBar.stacks[reflectStacks] > 0 then
             FancyActionBar.stacks[reflectStacks] = FancyActionBar.stacks[reflectStacks] - 1
             doStackUpdate = true
         end
 
+        -- Handle effect fade
         if (result == ACTION_RESULT_EFFECT_FADED) then
             FancyActionBar.stacks[reflectStacks] = 0
             doStackUpdate = true
         end
 
-        if doStackUpdate == true then
+        -- Update stacks if needed
+        if doStackUpdate then
             FancyActionBar.HandleStackUpdate(specialEffect.id)
         end
     end
