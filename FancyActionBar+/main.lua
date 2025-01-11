@@ -23,7 +23,6 @@ local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
 local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
 local currentWeaponPair = GetActiveWeaponPairInfo()
-local currentHotbarCategory = GetActiveHotbarCategory()
 local isWeaponSwapLocked = false  -- for tracking weapon swap lock state
 local specialHotbarActive = false -- for tracking if a specialHotbar is active
 
@@ -807,6 +806,7 @@ function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
     if not userPreferenceChanged and SV.applyActionBarSkillStyles == false then
         return
     end
+    local currentHotbarCategory = GetActiveHotbarCategory()
     local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
     for i = MIN_INDEX, MAX_INDEX do
         FancyActionBar.SetActionButtonAbilityFxOverride(i)
@@ -975,6 +975,7 @@ function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceCh
     else
         doLock = isLocked
     end
+    local currentHotbarCategory = GetActiveHotbarCategory()
     isWeaponSwapLocked = doLock
     local hideBar = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP
     FancyActionBar.ToggleInactiveBar(hideBar, doLock)
@@ -1329,6 +1330,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         FancyActionBar.UpdateUltOverlay(index)
         return
     end
+    local currentHotbarCategory = GetActiveHotbarCategory()
     overlay = FancyActionBar.overlays[index]
     if overlay then
         local effect = overlay.effect
@@ -1989,6 +1991,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 end
 
 function FancyActionBar.SlotEffects() -- slot effects for primary and backup bars.
+    local currentHotbarCategory = GetActiveHotbarCategory()
     if currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         for i = MIN_INDEX, MAX_INDEX do
             FancyActionBar.SlotEffect(i, FancyActionBar.GetSlotBoundAbilityId(i, HOTBAR_CATEGORY_PRIMARY))
@@ -2182,6 +2185,7 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
     local modeP = FancyActionBar.constants.ult.value.mode
     local modeC = FancyActionBar.constants.ult.companion.mode
     local alpha = (value < 10) and 0 or 1
+    local currentHotbarCategory = GetActiveHotbarCategory()
     local cost = ((currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY) or (currentHotbarCategory == HOTBAR_CATEGORY_BACKUP)) and cost1 or costAlt
     if (player and FancyActionBar.constants.ult.value.show) then
         ActionButton8LeadingEdge:SetAlpha(alpha)
@@ -2245,7 +2249,7 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
         end
         return cost
     end
-
+    local currentHotbarCategory = GetActiveHotbarCategory()
     cost1 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY))
     cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP))
     costAlt = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, currentHotbarCategory))
@@ -2861,7 +2865,7 @@ local configureFillAnimationsAndFrames = function (style)
         -- Chat("One or more controls are nil");
         return
     end
-
+    local currentHotbarCategory = GetActiveHotbarCategory()
     local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, currentHotbarCategory)
     local isGamepad = FancyActionBar.useGamepadActionBar
 
@@ -2982,7 +2986,7 @@ end
 --- Apply style to action bars depending on keyboard/gamepad mode.
 function FancyActionBar.ApplyStyle()
     FancyActionBar.UpdateStyle()
-    currentHotbarCategory = GetActiveHotbarCategory()
+    local currentHotbarCategory = GetActiveHotbarCategory()
     local style = FancyActionBar.GetContants()
 
     FancyActionBar.SetupActionBar(style, weaponSwapControl)
@@ -3194,6 +3198,7 @@ function FancyActionBar.ClearAnchors()
 end
 
 function FancyActionBar.DetermineBarAndHide(locked)
+    local currentHotbarCategory = GetActiveHotbarCategory()
     if currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         if SV.staticBars then
             ApplyBarPosition(ActionButton23, ActionButton3, SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
@@ -3289,6 +3294,7 @@ FancyActionBar.UpdateActiveBarIcons(currentHotbarCategory)
 end
 
 function FancyActionBar.UpdateInactiveBarIcons(bar)
+    local currentHotbarCategory = GetActiveHotbarCategory()
     for i = MIN_INDEX, MAX_INDEX do
         local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i or i + SLOT_INDEX_OFFSET
         FancyActionBar.UpdateInactiveBarIcon(index, bar)
@@ -4169,6 +4175,7 @@ function FancyActionBar.Initialize()
     -- Any skill swapped. Setup buttons and slot effects.
     local function OnAllHotbarsUpdated()
         local style = FancyActionBar.GetContants()
+        local currentHotbarCategory = GetActiveHotbarCategory()
         local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
         if ultButton then
             ultButton.showTimer = false
@@ -4220,7 +4227,7 @@ function FancyActionBar.Initialize()
             -- g_activeWeaponSwapInProgress = true;
             channeledAbilityUsed = nil
             isChanneling = false
-            currentHotbarCategory = GetActiveHotbarCategory()
+            local currentHotbarCategory = GetActiveHotbarCategory()
             FancyActionBar.SwapControls(isWeaponSwapLocked)
             currentWeaponPair = activeWeaponPair
         end
@@ -4228,6 +4235,7 @@ function FancyActionBar.Initialize()
 
     -- IsAbilityUltimate(*integer* _abilityId_)
     local function OnAbilityUsed(_, n)
+        local currentHotbarCategory = GetActiveHotbarCategory()
         if (n >= MIN_INDEX and n <= ULT_INDEX) then -- or n == (ULT_INDEX + SLOT_INDEX_OFFSET) then
             -- local duration = t + (GetActionSlotEffectTimeRemaining(n, currentHotbarCategory) / 1000)
             local id = FancyActionBar.GetSlotBoundAbilityId(n, currentHotbarCategory)
