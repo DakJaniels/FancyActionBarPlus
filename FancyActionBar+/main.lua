@@ -2637,46 +2637,63 @@ function FancyActionBar.ToggleQuickSlotDuration() -- enable / disable quickslot 
 end
 
 function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
-    local e = FancyActionBar.constants.ult.value.show
-    local current, _
-
-    EM:UnregisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE)
-    EM:UnregisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE)
-
-    for i in pairs(FancyActionBar.ultOverlays) do
-        local v = FancyActionBar.ultOverlays[i]:GetNamedChild("Value")
-        if v then
-            v:SetText("")
+    local function clearUltimateOverlays()
+        for i in pairs(FancyActionBar.ultOverlays) do
+            local valueControl = FancyActionBar.ultOverlays[i]:GetNamedChild("Value")
+            if valueControl then
+                valueControl:SetText("")
+            end
         end
     end
 
-    -- FancyActionBar.ultOverlays[ULT_INDEX]:GetNamedChild('Value'):SetText('')
-    -- FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]:GetNamedChild('Value'):SetText('')
-    -- FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET]:GetNamedChild('Value'):SetText('')
+    local function setupPlayerUltimate(showValue)
+        if showValue then
+            local current = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+            FancyActionBar.UpdateUltimateValueLabels(true, current)
 
-    -- cost1 = GetSlotAbilityCost(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY)
-    -- cost2 = GetSlotAbilityCost(ULT_INDEX, HOTBAR_CATEGORY_BACKUP)
-    cost3 = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION)
-
-    if e then
-        current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(true, current)
-        EM:RegisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, FancyActionBar.OnUltChanged)
-        EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE, REGISTER_FILTER_UNIT_TAG, "player")
+            EM:RegisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, FancyActionBar.OnUltChanged)
+            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE,
+                REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
+                REGISTER_FILTER_UNIT_TAG, "player")
+        end
     end
 
-    if (not DoesUnitExist("companion") or not HasActiveCompanion() or cost3 == nil or cost3 == 0) then
-        CompanionUltimateButton:SetHidden(true)
-        return
+    local function setupCompanionUltimate(showValue)
+        local companionCost = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION)
+
+        -- Hide companion ultimate if conditions aren't met
+        if not DoesUnitExist("companion") or
+            not HasActiveCompanion() or
+            not companionCost or
+            companionCost == 0 then
+            CompanionUltimateButton:SetHidden(true)
+            return
+        end
+
+        if showValue then
+            local current = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+            FancyActionBar.UpdateUltimateValueLabels(false, current)
+
+            EM:RegisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, FancyActionBar.OnUltChangedCompanion)
+            EM:AddFilterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE,
+                REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
+                REGISTER_FILTER_UNIT_TAG, "companion")
+        end
     end
 
-    local c = FancyActionBar.constants.ult.companion.show
-    if c then
-        current, _, _ = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-        FancyActionBar.UpdateUltimateValueLabels(false, current)
-        EM:RegisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, FancyActionBar.OnUltChangedCompanion)
-        EM:AddFilterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE, REGISTER_FILTER_UNIT_TAG, "companion")
-    end
+    -- Unregister existing events
+    EM:UnregisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE)
+    EM:UnregisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE)
+
+    -- Clear all ultimate overlays
+    clearUltimateOverlays()
+
+    -- Setup player and companion ultimates based on settings
+    local showUltValue = FancyActionBar.constants.ult.value.show
+    local showCompanionUlt = FancyActionBar.constants.ult.companion.show
+
+    setupPlayerUltimate(showUltValue)
+    setupCompanionUltimate(showCompanionUlt)
 end
 
 --  ---------------------------------
@@ -2728,31 +2745,46 @@ function FancyActionBar.CreateOverlay(index) -- create normal skill button overl
 end
 
 ---
---- @param index integer
+--- Creates or updates an ultimate button overlay
+--- @param index integer The index of the ultimate button
 --- @return FAB_UltimateButtonOverlay_Gamepad_Template|FAB_UltimateButtonOverlay_Keyboard_Template
-function FancyActionBar.CreateUltOverlay(index) -- create ultimate skill button overlay.
-    -- local template = ZO_GetPlatformTemplate('FAB_UltimateButtonOverlay')
+function FancyActionBar.CreateUltOverlay(index)
+    local function getParentButton(buttonIndex)
+        if buttonIndex == ULT_INDEX + COMPANION_INDEX_OFFSET then
+            return ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
+        end
+        return ZO_ActionBar_GetButton(ULT_INDEX)
+    end
+
+    local function initializeOverlayControls(overlayControl)
+        overlayControl.timer = overlayControl:GetNamedChild("Duration")
+        overlayControl.value = overlayControl:GetNamedChild("Value")
+        overlayControl.bg = overlayControl:GetNamedChild("BG")
+        overlayControl.stack = overlayControl:GetNamedChild("Stacks")
+        overlayControl.target = overlayControl:GetNamedChild("Targets")
+    end
+
+    -- Get the template for the overlay
     local template = FancyActionBar.constants.style.ultOverlayTemplate
     local overlay = FancyActionBar.ultOverlays[index]
+
+    -- Update existing overlay if it exists
     if overlay then
         WM:ApplyTemplateToControl(overlay, template)
         overlay:ClearAnchors()
-    else
-        local parent
-        if index == ULT_INDEX + COMPANION_INDEX_OFFSET
-        then
-            parent = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
-        else
-            parent = ZO_ActionBar_GetButton(ULT_INDEX)
-        end
-        overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index)
-        overlay.timer = overlay:GetNamedChild("Duration")
-        overlay.value = overlay:GetNamedChild("Value")
-        overlay.bg = overlay:GetNamedChild("BG")
-        overlay.stack = overlay:GetNamedChild("Stacks")
-        overlay.target = overlay:GetNamedChild("Targets")
-        FancyActionBar.ultOverlays[index] = overlay
+        return overlay
     end
+
+    -- Create new overlay
+    local parent = getParentButton(index)
+    overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index)
+    
+    -- Initialize overlay controls
+    initializeOverlayControls(overlay)
+    
+    -- Store the overlay
+    FancyActionBar.ultOverlays[index] = overlay
+
     return overlay
 end
 
@@ -4232,7 +4264,7 @@ function FancyActionBar.Initialize()
             -- g_activeWeaponSwapInProgress = true;
             channeledAbilityUsed = nil
             isChanneling = false
-            local currentHotbarCategory = GetActiveHotbarCategory()
+            -- local currentHotbarCategory = GetActiveHotbarCategory()
             FancyActionBar.SwapControls(isWeaponSwapLocked)
             currentWeaponPair = activeWeaponPair
         end
