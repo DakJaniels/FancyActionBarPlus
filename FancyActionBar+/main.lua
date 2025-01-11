@@ -4762,17 +4762,6 @@ function FancyActionBar.Initialize()
             return
         end
 
-        -- Determine change type string for debugging
-        local changeTypeString = ""
-        if changeType == EFFECT_RESULT_FADED then
-            changeTypeString = "faded"
-            stackCount = 0
-        elseif changeType == EFFECT_RESULT_GAINED then
-            changeTypeString = "gained"
-        elseif changeType == EFFECT_RESULT_UPDATED then
-            changeTypeString = "updated"
-        end
-
         -- Handle stackable buffs
         if FancyActionBar.stackableBuff[abilityId] then
             abilityId = FancyActionBar.stackableBuff[abilityId]
@@ -4813,6 +4802,16 @@ function FancyActionBar.Initialize()
         end
 
         -- Debug output (commented out)
+        -- Determine change type string for debugging
+        -- local changeTypeString = ""
+        -- if changeType == EFFECT_RESULT_FADED then
+        --     changeTypeString = "faded"
+        --     stackCount = 0
+        -- elseif changeType == EFFECT_RESULT_GAINED then
+        --     changeTypeString = "gained"
+        -- elseif changeType == EFFECT_RESULT_UPDATED then
+        --     changeTypeString = "updated"
+        -- end
         -- unitName = zo_strformat("<<1>>", unitName)
         -- Chat("[" .. abilityId .. "] " .. changeTypeString .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
     end
