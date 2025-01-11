@@ -19,7 +19,6 @@ local SLOT_INDEX_OFFSET = 20                 -- offset for backbar abilities ind
 local COMPANION_INDEX_OFFSET = 30            -- offset for companion ultimate
 local SLOT_COUNT = MAX_INDEX - MIN_INDEX + 1 -- total number of slots
 local ACTION_BAR = GetControl("ZO_ActionBar1")
-local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
 local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
 local currentWeaponPair = GetActiveWeaponPairInfo()
@@ -2518,6 +2517,7 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and 
     lock = SV.hideLockedBar and lock or SV.hideLockedBar and isWeaponSwapLocked and true or nil
     local abilitySlotOffsetX = FancyActionBar.constants.abilitySlot.offsetX
     local style = FancyActionBar.GetContants()
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
     local QSB = GetControl("QuickslotButton")
     local xOffset = FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB or SV.quickSlotCustomXOffsetGP or 0
     local yOffset = FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB or SV.quickSlotCustomYOffsetGP or 0
@@ -2563,6 +2563,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
         return
     end
     local style = FancyActionBar.GetContants()
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
 
     ActionButton8:ClearAnchors()
     CompanionUltimateButton:ClearAnchors()
@@ -2959,6 +2960,7 @@ end
 
 function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to settings
     local style = FancyActionBar.GetContants()
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
     local QSB = QuickslotButton
 
     -- Apply styles to buttons
@@ -2986,8 +2988,8 @@ end
 --- Apply style to action bars depending on keyboard/gamepad mode.
 function FancyActionBar.ApplyStyle()
     FancyActionBar.UpdateStyle()
-    local currentHotbarCategory = GetActiveHotbarCategory()
     local style = FancyActionBar.GetContants()
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
 
     FancyActionBar.SetupActionBar(style, weaponSwapControl)
     FancyActionBar.SetupButtons(style, weaponSwapControl)
@@ -3012,6 +3014,7 @@ end
 
 function FancyActionBar.ApplyActiveHotbarStyle()
     local style = FancyActionBar.GetContants()
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
     for i = MIN_INDEX, MAX_INDEX do
         local button = ZO_ActionBar_GetButton(i)
         button:ApplyStyle(style.buttonTemplate)
@@ -3137,6 +3140,7 @@ end
 local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotbarCategory)
     local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2
     local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
     if locked == true and SV.repositionActiveBar then
         if active then
             active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains())
@@ -3222,6 +3226,7 @@ end
 
 function FancyActionBar.SetBarPositions(bar)
     local style = FancyActionBar.GetContants()
+    local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
     bar = bar or GetActiveHotbarCategory()
     for i = MIN_INDEX, MAX_INDEX do
         FancyActionBar.UpdateInactiveBarIcon(i, bar)
