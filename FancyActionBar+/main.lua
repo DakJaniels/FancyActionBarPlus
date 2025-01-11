@@ -4380,8 +4380,6 @@ function FancyActionBar.Initialize()
                 end
             end
             effect.slotEffecTime = SV.allowParentTime
-            -- This function doesn't work for channeled/cast duration abilities as it stores the
-            -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
             local duration = (GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) or 0) / 1000
             local effectDuration = (GetAbilityDuration(abilityId) or 0) / 1000
             if duration ~= effectDuration then
