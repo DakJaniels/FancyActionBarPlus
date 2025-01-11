@@ -1129,6 +1129,8 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
     local id = FancyActionBar.GetSlotBoundAbilityId(index, bar)
     local btn = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET]
     local icon = ""
+    local slotState = FancyActionBar.slotHidden[bar == HOTBAR_CATEGORY_BACKUP and index + SLOT_INDEX_OFFSET or index]
+    local shouldHideSlot = SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked
     if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
         if FancyActionBar.destroSkills[id] then
             icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetIdForDestroSkill(id, bar))
@@ -1143,10 +1145,9 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
                 icon = GetAbilityIcon(id)
             end
         end
-        local slotState = FancyActionBar.slotHidden[bar == HOTBAR_CATEGORY_BACKUP and index + SLOT_INDEX_OFFSET or index]
-        btn.icon:SetTexture(SV.hideInactiveSlots and slotState and "" or icon)
-        btn.icon:SetHidden(SV.hideInactiveSlots and slotState or false)
-        btn.slot:SetHidden(SV.hideInactiveSlots and slotState or false)
+        btn.icon:SetTexture(shouldHideSlot and "" or icon)
+        btn.icon:SetHidden(shouldHideSlot)
+        btn.slot:SetHidden(shouldHideSlot)
     else
         btn.icon:SetHidden(true)
         btn.slot:SetHidden(SV.hideInactiveSlots)
@@ -3314,7 +3315,7 @@ function FancyActionBar.ToggleOverlays(bar)
         local overlay = FancyActionBar.overlays[index]
         local slotState = FancyActionBar.slotHidden[index]
         if overlay then
-            overlay:SetHidden(SV.hideInactiveSlots and slotState)
+            overlay:SetHidden(SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked)
         end
     end
 end
@@ -4411,8 +4412,6 @@ function FancyActionBar.Initialize()
                 end
             end
             effect.slotEffecTime = SV.allowParentTime
-            -- This function doesn't work for channeled/cast duration abilities as it stores the
-            -- duration of the ability in the wrong key and doesn't update it when the ability is cleared
             local duration = (GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) or 0) / 1000
             local effectDuration = (GetAbilityDuration(abilityId) or 0) / 1000
             if duration ~= effectDuration then
