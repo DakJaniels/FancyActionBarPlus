@@ -3445,7 +3445,7 @@ local function ApplySwapAnimationStyle(button)
 end
 
 local origHideKeys = ActionButton["HideKeys"]
-function FancyHideKeys(self, hide)
+local function FancyHideKeys(self, hide)
     if SV and (not SV.showHotkeysUltGP) then
         hide = true
     end
@@ -3456,7 +3456,7 @@ end
 ActionButton["HideKeys"] = FancyHideKeys
 
 local origSetShowBindingText = ActionButton["SetShowBindingText"]
-function FancySetShowBindingText(self, visible)
+local function FancySetShowBindingText(self, visible)
     if SV and (not SV.showHotkeys) then
         visible = false
     end
@@ -4150,9 +4150,7 @@ function FancyActionBar.Initialize()
 
     if useSlotsOverride then
         -- Can use abilities while map is open, when cursor is active, etc.
-        ---
-        --- @return boolean?
-        ZO_ActionBar_CanUseActionSlots = function ()
+        ZO_PreHook("ZO_ActionBar_CanUseActionSlots", function ()
             if SV.lockInTrade
             then
                 return LockSkillsOnTrade()
@@ -4160,7 +4158,8 @@ function FancyActionBar.Initialize()
             else
                 return (not (IsGameCameraActive() or IsInteractionCameraActive() or IsProgrammableCameraActive()) or SM:IsShowing("hud")) and not IsUnitDead("player")
             end
-        end
+            return true
+        end)
     end
 
     -- Slot ability changed, e.g. summoned a pet, procced crystal, etc.
