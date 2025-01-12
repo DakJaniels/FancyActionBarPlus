@@ -4819,7 +4819,6 @@ function FancyActionBar.Initialize()
         -- local changeTypeString = ""
         -- if changeType == EFFECT_RESULT_FADED then
         --     changeTypeString = "faded"
-        --     stackCount = 0
         -- elseif changeType == EFFECT_RESULT_GAINED then
         --     changeTypeString = "gained"
         -- elseif changeType == EFFECT_RESULT_UPDATED then
