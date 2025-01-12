@@ -4787,13 +4787,10 @@ function FancyActionBar.Initialize()
         -- Handle fixed stacks
         if FancyActionBar.fixedStacks[abilityId] then
             stackCount = FancyActionBar.fixedStacks[abilityId]
-            if changeType == EFFECT_RESULT_FADED then
-                stackCount = 0
-            end
         end
 
         -- Update stack count
-        FancyActionBar.stacks[abilityId] = stackCount
+        FancyActionBar.stacks[abilityId] = changeType ~= EFFECT_RESULT_FADED and stackCount or 0
 
         -- Process stack map updates
         if FancyActionBar.stackMap[abilityId] then
@@ -4821,7 +4818,6 @@ function FancyActionBar.Initialize()
         -- local changeTypeString = ""
         -- if changeType == EFFECT_RESULT_FADED then
         --     changeTypeString = "faded"
-        --     stackCount = 0
         -- elseif changeType == EFFECT_RESULT_GAINED then
         --     changeTypeString = "gained"
         -- elseif changeType == EFFECT_RESULT_UPDATED then
