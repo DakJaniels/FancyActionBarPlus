@@ -4150,7 +4150,9 @@ function FancyActionBar.Initialize()
 
     if useSlotsOverride then
         -- Can use abilities while map is open, when cursor is active, etc.
-        ZO_PreHook("ZO_ActionBar_CanUseActionSlots", function ()
+        ---
+        --- @return boolean?
+        ZO_ActionBar_CanUseActionSlots = function ()
             if SV.lockInTrade
             then
                 return LockSkillsOnTrade()
@@ -4158,8 +4160,7 @@ function FancyActionBar.Initialize()
             else
                 return (not (IsGameCameraActive() or IsInteractionCameraActive() or IsProgrammableCameraActive()) or SM:IsShowing("hud")) and not IsUnitDead("player")
             end
-            return true
-        end)
+        end
     end
 
     -- Slot ability changed, e.g. summoned a pet, procced crystal, etc.
