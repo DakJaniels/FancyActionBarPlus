@@ -1437,6 +1437,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and (not (SV.advancedDebuff and effect.isDebuff)) then
             local targetData = FancyActionBar.targets[effect.id] or {}
             local targetEndTime
+            local targetDuration = 0
             if targetData.times then
                 for unitId, timeData in pairs(targetData.times) do
                     if not targetEndTime or (timeData.endTime > currentTime and timeData.endTime < targetEndTime) then
@@ -1444,7 +1445,8 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
                     end
                 end
             end
-            duration = targetEndTime and (targetEndTime - currentTime) or (effect.endTime - currentTime)
+            targetDuration = targetEndTime and (targetEndTime - currentTime)
+            duration = targetDuration > 0 and targetDuration or (effect.endTime - currentTime)
         else
             duration = effect.endTime - currentTime
         end
