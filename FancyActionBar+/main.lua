@@ -929,82 +929,60 @@ function FancyActionBar.IsSameEffect(index, abilityId)
     return false
 end
 
-function FancyActionBar.UpdateCompanionOverlayOnChange()
-    local function hideCompanionUltimateControls(cUltButton)
-        if CompanionUltimateButton then
-            CompanionUltimateButton:SetHidden(true)
-            if cUltButton.buttonText then
-                cUltButton.buttonText:SetHidden(true)
-            end
-        end
-    end
-
-    local function updateCompanionUltimateVisibility(cUltButton, current)
-        CompanionUltimateButton:SetHidden(false)
-        FancyActionBar.UpdateUltimateValueLabels(false, current)
-
-        if cUltButton.buttonText then
-            local shouldHideButtonText = FancyActionBar.style == 2 or not SV.showHotkeys
-            cUltButton.buttonText:SetHidden(shouldHideButtonText)
-        end
-    end
-
-    -- Get companion ultimate button
-    local cUltButton = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
-    if not cUltButton then return end
-
-    -- Check if companion ultimate should be shown
-    local shouldShowCompanionUlt = not SV.hideCompanionUlt
-        and HasActiveCompanion()
-        and DoesUnitExist("companion")
-        and cUltButton.hasAction
-
-    if not shouldShowCompanionUlt then
-        hideCompanionUltimateControls(cUltButton)
-        return
-    end
-
-    -- Get companion ultimate power and cost
-    local current = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-    local cost = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION)
-
-    -- Update visibility based on cost
-    if not cost or cost == 0 then
-        hideCompanionUltimateControls(cUltButton)
-    else
-        updateCompanionUltimateVisibility(cUltButton, current)
-    end
-end
-
-function FancyActionBar.HandleCompanionStateChanged()
-    local function updateCompanionUltimateButton()
-        -- Get the companion ultimate ability ID and icon
-        local companionUltimateId = GetSlotBoundId(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
-        if companionUltimateId then
-            local icon = GetAbilityIcon(companionUltimateId)
-            -- Update the companion ultimate button icon
-            if CompanionUltimateButton then
-                local iconControl = CompanionUltimateButton:GetNamedChild("Icon")
-                if iconControl then
-                    iconControl:SetTexture(icon)
-                end
-            end
-        end
-    end
-
-    -- Get companion ultimate button
+function FancyActionBar.HandleCompanionUltimate()
+    -- Get companion ultimate button and early validation
     local companionButton = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
     if not companionButton then return end
 
-    -- Update the base button state
-    companionButton:HandleSlotChanged()
+    local function updateVisuals(shouldShow, currentPower)
+        if not CompanionUltimateButton then return end
+
+        -- Update visibility state
+        CompanionUltimateButton:SetHidden(not shouldShow)
+
+        -- Update button text if it exists
+        if companionButton.buttonText then
+            local shouldHideText = not shouldShow or FancyActionBar.style == 2 or not SV.showHotkeys
+            companionButton.buttonText:SetHidden(shouldHideText)
+        end
+
+        -- Update icon if showing
+        if shouldShow then
+            local ultimateId = GetSlotBoundId(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
+            if ultimateId then
+                local iconControl = CompanionUltimateButton:GetNamedChild("Icon")
+                if iconControl then
+                    iconControl:SetTexture(GetAbilityIcon(ultimateId))
+                end
+            end
+
+            -- Update power display
+            FancyActionBar.UpdateUltimateValueLabels(false, currentPower)
+        end
+    end
+
+    -- Check if companion ultimate should be displayed
+    local shouldShowUltimate = not SV.hideCompanionUlt
+        and HasActiveCompanion()
+        and DoesUnitExist("companion")
+        and companionButton.hasAction
+
+    -- Get current power and cost if should show
+    local currentPower, cost = 0, 0
+    if shouldShowUltimate then
+        currentPower = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+        cost = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION)
+        shouldShowUltimate = cost and cost > 0
+    end
+
+    -- Update base button state
+    companionButton:SetupBounceAnimation()
+    companionButton:SetupKeySlideAnimation()
+    companionButton:SetupTimerSwapAnimation()
     companionButton:UpdateUltimateMeter()
 
-    -- Update companion ultimate button and overlay
-    zo_callLater(function ()
-        updateCompanionUltimateButton()
-        FancyActionBar.UpdateCompanionOverlayOnChange()
-    end, 2000)
+    -- Update visuals with final state
+    updateVisuals(shouldShowUltimate, currentPower)
 end
 
 function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
@@ -1037,7 +1015,7 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
     FancyActionBar.SetUltFrameAlpha()
     FancyActionBar:UpdateDebuffTracking()
 
-    FancyActionBar.HandleCompanionStateChanged()
+    FancyActionBar.HandleCompanionUltimate()
 
     local zone = GetZoneId(GetUnitZoneIndex("player"))
     if FancyActionBar.zone ~= zone then
@@ -4311,10 +4289,8 @@ function FancyActionBar.Initialize()
 
     local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
         if activeWeaponPair ~= currentWeaponPair then
-            -- g_activeWeaponSwapInProgress = true;
             channeledAbilityUsed = nil
             isChanneling = false
-            -- local currentHotbarCategory = GetActiveHotbarCategory()
             FancyActionBar.SwapControls(isWeaponSwapLocked)
             currentWeaponPair = activeWeaponPair
         end
@@ -5045,8 +5021,7 @@ function FancyActionBar.Initialize()
     end
 
     EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTIVE_COMPANION_STATE_CHANGED)
-
-    EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionStateChanged)
+    EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionUltimate)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged)
     EM:RegisterForEvent(NAME, EVENT_HOTBAR_SLOT_STATE_UPDATED, OnHotbarSlotStateUpdated)
@@ -5115,7 +5090,7 @@ function FancyActionBar.Initialize()
     FancyActionBar.SetExternalBuffTracking()
 
     EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.UpdateUltimateCost)
-
+    EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.HandleCompanionUltimate)
     EM:RegisterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnEquippedGearChanged)
     EM:AddFilterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN)
 
@@ -5144,7 +5119,7 @@ function FancyActionBar.Initialize()
         local style = FancyActionBar.GetContants()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
         setFlipCardDimensions(style)
-        FancyActionBar.UpdateCompanionOverlayOnChange()
+        -- FancyActionBar.UpdateCompanionOverlayOnChange()
         FancyActionBar.ApplyQuickSlotFont()
     end)
 
