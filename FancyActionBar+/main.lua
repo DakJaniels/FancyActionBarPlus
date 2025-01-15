@@ -1172,10 +1172,12 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
         end
         btn.icon:SetTexture(shouldHideSlot and "" or icon)
         btn.icon:SetHidden(shouldHideSlot)
+        btn.bg:SetHidden(shouldHideSlot)
         btn.slot:SetHidden(shouldHideSlot)
     else
         btn.icon:SetHidden(true)
-        btn.slot:SetHidden(SV.hideInactiveSlots)
+        btn.bg:SetHidden(shouldHideSlot)
+        btn.slot:SetHidden(shouldHideSlot)
     end
 end
 
@@ -1381,7 +1383,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
         end
         if (index > SLOT_INDEX_OFFSET and currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP) or
             (index <= SLOT_INDEX_OFFSET and currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
-            local shouldHideSlot = SV.hideInactiveSlots and not hasDuration
+            local shouldHideSlot = SV.hideLockedBar and isWeaponSwapLocked or SV.hideInactiveSlots and (not hasDuration)
             local doHideSlot = FancyActionBar.slotHidden[index] ~= shouldHideSlot
             FancyActionBar.slotHidden[index] = shouldHideSlot
             if doHideSlot then
@@ -3139,7 +3141,6 @@ end
 --- @param weaponSwapControl userdata
 function FancyActionBar.SetupOverlays(style, weaponSwapControl)
     local lastButton
-
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.CreateOverlay(i)
 
@@ -3359,10 +3360,8 @@ FancyActionBar.UpdateActiveBarIcons(currentHotbarCategory)
 end
 
 function FancyActionBar.UpdateInactiveBarIcons(bar)
-    local currentHotbarCategory = GetActiveHotbarCategory()
     for i = MIN_INDEX, MAX_INDEX do
-        local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i or i + SLOT_INDEX_OFFSET
-        FancyActionBar.UpdateInactiveBarIcon(index, bar)
+        FancyActionBar.UpdateInactiveBarIcon(bar == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i, bar)
     end
 end
 
@@ -4850,6 +4849,7 @@ function FancyActionBar.Initialize()
             if SV.hideLockedBar and isOakensoulEquipped or wasOakensoulEquipped then
                 FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked)
             end
+            FancyActionBar.ApplyAbilityFxOverrides()
         end
     end
 
