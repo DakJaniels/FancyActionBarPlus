@@ -2475,7 +2475,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.hideCompanionUlt = value or false
-                        FancyActionBar.UpdateCompanionOverlayOnChange()
+                        FancyActionBar.HandleCompanionUltimate()
                     end,
                     width = "full",
                 },
