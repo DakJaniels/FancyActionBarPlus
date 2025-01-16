@@ -1666,6 +1666,9 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
         end
         FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
         FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
+        if index == ULT_INDEX + COMPANION_INDEX_OFFSET then
+            overlay:SetHidden(SV.hideCompanionUlt)
+        end
     end
     if SV.applyActionBarSkillStyles then
         FancyActionBar.SetActionButtonAbilityFxOverride(index)
@@ -4723,7 +4726,7 @@ function FancyActionBar.Initialize()
             FancyActionBar.UpdateOverlay(i)
             FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET)
         end
-        if (not SV.hideCompanionUlt) and AreCompanionSkillsInitialized() and HasActiveCompanion() and DoesUnitExist("companion") then
+        if AreCompanionSkillsInitialized() and HasActiveCompanion() and DoesUnitExist("companion") then
             local companionUlt = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
             if (not companionUlt) or (not companionUlt.hasAction) then
                 return
@@ -5119,12 +5122,11 @@ function FancyActionBar.Initialize()
         local style = FancyActionBar.GetContants()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
         setFlipCardDimensions(style)
-        -- FancyActionBar.UpdateCompanionOverlayOnChange()
         FancyActionBar.ApplyQuickSlotFont()
     end)
 
     ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
-        if (not ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction or not DoesUnitExist("companion") or not HasActiveCompanion()) then
+        if CompanionUltimateButton and (SV.hideCompanionUlt or (not ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction or not DoesUnitExist("companion") or not HasActiveCompanion())) then
             CompanionUltimateButton:SetHidden(true)
         end
     end)
