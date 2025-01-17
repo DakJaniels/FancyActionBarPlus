@@ -1506,7 +1506,11 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
         end
         maxStacks = FancyActionBar.getStackValue(stackCounts)
         stacks = maxStacks and maxStacks ~= 0 and maxStacks or ""
-        stacksControl:SetText(stacks)
+        if SV.showStackCount then
+            stacksControl:SetText(stacks)
+        else
+            stacksControl:SetText("")
+        end
     else
         stacksControl:SetText("")
     end
@@ -1556,12 +1560,12 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
                 end
             end
             stacks = FancyActionBar.getStackValue(stackCounts)
-            if stacks and stacks ~= 0 then
+            if SV.showStackCount and stacks and stacks ~= 0 then
                 stacksControl:SetText(stacks)
                 stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
-                return
-            end
+            else
             stacksControl:SetText("")
+            end
         end
     end
 end
@@ -1708,9 +1712,6 @@ function FancyActionBar.HasDebuffStacks(effectId)
 end
 
 function FancyActionBar.HandleStackUpdate(id) -- find overlays for a specific effect and update stacks.
-    if SV.showStackCount == false then
-        return
-    end
     local effect = FancyActionBar.effects[id]
     if effect then
         if effect.slot1 then
