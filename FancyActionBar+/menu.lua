@@ -1525,7 +1525,7 @@ local function ToggleFrameType()
     end
 end
 
-local function SetDarkUI(framesHidden)
+local function SetDarkUI()
     local eso_root = "esoui/art/"
     local ui_root = "darkui/"
     local theme
@@ -6007,7 +6007,7 @@ function FancyActionBar.ConfigureFrames()
     end
     SetDefaultAbilityFrame()
     if _G["darkui"] then
-        SetDarkUI(framesHidden)
+        SetDarkUI()
     else
         ToggleFrameType()
     end

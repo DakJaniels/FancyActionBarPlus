@@ -395,8 +395,8 @@ local function OnReticleTargetChanged()
                     and ZO_DeepTableCopy(FancyActionBar.specialEffects[debuff.id]))
                 keep[debuff.id] = true -- make sure we're keeping the debuff in case the specialEffect changes the id
                 if specialEffect then
-                    for sId, effect in pairs(specialEffect) do
-                        debuff[sId] = effect
+                    for sId, sEffect in pairs(specialEffect) do
+                        debuff[sId] = sEffect
                     end
                     if specialEffect.setTime then
                         debuff.endTime = debuff.beginTime + specialEffect.duration
