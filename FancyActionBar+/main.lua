@@ -1395,38 +1395,39 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
 end
 
 function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled, sourceEndTime)
-    -- if --[[effect.toggled or]] effect.passive and not (SV.showCastDuration and effect.castEndTime) then return; end;
-
     local currentTime = time()
-
-    -- If the effect has a cast/channel time, we're going to temporarily override the ability slot timer with that duration
-    local hasDuration = true
-    local duration = 0
+    local fadeDelay = SV.showExpire and SV.fadeDelay or 0
+    local hasDuration, duration = true, 0
     local isCastTime, isParentTime, isFading = false, false, false
+
+    -- Handle cast/channel time overrides
     if SV.showCastDuration and effect.castEndTime then
         isCastTime = true
-        if effect.castEndTime >= currentTime then
-            duration = effect.castEndTime - currentTime
-        elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
+        duration = zo_max(0, effect.castEndTime - currentTime)
+        if duration == 0 and effect.endTime and effect.endTime + fadeDelay > currentTime then
             duration = effect.endTime - currentTime
         else
             effect.endTime = -1
             hasDuration = false
         end
-    elseif effect.endTime and effect.endTime + (SV.showExpire and SV.fadeDelay or 0) > currentTime then
-        if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and (not (SV.advancedDebuff and effect.isDebuff)) then
-            local targetData = FancyActionBar.targets[effect.id] or {}
-            local targetEndTime
-            local targetDuration = 0
-            if targetData.times then
+    elseif effect.endTime and effect.endTime + fadeDelay > currentTime then
+        if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and not (SV.advancedDebuff and effect.isDebuff) then
+            local targetData = FancyActionBar.targets[effect.id]
+            local targetEndTime = nil
+
+            if targetData and targetData.times then
                 for unitId, timeData in pairs(targetData.times) do
                     if not targetEndTime or (timeData.endTime > currentTime and timeData.endTime < targetEndTime) then
                         targetEndTime = timeData.endTime
                     end
                 end
             end
-            targetDuration = targetEndTime and (targetEndTime - currentTime)
-            duration = targetDuration > 0 and targetDuration or (effect.endTime - currentTime)
+
+            if targetEndTime and targetEndTime > currentTime then
+                duration = targetEndTime - currentTime
+            else
+                duration = effect.endTime - currentTime
+            end
         else
             duration = effect.endTime - currentTime
         end
@@ -1435,55 +1436,32 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         hasDuration = false
     end
 
-    if SV.allowParentTime and (not isCastTime) and duration and duration <= 0 then
-        if sourceEndTime and sourceEndTime > currentTime then
-            duration = sourceEndTime - currentTime
-            isParentTime = true
-        end
+    -- Check for parent effect duration fallback
+    if SV.allowParentTime and not isCastTime and duration <= 0 and sourceEndTime and sourceEndTime > currentTime then
+        duration = sourceEndTime - currentTime
+        isParentTime = true
+        hasDuration = true -- Parent time implies there's a valid duration
     end
 
-    if SV.showCastDuration and effect.castDuration then
-        local isBlockActive = IsBlockActive()
-        local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false))
-        wasBlockActive = isBlockActive
-        if (isChanneling == false) or blockCancelled then
-            local updateCastEndTime = (blockCancelled and 0) or (effect.castEndTime and ((effect.castEndTime > currentTime) and 0) or effect.castEndTime) or 0
-            effect.castEndTime = updateCastEndTime
-            isChanneling = false
-        end
-        if channeledAbilityUsed and effect.castEndTime and (effect.castEndTime >= currentTime) then
-            channeledAbilityUsed = nil
-        end
-    end
-
-    local tickRate = SV.showToggleTicks and effect.tickRate or 0
-
+    -- Handle toggled effects
     if effect.toggled then
-        if SV.showToggleTicks and isToggled and effect.endTime <= currentTime and (tickRate ~= 0) then
-            duration = (effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate)
+        local tickRate = isToggled and SV.showToggleTicks and effect.tickRate or 0
+        if tickRate ~= 0 then
+            duration = effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate
             isFading = duration <= SV.showTickStart and SV.showTickExpire or false
-            hasDuration = true
-        elseif SV.showToggleTicks and (not isToggled) and (tickRate ~= 0) then -- Clear TickRate when ability is not toggled
-            isFading = SV.showTickExpire or SV.showExpire
-            hasDuration = false
         end
-    else
-        isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
+        hasDuration = isToggled
     end
 
-
-    local lt, lc, bc
-    lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
-    if duration > 0 and ((not (effect.toggled or isToggled)) or ((effect.toggled or isToggled) and tickRate ~= 0)) then
-        bc = FancyActionBar.GetHighlightColor(isFading, effect.toggled, isParentTime)
-    elseif isToggled then
-        bc = FancyActionBar.GetHighlightColor(nil, effect.toggled)
-    end
+    -- Format visuals and update controls
+    local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
+    local bc = (hasDuration or isFading or isParentTime) and FancyActionBar.GetHighlightColor(isFading, effect.toggled, isParentTime) or nil
 
     FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
     FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
     FancyActionBar.UpdateTimerLabel(durationControl, lt, lc)
     FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index)
+
     return hasDuration or isToggled or isFading or isParentTime
 end
 
