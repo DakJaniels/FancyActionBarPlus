@@ -2268,36 +2268,35 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
 end
 
 function FancyActionBar.GetUltimateValueColor(current, hotbar)
-    local baseColor = FancyActionBar.constants.ult.value.color
-    local thresholdColor = FancyActionBar.constants.ult.value.usableThresholdColor
-    local usableColor = FancyActionBar.constants.ult.value.usableColor
-    local maxColor = FancyActionBar.constants.ult.value.maxColor
-    local threshold = FancyActionBar.constants.ult.value.threshold
-    local ultAbilityid = FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, hotbar)
-    local incap = 113105
-    local cost = 0
-    if ultAbilityid and (ultAbilityid > 0) then
-        if ultAbilityid == incap
-        then
-            ultAbilityid = 70
-        else
-            cost = GetAbilityCost(ultAbilityid, COMBAT_MECHANIC_FLAGS_ULTIMATE, nil, "player")
-        end
-    else
-        return baseColor
-    end
-    if cost == 0 then
-        return baseColor
-    end
-    if current == 500 then
-        return maxColor
-    elseif current >= cost then
+    -- Localize constants to avoid repeated table lookups
+    local constants = FancyActionBar.constants.ult.value
+    local baseColor = constants.color
+    local maxColor = constants.maxColor
+
+    -- Early return for max value case
+    if current == 500 then return maxColor end
+
+    -- Get ability ID and handle special cases
+    local ultAbilityId = FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, hotbar)
+    if not ultAbilityId or ultAbilityId <= 0 then return baseColor end
+
+    -- Calculate cost
+    local cost = ultAbilityId == 113105 and 70 or GetAbilityCost(ultAbilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, nil, "player")
+    if cost == 0 then return baseColor end
+
+    -- Calculate color based on thresholds
+    local ratio = current / cost
+    local usableColor = constants.usableColor
+    local threshold = constants.threshold
+    local thresholdColor = constants.usableThresholdColor
+
+    if current >= cost then
         return usableColor
-    elseif (current / cost) >= threshold then
+    elseif ratio >= threshold then
         return thresholdColor
-    else
-        return baseColor
     end
+
+    return baseColor
 end
 
 --------------------------------------------------------------------------------
