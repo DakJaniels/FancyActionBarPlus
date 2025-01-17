@@ -1476,7 +1476,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
             end
         end
         stacksControl:SetText("")
-    elseif allowStacks and effect.stackId then
+    elseif SV.showStackCount and allowStacks and effect.stackId then
         local stacks, maxStacks
         local stackCounts = {}
         for i = 1, #effect.stackId do
@@ -1486,11 +1486,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
         end
         maxStacks = FancyActionBar.getStackValue(stackCounts)
         stacks = maxStacks and maxStacks ~= 0 and maxStacks or ""
-        if SV.showStackCount then
-            stacksControl:SetText(stacks)
-        else
-            stacksControl:SetText("")
-        end
+        stacksControl:SetText(stacks)
     else
         stacksControl:SetText("")
     end
