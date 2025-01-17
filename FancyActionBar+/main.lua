@@ -1440,8 +1440,10 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     if SV.allowParentTime and not isCastTime and duration <= 0 and sourceEndTime and sourceEndTime > currentTime then
         duration = sourceEndTime - currentTime
         isParentTime = true
-        hasDuration = true -- Parent time implies there's a valid duration
+        -- hasDuration = true
     end
+
+    isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
 
     -- Handle toggled effects
     if effect.toggled then
@@ -1542,7 +1544,7 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
                 stacksControl:SetText(stacks)
                 stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
             else
-            stacksControl:SetText("")
+                stacksControl:SetText("")
             end
         end
     end
