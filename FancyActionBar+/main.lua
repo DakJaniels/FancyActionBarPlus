@@ -1361,7 +1361,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     overlay = FancyActionBar.overlays[index]
     if overlay then
         local effect = overlay.effect
-        local allowStacks = overlay.stacks
+        local allowStacks = SV.showStackCount and overlay.stacks
         local durationControl = overlay.timer
         local bgControl = overlay.bg
         local stacksControl = overlay.stack
@@ -1476,7 +1476,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
             end
         end
         stacksControl:SetText("")
-    elseif SV.showStackCount and allowStacks and effect.stackId then
+    elseif allowStacks and effect.stackId then
         local stacks, maxStacks
         local stackCounts = {}
         for i = 1, #effect.stackId do
