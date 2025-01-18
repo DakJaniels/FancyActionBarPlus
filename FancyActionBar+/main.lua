@@ -247,7 +247,7 @@ local scale = 100                          -- default or custom scale of the act
 local updateRate = 100                     -- overlay update interval
 
 local class = 0                            -- player class for tracking problematic abilities
-local lastButton = 0                       -- for repositioning of skill buttons
+-- local lastButton = 0                       -- for repositioning of skill buttons
 local channeledAbilityUsed = nil           -- for tracking channeling abilities
 local isChanneling = false                 -- for tracking channeling abilities
 local wasBlockActive = false               -- for tracking block state
@@ -860,14 +860,15 @@ end
 --- @param config boolean Optional flag to determine if a new effect should be created if it doesn't exist.
 --- @param custom any Custom data associated with the effect.
 --- @param toggled boolean Indicates if the effect is toggled on or off.
+--- @param tickRate number The rate at which the effect ticks in seconds.
 --- @param ignore boolean Flag to ignore certain conditions.
+--- @param passive boolean Flag to indicate if the effect is passive.
 --- @param instantFade boolean Flag to indicate if the effect should fade instantly.
 --- @param dontFade boolean Flag to prevent fading of the effect.
 --- @param isChanneled boolean Flag to indicate if the effect is channeled.
---- @param effectChanged boolean  Flag to indicate if the effect is changed.
+--- @param effectChanged boolean Flag to indicate if the effect is changed.
 --- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, tickRate, ignore, passive, instantFade, dontFade,
-    isChanneled, effectChanged)
+function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged)
     --- @alias effect table
     local effect = FancyActionBar.effects[id] or {}
 
@@ -3079,7 +3080,7 @@ end
 --- @param style table
 --- @param weaponSwapControl userdata
 function FancyActionBar.SetupButtons(style, weaponSwapControl)
-    local lastButton
+    local lastButton = nil
 
     for i = MIN_INDEX, MAX_INDEX do
         local button = ZO_ActionBar_GetButton(i)
@@ -3126,7 +3127,7 @@ end
 --- @param style table
 --- @param weaponSwapControl userdata
 function FancyActionBar.SetupOverlays(style, weaponSwapControl)
-    local lastButton
+    local lastButton = nil
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.CreateOverlay(i)
 
