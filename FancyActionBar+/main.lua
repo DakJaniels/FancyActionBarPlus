@@ -1819,7 +1819,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
     local cfg = abilityConfig[abilityId]
     local ignore = false
-    local passive = false
+    passive = false
 
     if cfg == false and stackId == nil then
         ignore = true
