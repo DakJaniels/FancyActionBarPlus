@@ -3185,6 +3185,7 @@ end
 --- @param inactive userdata
 --- @param firstTop boolean
 --- @param locked boolean
+--- @param inactiveHotbarCategory HotBarCategory
 local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotbarCategory)
     local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2
     local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2
