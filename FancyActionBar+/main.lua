@@ -1496,7 +1496,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
             end
         end
         stacksControl:SetText("")
-    elseif allowStacks and effect.stackId then
+    elseif SV.showStackCount and allowStacks and effect.stackId then
         local stacks, maxStacks
         local stackCounts = {}
         for i = 1, #effect.stackId do
@@ -1990,7 +1990,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
     -- Assign effect to overlay.
     overlay["effect"] = effect
-    overlay["allowStacks"] = SV.showStackCount and ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
+    overlay["allowStacks"] =  effectId == abilityId or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
 
 
     if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then
