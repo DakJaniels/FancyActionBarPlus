@@ -402,6 +402,13 @@ function FancyActionBar.GetSlotBoundAbilityId(index, bar)
     return id
 end
 
+function FancyActionBar.GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
+    overrideActiveRank = overrideActiveRank or nil
+    overrideCasterUnitTag = overrideCasterUnitTag or "player"
+    return GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
+end
+
+local GetAbilityDuration = FancyActionBar.GetAbilityDuration
 local function CheckHyperTools()
     if _G["HyperTools"] then
         return "HT"
@@ -1857,7 +1864,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
             end
             custom = true
             toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or FancyActionBar.toggled[abilityId] or false
-            tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId) or 0) / 1000)
+            tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
             passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false
             instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false
             dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false
@@ -1868,7 +1875,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         effectId = abilityId
         custom = false
         toggled = FancyActionBar.toggled[effectId] or false
-        tickRate = ((FancyActionBar.toggleTickRate[effectId] or GetAbilityFrequencyMS(effectId) or 0) / 1000)
+        tickRate = ((FancyActionBar.toggleTickRate[effectId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
         passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false
         instantFade = FancyActionBar.removeInstantly[effectId] or false
         dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false
@@ -2518,7 +2525,7 @@ function FancyActionBar.AdjustControlsPositions() -- resource bars and default a
     FAB_ActionBarFakeQS:SetAnchor(LEFT, ACTION_BAR, LEFT, 0, -5, FAB_ActionBarFakeQS:GetResizeToFitConstrains())
 
     local style = FancyActionBar.GetContants()
-    local anchor = ZO_Anchor:New()
+    local anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, 0, ANCHOR_CONSTRAINS_XY)
 
     if FancyActionBar.updateUI then
         -- Move action bar and attributes up a bit.
@@ -4066,6 +4073,18 @@ function FancyActionBar.Initialize()
     defaultSettings = FancyActionBar.defaultSettings
     SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName())
     CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName())
+    -- Initialize saved variables
+    if SV.abMove == nil then
+        SV.abMove = {}
+    end
+
+    if SV.abMove.kb == nil then
+        SV.abMove.kb = { enable = false, x = 0, y = -22, prevX = 0, prevY = -22 }
+    end
+
+    if SV.abMove.gp == nil then
+        SV.abMove.gp = { enable = false, x = 0, y = -75, prevX = 0, prevY = -75 }
+    end
     FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
     for i = MIN_INDEX, ULT_INDEX do
         FancyActionBar.SetSlottedEffect(i, 0, 0)
@@ -4078,12 +4097,6 @@ function FancyActionBar.Initialize()
     FancyActionBar.updateUI = true
 
     FancyActionBar.UpdateTextures()
-
-    --[[   if GetDisplayName() == "@dack_janiels" then
-    FancyActionBar.SetPersonalSettings();
-    noget = true;
-    if SV.debuffTable == nil then SV.debuffTable = {}; end;
-  end; ]]
 
     SLASH_COMMANDS[slashCommand] = FancyActionBar.SlashCommand
 
@@ -5050,6 +5063,7 @@ function FancyActionBar.Initialize()
         SetAbilityBarTimersEnabled()
         EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
         FancyActionBar.ApplyStyle()
+        FancyActionBar.InitializeScreenResizeHandler()
         OnAllHotbarsUpdated()
         FancyActionBar.SwapControls()
         FancyActionBar.ApplyAbilityFxOverrides()
@@ -5490,50 +5504,5 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         sv.addonVersion = FancyActionBar.GetVersion()
     end
 end
-
--- function FancyActionBar.SetPersonalSettings()  -- cause I like my UI fancy...
---     local s = GetControl("ZO_SynergyTopLevel") -- add my button frame to the syngergy button pop-up and rearrange the layout.
---     local c = s:GetNamedChild("Container")
---     local a = c:GetNamedChild("Action")
---     local k = c:GetNamedChild("Key")
---     local i = c:GetNamedChild("Icon")
---     local f = i:GetNamedChild("Frame")
-
---     i:SetDimensions(50, 50)
---     f:SetHidden(true)
---     local e = CreateControl("$(parent)Edge", i, CT_TEXTURE)
---     e:SetDimensions(50, 50)
---     e:ClearAnchors()
---     e:SetAnchor(TOPLEFT, i, TOPLEFT, 0, 0)
---     e:SetTexture("/FancyActionBar+/texture/abilityFrame64_up.dds")
---     e:SetColor(unpack(SV.frameColor))
---     e:SetDrawLayer(2)
---     k:ClearAnchors()
---     k:SetScale(0.85)
---     k:SetAnchor(BOTTOMLEFT, i, BOTTOMRIGHT, 5, 0)
---     a:ClearAnchors()
---     a:SetFont("$(BOLD_FONT)|$(KB_18)|outline")
---     a:SetAnchor(BOTTOMLEFT, k, TOPLEFT, 5, 5)
-
---     local sub = GetControl("ZO_Subtitles")
---     local text = sub:GetNamedChild("Text")
---     text:ClearAnchors()
---     text:SetAnchor(TOP, sub, TOP, 0, 0)
---     text:SetVerticalAlignment(TOP)
-
---     local function HookDestroyConfirm() -- cause typing 'CONFIRM' is too exhausting...
---         zo_callLater(function ()
---             if ZO_Dialog1 and ZO_Dialog1.textParams and ZO_Dialog1.textParams.mainTextParams then
---                 for _, v in pairs(ZO_Dialog1.textParams.mainTextParams) do
---                     if v == string.upper(v) then
---                         ZO_Dialog1EditBox:SetText(v)
---                         ZO_Dialog1EditBox:LoseFocus()
---                     end
---                 end
---             end
---         end, 10)
---     end
---     ZO_PreHook(_G, "ZO_Dialogs_ShowDialog", HookDestroyConfirm)
--- end
 
 EM:RegisterForEvent(NAME, EVENT_ADD_ON_LOADED, FancyActionBar.OnAddOnLoaded)

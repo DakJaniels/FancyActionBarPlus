@@ -4,7 +4,7 @@ local LAM = LibAddonMenu2
 local LMP = LibMediaProvider
 local EM = GetEventManager()
 local WM = GetWindowManager()
-local SM = SCENE_MANAGER
+local GetAbilityDuration = FancyActionBar.GetAbilityDuration
 --- @class FAB_AC_SV
 local SV = ...
 --- @class FAB_DC_SV
@@ -6554,12 +6554,31 @@ function FancyActionBar.ResetMoveActionBar()
     local v, d = FancyActionBar:GetMovableVarsForUI()
     SaveCurrentLocation()
     ACTION_BAR:ClearAnchors()
+
+    -- Calculate center position
+    local screenWidth = GuiRoot:GetWidth()
+    local screenHeight = GuiRoot:GetHeight()
+    local barWidth = ACTION_BAR:GetWidth()
+    local barHeight = ACTION_BAR:GetHeight()
+    local centerX = (screenWidth - barWidth) / 2
+    local defaultY = screenHeight - barHeight - 20 -- 20px padding from bottom
+
+    -- Use the game's default bottom anchoring with calculated center position
     ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y)
+
+    -- Register for screen resize events to maintain position
+    ACTION_BAR:RegisterForEvent(EVENT_SCREEN_RESIZED, function ()
+        if not v.enable then
+            local newCenterX = (GuiRoot:GetWidth() - ACTION_BAR:GetWidth()) / 2
+            local newDefaultY = GuiRoot:GetHeight() - ACTION_BAR:GetHeight() - 20
+            ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y)
+        end
+    end)
+
     ReanchorMover()
     FancyActionBar.SaveMoverPosition()
     FancyActionBar.SetMoved(false)
-    if FancyActionBar.style == 2
-    then
+    if FancyActionBar.style == 2 then
         SV.abMove.gp.x = d.x
         SV.abMove.gp.y = d.y
         SV.abMove.gp.enable = false
@@ -6618,11 +6637,34 @@ end
 function FancyActionBar.MoveActionBar()
     local v, d = FancyActionBar:GetMovableVarsForUI()
     FancyActionBar.SetMoved(v.enable or false)
+
+    ACTION_BAR:ClearAnchors()
+
     if v.enable then
-        ACTION_BAR:ClearAnchors()
-        ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, v.x, v.y)
+        -- Ensure the action bar stays within screen bounds
+        local screenWidth = GuiRoot:GetWidth()
+        local screenHeight = GuiRoot:GetHeight()
+        local barWidth = ACTION_BAR:GetWidth()
+        local barHeight = ACTION_BAR:GetHeight()
+
+        -- Clamp position to screen bounds with padding
+        local padding = 20
+        local x = zo_clamp(v.x, -barWidth + padding, screenWidth - padding)
+        local y = zo_clamp(v.y, -barHeight + padding, screenHeight - padding)
+
+        ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
+
+        -- Update stored position if it was clamped
+        if x ~= v.x or y ~= v.y then
+            if FancyActionBar.style == 2 then
+                SV.abMove.gp.x = x
+                SV.abMove.gp.y = y
+            else
+                SV.abMove.kb.x = x
+                SV.abMove.kb.y = y
+            end
+        end
     else
-        ACTION_BAR:ClearAnchors()
         ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y)
     end
 end
@@ -6733,4 +6775,43 @@ function FancyActionBar.UpdateScale(s)
     local scale = s
     ACTION_BAR:SetScale(scale)
     RefreshMoverSize()
+end
+
+function FancyActionBar.InitializeScreenResizeHandler()
+    local function OnScreenResize()
+        local v = FancyActionBar:GetMovableVarsForUI()
+        if v.enable then
+            -- Recalculate position when screen is resized
+            local screenWidth = GuiRoot:GetWidth()
+            local screenHeight = GuiRoot:GetHeight()
+            local barWidth = ACTION_BAR:GetWidth()
+            local barHeight = ACTION_BAR:GetHeight()
+
+            -- Maintain relative position on screen
+            local relativeX = v.x / screenWidth
+            local relativeY = v.y / screenHeight
+
+            -- Apply new position with bounds checking
+            local padding = 20
+            local newX = zo_clamp(relativeX * screenWidth, -barWidth + padding, screenWidth - padding)
+            local newY = zo_clamp(relativeY * screenHeight, -barHeight + padding, screenHeight - padding)
+
+            ACTION_BAR:ClearAnchors()
+            ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, newX, newY)
+
+            -- Update stored position
+            if FancyActionBar.style == 2 then
+                SV.abMove.gp.x = newX
+                SV.abMove.gp.y = newY
+            else
+                SV.abMove.kb.x = newX
+                SV.abMove.kb.y = newY
+            end
+
+            -- Update mover position
+            ReanchorMover()
+        end
+    end
+
+    EVENT_MANAGER:RegisterForEvent("FancyActionBar_ScreenResize", EVENT_SCREEN_RESIZED, OnScreenResize)
 end

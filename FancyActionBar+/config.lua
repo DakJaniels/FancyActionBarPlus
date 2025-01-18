@@ -1,5 +1,6 @@
 --- @class (partial) FancyActionBar
 local FancyActionBar = FancyActionBar
+local GetAbilityDuration = FancyActionBar.GetAbilityDuration
 
 --- @param summonShade integer
 --- @return integer

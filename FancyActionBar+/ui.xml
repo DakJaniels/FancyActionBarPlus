@@ -1,40 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GuiXml
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://sir.insidi.at/or/schema/esoui.xsd">
-  <Controls>
-    <!-- Main Control -->
-    <Control name="FAB_ActionBar" inheritAlpha="false">
-      <OnInitialized>
+<GuiXml>
+	<Controls>
+		<!-- Main Control -->
+		<Control name="FAB_ActionBar"
+		         inheritAlpha="false"
+             movable="true">
+			<OnInitialized>
         <![CDATA[FancyActionBar.OnActionBarInitialized(self)]]>
       </OnInitialized>
-      <Controls>
-        <Texture name="$(parent)Arrow" textureFile="esoui/art/buttons/large_rightarrow_up.dds" color="00FF00">
-          <Dimensions x="64" y="64" />
-          <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="ActionButton3" offsetX="5" />
-        </Texture>
-        <Texture name="$(parent)FakeQS" textureFile="esoui/art/buttons/large_rightarrow_up.dds" hidden="true">
-          <Dimensions x="64" y="64" />
-          <Anchor point="LEFT" relativePoint="LEFT" relativeTo="ZO_ActionBar1" offsetX="0" />
-        </Texture>
-      </Controls>
-    </Control>
-    <!-- GCD Tracker -->
-    <TopLevelControl name="FAB_GCD" tier="HIGH" inheritScale="false" resizeToFitConstrains="XY">
-      <Dimensions x="100" y="100" />
-      <OnMoveStop>
+			<Controls>
+				<Texture name="$(parent)Arrow"
+				         textureFile="esoui/art/buttons/large_rightarrow_up.dds"
+				         color="00FF00">
+					<Dimensions x="64"
+					            y="64"/>
+					<Anchor point="RIGHT"
+					        relativePoint="LEFT"
+					        relativeTo="ActionButton3"
+					        offsetX="5"/>
+				</Texture>
+				<Texture name="$(parent)FakeQS"
+				         textureFile="esoui/art/buttons/large_rightarrow_up.dds"
+				         hidden="true">
+					<Dimensions x="64"
+					            y="64"/>
+					<Anchor point="LEFT"
+					        relativePoint="LEFT"
+					        relativeTo="ZO_ActionBar1"
+					        offsetX="0"/>
+				</Texture>
+			</Controls>
+		</Control>
+		<!-- GCD Tracker -->
+		<TopLevelControl name="FAB_GCD"
+		                 tier="HIGH"
+		                 inheritScale="false"
+		                 resizeToFitConstrains="XY">
+			<Dimensions x="100"
+			            y="100"/>
+			<OnMoveStop>
         <![CDATA[FancyActionBar.SaveGCDPosition()]]>
       </OnMoveStop>
-    </TopLevelControl>
-    <!-- Actionbar Mover -->
-    <TopLevelControl name="FAB_Mover" hidden="true" alpha="1" resizeToFitConstrains="XY" movable="false" mouseEnabled="false" tier="HIGH">
-      <Dimensions x="1" y="1" />
-      <Anchor point="BOTTOM" relativeTo="ZO_ActionBar1" relativePoint="BOTTOM" />
-      <OnMoveStop>
+		</TopLevelControl>
+		<!-- Actionbar Mover -->
+		<TopLevelControl name="FAB_Mover"
+		                 hidden="true"
+		                 alpha="1"
+		                 resizeToFitConstrains="XY"
+		                 movable="false"
+		                 mouseEnabled="false"
+		                 tier="HIGH">
+			<Dimensions x="1"
+			            y="1"/>
+			<Anchor point="BOTTOM"
+			        relativeTo="ZO_ActionBar1"
+			        relativePoint="BOTTOM"/>
+			<OnMoveStop>
         <![CDATA[FancyActionBar.SaveMoverPosition()]]>
       </OnMoveStop>
-      <Controls>
-        <Backdrop name="$(parent)BG" inherits="FAB_BG" />
-      </Controls>
-    </TopLevelControl>
-  </Controls>
+			<Controls>
+				<Backdrop name="$(parent)BG"
+				          inherits="FAB_BG"/>
+			</Controls>
+		</TopLevelControl>
+	</Controls>
 </GuiXml>
