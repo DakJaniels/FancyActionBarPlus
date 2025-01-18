@@ -1205,7 +1205,7 @@ function FancyActionBar.ResetOverlayDuration(overlay)
         end
         if overlay.effect then
             local effect = overlay.effect
-            if overlay.stacks and effect.stackId then
+            if overlay.allowStacks and effect.stackId then
                 local stackId = effect.stackId
                 for i = 1, #stackId do
                     local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackId[i])
@@ -1361,7 +1361,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
     overlay = FancyActionBar.overlays[index]
     if overlay then
         local effect = overlay.effect
-        local allowStacks = SV.showStackCount and overlay.stacks
+        local allowStacks = overlay.allowStacks
         local durationControl = overlay.timer
         local bgControl = overlay.bg
         local stacksControl = overlay.stack
@@ -1401,28 +1401,40 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     local isCastTime, isParentTime, isFading = false, false, false
 
     -- Handle cast/channel time overrides
-    if SV.showCastDuration and effect.castEndTime then
+    if SV.showCastDuration and (effect.castEndTime or effect.castDuration) then
         isCastTime = true
-        duration = zo_max(0, effect.castEndTime - currentTime)
-        if duration == 0 and effect.endTime and effect.endTime + fadeDelay > currentTime then
+        local isBlockActive = IsBlockActive()
+        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not isChanneling)
+        wasBlockActive = isBlockActive
+
+        if blockCancelled or not isChanneling then
+            effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
+            isChanneling = false
+        end
+
+        if effect.castEndTime and effect.castEndTime >= currentTime then
+            duration = effect.castEndTime - currentTime
+        elseif effect.endTime and effect.endTime + fadeDelay > currentTime then
             duration = effect.endTime - currentTime
         else
             effect.endTime = -1
             hasDuration = false
         end
+
+        if channeledAbilityUsed and effect.castEndTime and effect.castEndTime >= currentTime then
+            channeledAbilityUsed = nil
+        end
     elseif effect.endTime and effect.endTime + fadeDelay > currentTime then
         if SV.showSoonestExpire and FancyActionBar.targets[effect.id] and FancyActionBar.targets[effect.id].targetCount > 0 and not (SV.advancedDebuff and effect.isDebuff) then
-            local targetData = FancyActionBar.targets[effect.id]
-            local targetEndTime = nil
-
-            if targetData and targetData.times then
+            local targetData = FancyActionBar.targets[effect.id] or {}
+            local targetEndTime
+            if targetData.times then
                 for unitId, timeData in pairs(targetData.times) do
                     if not targetEndTime or (timeData.endTime > currentTime and timeData.endTime < targetEndTime) then
                         targetEndTime = timeData.endTime
                     end
                 end
             end
-
             if targetEndTime and targetEndTime > currentTime then
                 duration = targetEndTime - currentTime
             else
@@ -1440,10 +1452,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     if SV.allowParentTime and not isCastTime and duration <= 0 and sourceEndTime and sourceEndTime > currentTime then
         duration = sourceEndTime - currentTime
         isParentTime = true
-        -- hasDuration = true
     end
-
-    isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
 
     -- Handle toggled effects
     if effect.toggled then
@@ -1454,6 +1463,9 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         end
         hasDuration = isToggled
     end
+
+    -- Determine fading state
+    isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
 
     -- Format visuals and update controls
     local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
@@ -1522,7 +1534,7 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
     end
     if overlay then
         local stacksControl = overlay.stack
-        if overlay.effect and overlay.stacks then
+        if overlay.effect and overlay.allowStacks then
             local effect = overlay.effect
             local stackId = effect.stackId
             local stacks, stackCount
@@ -1572,7 +1584,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     local overlay = FancyActionBar.ultOverlays[index]
     if overlay then
         local effect = overlay.effect or { id = 0, endTime = -1 }
-        local allowStacks = overlay.stacks
+        local allowStacks = overlay.allowStacks
         local durationControl = overlay.timer
         local stacksControl = overlay.stack
         local targetsControl = overlay.target
@@ -1967,20 +1979,15 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         end
     end
     -- Assign effect to overlay.
-    if overlay then
-        overlay.effect = effect
-    end
+    overlay["effect"] = effect
+    overlay["allowStacks"] = SV.showStackCount and ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
 
-    local validStacksForOverlay = ((effectId == abilityId) and true) or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
-    if overlay then
-        overlay.stacks = validStacksForOverlay
-    end
 
     if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then
         FancyActionBar.UpdateTargets(index)
     end
 
-    if overlay.stacks then
+    if overlay.allowStacks then
         if FancyActionBar.stacks[effect.id] then
             FancyActionBar.UpdateOverlay(index)
             FancyActionBar.UpdateStacks(index)
