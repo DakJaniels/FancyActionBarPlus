@@ -1494,8 +1494,7 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
         local stackCounts = {}
         for i = 1, #effect.stackId do
             local stackId = effect.stackId[i]
-            local currentStacks = FancyActionBar.stacks[stackId]
-            table.insert(stackCounts, currentStacks)
+            stackCounts[i] = FancyActionBar.stacks[stackId]
         end
         maxStacks = FancyActionBar.getStackValue(stackCounts)
         stacks = maxStacks and maxStacks ~= 0 and maxStacks or ""
@@ -1540,12 +1539,17 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
             local stackId = effect.stackId
             local stacks, stackCount
             local stackCounts = {}
+            local stackIndex = 1
+
             stackCount = FancyActionBar.stacks[effect.id]
-            table.insert(stackCounts, stackCount)
+            stackCounts[stackIndex] = stackCount
+            stackIndex = stackIndex + 1
+
             if effect.stackId and #effect.stackId > 0 then
                 for i = 1, #stackId do
                     stackCount = FancyActionBar.stacks[stackId[i]]
-                    table.insert(stackCounts, stackCount)
+                    stackCounts[stackIndex] = stackCount
+                    stackIndex = stackIndex + 1
                 end
             end
             stacks = FancyActionBar.getStackValue(stackCounts)
