@@ -1,10 +1,5 @@
-/.editorconfig
-/.vscode
-/libs
+.vscode
+.eso_docs
+test.lua
 ui_Definitions.lua
-FAB_SV.lua
-esoui101042.xsd
-esobindings.xsd
-/.meta
-/.emmyrc.json
-/.luarc.json
+cspell.json
