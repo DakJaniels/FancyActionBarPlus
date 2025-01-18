@@ -1819,8 +1819,6 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
     local cfg = abilityConfig[abilityId]
     local ignore = false
-    passive = false
-
     if cfg == false and stackId == nil then
         ignore = true
     end
@@ -4462,10 +4460,10 @@ function FancyActionBar.Initialize()
                 -- effect.endTime = 0
             end
             if not FancyActionBar.fixedStacks[abilityId] then
-                for id, effect in pairs(FancyActionBar.effects) do
-                    if effect.stackId and #effect.stackId > 0 then
-                        for j = 1, #effect.stackId do
-                            if effect.stackId[j] == abilityId then
+                for id, knownEffect in pairs(FancyActionBar.effects) do
+                    if knownEffect.stackId and #knownEffect.stackId > 0 then
+                        for j = 1, #knownEffect.stackId do
+                            if knownEffect.stackId[j] == abilityId then
                                 FancyActionBar.stacks[abilityId] = stackCount or 0
                                 FancyActionBar.HandleStackUpdate(id)
                             end
@@ -4604,13 +4602,13 @@ function FancyActionBar.Initialize()
 
                     effect.endTime = endTime
 
-                    for id, effect in pairs(FancyActionBar.effects) do
-                        if effect.stackId and ((effectType ~= DEBUFF) or FancyActionBar.fixedStacks[abilityId]) then
+                    for id, knownEffect in pairs(FancyActionBar.effects) do
+                        if knownEffect.stackId and ((effectType ~= DEBUFF) or FancyActionBar.fixedStacks[abilityId]) then
                             if FancyActionBar.fixedStacks[abilityId] then
                                 stackCount = FancyActionBar.fixedStacks[abilityId]
                             end
-                            for i = 1, #effect.stackId do
-                                if effect.stackId[i] == abilityId then
+                            for i = 1, #knownEffect.stackId do
+                                if knownEffect.stackId[i] == abilityId then
                                     FancyActionBar.stacks[abilityId] = stackCount or 0
                                     FancyActionBar.HandleStackUpdate(id)
                                 end
