@@ -1470,10 +1470,11 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
             isFading = duration <= SV.showTickStart and SV.showTickExpire or false
         end
         hasDuration = isToggled
+    else
+        -- Determine fading state for non-toggles
+        isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
     end
 
-    -- Determine fading state
-    isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
 
     -- Format visuals and update controls
     local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
