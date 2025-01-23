@@ -1618,7 +1618,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         type = "panel",
         name = "Fancy Action Bar+",
         displayName = "Fancy Action Bar+",
-        author = "|cFFFF00@andy.s|r, @nogetrandom\nModified by: @dack_janiels, @Incanus",
+        author = "|cFFFF00@andy.s|r, @nogetrandom\nMaintained by: @dack_janiels, @Incanus",
         version = string.format("|c00FF00%s|r", FancyActionBar.GetVersion()),
         registerForRefresh = true,
         -- registerForDefaults = true
