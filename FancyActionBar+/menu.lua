@@ -234,10 +234,11 @@ end
 
 ---
 --- @param id string|number
---- @return boolean
+--- @return boolean isValidAbility
+--- @return boolean isCraftedAbility
 local function IsValidId(id)
-    --- @type string|number?
-    local abilityId
+    local abilityId --- @type string|number?
+    local isValidAbility, isCraftedAbility = false, false --- @type boolean, boolean
     if type(id) == "string" then
         local extractedAbilityId, extractedScriptKey = id:match("^(%d+)%-(.+)$")
         if not extractedAbilityId then
@@ -249,14 +250,16 @@ local function IsValidId(id)
     end
 
     if abilityId == 0 or type(abilityId) ~= "number" then
-        return false
+        return false, false
+    end
+    isValidAbility = DoesAbilityExist(abilityId)
+    if not isValidAbility then
+        return isValidAbility, false
     end
 
-    if not DoesAbilityExist(abilityId) then
-        return false
-    end
+    isCraftedAbility = GetAbilityCraftedAbilityId(abilityId) ~= 0
 
-    return true
+    return isValidAbility, isCraftedAbility
 end
 
 local function UpdateAzurahDb()
@@ -321,7 +324,8 @@ local function GetSkillToBlacklistName()
 end
 
 local function SetSkillToBlacklistID(id)
-    if not IsValidId(id) then
+    local isValid = IsValidId(id)
+    if not isValid then
         Chat("|cffffff" .. id .. " is not a valid ID.")
         skillToBlacklistID = 0
         skillToBlacklistName = ""
@@ -451,7 +455,8 @@ local function GetMultiTargetSkillToBlacklistName()
 end
 
 local function SetMultiTargetSkillToBlacklistID(id)
-    if not IsValidId(id) then
+    local isValid = IsValidId(id)
+    if not isValid then
         Chat("|cffffff" .. id .. " is not a valid ID.")
         multiTargetSkillToBlacklistID = 0
         multiTargetSkillToBlacklistName = ""
@@ -819,8 +824,32 @@ end
 
 local function GetSkillToEditID()
     local id = ""
-    if IsValidId(skillToEditID) then
-        id = tostring(skillToEditID)
+    local isValid, isCrafted = IsValidId(skillToEditID)
+    if isValid then
+        if isCrafted then
+            local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$")
+            if not extractedAbilityId then
+                extractedAbilityId = skillToEditID:match("^(%d+)$")
+            end
+            extractedAbilityId = tonumber(extractedAbilityId)
+            if extractedScriptKey then
+                id = tostring(skillToEditID)
+            else
+                local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId)
+                local scripts ={ GetCraftedAbilityActiveScriptIds(craftedId) }
+                local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
+                if scriptKey ~= "0_0_0" then
+                    SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]))
+                    id = tostring(extractedAbilityId) .. "-" .. tostring(scriptKey)
+                    ResetCraftedAbilityScriptSelectionOverride()
+                    skillToEditID = id
+                else
+                    id = tostring(extractedAbilityId)
+                end
+            end
+        else
+            id = tostring(skillToEditID)
+        end
     end
     return id
 end
@@ -828,7 +857,8 @@ end
 local function GetSkillToEditName() -- Not Working Properly?
     local name = ""
     local scripts = {}
-    if IsValidId(skillToEditID) then
+    local isValid = IsValidId(skillToEditID)
+    if isValid then
         local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$")
         if not extractedAbilityId then
             extractedAbilityId = skillToEditID:match("^(%d+)$")
@@ -850,8 +880,10 @@ end
 local function GetEffectToTrackName()
     local name = ""
     local nameString = ""
-    if IsValidId(effectToTrackID) then
-        if IsValidId(skillToEditID) then
+    local isValidEffect = IsValidId(effectToTrackID)
+    local isValidSkill = IsValidId(skillToEditID)
+    if isValidEffect then
+        if isValidSkill then
             local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$")
             if not extractedAbilityId then
                 extractedAbilityId = skillToEditID:match("^(%d+)$")
@@ -876,7 +908,8 @@ end
 
 local function GetEffectToTrackID()
     local id = ""
-    if IsValidId(effectToTrackID) then
+    local isValid = IsValidId(effectToTrackID)
+    if isValid then
         id = tostring(effectToTrackID)
     end
     return id
@@ -884,7 +917,8 @@ end
 
 local function GetSelectedChangedSkill()
     local skill = "== Select a Skill =="
-    if IsValidId(selectedChangedSkill) then
+    local isValid = IsValidId(selectedChangedSkill)
+    if isValid then
         if changedSkillStrings[selectedChangedSkill] then
             skill = changedSkillStrings[selectedChangedSkill]
         end
@@ -893,7 +927,8 @@ local function GetSelectedChangedSkill()
 end
 
 local function SetSkillToEditID(id)
-    if id == "" or not IsValidId(id) then
+    local isValid, isCrafted = IsValidId(id)
+    if id == "" or not isValid then
         if id ~= "" then
             Chat("|cffffff" .. id .. " is not a valid ID.")
         end
@@ -903,38 +938,51 @@ local function SetSkillToEditID(id)
         return
     end
 
-    local i = nil
-
     local extractedAbilityId, extractedScriptKey = id:match("^(%d+)%-(.+)$")
     if not extractedAbilityId then
         extractedAbilityId = id:match("^(%d+)$")
     end
-    if tonumber(extractedAbilityId) then
-        i = tonumber(extractedAbilityId)
-        skillToEditName = GetAbilityName(i)
-        local craftedId = GetAbilityCraftedAbilityId(i)
-        if craftedId ~= 0 then
-            local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) }
+
+    if isCrafted then
+        local craftedId, scripts, scriptKey
+        local scriptsStr = ""
+
+        craftedId = GetAbilityCraftedAbilityId(tonumber(extractedAbilityId))
+        scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) }
+        scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
+        d(scriptKey)
+        if scriptKey ~= "0_0_0" then
+
             SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]))
-            local scriptKey = tostring(scripts[1]) .. "_" .. tostring(scripts[2]) .. "_" .. tostring(scripts[3])
-            local scriptsStr = tostring(" [" ..
-                (GetCraftedAbilityScriptDisplayName(tonumber(scripts[1]))) ..
-                "/" ..
-                (GetCraftedAbilityScriptDisplayName(tonumber(scripts[2]))) ..
-                "/" .. (GetCraftedAbilityScriptDisplayName(tonumber(scripts[3]))) .. "]")
-            skillToEditID = (extractedScriptKey and (extractedAbilityId .. "-" .. scriptKey)) or extractedAbilityId
-            skillToEditName = GetCraftedAbilityDisplayName(craftedId) .. " " .. scriptsStr
+            id = tostring(extractedAbilityId) .. "-" .. tostring(scriptKey)
+            skillToEditName = GetCraftedAbilityDisplayName(craftedId)
             ResetCraftedAbilityScriptSelectionOverride()
+
+            scriptsStr = tostring(" [" ..
+            (GetCraftedAbilityScriptDisplayName(tonumber(scripts[1]))) ..
+            "/" ..
+            (GetCraftedAbilityScriptDisplayName(tonumber(scripts[2]))) ..
+            "/" .. (GetCraftedAbilityScriptDisplayName(tonumber(scripts[3]))) .. "]")
+
+            skillToEditID = id
+            WM:GetControlByName("SkillToEditID_Editbox").editbox:SetText(skillToEditID)
         else
             skillToEditID = extractedAbilityId
+            skillToEditName = GetCraftedAbilityDisplayName(craftedId)
         end
+        FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
+        WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
+    else
+        skillToEditID = extractedAbilityId
+        skillToEditName = GetAbilityName(tonumber(skillToEditID))
         FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
         WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
     end
 end
 
 local function SetEffectToTrackID(id)
-    if id == "" or not IsValidId(id) then
+    local isValid = IsValidId(id)
+    if id == "" or not isValid then
         if id ~= "" then
             Chat("|cffffff" .. id .. " is not a valid ID.")
         end
@@ -948,8 +996,8 @@ local function SetEffectToTrackID(id)
     if tonumber(id) then
         i = tonumber(id)
         effectToTrackID = i
-
-        if IsValidId(skillToEditID) then
+        local isValidEdit = IsValidId(skillToEditID)
+        if isValidEdit then
             local extractedAbilityId, extractedScriptKey = skillToEditID:match("^(%d+)%-(.+)$")
             if not extractedAbilityId then
                 extractedAbilityId = skillToEditID:match("^(%d+)$")
