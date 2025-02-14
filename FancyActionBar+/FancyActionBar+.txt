@@ -8,7 +8,7 @@
 ## DependsOn: LibAddonMenu-2.0>=37
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage LibMediaProvider
 ## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
-## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles
+## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles Untaunted
 
 lang/en.lua
 lang/$(language).lua
