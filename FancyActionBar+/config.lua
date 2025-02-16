@@ -506,6 +506,9 @@ FancyActionBar.abilityConfig =
     [183709] = { 183712 }, -- vitalizing glyphic
     [193794] = { 193797 }, -- glyphic of the tides
     [193558] = { 193559 }, -- resonating glyphic
+    [183648] = {61694},    -- fatewoven armor
+    [185908] = {61694},    -- cruxweaver armor
+    [186477] = {61694},    -- unbreakable fate
 
     -- Volendrung
     [116095] = { 61665 }, -- Major Brutality
@@ -1493,6 +1496,9 @@ FancyActionBar.ignoreFallbackTimers =
     [39089] = true,  -- ele sus
     [117805] = true, -- boneyard
     [39192] = true,  -- elude
+    [183648] = true, -- fatewoven armor
+    [185908] = true, -- cruxweaver armor
+    [186477] = true, -- unbreakable fate
 }
 
 FancyActionBar.dontFade =
