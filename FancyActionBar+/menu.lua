@@ -133,7 +133,7 @@ function FancyActionBar.GetFonts()
     end
 
     -- Add fonts from LibMediaProvider if available
-    if LMP then
+    if FancyActionBar.Compatability.LibMediaProvider_Enabled then
         for _, fontName in pairs(LMP:List(LMP.MediaType.FONT)) do
             -- Only add if we don't already have this font
             if not FAB_Fonts[fontName] then
@@ -263,7 +263,7 @@ local function IsValidId(id)
 end
 
 local function UpdateAzurahDb()
-    if not Azurah then
+    if not FancyActionBar.Compatability.Azurah_Enabled then
         return
     end
     if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
@@ -1771,7 +1771,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
+                            if FancyActionBar.Compatability.Azurah_Enabled then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1802,7 +1802,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
+                            if FancyActionBar.Compatability.Azurah_Enabled then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1853,7 +1853,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
+                            if FancyActionBar.Compatability.Azurah_Enabled then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -1884,7 +1884,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             FancyActionBar.SetScale()
                             FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
+                            if FancyActionBar.Compatability.Azurah_Enabled then UpdateAzurahDb() end
                             FancyActionBar.ToggleMover(false)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
@@ -5898,7 +5898,7 @@ end
 function FancyActionBar.UpdateTextures()
     RedirectTexture("EsoUI/Art/ActionBar/ability_ultimate_frameDecoBG.dds", FAB_BLANK)
     RedirectTexture("esoui/art/actionbar/abilityInset.dds", FAB_BG)
-    if BUI then
+    if FancyActionBar.Compatability.BanditsUserInterface_Enabled then
         if BUI.abilityframe then
             BUI.abilityframe = FAB_BLANK
         end
@@ -5988,7 +5988,7 @@ function FancyActionBar.ConfigureFrames()
     -- ZO_CenterScreenAnnouncementLine.smallCombinedIconFrame
     -- ZO_CenterScreenAnnouncementLine.iconControlFrame
 
-    if BUI then -- revert all this nonsense with no options or global access to prevent it initially.
+    if FancyActionBar.Compatability.BanditsUserInterface_Enabled then -- revert all this nonsense with no options or global access to prevent it initially.
         for i = 3, 9 do
             local name = "ActionButton" .. i
             local frame = _G[name]
@@ -6054,7 +6054,7 @@ function FancyActionBar.ConfigureFrames()
         end
     end
     SetDefaultAbilityFrame()
-    if _G["darkui"] then
+    if FancyActionBar.Compatability.DarkUI_Enabled then
         SetDarkUI()
     else
         ToggleFrameType()
@@ -6744,16 +6744,16 @@ function FancyActionBar.SaveMoverPosition()
     FancyActionBar.constants.move.y = y
     FancyActionBar.constants.move.enable = true
 
-    if Azurah then UpdateAzurahDb() end
+    if FancyActionBar.Compatability.Azurah_Enabled then UpdateAzurahDb() end
 
-    if BUI and BUI.Vars["ZO_ActionBar1"] then
+    if FancyActionBar.Compatability.BanditsUserInterface_Enabled and BUI.Vars["ZO_ActionBar1"] then
         BUI.Vars["ZO_ActionBar1"][1] = TOPLEFT
         BUI.Vars["ZO_ActionBar1"][2] = TOPLEFT
         BUI.Vars["ZO_ActionBar1"][3] = x
         BUI.Vars["ZO_ActionBar1"][4] = y
     end
 
-    if LUIE and LUIE.SV["ZO_ActionBar1"] then
+    if FancyActionBar.Compatability.LuiExtended_Enabled and LUIE.SV["ZO_ActionBar1"] then
         LUIE.SV["ZO_ActionBar1"][1] = x
         LUIE.SV["ZO_ActionBar1"][2] = y
     end
@@ -6769,7 +6769,7 @@ function FancyActionBar.RepositionHealthBar()
     if FancyActionBar.wasMoved then
         return
     end
-    if Azurah then
+    if FancyActionBar.Compatability.Azurah_Enabled then
         return
     end
     if SV.moveHealthBar then

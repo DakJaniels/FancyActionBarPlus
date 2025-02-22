@@ -612,3 +612,19 @@ function FancyActionBar:UpdateContants(mode, vars, style)
     c.style = style
     return c
 end
+
+FancyActionBar.Compatability =
+{
+    Azurah_Enabled = false,
+    BanditsUserInterface_Enabled = false,
+    DarkUI_Enabled = false,
+    LibChatMessage_Enabled = false,
+    LibMediaProvider_Enabled = false,
+    AdvancedDisableControllerUI_Enabled = false,
+    LuiExtended_Enabled = false,
+    PerfectWeave_Enabled = false,
+    HyperTools_Enabled = false,
+    HyperTankingTools_Enabled = false,
+    ActionBarSkillStyles_Enabled = false,
+    Untaunted_Enabled = false,
+}

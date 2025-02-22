@@ -277,7 +277,7 @@ local ChatManager =
 --- @param addonName string
 --- @param shortName string
 function ChatManager:Initialize(addonName, shortName)
-    if LibChatMessage then
+    if FancyActionBar.Compatability.LibChatMessage_Enabled then
         self.libChat = LibChatMessage(addonName, shortName)
     end
 end
@@ -410,9 +410,9 @@ end
 
 local GetAbilityDuration = FancyActionBar.GetAbilityDuration
 local function CheckHyperTools()
-    if _G["HyperTools"] then
+    if FancyActionBar.Compatability.HyperTools_Enabled then
         return "HT"
-    elseif _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
+    elseif FancyActionBar.Compatability.HyperTankingTools_Enabled and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
         return "HTT"
     else
         return ""
@@ -1991,7 +1991,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
     -- Assign effect to overlay.
     overlay["effect"] = effect
-    overlay["allowStacks"] =  effectId == abilityId or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
+    overlay["allowStacks"] = effectId == abilityId or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
 
 
     if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then
@@ -3561,7 +3561,7 @@ function FancyActionBar.UpdateStyle()
     if FancyActionBar.updateUI then
         mode = FancyActionBar.useGamepadActionBar and 2 or 1
     else
-        if ADCUI then
+        if FancyActionBar.Compatability.AdvancedDisableControllerUI_Enabled then
             if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
                 if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
                     mode = 2
@@ -4127,7 +4127,7 @@ function FancyActionBar.Initialize()
     end
 
     local useSlotsOverride = true
-    if PerfectWeave and SV.perfectWeave then
+    if FancyActionBar.Compatability.PerfectWeave_Enabled and SV.perfectWeave then
         useSlotsOverride = false
     end
 
@@ -5199,11 +5199,38 @@ function FancyActionBar.Initialize()
     SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false")
 end
 
+local function is_it_enabled(addonName)
+    local addonManager = GetAddOnManager()
+    local numAddOns = addonManager:GetNumAddOns()
+
+    for i = 1, numAddOns do
+        local name, _, _, _, _, state, _, _ = addonManager:GetAddOnInfo(i)
+
+        if name == addonName and state == ADDON_STATE_ENABLED then
+            return true
+        end
+    end
+
+    return false
+end
+
 function FancyActionBar.OnAddOnLoaded(event, addonName)
     if addonName == NAME then
         EM:UnregisterForEvent(NAME, EVENT_ADD_ON_LOADED)
         FancyActionBar.Initialize()
         FancyActionBar.updateUI = false
+        FancyActionBar.Compatability.Azurah_Enabled = is_it_enabled("Azurah")
+        FancyActionBar.Compatability.BanditsUserInterface_Enabled = is_it_enabled("BanditsUserInterface")
+        FancyActionBar.Compatability.DarkUI_Enabled = is_it_enabled("DarkUI")
+        FancyActionBar.Compatability.LibChatMessage_Enabled = is_it_enabled("LibChatMessage")
+        FancyActionBar.Compatability.LibMediaProvider_Enabled = is_it_enabled("LibMediaProvider")
+        FancyActionBar.Compatability.AdvancedDisableControllerUI_Enabled = is_it_enabled("AdvancedDisableControllerUI")
+        FancyActionBar.Compatability.LuiExtended_Enabled = is_it_enabled("LuiExtended")
+        FancyActionBar.Compatability.PerfectWeave_Enabled = is_it_enabled("PerfectWeave")
+        FancyActionBar.Compatability.HyperTools_Enabled = is_it_enabled("HyperTools")
+        FancyActionBar.Compatability.HyperTankingTools_Enabled = is_it_enabled("HyperTankingTools")
+        FancyActionBar.Compatability.ActionBarSkillStyles_Enabled = is_it_enabled("ActionBarSkillStyles")
+        FancyActionBar.Compatability.Untaunted_Enabled = is_it_enabled("Untaunted")
     end
 end
 
