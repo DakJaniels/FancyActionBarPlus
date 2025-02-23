@@ -615,16 +615,17 @@ end
 
 FancyActionBar.Compatability =
 {
+    ActionBarSkillStyles_Enabled = false,
+    AdvancedDisableControllerUI_Enabled = false,
     Azurah_Enabled = false,
     BanditsUserInterface_Enabled = false,
     DarkUI_Enabled = false,
+    HyperTankingTools_Enabled = false,
+    HyperTools_Enabled = false,
     LibChatMessage_Enabled = false,
     LibMediaProvider_Enabled = false,
-    AdvancedDisableControllerUI_Enabled = false,
     LuiExtended_Enabled = false,
     PerfectWeave_Enabled = false,
-    HyperTools_Enabled = false,
-    HyperTankingTools_Enabled = false,
-    ActionBarSkillStyles_Enabled = false,
     Untaunted_Enabled = false,
+    Xvfoo_Enabled = false,
 }
