@@ -4132,16 +4132,17 @@ function FancyActionBar.Initialize()
     end
 
     if useSlotsOverride then
-        -- Can use abilities while map is open, when cursor is active, etc.
-        ---
-        --- @return boolean?
-        ZO_ActionBar_CanUseActionSlots = function ()
-            if SV.lockInTrade
-            then
-                return LockSkillsOnTrade()
-                -- https://github.com/esoui/esoui/blob/pts7.0/esoui/ingame/actionbar/actionbar.lua
-            else
-                return (not (IsGameCameraActive() or IsInteractionCameraActive() or IsProgrammableCameraActive()) or SM:IsShowing("hud")) and not IsUnitDead("player")
+        if not FancyActionBar.Compatability.Xvfoo_Enabled then
+            -- Can use abilities while map is open, when cursor is active, etc.
+            ---
+            --- @return boolean?
+            ZO_ActionBar_CanUseActionSlots = function ()
+                if SV.lockInTrade then
+                    return LockSkillsOnTrade()
+                    -- https://github.com/esoui/esoui/blob/pts7.0/esoui/ingame/actionbar/actionbar.lua
+                else
+                    return (not (IsGameCameraActive() or IsInteractionCameraActive() or IsProgrammableCameraActive()) or SM:IsShowing("hud")) and not IsUnitDead("player")
+                end
             end
         end
     end
@@ -5231,6 +5232,7 @@ function FancyActionBar.OnAddOnLoaded(event, addonName)
         FancyActionBar.Compatability.HyperTankingTools_Enabled = is_it_enabled("HyperTankingTools")
         FancyActionBar.Compatability.ActionBarSkillStyles_Enabled = is_it_enabled("ActionBarSkillStyles")
         FancyActionBar.Compatability.Untaunted_Enabled = is_it_enabled("Untaunted")
+        FancyActionBar.Compatability.Xvfoo_Enabled = is_it_enabled("Xvfoo")
     end
 end
 
