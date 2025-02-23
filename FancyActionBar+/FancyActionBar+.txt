@@ -7,7 +7,7 @@
 ## SavedVariables: FancyActionBarSV
 ## DependsOn: LibAddonMenu-2.0>=37
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage LibMediaProvider
-## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
+## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave Xvfoo
 ## OptionalDependsOn: HyperTools HyperTankingTools ActionBarSkillStyles Untaunted
 
 lang/en.lua
