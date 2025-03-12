@@ -4023,7 +4023,7 @@ function FancyActionBar.RefreshEffects()
                         return
                     end
                 end
-            elseif FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
+            elseif FancyActionBar.toggled[abilityId] then -- update the highlight of toggled abilities.
                 local toggleAbility = sourceAbilities[abilityId] and sourceAbilities[abilityId] or abilityId
                 FancyActionBar.UpdateToggledAbility(toggleAbility, true)
                 return
