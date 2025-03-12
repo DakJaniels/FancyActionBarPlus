@@ -504,7 +504,7 @@ end
 ---
 --- @param stackValues {[1]:string , [2]:integer}
 --- @return string|integer maxStacks
-function FancyActionBar.getStackValue(stackValues)
+function FancyActionBar.GetStackValue(stackValues)
     local maxStacks = nil
     for _, stacks in ipairs(stackValues) do
         if type(stacks) == "string" then
@@ -1489,27 +1489,39 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 end
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
-    if effect.forceExpireStacks and (effect.endTime <= currentTime) then
-        if effect.stackId and #effect.stackId > 0 then
-            for i = 1, #effect.stackId do
-                local stackId = effect.stackId[i]
+    if effect.forceExpireStacks and effect.endTime <= currentTime then
+        if effect.stackId then
+            for _, stackId in ipairs(effect.stackId) do
                 FancyActionBar.stacks[stackId] = 0
             end
         end
         stacksControl:SetText("")
-    elseif SV.showStackCount and allowStacks and effect.stackId then
-        local stacks, maxStacks
+        return
+    end
+
+    if not SV.showStackCount then
+        stacksControl:SetText("")
+        return
+    end
+
+    if FancyActionBar.stackableBuff[effect.id] then
+        local stackableBuffId = FancyActionBar.stackableBuff[effect.id]
+        local stackCount = FancyActionBar.stacks[stackableBuffId] or 0
+        stacksControl:SetText(stackCount > 0 and stackCount or "")
+        return
+    end
+
+    if allowStacks and effect.stackId then
         local stackCounts = {}
-        for i = 1, #effect.stackId do
-            local stackId = effect.stackId[i]
+        for i, stackId in ipairs(effect.stackId) do
             stackCounts[i] = FancyActionBar.stacks[stackId]
         end
-        maxStacks = FancyActionBar.getStackValue(stackCounts)
-        stacks = maxStacks and maxStacks ~= 0 and maxStacks or ""
-        stacksControl:SetText(stacks)
-    else
-        stacksControl:SetText("")
+        local maxStacks = FancyActionBar.GetStackValue(stackCounts)
+        stacksControl:SetText(maxStacks and maxStacks ~= 0 and maxStacks or "")
+        return
     end
+
+    stacksControl:SetText("")
 end
 
 function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
@@ -1560,7 +1572,7 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
                     stackIndex = stackIndex + 1
                 end
             end
-            stacks = FancyActionBar.getStackValue(stackCounts)
+            stacks = FancyActionBar.GetStackValue(stackCounts)
             if SV.showStackCount and stacks and stacks ~= 0 then
                 stacksControl:SetText(stacks)
                 stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
@@ -2067,8 +2079,9 @@ function FancyActionBar.EffectCheck()
                             FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or checkTime
                         end
                     end
-                elseif FancyActionBar.toggled[id] and sourceAbilities[id] then -- update the highlight of toggled abilities.
-                    FancyActionBar.toggles[sourceAbilities[id]] = hasEffect
+                elseif FancyActionBar.toggled[id] then -- update the highlight of toggled abilities.
+                    local toggleAbility = sourceAbilities[id] and sourceAbilities[id] or id
+                    FancyActionBar.toggles[toggleAbility] = hasEffect
                 end
             end
             FancyActionBar.stacks[effect.id] = stacks
@@ -2135,8 +2148,9 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
                 FancyActionBar.effects[sourceAbilities[effect.id]].beginTime = (beginTime ~= 0) and beginTime or checkTime
             end
         end
-    elseif FancyActionBar.toggled[effect.id] and sourceAbilities[effect.id] then -- update the highlight of toggled abilities.
-        FancyActionBar.toggles[sourceAbilities[effect.id]] = hasEffect
+    elseif FancyActionBar.toggled[effect.id] then -- update the highlight of toggled abilities.
+        local toggleAbility = sourceAbilities[effect.id] and sourceAbilities[effect.id] or effect.id
+        FancyActionBar.toggles[toggleAbility] = hasEffect
     end
     UpdateEffect(effect)
     HandleStackUpdate(effect.id)
@@ -4010,8 +4024,8 @@ function FancyActionBar.RefreshEffects()
                     end
                 end
             elseif FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then -- update the highlight of toggled abilities.
-                FancyActionBar.toggles[sourceAbilities[abilityId]] = true
-                FancyActionBar.UpdateToggledAbility(abilityId, true)
+                local toggleAbility = sourceAbilities[abilityId] and sourceAbilities[abilityId] or abilityId
+                FancyActionBar.UpdateToggledAbility(toggleAbility, true)
                 return
             end
             if (abilityId == 61905 or abilityId == 61919 or abilityId == 61927) then
@@ -4543,9 +4557,10 @@ function FancyActionBar.Initialize()
                         end
                     end
                 end
-            elseif FancyActionBar.toggled[abilityId] and sourceAbilities[abilityId] then
+            elseif FancyActionBar.toggled[abilityId] then
                 effect.beginTime = (beginTime ~= 0) and beginTime or t
-                FancyActionBar.toggles[sourceAbilities[abilityId]] = (change ~= EFFECT_RESULT_FADED)
+                local toggleAbility = sourceAbilities[abilityId] and sourceAbilities[abilityId] or abilityId
+                FancyActionBar.toggles[toggleAbility] = (change ~= EFFECT_RESULT_FADED)
             end
 
             if (effectType == DEBUFF) or useSpecialDebuffTracking then -- if the ability is a debuff, check settings and handle accordingly.

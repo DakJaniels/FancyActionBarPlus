@@ -421,7 +421,7 @@ local function OnReticleTargetChanged()
                         debuff.stacks = false
                     else
                         table.insert(stackCounts, debuff.stacks)
-                        local maxStacks = FancyActionBar.getStackValue(stackCounts)
+                        local maxStacks = FancyActionBar.GetStackValue(stackCounts)
                         debuff.stacks = maxStacks
                     end
                 end

@@ -1311,8 +1311,11 @@ FancyActionBar.toggled =
 
     -- Vampire
     [132141] = true, -- Blood Frenzy
+    [172418] = true, -- Blood Frenzy (Stacks)
     [134160] = true, -- Simmering Frenzy
+    [134166] = true, -- Simmering Frenzy (Stacks)
     [135841] = true, -- Sated Fury
+    [172648] = true, -- Sated Fury (Stacks)
 
     -- Psijic Order
     [103543] = true, -- Mend Wounds
@@ -1453,6 +1456,9 @@ FancyActionBar.bannerBearer =
 FancyActionBar.toggleTickRate =
 {
     [227116] = 5000,
+    [172418] = GetAbilityFrequencyMS(132141),
+    [134166] = GetAbilityFrequencyMS(134160),
+    [172648] = GetAbilityFrequencyMS(135841),
 }
 
 FancyActionBar.passive =
