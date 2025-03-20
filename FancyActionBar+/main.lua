@@ -1198,6 +1198,7 @@ function FancyActionBar.ResetOverlayDuration(overlay)
         local bgControl = overlay.bg
         local stacksControl = overlay.stack
         local targetsControl = overlay.target
+        local resetStacksControl, resetTargetsControl = true, true
 
         if durationControl then
             durationControl:SetText("")
@@ -1205,26 +1206,32 @@ function FancyActionBar.ResetOverlayDuration(overlay)
         if bgControl then
             bgControl:SetHidden(true)
         end
-        if stacksControl then
-            stacksControl:SetText("")
-        end
-        if targetsControl then
-            targetsControl:SetText("")
-        end
         if overlay.effect then
             local effect = overlay.effect
             if overlay.allowStacks and effect.stackId then
                 local stackId = effect.stackId
                 for i = 1, #stackId do
-                    local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(stackId[i])
-                    FancyActionBar.stacks[stackId[i]] = currentStacks
+                    local currentStackId = stackId[i]
+                    local _, _, currentStacks = FancyActionBar.CheckForActiveEffect(currentStackId)
+                    FancyActionBar.stacks[currentStackId] = currentStacks
+                    resetStacksControl = not (currentStacks > 0)
+                    if FancyActionBar.stackableBuff[currentStackId] then break end
                 end
                 FancyActionBar.HandleStackUpdate(effect.id)
             end
             if FancyActionBar.targets[effect.id] then
-                FancyActionBar.CheckTargetEndtimes(effect.id)
+                local activeTargets = FancyActionBar.CheckTargetEndtimes(effect.id)
                 FancyActionBar.HandleTargetUpdate(effect.id, true)
+                resetTargetsControl = not (activeTargets > 0)
+            else
+                
             end
+        end
+        if stacksControl and resetStacksControl then
+            stacksControl:SetText("")
+        end
+        if targetsControl and resetTargetsControl then
+            targetsControl:SetText("")
         end
     end
 end
@@ -1489,7 +1496,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 end
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
-    if effect.forceExpireStacks and effect.endTime <= currentTime then
+    if effect.forceExpireStacks and (effect.endTime <= currentTime) then
         if effect.stackId then
             for _, stackId in ipairs(effect.stackId) do
                 FancyActionBar.stacks[stackId] = 0
@@ -1565,14 +1572,21 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
             stackCounts[stackIndex] = stackCount
             stackIndex = stackIndex + 1
 
-            if effect.stackId and #effect.stackId > 0 then
+            if FancyActionBar.stackableBuff[effect.id] then
+                stacks = FancyActionBar.stacks[FancyActionBar.stackableBuff[effect.id]]
+            elseif effect.stackId and #effect.stackId > 0 then
                 for i = 1, #stackId do
-                    stackCount = FancyActionBar.stacks[stackId[i]]
+                    if FancyActionBar.stackableBuff[stackId[i]] then
+                        stackCount = FancyActionBar.stacks[FancyActionBar.stackableBuff[stackId[i]]]
+                        break
+                    else
+                        stackCount = FancyActionBar.stacks[stackId[i]]
+                    end
                     stackCounts[stackIndex] = stackCount
                     stackIndex = stackIndex + 1
                 end
+                stacks = FancyActionBar.GetStackValue(stackCounts)
             end
-            stacks = FancyActionBar.GetStackValue(stackCounts)
             if SV.showStackCount and stacks and stacks ~= 0 then
                 stacksControl:SetText(stacks)
                 stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
@@ -4463,13 +4477,6 @@ function FancyActionBar.Initialize()
             end
             duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1
 
-            if FancyActionBar.stackableBuff[abilityId] then
-                local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
-                _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId)
-                FancyActionBar.stacks[stackableBuffId] = stackCount
-            else
-                stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory)
-            end
             local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
             remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
             if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
@@ -4490,6 +4497,13 @@ function FancyActionBar.Initialize()
                 FancyActionBar.UpdateEffect(effect)
                 -- else
                 -- effect.endTime = 0
+            end
+            if FancyActionBar.stackableBuff[abilityId] then
+                local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
+                _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId)
+                FancyActionBar.stacks[stackableBuffId] = stackCount
+            else
+                stackCount = GetActionSlotEffectStackCount(actionSlotIndex, hotbarCategory)
             end
             if not FancyActionBar.fixedStacks[abilityId] then
                 for id, knownEffect in pairs(FancyActionBar.effects) do
@@ -4591,12 +4605,6 @@ function FancyActionBar.Initialize()
             end
 
             if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
-                if FancyActionBar.stackableBuff[abilityId] then
-                    local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
-                    _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId)
-                    FancyActionBar.stacks[stackableBuffId] = stackCount
-                end
-
                 local targetType = GetAbilityTargetDescription(effect.id, nil, unitTag)
                 if (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and (targetType ~= "Self") then
                     local targetData = FancyActionBar.targets[effect.id] or { targetCount = 0, maxEndTime = 0, times = {} }
@@ -4635,6 +4643,11 @@ function FancyActionBar.Initialize()
 
                     effect.endTime = endTime
 
+                    if FancyActionBar.stackableBuff[abilityId] then
+                        local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
+                        _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId)
+                        FancyActionBar.stacks[stackableBuffId] = stackCount
+                    end    
                     for id, knownEffect in pairs(FancyActionBar.effects) do
                         if knownEffect.stackId and ((effectType ~= DEBUFF) or FancyActionBar.fixedStacks[abilityId]) then
                             if FancyActionBar.fixedStacks[abilityId] then
@@ -4674,9 +4687,9 @@ function FancyActionBar.Initialize()
 
                 if FancyActionBar.stackableBuff[abilityId] then
                     local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
-                    _, _, stackCount = FancyActionBar.CheckForActiveEffect(abilityId)
+                    _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId)
                     FancyActionBar.stacks[stackableBuffId] = stackCount
-                    FancyActionBar.HandleStackUpdate(stackableBuffId)
+                    FancyActionBar.HandleStackUpdate(effect.id)
                 end
 
                 if hasActiveTargets then
