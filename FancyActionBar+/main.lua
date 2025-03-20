@@ -4780,22 +4780,17 @@ function FancyActionBar.Initialize()
             return
         end
 
-        -- Handle stackable buffs
         if FancyActionBar.stackableBuff[abilityId] then
             abilityId = FancyActionBar.stackableBuff[abilityId]
             local _, _, newStackCount = FancyActionBar.CheckForActiveEffect(abilityId)
             stackCount = newStackCount
+        elseif FancyActionBar.fixedStacks[abilityId] then
+            stackCount = changeType ~= EFFECT_RESULT_FADED and FancyActionBar.fixedStacks[abilityId] or 0
+        else
+            stackCount = changeType ~= EFFECT_RESULT_FADED and stackCount or 0
         end
+        FancyActionBar.stacks[abilityId] = stackCount
 
-        -- Handle fixed stacks
-        if FancyActionBar.fixedStacks[abilityId] then
-            stackCount = FancyActionBar.fixedStacks[abilityId]
-        end
-
-        -- Update stack count
-        FancyActionBar.stacks[abilityId] = changeType ~= EFFECT_RESULT_FADED and stackCount or 0
-
-        -- Process stack map updates
         if FancyActionBar.stackMap[abilityId] then
             for id, effect in pairs(FancyActionBar.effects) do
                 if effect.stackId and #effect.stackId > 0 then
