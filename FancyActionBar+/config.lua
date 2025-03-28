@@ -509,6 +509,7 @@ FancyActionBar.abilityConfig =
     [183648] = {61694},    -- fatewoven armor
     [185908] = {61694},    -- cruxweaver armor
     [186477] = {61694},    -- unbreakable fate
+    [238256] = {61694},    -- vengeance fatewoven armor
 
     -- Volendrung
     [116095] = { 61665 }, -- Major Brutality
@@ -736,6 +737,9 @@ FancyActionBar.stackMap =
         183241, -- impervious runeward
         184362, -- impervious runeward
         185901, -- spiteward
+        238174, -- vengeance fatecarver
+        238249, -- vengeance runespite ward
+        238482, -- vengeance remedy cascade
     },
 
     -- Leeching Strikes
@@ -1505,6 +1509,7 @@ FancyActionBar.ignoreFallbackTimers =
     [183648] = true, -- fatewoven armor
     [185908] = true, -- cruxweaver armor
     [186477] = true, -- unbreakable fate
+    [238256] = true, -- vengeance fatewoven armor
 }
 
 FancyActionBar.dontFade =
