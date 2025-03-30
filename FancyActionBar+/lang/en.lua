@@ -1,4 +1,6 @@
-local strings = {
+-- Default
+local strings =
+{
     FANCYAB_SUBMENU_GENERAL = "|cFFFACDGeneral|r",
     FANCYAB_SUBMENU_CUSTOMUI = "|cFFFACDUI Customization|r",
     FANCYAB_SUBMENU_TIMER = "|cFFFACDTimer Display|r",

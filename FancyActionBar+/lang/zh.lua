@@ -1,4 +1,6 @@
-for stringId, stringValue in pairs({
+-- Traditional Chinese translations
+local strings =
+{
     FANCYAB_SUBMENU_GENERAL = "|cFFFACD常规|r",
     FANCYAB_SUBMENU_CUSTOMUI = "|cFFFACD界面自定义|r",
     FANCYAB_SUBMENU_TIMER = "|cFFFACD计时器显示|r",
@@ -97,6 +99,8 @@ for stringId, stringValue in pairs({
     FANCYAB_DBG_TT = "在聊天框中显示技能更新事件（|cFF0000警告：会刷屏！|r）。",
 
     FANCYAB_DISCLAIMER = "所有功劳归于 |cFFFF00@andy.s|r 对社区的杰出贡献和奉献。\n起初我只是为了更好地适应个人需求而做了一些自定义更改，并添加了这些调整的选项。\n技能计时器的追踪功能受到了 Solinur 和 Phinix 工作的启发，我从阅读他们的代码中学到了所有知识（我仍然有很多要学习的地方）。",
-}) do
-    SafeAddString(stringId, stringValue, 2)
+}
+
+for stringId, stringValue in pairs(strings) do
+    SafeAddString(_G[stringId], stringValue, 2)
 end
