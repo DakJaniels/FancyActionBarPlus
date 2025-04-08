@@ -787,7 +787,14 @@ FancyActionBar.stackMap =
     {
         86027,
         101904,
-    }
+    },
+
+    -- Brutal Pounce (Carnage Bleed)
+    [137189] = {
+        137189,
+        137184,
+        39105
+    },
 }
 
 FancyActionBar.fixedStacks =
