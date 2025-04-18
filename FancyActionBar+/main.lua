@@ -4072,7 +4072,7 @@ function FancyActionBar.RefreshEffects()
     end
 end
 
-function FancyActionBar.RegisterClassEffects()
+function FancyActionBar.RegisterClassEffects(callback)
     local class = GetUnitClassId("player")
     if FancyActionBar.fakeClassEffects[class] then
         for i, x in pairs(FancyActionBar.fakeClassEffects[class]) do
@@ -4094,13 +4094,13 @@ function FancyActionBar.RegisterClassEffects()
 
     for id in pairs(FancyActionBar.needCombatEvent) do
         if (not FancyActionBar.needCombatEvent[id].class) or (FancyActionBar.needCombatEvent[id].class == class) then
-            EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
+            EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, callback)
             EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
         end
     end
 
     if FancyActionBar.graveLordSacrifice then
-        EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, OnCombatEvent)
+        EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, callback)
         EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET)
     end
 
@@ -5207,7 +5207,7 @@ function FancyActionBar.Initialize()
         end
     end
 
-    FancyActionBar.RegisterClassEffects()
+    FancyActionBar.RegisterClassEffects(OnCombatEvent)
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
     --   return false
