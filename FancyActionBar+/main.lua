@@ -246,7 +246,6 @@ local debug = false                        -- debug mode
 local scale = 100                          -- default or custom scale of the action bar to use
 local updateRate = 100                     -- overlay update interval
 
-local class = 0                            -- player class for tracking problematic abilities
 -- local lastButton = 0                       -- for repositioning of skill buttons
 local channeledAbilityUsed = nil           -- for tracking channeling abilities
 local isChanneling = false                 -- for tracking channeling abilities
@@ -4073,6 +4072,39 @@ function FancyActionBar.RefreshEffects()
     end
 end
 
+function FancyActionBar.RegisterClassEffects()
+    local class = GetUnitClassId("player")
+    if FancyActionBar.fakeClassEffects[class] then
+        for i, x in pairs(FancyActionBar.fakeClassEffects[class]) do
+            fakes[i] = x
+        end
+    end
+
+    if FancyActionBar.specialClassEffects[class] then
+        for i, x in pairs(FancyActionBar.specialClassEffects[class]) do
+            FancyActionBar.specialEffects[i] = x
+        end
+    end
+
+    if FancyActionBar.specialClassEffectProcs[class] then
+        for i, x in pairs(FancyActionBar.specialClassEffectProcs[class]) do
+            FancyActionBar.specialEffectProcs[i] = x
+        end
+    end
+
+    for id in pairs(FancyActionBar.needCombatEvent) do
+        if (not FancyActionBar.needCombatEvent[id].class) or (FancyActionBar.needCombatEvent[id].class == class) then
+            EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
+            EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
+        end
+    end
+
+    if FancyActionBar.graveLordSacrifice then
+        EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, OnCombatEvent)
+        EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET)
+    end
+
+end
 -- local groundString    = GetString(SI_ABILITY_TOOLTIP_TARGET_TYPE_GROUND)
 -- local groundAbilities = {}
 -- local LAST_ABILITY    = 0
@@ -5156,25 +5188,6 @@ function FancyActionBar.Initialize()
         EM:UnregisterForEvent("ActionBarTimer" .. i, EVENT_INTERFACE_SETTING_CHANGED)
     end
 
-    class = GetUnitClassId("player")
-    if FancyActionBar.fakeClassEffects[class] then
-        for i, x in pairs(FancyActionBar.fakeClassEffects[class]) do
-            fakes[i] = x
-        end
-    end
-
-    if FancyActionBar.specialClassEffects[class] then
-        for i, x in pairs(FancyActionBar.specialClassEffects[class]) do
-            FancyActionBar.specialEffects[i] = x
-        end
-    end
-
-    if FancyActionBar.specialClassEffectProcs[class] then
-        for i, x in pairs(FancyActionBar.specialClassEffectProcs[class]) do
-            FancyActionBar.specialEffectProcs[i] = x
-        end
-    end
-
     for id, effect in pairs(FancyActionBar.specialEffects) do
         if effect.needCombatEvent then
             EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
@@ -5187,18 +5200,6 @@ function FancyActionBar.Initialize()
         EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
     end
 
-    for id in pairs(FancyActionBar.needCombatEvent) do
-        if (not FancyActionBar.needCombatEvent[id].class) or (FancyActionBar.needCombatEvent[id].class == class) then
-            EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
-            EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
-        end
-    end
-
-    if FancyActionBar.graveLordSacrifice then
-        EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, OnCombatEvent)
-        EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET)
-    end
-
     for id, effect in pairs(FancyActionBar.specialEffects) do
         if effect.handler and (effect.handler == "reflect") then
             EM:RegisterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, OnReflect)
@@ -5206,6 +5207,7 @@ function FancyActionBar.Initialize()
         end
     end
 
+    FancyActionBar.RegisterClassEffects()
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
     --   return false
