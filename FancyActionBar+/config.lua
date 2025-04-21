@@ -2009,6 +2009,45 @@ FancyActionBar.styleFix =
     [185803] = 185803, -- Writhing Runeblades
 }
 
+FancyActionBar.skillLineInfo =
+{
+    [1] = {  -- Dragonknight
+        35, -- Ardent Flame
+        36, -- Draconic Power
+        37, -- Earthen Heart
+    },
+    [2] = {  -- Sorcerer
+        41, -- Dark Magic
+        42, -- Daedric Summoning
+        43, -- Storm Calling
+    },
+    [3] = {  -- Nightblade
+        38, -- Assassination
+        39, -- Shadow
+        40, -- Siphoning
+    },
+    [4] = { -- Warden
+        127, -- Animal Companions
+        128, -- Green Balance
+        129, -- Winter's Embrace
+    },
+    [5] = {  -- Necromancer
+        131, -- Grave Lord
+        132, -- Bone Tyrant
+        133, -- Living Death
+    },
+    [6] = { -- Templar
+        22, --Aedric Spear
+        27, -- Dawn's Wrath
+        28, -- Restoring Light
+    },
+    [117] = { -- Arcanist
+        218, -- Herald of the Tome
+        219, -- Soldier of Apocrypha
+        220, -- Curative Runeforms
+    },
+}
+
 -- * GetSkillLineIndicesFromSkillLineId(*integer* _skillLineId_)
 -- ** _Returns:_ *[SkillType|#SkillType]* _skillType_, *luaindex* _skillLineIndex_
 
