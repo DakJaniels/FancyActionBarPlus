@@ -4973,8 +4973,12 @@ local function ActionBarActivated(eventCode, initial)
 end
 
 local function RegisterClassEffects()
-    local class = GetUnitClassId("player")
-    local skillLineIds = FancyActionBar.skillLineInfo[class] or {}
+    local skillData = SKILLS_DATA_MANAGER
+    local skillLineIds = {
+        skillData.activeClassSkillLineDataList[1].id,
+        skillData.activeClassSkillLineDataList[2].id,
+        skillData.activeClassSkillLineDataList[3].id,
+    }
 
     for i= 1, #skillLineIds do
         local skillLineId = skillLineIds[i]
