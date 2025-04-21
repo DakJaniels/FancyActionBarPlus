@@ -4974,36 +4974,41 @@ end
 
 local function RegisterClassEffects()
     local class = GetUnitClassId("player")
-    if FancyActionBar.fakeClassEffects[class] then
-        for i, x in pairs(FancyActionBar.fakeClassEffects[class]) do
-            fakes[i] = x
+    local skillLineIds = FancyActionBar.skillLineInfo[class] or {}
+
+    for i= 1, #skillLineIds do
+        local skillLineId = skillLineIds[i]
+        if FancyActionBar.fakeClassEffects[skillLineId] then
+            for j, x in pairs(FancyActionBar.fakeClassEffects[skillLineId]) do
+                fakes[j] = x
+            end
         end
-    end
 
-    if FancyActionBar.specialClassEffects[class] then
-        for i, x in pairs(FancyActionBar.specialClassEffects[class]) do
-            FancyActionBar.specialEffects[i] = x
+        if FancyActionBar.specialClassEffects[skillLineId] then
+            for j, x in pairs(FancyActionBar.specialClassEffects[skillLineId]) do
+                FancyActionBar.specialEffects[j] = x
+            end
         end
-    end
 
-    if FancyActionBar.specialClassEffectProcs[class] then
-        for i, x in pairs(FancyActionBar.specialClassEffectProcs[class]) do
-            FancyActionBar.specialEffectProcs[i] = x
+        if FancyActionBar.specialClassEffectProcs[skillLineId] then
+            for j, x in pairs(FancyActionBar.specialClassEffectProcs[skillLineId]) do
+                FancyActionBar.specialEffectProcs[j] = x
+            end
         end
-    end
 
-    for id in pairs(FancyActionBar.needCombatEvent) do
-        if (not FancyActionBar.needCombatEvent[id].class) or (FancyActionBar.needCombatEvent[id].class == class) then
-            EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
-            EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
+        for id in pairs(FancyActionBar.needCombatEvent) do
+            if (not FancyActionBar.needCombatEvent[id].skillLine) or (FancyActionBar.needCombatEvent[id].skillLine == skillLineId) then
+                EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
+                EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
+            end
         end
-    end
 
-    if FancyActionBar.graveLordSacrifice then
-        EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, OnCombatEvent)
-        EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET)
-    end
+        if FancyActionBar.graveLordSacrifice and FancyActionBar.graveLordSacrifice.skillLine == skillLineId then
+            EM:RegisterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, OnCombatEvent)
+            EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET)
+        end
 
+    end
 end
 
 function FancyActionBar.Initialize()
