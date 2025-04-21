@@ -4975,7 +4975,7 @@ end
 local function RegisterClassEffects()
     local skillData = SKILLS_DATA_MANAGER
     local skillLineIds = {}
-     if skillData.activeClassSkillLineDataList then
+     if skillData and skillData.activeClassSkillLineDataList then
         for i = 1, #skillData.activeClassSkillLineDataList do
             local skillLineId = skillData.activeClassSkillLineDataList[i].id
             if skillLineId then
