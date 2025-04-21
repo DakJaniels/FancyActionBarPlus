@@ -4985,7 +4985,7 @@ local function RegisterClassEffects()
     else
         local classId = GetUnitClassId("player")
         skillLineIds = FancyActionBar.skillLineInfo[classId] or { 0, 0, 0 }
-     end
+    end
 
      for i= 1, #skillLineIds do
         local skillLineId = skillLineIds[i]
