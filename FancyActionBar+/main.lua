@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.14.0"
+local VERSION = "2.14.1"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -4099,19 +4099,23 @@ end
 
 
 -- Slot ability changed, e.g. summoned a pet, procced crystal, etc.
-local function OnSlotChanged(_, n)
-    local btn = ZO_ActionBar_GetButton(n)
+local function OnSlotChanged(_, slotNum, hotbarCategory)
+    local currentHotbarCategory = GetActiveHotbarCategory()
+    local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
+    local slotIndex = hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum
+    local btn = FancyActionBar.GetActionButton(slotIndex)
     if btn then
         btn:HandleSlotChanged()
-        if (n == ULT_INDEX or n == ULT_INDEX + SLOT_INDEX_OFFSET) then
+        if (slotIndex == ULT_INDEX or slotIndex == ULT_INDEX + SLOT_INDEX_OFFSET) then
             FancyActionBar.UpdateUltimateCost()
         end
         FancyActionBar.UpdateSlottedSkillsDecriptions()
         if SV.applyActionBarSkillStyles then
-            FancyActionBar.SetActionButtonAbilityFxOverride(n)
+            FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
+            FancyActionBar.UpdateInactiveBarIcon(slotNum, inactiveBar)
         end
     end
-    -- Chat('Slot ' .. tostring(n) .. ' changed')
+    -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
 
 -- Button (usable) state changed.
@@ -4976,10 +4980,15 @@ local function RegisterClassEffects()
     local skillData = SKILLS_DATA_MANAGER
     local skillLineIds = {}
      if skillData and skillData.activeClassSkillLineDataList then
-        for i = 1, #skillData.activeClassSkillLineDataList do
-            local skillLineId = skillData.activeClassSkillLineDataList[i].id
-            if skillLineId then
-                skillLineIds[i] = skillLineId
+        -- for i = 1, #skillData.activeClassSkillLineDataList do
+        --     local skillLineId = skillData.activeClassSkillLineDataList[i].id
+        --     if skillLineId then
+        --         skillLineIds[i] = skillLineId
+        --     end
+        -- end
+        for k, v in pairs(FancyActionBar.skillLineInfo) do
+            for i, skillLineId in pairs(v) do
+                table.insert(skillLineIds, skillLineId)
             end
         end
     else
@@ -5094,7 +5103,7 @@ function FancyActionBar.Initialize()
     EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTIVE_COMPANION_STATE_CHANGED)
     EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionUltimate)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed)
-    EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_UPDATED, OnSlotChanged)
+    EM:RegisterForEvent(NAME, EVENT_HOTBAR_SLOT_UPDATED, OnSlotChanged)
     EM:RegisterForEvent(NAME, EVENT_HOTBAR_SLOT_STATE_UPDATED, OnHotbarSlotStateUpdated)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_EFFECT_UPDATE, OnActionSlotEffectUpdated)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, OnActiveHotbarUpdated)
@@ -5206,6 +5215,8 @@ function FancyActionBar.Initialize()
         EM:UnregisterForEvent("ActionBarTimer" .. i, EVENT_INTERFACE_SETTING_CHANGED)
     end
 
+    RegisterClassEffects()
+
     for id, effect in pairs(FancyActionBar.specialEffects) do
         if effect.needCombatEvent then
             EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
@@ -5225,7 +5236,6 @@ function FancyActionBar.Initialize()
         end
     end
 
-    RegisterClassEffects()
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
     --   return false

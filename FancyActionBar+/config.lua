@@ -1253,7 +1253,7 @@ FancyActionBar.specialClassEffects =
         [178028] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Deep Fissure, second proc
     },
     -- [128] = {}, -- Green Balance
-    [129] = {
+    [129] = { -- Winter's Embrace
         [86135] = { id = 86135, stackId = { 86135 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized shield
         [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized slab
         [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- shimmering shield
@@ -1261,7 +1261,7 @@ FancyActionBar.specialClassEffects =
         [86175] = { id = 86175, stackId = { 86175 }, handler = "device" }, -- frozen gate
         [86179] = { id = 86179, stackId = { 86179 }, handler = "device" }, -- frozen device
         [86183] = { id = 86183, stackId = { 86183 }, handler = "device" }, -- frozen retreat
-    }, -- Winter's Embrace
+    },
 
     -- Necromancer
     -- [131] = {}, -- Grave Lord
@@ -1277,53 +1277,36 @@ FancyActionBar.specialClassEffects =
     -- [218] = {}, -- Herald of the Tome
     -- [219] = {}, -- Soldier of Apocrypha
     -- [220] = {}, -- Curative Runeforms
-
-    --- effects tracked through the HandleSpecial function
-    -- Dragonknight
-    [1] =
-    {
-        -- [31816] = { id = 31841; stackId = {31816};}; -- Stone Giant
-        -- [133027] = { id = 133027; stackId = {31841};}; -- Stone Giant
-    },
-    -- Sorcerer
-    [2] =
-    {
-    },
-    -- Nightblade
-    [3] =
-    {
-    },
-    -- Warden
-    [4] =
-    {
-
-    },
-    -- Arcanist
-    [117] =
-    {
-    }
 }
 
 FancyActionBar.specialClassEffectProcs =
 {
-    --- Effect updates for ability completion conditions keyed by abilityId then procs number
+    -- Dragonknight
+    -- [35] = {}, -- Ardent Flame
+    -- [36] = {}, -- Draconic Power
+    -- [37] = {}, -- Earthen Heart
+
     -- Sorcerer
-    [2] =
-    {
-        [24330] = { [1] = { id = 24330, stacks = 0, procs = 1, hasProced = 0, faded = false }, },
-        [89491] = { [1] = { id = 24330, stacks = 0, procs = 1, hasProced = 0, faded = false } },
+    [41] = { -- Dark Magic
         [46331] = { [1] = { id = 46331, stacks = 0, procs = 1, hasProced = 0 } },
     },
+    [42] = { -- Daedric Summoning
+        [24330] = { [1] = { id = 24330, stacks = 0, procs = 1, hasProced = 0, faded = false }, },
+        [89491] = { [1] = { id = 24330, stacks = 0, procs = 1, hasProced = 0, faded = false } },
+    },
+    -- [43] = {}, -- Storm Calling
+
     -- Nightblade
-    [3] =
-    {
+    -- [38] = {}, -- Assassination
+    [39] = { -- Shadow
         [37475] = { [1] = { id = 37475, stacks = 0, procs = 1, hasProced = 0, isDebuff = false, } },
         [76639] = { [1] = { id = 37475, stacks = 0, procs = 1, hasProced = 0, isDebuff = true } },
         -- [147643] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = true } };
     },
+    -- [40] = {}, -- Siphoning
+
     -- Warden
-    [4] =
-    {
+    [127] = { -- Animal Companions
         [86009] = { [1] = { id = 86009, stacks = 0, procs = 1, hasProced = 0 }, },
         [178020] = { [1] = { id = 86009, stacks = 0, procs = 1, hasProced = 0 } },
         [86019] = { [1] = { id = 86019, stacks = 0, procs = 1, hasProced = 0 }, },
@@ -1331,10 +1314,23 @@ FancyActionBar.specialClassEffectProcs =
         [86015] = { [1] = { id = 86015, stacks = 0, procs = 1, hasProced = 0 }, },
         [178028] = { [1] = { id = 86015, stacks = 0, procs = 1, hasProced = 0 } },
     },
+    -- [128] = {}, -- Green Balance
+    -- [129] = {}, -- Winter's Embrace
+
+    -- Necromancer
+    -- [131] = {}, -- Grave Lord
+    -- [132] = {}, -- Bone Tyrant
+    -- [133] = {}, -- Living Death
+
+    -- Templar
+    -- [22] = {}, --Aedric Spear
+    -- [27] = {}, -- Dawn's Wrath
+    -- [28] = {}, -- Restoring Light
+
     -- Arcanist
-    [117] =
-    {
-    },
+    -- [218] = {}, -- Herald of the Tome
+    -- [219] = {}, -- Soldier of Apocrypha
+    -- [220] = {}, -- Curative Runeforms
 }
 
 FancyActionBar.needCombatEvent =
