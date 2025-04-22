@@ -234,6 +234,7 @@ local slottedIds = {}                                  -- to match skills with t
 local effectSlots = {}                                 -- to indentify slots that track the same effect
 local debuffTargets = {}                               -- not used, but might be needed when I get better at writing tracking for debuffs on enemies
 local lastAreaTargets = {}                             -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
+local registeredSkillLines = {}                         -- to track skill lines that have been registered for ability changes
 -------------------------------------------------------------------------------
 ---------------------------[   Local Variables   ]-----------------------------
 -------------------------------------------------------------------------------
@@ -4996,8 +4997,10 @@ local function RegisterClassEffects()
         skillLineIds = FancyActionBar.skillLineInfo[classId] or { 0, 0, 0 }
     end
 
-     for i= 1, #skillLineIds do
+    for i= 1, #skillLineIds do
         local skillLineId = skillLineIds[i]
+        if registeredSkillLines[skillLineId] then return end
+
         if FancyActionBar.fakeClassEffects[skillLineId] then
             for j, x in pairs(FancyActionBar.fakeClassEffects[skillLineId]) do
                 fakes[j] = x
@@ -5007,6 +5010,13 @@ local function RegisterClassEffects()
         if FancyActionBar.specialClassEffects[skillLineId] then
             for j, x in pairs(FancyActionBar.specialClassEffects[skillLineId]) do
                 FancyActionBar.specialEffects[j] = x
+                if x.needCombatEvent then
+                    EM:RegisterForEvent(NAME .. j, EVENT_COMBAT_EVENT, OnCombatEvent)
+                    EM:AddFilterForEvent(NAME .. j, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, j, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
+                elseif x.handler and (x.handler == "reflect") then
+                    EM:RegisterForEvent(NAME .. "Reflect" .. j, EVENT_COMBAT_EVENT, OnReflect)
+                    EM:AddFilterForEvent(NAME .. "Reflect" .. j, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, j)
+                end
             end
         end
 
@@ -5017,7 +5027,7 @@ local function RegisterClassEffects()
         end
 
         for id in pairs(FancyActionBar.needCombatEvent) do
-            if (not FancyActionBar.needCombatEvent[id].skillLine) or (FancyActionBar.needCombatEvent[id].skillLine == skillLineId) then
+            if FancyActionBar.needCombatEvent[id].skillLine == skillLineId then
                 EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
                 EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
             end
@@ -5028,6 +5038,7 @@ local function RegisterClassEffects()
             EM:AddFilterForEvent(NAME .. "GraveLordSacrifice", EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, FancyActionBar.graveLordSacrifice.eventId, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER_PET)
         end
 
+        registeredSkillLines[skillLineId] = true
     end
 end
 
@@ -5215,7 +5226,17 @@ function FancyActionBar.Initialize()
         EM:UnregisterForEvent("ActionBarTimer" .. i, EVENT_INTERFACE_SETTING_CHANGED)
     end
 
-    RegisterClassEffects()
+    for id in pairs(fakes) do
+        EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
+        EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
+    end
+
+    for id in pairs(FancyActionBar.needCombatEvent) do
+        if (not FancyActionBar.needCombatEvent[id].skillLine) then
+            EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
+            EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
+        end
+    end
 
     for id, effect in pairs(FancyActionBar.specialEffects) do
         if effect.needCombatEvent then
@@ -5224,17 +5245,14 @@ function FancyActionBar.Initialize()
         end
     end
 
-    for id in pairs(fakes) do
-        EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
-        EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
-    end
-
     for id, effect in pairs(FancyActionBar.specialEffects) do
         if effect.handler and (effect.handler == "reflect") then
             EM:RegisterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, OnReflect)
             EM:AddFilterForEvent(NAME .. "Reflect" .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id)
         end
     end
+
+    RegisterClassEffects()
 
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
