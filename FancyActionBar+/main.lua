@@ -3973,13 +3973,13 @@ function FancyActionBar.RefreshEffects()
         FancyActionBar.stacks[id] = currentStacks or 0
         FancyActionBar.HandleStackUpdate(id)
 
-        if (id == 61905 or id == 61919 or id == 61927) then
-            if GFC then
-                local _
-                GFC.OnEffectChanged(_, 2, _, GetAbilityName(id), "player", _, _, 1, _, _, _, _, _, _, _, id)
-                GFC.UpdateStacks(0)
-            end
-        end
+        -- if (id == 61905 or id == 61919 or id == 61927) then
+        --     if GFC then
+        --         local _
+        --         GFC.OnEffectChanged(_, 2, _, GetAbilityName(id), "player", _, _, 1, _, _, _, _, _, _, _, id)
+        --         GFC.UpdateStacks(0)
+        --     end
+        -- end
     end
 
     local t = time()
