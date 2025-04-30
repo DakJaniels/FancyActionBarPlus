@@ -341,9 +341,6 @@ FancyActionBar.abilityConfig =
     [22314] = { 61735 }, -- hasty prayer (minor expedition)
     [26209] = { 61704 }, -- radiant aura minor endurance
     [26807] = { 61704 }, -- radiant aura minor endurance
-    [22265] = {},        -- cleansing ritual
-    [22259] = {},        -- ritual of retribution
-    [22262] = {},        -- extended ritual
 
     -- Warden
     [85995] = { 130129 }, -- dive (off-balance)
@@ -1136,16 +1133,7 @@ FancyActionBar.fakeClassEffects =
     -- Templar
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
-    [28] =
-    { -- Restoring Light
-        [22265] = { duration = GetAbilityDuration(22265) / 1000, id = 22265 }, -- Cleansing Ritual
-        [22259] = { duration = GetAbilityDuration(22259) / 1000, id = 22259 }, -- Ritual of Retribution
-        [22262] = { duration = GetAbilityDuration(22262) / 1000, id = 22262 }, -- Extended Ritual
-
-        [22223] = { duration = GetAbilityDuration(22223) / 1000, id = 22223 }, -- rite of passage
-        [22226] = { duration = GetAbilityDuration(22226) / 1000, id = 22226 }, -- practiced incantation
-        [22229] = { duration = GetAbilityDuration(22229) / 1000, id = 22229 }, -- remembrance
-    },
+    -- [28] = {}, -- Restoring Light
 
     -- Arcanist
     -- [218] = {}, -- Herald of the Tome
@@ -1571,6 +1559,7 @@ FancyActionBar.ignoreFallbackTimers =
     [185908] = true, -- cruxweaver armor
     [186477] = true, -- unbreakable fate
     [238256] = true, -- vengeance fatewoven armor
+    [118680] = true, -- skeletal arcanist
 }
 
 FancyActionBar.dontFade =
