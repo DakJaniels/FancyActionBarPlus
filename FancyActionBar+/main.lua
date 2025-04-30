@@ -1621,40 +1621,69 @@ end
 
 function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     local overlay = FancyActionBar.ultOverlays[index]
-    if overlay then
-        local effect = overlay.effect or { id = 0, endTime = -1 }
-        local allowStacks = overlay.allowStacks
-        local durationControl = overlay.timer
-        local stacksControl = overlay.stack
-        local targetsControl = overlay.target
-        -- local timerColor = IsInGamepadPreferredMode() and SV.ultColorGP or SV.ultColorKB
-        local timerColor = FancyActionBar.constants.ult.duration.color
+    if not overlay then return end -- Added check for nil overlay
 
-        if not FancyActionBar.constants.ult.duration.show then
-            durationControl:SetText("")
-            return
+    local effect = overlay.effect or { id = 0, endTime = -1 }
+    local allowStacks = overlay.allowStacks
+    local durationControl = overlay.timer
+    local stacksControl = overlay.stack
+    local targetsControl = overlay.target
+    local timerColor = FancyActionBar.constants.ult.duration.color
+
+    if not FancyActionBar.constants.ult.duration.show then
+        durationControl:SetText("")
+        -- Clear stack/target controls as well if duration is hidden
+        if stacksControl then stacksControl:SetText("") end
+        if targetsControl then targetsControl:SetText("") end
+        return
+    end
+
+    local currentTime = time()
+    local duration, ultEndTime, instantFade
+    local isCastTime = false -- Flag to know if we are using cast time
+
+    -- Check if channeling logic should apply BEFORE standard duration calculation
+    if SV.showCastDuration and (effect.castEndTime or effect.castDuration) then
+        local isBlockActive = IsBlockActive()
+        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not isChanneling)
+        wasBlockActive = isBlockActive
+
+        if blockCancelled or not isChanneling then
+            effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
+            if blockCancelled then isChanneling = false end
         end
 
-        local currentTime = time()
-        local duration, ultEndTime, instantFade
+        if effect.castEndTime and effect.castEndTime >= currentTime then
+            -- Currently channeling: Calculate duration based on cast time
+            duration = effect.castEndTime - currentTime
+            isCastTime = true -- Set flag
+        end
+
+        -- Reset channeledAbilityUsed if this effect was the one being tracked and cast has ended
+        if channeledAbilityUsed == effect.id and (not effect.castEndTime or effect.castEndTime < currentTime) then
+            channeledAbilityUsed = nil
+            isChanneling = false
+        end
+    end
+    if not isCastTime then
+        local fadeDelay = (SV.delayFade and SV.fadeDelay or 0) -- Calculate fadeDelay only if needed
+
         if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET then
             -- Update activeUlt table if new effect is longer
-            if (not effect.toggled) and (not effect.passive) and (activeUlt.endTime < effect.endTime) then
+            -- Ensure effect exists and has an endTime before comparing
+            if effect.endTime and (not effect.toggled) and (not effect.passive) and (activeUlt.endTime < effect.endTime) then
                 activeUlt.id = effect.id
                 activeUlt.endTime = effect.endTime
                 activeUlt.instantFade = effect.instantFade
             end
 
             if effect.id == activeUlt.id then
-                activeUlt.endTime = effect.endTime
                 ultEndTime = effect.endTime
                 instantFade = effect.instantFade
-            elseif (not effect.toggled) and (not effect.passive) and (effect.endTime > currentTime - (SV.delayFade and (not effect.instantFade) and SV.fadeDelay or 0)) then
-                -- If the effect is not the active one but meets fade delay conditions, use its end time
+            elseif effect.endTime and (not effect.toggled) and (not effect.passive) and (effect.endTime > currentTime - (fadeDelay and not (effect.instantFade) and fadeDelay or 0)) then
                 ultEndTime = effect.endTime
                 instantFade = effect.instantFade
             else
-                -- Otherwise, use the activeUlt's end time
                 ultEndTime = activeUlt.endTime
                 instantFade = activeUlt.instantFade
             end
@@ -1662,45 +1691,72 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
             ultEndTime = effect.endTime
             instantFade = effect.instantFade
         end
-        duration = ultEndTime - currentTime
-        if duration > -2 then
-            if duration > 0 then
-                if (FancyActionBar.constants.update.showDecimal and (duration <= FancyActionBar.constants.update.showDecimalStart))
-                then
-                    durationControl:SetText(strformat("%0.1f", zo_max(0, duration)))
-                else
-                    durationControl:SetText(zo_max(0, zo_ceil(duration)))
-                end
 
-                if (duration <= SV.showExpireStart) then
-                    if (SV.showExpire) then
-                        durationControl:SetColor(unpack(SV.expireColor))
-                    end
-                else
-                    durationControl:SetColor(unpack(timerColor))
-                end
-            else
-                if (SV.delayFade and not instantFade) then
-                    local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime
-                    if delayEnd > 0
-                    then
-                        durationControl:SetText(zo_max(0, zo_ceil(duration)))
-                    else
-                        durationControl:SetText("")
-                    end
-                else
-                    durationControl:SetText("")
-                end
-            end
+        if ultEndTime then
+            duration = ultEndTime - currentTime
         else
-            durationControl:SetText("")
-        end
-        FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
-        FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
-        if index == ULT_INDEX + COMPANION_INDEX_OFFSET then
-            overlay:SetHidden(SV.hideCompanionUlt)
+            duration = -999
         end
     end
+
+    -- Use a slightly larger negative threshold to account for fade delay correctly
+    local displayThreshold = - ( (SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)
+
+    if duration > displayThreshold then
+         local displayDuration = zo_max(0, duration) -- Ensure displayed value isn't negative
+
+         if displayDuration > 0 then
+            -- Format positive duration (either channeled or standard)
+            if (FancyActionBar.constants.update.showDecimal and (displayDuration <= FancyActionBar.constants.update.showDecimalStart)) then
+                durationControl:SetText(strformat("%0.1f", displayDuration))
+            else
+                durationControl:SetText(zo_ceil(displayDuration)) -- Use zo_ceil for consistency with original non-decimal display
+            end
+
+            -- Apply color based on expiration or channel state
+            -- (Note: isCastTime could be used here for a specific channel color if desired)
+            if (displayDuration <= SV.showExpireStart) and SV.showExpire then
+                 durationControl:SetColor(unpack(SV.expireColor))
+            -- elseif isCastTime and SV.channelColor then -- Optional channel color?
+            --     durationControl:SetColor(unpack(SV.channelColor))
+            else
+                 durationControl:SetColor(unpack(timerColor))
+            end
+         else
+            -- Handle fade delay display (only applies if NOT channeling)
+            if not isCastTime and SV.delayFade and not instantFade then
+                local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime
+                if delayEnd > 0 then
+                    -- Still in fade delay, show 0 (or ceiling of negative duration)
+                    durationControl:SetText(zo_ceil(displayDuration)) -- Shows '0'
+                    -- Could set a specific fade color here if needed
+                    if SV.showExpire then durationControl:SetColor(unpack(SV.expireColor)) else durationControl:SetColor(unpack(timerColor)) end
+                else
+                    -- Fade delay ended
+                    durationControl:SetText("")
+                end
+            else
+                -- No fade delay or instant fade, clear text immediately
+                durationControl:SetText("")
+            end
+         end
+    else
+        -- Duration is too old (below display threshold)
+        durationControl:SetText("")
+         -- Reset activeUlt if its time is being used and it expired
+        if not isCastTime and ultEndTime == activeUlt.endTime and activeUlt.endTime and activeUlt.endTime <= currentTime then
+           activeUlt.id = 0
+           activeUlt.endTime = -1
+        end
+    end
+
+    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
+    FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
+
+    if index == ULT_INDEX + COMPANION_INDEX_OFFSET then
+        overlay:SetHidden(SV.hideCompanionUlt)
+    end
+
     if SV.applyActionBarSkillStyles then
         FancyActionBar.SetActionButtonAbilityFxOverride(index)
     end
