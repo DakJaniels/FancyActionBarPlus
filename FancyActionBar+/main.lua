@@ -4463,7 +4463,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1
 
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
-        remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
+       -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
         if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
             effect.castEndTime = t + remain
         else
@@ -4475,11 +4475,15 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             if SV.potlfix and remain > 6 and effect.id == 21763 then
                 remain = 6
             end
-            local lastDuration = effect.duration or -1
-            effect.duration = (lastDuration > 0 or duration > 0) and duration or nil
+
+            if FancyActionBar.dontFade[effect.id] and remain < FancyActionBar.durationMin then return end
+
+            local hasValidDuration = (effect.duration or -1) > 0 or duration > 0
+            effect.duration = hasValidDuration and duration or nil
             effect.beginTime = t - (duration - remain)
-            effect.endTime = (lastDuration > 0 or duration > 0) and (t + remain) or -1
+            effect.endTime = hasValidDuration and (t + remain) or -1
             FancyActionBar.UpdateEffect(effect)
+
             -- else
             -- effect.endTime = 0
         end
