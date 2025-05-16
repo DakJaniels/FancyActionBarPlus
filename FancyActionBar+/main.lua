@@ -402,6 +402,53 @@ function FancyActionBar.GetSlotBoundAbilityId(index, bar)
     return id
 end
 
+--- Gets corrected ability ID based on weapon type and special cases
+--- @param abilityId integer Original ability ID
+--- @param hotbarCategory number Hotbar category (HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP)
+--- @return integer Corrected ability ID
+local function GetCorrectedAbilityId(abilityId, hotbarCategory)
+    local correctedAbilityId = abilityId
+    local barHighlightDestroFix = FancyActionBar.barHighlightDestroFix
+
+    -- Only process abilities that have staff variants defined in the fix table
+    if not barHighlightDestroFix[abilityId] then
+        return abilityId
+    end
+
+    -- Determine which weapon slot to check based on hotbar category
+    local weaponSlot = (hotbarCategory == HOTBAR_CATEGORY_PRIMARY) and EQUIP_SLOT_MAIN_HAND or EQUIP_SLOT_BACKUP_MAIN
+
+    -- Get the weapon type from the appropriate slot
+    local weaponType = GetItemWeaponType(BAG_WORN, weaponSlot)
+
+    -- Only apply correction for staff weapon types
+    if weaponType == WEAPONTYPE_FIRE_STAFF or weaponType == WEAPONTYPE_FROST_STAFF or weaponType == WEAPONTYPE_LIGHTNING_STAFF or weaponType == WEAPONTYPE_NONE then
+        if barHighlightDestroFix[abilityId] and barHighlightDestroFix[abilityId][weaponType] then
+            correctedAbilityId = barHighlightDestroFix[abilityId][weaponType]
+
+            -- Debug output if enabled
+            if FancyActionBar.IsDebugMode() then
+                local staffType = "unknown"
+                if weaponType == WEAPONTYPE_FIRE_STAFF then
+                    staffType = "fire"
+                elseif weaponType == WEAPONTYPE_FROST_STAFF then
+                    staffType = "frost"
+                elseif weaponType == WEAPONTYPE_LIGHTNING_STAFF then
+                    staffType = "lightning"
+                elseif weaponType == WEAPONTYPE_NONE then
+                    staffType = "none"
+                end
+
+                dbg("Bar: %s, Corrected ability ID from %d to %d for %s staff",
+                    hotbarCategory == HOTBAR_CATEGORY_PRIMARY and "Primary" or "Backup",
+                    abilityId, correctedAbilityId, staffType)
+            end
+        end
+    end
+
+    return correctedAbilityId
+end
+
 function FancyActionBar.GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
     overrideActiveRank = overrideActiveRank or nil
     overrideCasterUnitTag = overrideCasterUnitTag or "player"
@@ -432,8 +479,8 @@ local function GetHyperToolsIcon(hyper)
 end
 
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
-    if FancyActionBar.destroSkills[abilityId] then
-        abilityId = FancyActionBar.GetBaseIdForDestroSkill(abilityId)
+    if FancyActionBar.barHighlightDestroFix[abilityId] then
+        abilityId = GetCorrectedAbilityId(abilityId)
     elseif FancyActionBar.styleFix[abilityId] then
         abilityId = FancyActionBar.styleFix[abilityId]
     end
@@ -1109,52 +1156,6 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
     return 0
 end
 
-function FancyActionBar.GetIdForDestroSkill(id, bar) -- cause too hard for game to figure out.
-    local destroId, staffType
-
-    local destroStaves =
-    {
-        [WEAPONTYPE_FIRE_STAFF] = true,
-        [WEAPONTYPE_FROST_STAFF] = true,
-        [WEAPONTYPE_LIGHTNING_STAFF] = true,
-    }
-
-    local weaponOnBar = bar == 0 and FancyActionBar.weaponFront or FancyActionBar.weaponBack
-
-    if destroStaves[weaponOnBar]
-    then
-        staffType = weaponOnBar
-    else
-        staffType = WEAPONTYPE_NONE
-    end
-
-    local skill1 = FancyActionBar.destroSkills[id]
-    local skill2 = FancyActionBar.idsForStaff[skill1.type][skill1.morph]
-
-    if skill2[staffType]
-    then
-        destroId = skill2[staffType]
-    else
-        destroId = id
-    end
-
-    return destroId
-end
-
-function FancyActionBar.GetBaseIdForDestroSkill(id) -- cause too hard for game to figure out.
-    local destroBaseId
-    local skill1 = FancyActionBar.destroSkills[id]
-    local skill2 = FancyActionBar.idsForStaff[skill1.type][skill1.morph]
-
-    if skill2[WEAPONTYPE_NONE]
-    then
-        destroBaseId = skill2[WEAPONTYPE_NONE]
-    else
-        destroBaseId = id
-    end
-    return destroBaseId
-end
-
 function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
     if index < MIN_INDEX or index > MAX_INDEX then
         return
@@ -1165,8 +1166,8 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
     local slotState = FancyActionBar.slotHidden[bar == HOTBAR_CATEGORY_BACKUP and index + SLOT_INDEX_OFFSET or index]
     local shouldHideSlot = SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked
     if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
-        if FancyActionBar.destroSkills[id] then
-            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetIdForDestroSkill(id, bar))
+        if FancyActionBar.barHighlightDestroFix[id] then
+            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(GetCorrectedAbilityId(id, bar))
         else
             id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
             if SV.applyActionBarSkillStyles then

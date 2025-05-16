@@ -1805,168 +1805,73 @@ FancyActionBar.confirmBuffFade =
 
 local WEAPONTYPE_NONE = WEAPONTYPE_NONE
 local WEAPONTYPE_FIRE_STAFF = WEAPONTYPE_FIRE_STAFF
-local WEAPONTYPE_FROST_STAFF = WEAPONTYPE_FROST_STAFF
 local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
-FancyActionBar.destroSkills =
+local WEAPONTYPE_FROST_STAFF = WEAPONTYPE_FROST_STAFF
+FancyActionBar.barHighlightDestroFix =
 {
-    [28858] = { type = 1, morph = 1 }, -- wall of elements
-    [28807] = { type = 1, morph = 1 }, -- fire
-    [28849] = { type = 1, morph = 1 }, -- ice
-    [28854] = { type = 1, morph = 1 }, -- shock
+    -- Base Ability
+    [28858] = { [WEAPONTYPE_NONE] = 28858, [WEAPONTYPE_FIRE_STAFF] = 28807, [WEAPONTYPE_LIGHTNING_STAFF] = 28854, [WEAPONTYPE_FROST_STAFF] = 28849 }, -- Wall of Elements
+    [39052] = { [WEAPONTYPE_NONE] = 39052, [WEAPONTYPE_FIRE_STAFF] = 39053, [WEAPONTYPE_LIGHTNING_STAFF] = 39073, [WEAPONTYPE_FROST_STAFF] = 39067 }, -- Unstable Wall of Elements
+    [39011] = { [WEAPONTYPE_NONE] = 39011, [WEAPONTYPE_FIRE_STAFF] = 39012, [WEAPONTYPE_LIGHTNING_STAFF] = 39018, [WEAPONTYPE_FROST_STAFF] = 39028 }, -- Elemental Blockade
+    [29091] = { [WEAPONTYPE_NONE] = 29091, [WEAPONTYPE_FIRE_STAFF] = 29073, [WEAPONTYPE_LIGHTNING_STAFF] = 29089, [WEAPONTYPE_FROST_STAFF] = 29078 }, -- Destructive Touch
+    [38984] = { [WEAPONTYPE_NONE] = 38984, [WEAPONTYPE_FIRE_STAFF] = 38985, [WEAPONTYPE_LIGHTNING_STAFF] = 38993, [WEAPONTYPE_FROST_STAFF] = 38989 }, -- Destructive Clench
+    [38937] = { [WEAPONTYPE_NONE] = 38937, [WEAPONTYPE_FIRE_STAFF] = 38944, [WEAPONTYPE_LIGHTNING_STAFF] = 38978, [WEAPONTYPE_FROST_STAFF] = 38970 }, -- Destructive Reach
+    [28800] = { [WEAPONTYPE_NONE] = 28800, [WEAPONTYPE_FIRE_STAFF] = 28794, [WEAPONTYPE_LIGHTNING_STAFF] = 28799, [WEAPONTYPE_FROST_STAFF] = 28798 }, -- Impulse
+    [39143] = { [WEAPONTYPE_NONE] = 39143, [WEAPONTYPE_FIRE_STAFF] = 39145, [WEAPONTYPE_LIGHTNING_STAFF] = 39147, [WEAPONTYPE_FROST_STAFF] = 39146 }, -- Elemental Ring
+    [39161] = { [WEAPONTYPE_NONE] = 39161, [WEAPONTYPE_FIRE_STAFF] = 39162, [WEAPONTYPE_LIGHTNING_STAFF] = 39167, [WEAPONTYPE_FROST_STAFF] = 39163 }, -- Pulsar
 
-    [39011] = { type = 1, morph = 2 }, -- elemental blockade
-    [39012] = { type = 1, morph = 2 }, -- fire
-    [39028] = { type = 1, morph = 2 }, -- ice
-    [39018] = { type = 1, morph = 2 }, -- shock
+    -- Fire Staff
+    [28807] = { [WEAPONTYPE_NONE] = 28858, [WEAPONTYPE_FIRE_STAFF] = 28807, [WEAPONTYPE_LIGHTNING_STAFF] = 28854, [WEAPONTYPE_FROST_STAFF] = 28849 }, -- Wall of Elements
+    [39053] = { [WEAPONTYPE_NONE] = 39052, [WEAPONTYPE_FIRE_STAFF] = 39053, [WEAPONTYPE_LIGHTNING_STAFF] = 39073, [WEAPONTYPE_FROST_STAFF] = 39067 }, -- Unstable Wall of Elements
+    [39012] = { [WEAPONTYPE_NONE] = 39011, [WEAPONTYPE_FIRE_STAFF] = 39012, [WEAPONTYPE_LIGHTNING_STAFF] = 39018, [WEAPONTYPE_FROST_STAFF] = 39028 }, -- Elemental Blockade
+    [29073] = { [WEAPONTYPE_NONE] = 29091, [WEAPONTYPE_FIRE_STAFF] = 29073, [WEAPONTYPE_LIGHTNING_STAFF] = 29089, [WEAPONTYPE_FROST_STAFF] = 29078 }, -- Destructive Touch
+    [38985] = { [WEAPONTYPE_NONE] = 38984, [WEAPONTYPE_FIRE_STAFF] = 38985, [WEAPONTYPE_LIGHTNING_STAFF] = 38993, [WEAPONTYPE_FROST_STAFF] = 38989 }, -- Destructive Clench
+    [38944] = { [WEAPONTYPE_NONE] = 38937, [WEAPONTYPE_FIRE_STAFF] = 38944, [WEAPONTYPE_LIGHTNING_STAFF] = 38978, [WEAPONTYPE_FROST_STAFF] = 38970 }, -- Destructive Reach
+    [28794] = { [WEAPONTYPE_NONE] = 28800, [WEAPONTYPE_FIRE_STAFF] = 28794, [WEAPONTYPE_LIGHTNING_STAFF] = 28799, [WEAPONTYPE_FROST_STAFF] = 28798 }, -- Impulse
+    [39145] = { [WEAPONTYPE_NONE] = 39143, [WEAPONTYPE_FIRE_STAFF] = 39145, [WEAPONTYPE_LIGHTNING_STAFF] = 39147, [WEAPONTYPE_FROST_STAFF] = 39146 }, -- Elemental Ring
+    [39162] = { [WEAPONTYPE_NONE] = 39161, [WEAPONTYPE_FIRE_STAFF] = 39162, [WEAPONTYPE_LIGHTNING_STAFF] = 39167, [WEAPONTYPE_FROST_STAFF] = 39163 }, -- Pulsar
 
-    [39052] = { type = 1, morph = 3 }, -- unstable wall of elements
-    [39053] = { type = 1, morph = 3 }, -- fire
-    [39067] = { type = 1, morph = 3 }, -- ice
-    [39073] = { type = 1, morph = 3 }, -- shock
+    -- Lightning Staff
+    [28854] = { [WEAPONTYPE_NONE] = 28858, [WEAPONTYPE_FIRE_STAFF] = 28807, [WEAPONTYPE_LIGHTNING_STAFF] = 28854, [WEAPONTYPE_FROST_STAFF] = 28849 }, -- Wall of Elements
+    [39073] = { [WEAPONTYPE_NONE] = 39052, [WEAPONTYPE_FIRE_STAFF] = 39053, [WEAPONTYPE_LIGHTNING_STAFF] = 39073, [WEAPONTYPE_FROST_STAFF] = 39067 }, -- Unstable Wall of Elements
+    [39018] = { [WEAPONTYPE_NONE] = 39011, [WEAPONTYPE_FIRE_STAFF] = 39012, [WEAPONTYPE_LIGHTNING_STAFF] = 39018, [WEAPONTYPE_FROST_STAFF] = 39028 }, -- Elemental Blockade
+    [29089] = { [WEAPONTYPE_NONE] = 29091, [WEAPONTYPE_FIRE_STAFF] = 29073, [WEAPONTYPE_LIGHTNING_STAFF] = 29089, [WEAPONTYPE_FROST_STAFF] = 29078 }, -- Destructive Touch
+    [38993] = { [WEAPONTYPE_NONE] = 38984, [WEAPONTYPE_FIRE_STAFF] = 38985, [WEAPONTYPE_LIGHTNING_STAFF] = 38993, [WEAPONTYPE_FROST_STAFF] = 38989 }, -- Destructive Clench
+    [38978] = { [WEAPONTYPE_NONE] = 38937, [WEAPONTYPE_FIRE_STAFF] = 38944, [WEAPONTYPE_LIGHTNING_STAFF] = 38978, [WEAPONTYPE_FROST_STAFF] = 38970 }, -- Destructive Reach
+    [28799] = { [WEAPONTYPE_NONE] = 28800, [WEAPONTYPE_FIRE_STAFF] = 28794, [WEAPONTYPE_LIGHTNING_STAFF] = 28799, [WEAPONTYPE_FROST_STAFF] = 28798 }, -- Impulse
+    [39147] = { [WEAPONTYPE_NONE] = 39143, [WEAPONTYPE_FIRE_STAFF] = 39145, [WEAPONTYPE_LIGHTNING_STAFF] = 39147, [WEAPONTYPE_FROST_STAFF] = 39146 }, -- Elemental Ring
+    [39167] = { [WEAPONTYPE_NONE] = 39161, [WEAPONTYPE_FIRE_STAFF] = 39162, [WEAPONTYPE_LIGHTNING_STAFF] = 39167, [WEAPONTYPE_FROST_STAFF] = 39163 }, -- Pulsar
 
-    [29091] = { type = 2, morph = 1 }, -- destructive touch
-    [29073] = { type = 2, morph = 1 }, -- fire
-    [29078] = { type = 2, morph = 1 }, -- ice
-    [29089] = { type = 2, morph = 1 }, -- shock
+    -- Frost Staff
+    [28849] = { [WEAPONTYPE_NONE] = 28858, [WEAPONTYPE_FIRE_STAFF] = 28807, [WEAPONTYPE_LIGHTNING_STAFF] = 28854, [WEAPONTYPE_FROST_STAFF] = 28849 }, -- Wall of Elements
+    [39067] = { [WEAPONTYPE_NONE] = 39052, [WEAPONTYPE_FIRE_STAFF] = 39053, [WEAPONTYPE_LIGHTNING_STAFF] = 39073, [WEAPONTYPE_FROST_STAFF] = 39067 }, -- Unstable Wall of Elements
+    [39028] = { [WEAPONTYPE_NONE] = 39011, [WEAPONTYPE_FIRE_STAFF] = 39012, [WEAPONTYPE_LIGHTNING_STAFF] = 39018, [WEAPONTYPE_FROST_STAFF] = 39028 }, -- Elemental Blockade
+    [29078] = { [WEAPONTYPE_NONE] = 29091, [WEAPONTYPE_FIRE_STAFF] = 29073, [WEAPONTYPE_LIGHTNING_STAFF] = 29089, [WEAPONTYPE_FROST_STAFF] = 29078 }, -- Destructive Touch
+    [38990] = { [WEAPONTYPE_NONE] = 38984, [WEAPONTYPE_FIRE_STAFF] = 38985, [WEAPONTYPE_LIGHTNING_STAFF] = 38993, [WEAPONTYPE_FROST_STAFF] = 38989 }, -- Destructive Clench
+    [38970] = { [WEAPONTYPE_NONE] = 38937, [WEAPONTYPE_FIRE_STAFF] = 38944, [WEAPONTYPE_LIGHTNING_STAFF] = 38978, [WEAPONTYPE_FROST_STAFF] = 38970 }, -- Destructive Reach
+    [28798] = { [WEAPONTYPE_NONE] = 28800, [WEAPONTYPE_FIRE_STAFF] = 28794, [WEAPONTYPE_LIGHTNING_STAFF] = 28799, [WEAPONTYPE_FROST_STAFF] = 28798 }, -- Impulse
+    [39146] = { [WEAPONTYPE_NONE] = 39143, [WEAPONTYPE_FIRE_STAFF] = 39145, [WEAPONTYPE_LIGHTNING_STAFF] = 39147, [WEAPONTYPE_FROST_STAFF] = 39146 }, -- Elemental Ring
+    [39163] = { [WEAPONTYPE_NONE] = 39161, [WEAPONTYPE_FIRE_STAFF] = 39162, [WEAPONTYPE_LIGHTNING_STAFF] = 39167, [WEAPONTYPE_FROST_STAFF] = 39163 }, -- Pulsar
 
-    [38937] = { type = 2, morph = 2 }, -- destructive reach
-    [38944] = { type = 2, morph = 2 }, -- fire
-    [38970] = { type = 2, morph = 2 }, -- ice
-    [38978] = { type = 2, morph = 2 }, -- shock
+    -- Ultimates
 
-    [38984] = { type = 2, morph = 3 }, -- destructive clench
-    [38985] = { type = 2, morph = 3 }, -- fire
-    [38989] = { type = 2, morph = 3 }, -- ice
-    [38993] = { type = 2, morph = 3 }, -- shock
+    -- Elemental Storm
+    [83619] = { [WEAPONTYPE_NONE] = 83619, [WEAPONTYPE_FIRE_STAFF] = 83625, [WEAPONTYPE_FROST_STAFF] = 83628, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- elemental storm
+    [83625] = { [WEAPONTYPE_NONE] = 83619, [WEAPONTYPE_FIRE_STAFF] = 83625, [WEAPONTYPE_FROST_STAFF] = 83628, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- fire
+    [83628] = { [WEAPONTYPE_NONE] = 83619, [WEAPONTYPE_FIRE_STAFF] = 83625, [WEAPONTYPE_FROST_STAFF] = 83628, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- ice
+    [83630] = { [WEAPONTYPE_NONE] = 83619, [WEAPONTYPE_FIRE_STAFF] = 83625, [WEAPONTYPE_FROST_STAFF] = 83628, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- shock
 
-    [28800] = { type = 3, morph = 1 }, -- impulse
-    [28794] = { type = 3, morph = 1 }, -- fire
-    [28798] = { type = 3, morph = 1 }, -- ice
-    [28799] = { type = 3, morph = 1 }, -- shock
+    -- Eye of the Storm
+    [83642] = { [WEAPONTYPE_NONE] = 83642, [WEAPONTYPE_FIRE_STAFF] = 83682, [WEAPONTYPE_FROST_STAFF] = 83684, [WEAPONTYPE_LIGHTNING_STAFF] = 83686 }, -- eye of the storm
+    [83682] = { [WEAPONTYPE_NONE] = 83642, [WEAPONTYPE_FIRE_STAFF] = 83682, [WEAPONTYPE_FROST_STAFF] = 83684, [WEAPONTYPE_LIGHTNING_STAFF] = 83686 }, -- fire
+    [83684] = { [WEAPONTYPE_NONE] = 83642, [WEAPONTYPE_FIRE_STAFF] = 83682, [WEAPONTYPE_FROST_STAFF] = 83684, [WEAPONTYPE_LIGHTNING_STAFF] = 83686 }, -- ice
+    [83686] = { [WEAPONTYPE_NONE] = 83642, [WEAPONTYPE_FIRE_STAFF] = 83682, [WEAPONTYPE_FROST_STAFF] = 83684, [WEAPONTYPE_LIGHTNING_STAFF] = 83686 }, -- shock
 
-    [39143] = { type = 3, morph = 2 }, -- elemental ring
-    [39145] = { type = 3, morph = 2 }, -- fire
-    [39146] = { type = 3, morph = 2 }, -- ice
-    [39147] = { type = 3, morph = 2 }, -- shock
-
-    [39161] = { type = 3, morph = 3 }, -- pulsar
-    [39162] = { type = 3, morph = 3 }, -- fire
-    [39163] = { type = 3, morph = 3 }, -- ice
-    [39167] = { type = 3, morph = 3 }, -- shock
-
-    [83619] = { type = 4, morph = 1 }, -- elemental storm
-    [83625] = { type = 4, morph = 1 }, -- fire
-    [83628] = { type = 4, morph = 1 }, -- ice
-    [83630] = { type = 4, morph = 1 }, -- shock
-
-    [83642] = { type = 4, morph = 2 }, -- eye of the storm
-    [83682] = { type = 4, morph = 2 }, -- fire
-    [83684] = { type = 4, morph = 2 }, -- ice
-    [83686] = { type = 4, morph = 2 }, -- shock
-
-    [84434] = { type = 4, morph = 3 }, -- elemental rage
-    [85126] = { type = 4, morph = 3 }, -- fire
-    [85128] = { type = 4, morph = 3 }, -- ice
-    [85130] = { type = 4, morph = 3 }, -- shock
-}
-FancyActionBar.idsForStaff =
-{
-    [1] =
-    {     -- wall morphs
-        [1] =
-        { -- wall of elements
-            [WEAPONTYPE_NONE] = 28858,
-            [WEAPONTYPE_FIRE_STAFF] = 28807,
-            [WEAPONTYPE_FROST_STAFF] = 28849,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 28854,
-        },
-        [2] =
-        { -- elemental blockade
-            [WEAPONTYPE_NONE] = 39011,
-            [WEAPONTYPE_FIRE_STAFF] = 39012,
-            [WEAPONTYPE_FROST_STAFF] = 39028,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 39018,
-        },
-        [3] =
-        { -- unstable wall of elements
-            [WEAPONTYPE_NONE] = 39052,
-            [WEAPONTYPE_FIRE_STAFF] = 39053,
-            [WEAPONTYPE_FROST_STAFF] = 39067,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 39073,
-        },
-    },
-    [2] =
-    { -- touch / reach / clench
-        [1] =
-        {
-            [WEAPONTYPE_NONE] = 29091,
-            [WEAPONTYPE_FIRE_STAFF] = 29073,
-            [WEAPONTYPE_FROST_STAFF] = 29078,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 29089,
-        },
-        [2] =
-        {
-            [WEAPONTYPE_NONE] = 38937,
-            [WEAPONTYPE_FIRE_STAFF] = 38944,
-            [WEAPONTYPE_FROST_STAFF] = 38970,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 38978,
-        },
-        [3] =
-        {
-            [WEAPONTYPE_NONE] = 38984,
-            [WEAPONTYPE_FIRE_STAFF] = 38985,
-            [WEAPONTYPE_FROST_STAFF] = 38989,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 38993,
-        },
-    },
-    [3] =
-    { -- impulse / ring / pulsar
-        [1] =
-        {
-            [WEAPONTYPE_NONE] = 28800,
-            [WEAPONTYPE_FIRE_STAFF] = 28794,
-            [WEAPONTYPE_FROST_STAFF] = 28798,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 28799,
-        },
-        [2] =
-        {
-            [WEAPONTYPE_NONE] = 39143,
-            [WEAPONTYPE_FIRE_STAFF] = 39145,
-            [WEAPONTYPE_FROST_STAFF] = 39146,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 39147,
-        },
-        [3] =
-        {
-            [WEAPONTYPE_NONE] = 39161,
-            [WEAPONTYPE_FIRE_STAFF] = 39162,
-            [WEAPONTYPE_FROST_STAFF] = 39163,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 39167,
-        },
-    },
-    [4] =
-    { -- storm / eye / rage
-        [1] =
-        {
-            [WEAPONTYPE_NONE] = 83619,
-            [WEAPONTYPE_FIRE_STAFF] = 83625,
-            [WEAPONTYPE_FROST_STAFF] = 83628,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 85130,
-        },
-        [2] =
-        {
-            [WEAPONTYPE_NONE] = 83642,
-            [WEAPONTYPE_FIRE_STAFF] = 83682,
-            [WEAPONTYPE_FROST_STAFF] = 83684,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 83686,
-        },
-        [3] =
-        {
-            [WEAPONTYPE_NONE] = 84434,
-            [WEAPONTYPE_FIRE_STAFF] = 85126,
-            [WEAPONTYPE_FROST_STAFF] = 85128,
-            [WEAPONTYPE_LIGHTNING_STAFF] = 85130,
-        },
-    },
+    -- Elemental Rage
+    [84434] = { [WEAPONTYPE_NONE] = 84434, [WEAPONTYPE_FIRE_STAFF] = 85126, [WEAPONTYPE_FROST_STAFF] = 85128, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- elemental rage
+    [85126] = { [WEAPONTYPE_NONE] = 84434, [WEAPONTYPE_FIRE_STAFF] = 85126, [WEAPONTYPE_FROST_STAFF] = 85128, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- fire
+    [85128] = { [WEAPONTYPE_NONE] = 84434, [WEAPONTYPE_FIRE_STAFF] = 85126, [WEAPONTYPE_FROST_STAFF] = 85128, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- ice
+    [85130] = { [WEAPONTYPE_NONE] = 84434, [WEAPONTYPE_FIRE_STAFF] = 85126, [WEAPONTYPE_FROST_STAFF] = 85128, [WEAPONTYPE_LIGHTNING_STAFF] = 85130 }, -- shock
 }
 
 FancyActionBar.styleFix =
