@@ -1356,9 +1356,9 @@ local function GetCurrentFrontBarInfo()
             -- end;
         else
             if id > 0 then
-                if FancyActionBar.destroSkills[id] then
-                    name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0))
-                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")"
+                if FancyActionBar.barHighlightDestroFix[id] then
+                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, 0))
+                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, 0) .. ")"
                 else
                     name = GetAbilityName(id)
                     line = "|cffa31a" .. name .. "|r (" .. id .. ")"
@@ -1395,9 +1395,9 @@ local function GetCurrentBackBarInfo()
             end
         else
             if id > 0 then
-                if FancyActionBar.destroSkills[id] then
-                    name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 1))
-                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 1) .. ")"
+                if FancyActionBar.barHighlightDestroFix[id] then
+                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, 1))
+                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, 1) .. ")"
                 else
                     name = GetAbilityName(id)
                     line = "|cffa31a" .. name .. "|r (" .. id .. ")"
