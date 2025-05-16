@@ -406,7 +406,7 @@ end
 --- @param abilityId integer Original ability ID
 --- @param hotbarCategory number Hotbar category (HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP)
 --- @return integer Corrected ability ID
-local function GetCorrectedAbilityId(abilityId, hotbarCategory)
+function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory)
     local correctedAbilityId = abilityId
     local barHighlightDestroFix = FancyActionBar.barHighlightDestroFix
 
@@ -480,7 +480,7 @@ end
 
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
     if FancyActionBar.barHighlightDestroFix[abilityId] then
-        abilityId = GetCorrectedAbilityId(abilityId)
+        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId)
     elseif FancyActionBar.styleFix[abilityId] then
         abilityId = FancyActionBar.styleFix[abilityId]
     end
@@ -1167,7 +1167,7 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
     local shouldHideSlot = SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked
     if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
         if FancyActionBar.barHighlightDestroFix[id] then
-            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(GetCorrectedAbilityId(id, bar))
+            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, bar))
         else
             id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
             if SV.applyActionBarSkillStyles then
