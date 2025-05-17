@@ -415,12 +415,8 @@ function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory)
         return abilityId
     end
 
-    -- Determine which weapon slot to check based on hotbar category
-    local weaponSlot = (hotbarCategory == HOTBAR_CATEGORY_PRIMARY) and EQUIP_SLOT_MAIN_HAND or EQUIP_SLOT_BACKUP_MAIN
-
     -- Get the weapon type from the appropriate slot
-    local weaponType = GetItemWeaponType(BAG_WORN, weaponSlot)
-
+    local weaponType = (hotbarCategory == HOTBAR_CATEGORY_PRIMARY) and FancyActionBar.weaponFront or FancyActionBar.weaponBack
     -- Only apply correction for staff weapon types
     if weaponType == WEAPONTYPE_FIRE_STAFF or weaponType == WEAPONTYPE_FROST_STAFF or weaponType == WEAPONTYPE_LIGHTNING_STAFF or weaponType == WEAPONTYPE_NONE then
         if barHighlightDestroFix[abilityId] and barHighlightDestroFix[abilityId][weaponType] then
