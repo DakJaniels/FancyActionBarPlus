@@ -1560,6 +1560,18 @@ FancyActionBar.ignoreFallbackTimers =
     [186477] = true, -- unbreakable fate
     [238256] = true, -- vengeance fatewoven armor
     [118680] = true, -- skeletal arcanist
+    [28858] = true, -- wall of elements
+    [39052] = true, -- unstable wall of elements
+    [39011] = true, -- elemental blockade
+    [28807] = true, -- wall of elements (fire)
+    [28854] = true, -- wall of elements (lightning)
+    [28849] = true, -- wall of elements (frost)
+    [39053] = true, -- unstable wall of elements (fire)
+    [39073] = true, -- unstable wall of elements (lightning)
+    [39067] = true, -- unstable wall of elements (frost)
+    [39012] = true, -- elemental blockade (fire)
+    [39018] = true, -- elemental blockade (lightning)
+    [39028] = true, -- elemental blockade (frost)
 }
 
 FancyActionBar.dontFade =
