@@ -405,8 +405,9 @@ end
 --- Gets corrected ability ID based on weapon type and special cases
 --- @param abilityId integer Original ability ID
 --- @param hotbarCategory number Hotbar category (HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP)
+--- @param weaponType number Weapon type (WEAPONTYPE_* constants)
 --- @return integer Corrected ability ID
-function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory)
+function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory, weaponType)
     local correctedAbilityId = abilityId
     local barHighlightDestroFix = FancyActionBar.barHighlightDestroFix
 
@@ -415,8 +416,6 @@ function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory)
         return abilityId
     end
 
-    -- Get the weapon type from the appropriate slot
-    local weaponType = (hotbarCategory == HOTBAR_CATEGORY_PRIMARY) and FancyActionBar.weaponFront or FancyActionBar.weaponBack
     -- Only apply correction for staff weapon types
     if weaponType == WEAPONTYPE_FIRE_STAFF or weaponType == WEAPONTYPE_FROST_STAFF or weaponType == WEAPONTYPE_LIGHTNING_STAFF or weaponType == WEAPONTYPE_NONE then
         if barHighlightDestroFix[abilityId] and barHighlightDestroFix[abilityId][weaponType] then
@@ -476,7 +475,7 @@ end
 
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
     if FancyActionBar.barHighlightDestroFix[abilityId] then
-        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId)
+        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId, nil, WEAPONTYPE_NONE)
     elseif FancyActionBar.styleFix[abilityId] then
         abilityId = FancyActionBar.styleFix[abilityId]
     end
@@ -1163,7 +1162,8 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
     local shouldHideSlot = SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked
     if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
         if FancyActionBar.barHighlightDestroFix[id] then
-            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, bar))
+            local weaponType = bar == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
+            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, bar, weaponType))
         else
             id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
             if SV.applyActionBarSkillStyles then
