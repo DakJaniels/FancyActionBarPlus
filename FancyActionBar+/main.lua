@@ -398,6 +398,9 @@ function FancyActionBar.GetSlotBoundAbilityId(index, bar)
     local actionType = GetSlotType(index, bar)
     if actionType == ACTION_TYPE_CRAFTED_ABILITY then
         id = GetAbilityIdForCraftedAbilityId(id)
+    elseif FancyActionBar.barHighlightDestroFix[id] then
+        local weaponType = bar == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
+        id = FancyActionBar.GetCorrectedAbilityId(id, bar, weaponType)
     end
     return id
 end
