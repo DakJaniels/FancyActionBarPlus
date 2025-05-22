@@ -25,7 +25,6 @@ local currentWeaponPair = GetActiveWeaponPairInfo()
 local isWeaponSwapLocked = false  -- for tracking weapon swap lock state
 local specialHotbarActive = false -- for tracking if a specialHotbar is active
 
-
 local specialHotbar =
 {
     [HOTBAR_CATEGORY_TEMPORARY] = true,
@@ -2965,7 +2964,7 @@ end
 
 local hideUltimateNumberIfNeeded = function ()
     local hideUltNumber = FancyActionBar.constants.ult.value.show
-    if hideUltNumber then
+    if hideUltNumber and not IsConsoleUI() then
         SetSetting(SETTING_TYPE_UI, UI_SETTING_ULTIMATE_NUMBER, "false")
     end
 end
@@ -5209,7 +5208,9 @@ function FancyActionBar.Initialize()
     end)
 
     EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
-        SetAbilityBarTimersEnabled()
+        if not IsConsoleUI() then
+            SetAbilityBarTimersEnabled()
+        end
         EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
         FancyActionBar.ApplyStyle()
         FancyActionBar.InitializeScreenResizeHandler()
@@ -5319,9 +5320,10 @@ function FancyActionBar.Initialize()
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
     --   return false
     -- end)
-
-    SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_BACK_ROW, "false")
-    SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false")
+    if not IsConsoleUI() then
+        SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_BACK_ROW, "false")
+        SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false")
+    end
 end
 
 function FancyActionBar.OnAddOnLoaded(event, addonName)
