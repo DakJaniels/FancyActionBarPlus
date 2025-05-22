@@ -2811,26 +2811,27 @@ end
 --  UI Prep before initial
 --  ---------------------------------
 ---
+--- This is now directly handled in the ui.xml OnInitialized
 --- @param control TopLevelWindow
-function FancyActionBar.OnActionBarInitialized(control) -- backbar control initialized.
-    ULTIMATE_BUTTON_STYLE.parentBar = control
+-- function FancyActionBar.OnActionBarInitialized(control) -- backbar control initialized.
+--     ULTIMATE_BUTTON_STYLE.parentBar = control
 
-    -- Set active bar as a parent to make inactive bar show/hide automatically.
-    control:SetParent(ACTION_BAR)
+--     -- Set active bar as a parent to make inactive bar show/hide automatically.
+--     control:SetParent(ACTION_BAR)
 
-    -- Need to adjust it here instead of in ApplyStyle(), otherwise it won't properly work with Azurah.
-    FancyActionBar.AdjustControlsPositions()
+--     -- Need to adjust it here instead of in ApplyStyle(), otherwise it won't properly work with Azurah.
+--     FancyActionBar.AdjustControlsPositions()
 
-    -- Create inactive bar buttons.
-    for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
-        --- @class ActionButton
-        local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, control, "ZO_ActionButton")
-        button:SetShowBindingText(false)
-        button.icon:SetHidden(true)
-        button:SetupBounceAnimation()
-        FancyActionBar.buttons[i] = button
-    end
-end
+--     -- Create inactive bar buttons.
+--     for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
+--         --- @class ActionButton
+--         local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, control, "ZO_ActionButton")
+--         button:SetShowBindingText(false)
+--         button.icon:SetHidden(true)
+--         button:SetupBounceAnimation()
+--         FancyActionBar.buttons[i] = button
+--     end
+-- end
 
 ---
 --- @param index integer
