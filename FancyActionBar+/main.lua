@@ -2622,48 +2622,36 @@ function FancyActionBar.AdjustControlsPositions() -- resource bars and default a
     anchor:Set(ZO_PlayerAttribute)
 end
 
-function FancyActionBar.AdjustQuickSlotSpacing(lock) -- quickslot placement and arrow visibility
-    lock = SV.hideLockedBar and lock or SV.hideLockedBar and isWeaponSwapLocked and true or nil
+function FancyActionBar.AdjustQuickSlotSpacing(lock)
+    if SV.hideLockedBar then
+        lock = lock or isWeaponSwapLocked or nil
+    end
+
     local abilitySlotOffsetX = FancyActionBar.constants.abilitySlot.offsetX
-    local style = FancyActionBar.GetContants()
     local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
     local QSB = GetControl("QuickslotButton")
-    local xOffset = FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB or SV.quickSlotCustomXOffsetGP or 0
-    local yOffset = FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB or SV.quickSlotCustomYOffsetGP or 0
+    local xOffset = (FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB) or SV.quickSlotCustomXOffsetGP or 0
+    local yOffset = (FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB) or SV.quickSlotCustomYOffsetGP or 0
+    local anchorOffsetX = (abilitySlotOffsetX + xOffset) * scale
+    local anchorOffsetY = yOffset * scale
+
     QSB:ClearAnchors()
 
-    if (SV.showArrow == false) or (lock == true) then
-        if SV.moveQS == true then
+    if not SV.showArrow or lock then
+        if SV.moveQS then
             if FancyActionBar.style == 2 then
-                QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * ((abilitySlotOffsetX + xOffset) * scale))), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains())
+                QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * anchorOffsetX)), anchorOffsetY, QSB:GetResizeToFitConstrains())
             else
-                QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + ((abilitySlotOffsetX + xOffset) * scale)), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains())
+                QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + anchorOffsetX), anchorOffsetY, QSB:GetResizeToFitConstrains())
             end
         else
-            QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains())
+            QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, xOffset, anchorOffsetY, QSB:GetResizeToFitConstrains())
         end
     else
-        QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, (0 + xOffset), (0 + yOffset) * scale, QSB:GetResizeToFitConstrains())
+        QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, xOffset, anchorOffsetY, QSB:GetResizeToFitConstrains())
         FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
     end
 
-    -- ActionButton9:ClearAnchors()
-    --
-    -- if SV.showArrow == false then
-    -- 	if SV.moveQS == true then
-    --     if not FancyActionBar.style == 1 then
-    --       ActionButton9:SetAnchor(RIGHT, weaponSwapControl, RIGHT, - (2 + (SLOT_COUNT * (abilitySlotOffsetX*scale))), -2 * scale)
-    --     else
-    --       ActionButton9:SetAnchor(RIGHT, weaponSwapControl, RIGHT, - (5 + (abilitySlotOffsetX*scale)), -2 * scale)
-    --     end
-    --   else
-    --     ActionButton9:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, 0, -2 * scale)
-    --   end
-    --
-    -- else
-    --   ActionButton9:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, 0, -2 * scale)
-    --   FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
-    -- end
     FAB_ActionBarArrow:SetHidden(lock or not SV.showArrow)
 end
 
