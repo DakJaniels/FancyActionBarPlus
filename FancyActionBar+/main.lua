@@ -870,7 +870,7 @@ function FancyActionBar.GetActionButton(index) -- get actionbutton by index.
 end
 
 function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
-    if not userPreferenceChanged and SV.applyActionBarSkillStyles == false then
+    if not userPreferenceChanged and not SV.applyActionBarSkillStyles then
         return
     end
     local currentHotbarCategory = GetActiveHotbarCategory()
@@ -1169,13 +1169,11 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
             icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, bar, weaponType))
         else
             id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
-            if SV.applyActionBarSkillStyles then
-                icon = FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
-            elseif id == 31816 then
+            if id == 31816 then
                 local hyper = CheckHyperTools()
                 icon = hyper ~= "" and GetHyperToolsIcon(hyper) or GetAbilityIcon(id)
             else
-                icon = GetAbilityIcon(id)
+                icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
             end
         end
         btn.icon:SetTexture(shouldHideSlot and "" or icon)
@@ -4170,8 +4168,8 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
         FancyActionBar.UpdateSlottedSkillsDecriptions()
         if SV.applyActionBarSkillStyles then
             FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
-            FancyActionBar.UpdateInactiveBarIcon(slotNum, inactiveBar)
         end
+        FancyActionBar.UpdateInactiveBarIcon(slotNum, inactiveBar)
     end
     -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
