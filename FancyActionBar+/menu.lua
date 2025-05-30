@@ -100,9 +100,10 @@ local selectedDebuff = 0
 
 local uiPresets =
 {
-    ["Default UI"] = FancyActionBar.defaultSettings,
-    ["Dev's Preferred UI"] = FancyActionBar.devConfig,
-    ["ADR-like UI"] = FancyActionBar.adrConfig,
+    [1] = {"None", {}},
+    [2] = {"Default UI", FancyActionBar.defaultSettings},
+    [3] = {"Dev's Preferred UI", FancyActionBar.devConfig},
+    [4] = {"ADR-like UI", FancyActionBar.adrConfig},
 }
 
 local presetIgnoreKeys =
@@ -148,11 +149,30 @@ end
 
 function FancyActionBar.GetPresets()
     local presets = {}
-    for k in pairs(uiPresets) do
-        table.insert(presets, k)
+    for k, v in pairs(uiPresets) do
+        table.insert(presets, v[1])
     end
 
     return presets
+end
+
+local function SetUIPreset(preset)
+    local presetIndex = 0
+    for i, v in ipairs(uiPresets) do
+        if v[1] == preset then
+            presetIndex = i
+            break
+        end
+    end
+    local presetSetting = uiPresets[presetIndex]
+    local presetData = presetSetting[2]
+
+    for k, v in pairs(presetData) do
+        if not presetIgnoreKeys[k] then
+            SV[k] = v
+        end
+    end
+    --ReloadUI("ingame")
 end
 
 function FancyActionBar.GetDecimalOptions()
@@ -329,7 +349,9 @@ local function SetSkillToBlacklistID(id)
         Chat("|cffffff" .. id .. " is not a valid ID.")
         skillToBlacklistID = 0
         skillToBlacklistName = ""
-        WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
+        if WM:GetControlByName("SkillToBlacklistTitle") then
+            WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
+        end
         return
     end
 
@@ -337,7 +359,9 @@ local function SetSkillToBlacklistID(id)
         skillToBlacklistID = tonumber(id)
         skillToBlacklistName = GetAbilityName(skillToBlacklistID)
         FancyActionBar:dbg("Skill to blacklist updated to: " .. skillToBlacklistName .. " (" .. skillToBlacklistID .. ")")
-        WM:GetControlByName("SkillToBlacklistTitle").desc:SetText(skillToBlacklistName)
+        if WM:GetControlByName("SkillToBlacklistTitle") then
+            WM:GetControlByName("SkillToBlacklistTitle").desc:SetText(skillToBlacklistName)
+        end
     end
 end
 
@@ -384,11 +408,12 @@ local function BlacklistId()
         skillToBlacklistName = ""
 
         ParseExternalBlacklist()
-
-        WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
-        WM:GetControlByName("SkillToBlacklistID_Editbox").editbox:SetText("")
-        WM:GetControlByName("Blacklist_Dropdown"):UpdateChoices(GetBlacklistedSkills())
-        WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedBlacklist())
+        if not IsConsoleUI() then
+            WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
+            WM:GetControlByName("SkillToBlacklistID_Editbox").editbox:SetText("")
+            WM:GetControlByName("Blacklist_Dropdown"):UpdateChoices(GetBlacklistedSkills())
+            WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedBlacklist())
+        end
     else
         Chat("failed to blacklist: " .. skillToBlacklistName .. " (" .. skillToBlacklistID .. ")")
     end
@@ -406,9 +431,10 @@ local function ClearBlacklistId()
         selectedBlacklist = 0
 
         ParseExternalBlacklist()
-
-        WM:GetControlByName("Blacklist_Dropdown"):UpdateChoices(GetBlacklistedSkills())
-        WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(nil)
+        if not IsConsoleUI() then
+            WM:GetControlByName("Blacklist_Dropdown"):UpdateChoices(GetBlacklistedSkills())
+            WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(nil)
+        end
     end
 end
 
@@ -460,7 +486,9 @@ local function SetMultiTargetSkillToBlacklistID(id)
         Chat("|cffffff" .. id .. " is not a valid ID.")
         multiTargetSkillToBlacklistID = 0
         multiTargetSkillToBlacklistName = ""
-        WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
+        if WM:GetControlByName("MultiTargetSkillToBlacklistTitle") then
+            WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
+        end
         return
     end
 
@@ -468,7 +496,9 @@ local function SetMultiTargetSkillToBlacklistID(id)
         multiTargetSkillToBlacklistID = tonumber(id)
         multiTargetSkillToBlacklistName = GetAbilityName(multiTargetSkillToBlacklistID)
         FancyActionBar:dbg("Skill to blacklist updated to: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")")
-        WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText(multiTargetSkillToBlacklistName)
+        if WM:GetControlByName("MultiTargetSkillToBlacklistTitle") then
+            WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText(multiTargetSkillToBlacklistName)
+        end
     end
 end
 
@@ -515,11 +545,12 @@ local function BlacklistMultiTargetId()
         multiTargetSkillToBlacklistName = ""
 
         ParseMultiTargetBlacklist()
-
-        WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
-        WM:GetControlByName("MultiTargetSkillToBlacklistID_Editbox").editbox:SetText("")
-        WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills())
-        WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedMultiTargetBlacklist())
+        if not IsConsoleUI() then
+            WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
+            WM:GetControlByName("MultiTargetSkillToBlacklistID_Editbox").editbox:SetText("")
+            WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills())
+            WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedMultiTargetBlacklist())
+        end
     else
         Chat("failed to blacklist: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")")
     end
@@ -537,9 +568,10 @@ local function ClearMultiTargetBlacklistId()
         selectedMultiTargetBlacklist = 0
 
         ParseMultiTargetBlacklist()
-
-        WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills())
-        WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(nil)
+        if not IsConsoleUI() then
+            WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills())
+            WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(nil)
+        end
     end
 end
 
@@ -934,7 +966,9 @@ local function SetSkillToEditID(id)
         end
         skillToEditID = 0
         skillToEditName = ""
-        WM:GetControlByName("SkillToEditTitle").desc:SetText("")
+        if WM:GetControlByName("SkillToEditTitle") then
+            WM:GetControlByName("SkillToEditTitle").desc:SetText("")
+        end
         return
     end
 
@@ -971,12 +1005,16 @@ local function SetSkillToEditID(id)
             skillToEditName = GetCraftedAbilityDisplayName(craftedId)
         end
         FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
-        WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
+        if WM:GetControlByName("SkillToEditTitle") then
+            WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
+        end
     else
         skillToEditID = extractedAbilityId
         skillToEditName = GetAbilityName(tonumber(skillToEditID))
         FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
-        WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
+        if WM:GetControlByName("SkillToEditTitle") then
+            WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditID)
+        end
     end
 end
 
@@ -988,7 +1026,9 @@ local function SetEffectToTrackID(id)
         end
         effectToTrackID = 0
         effectToTrackName = ""
-        WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
+        if WM:GetControlByName("EffectToTrackTitle") then
+            WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
+        end
         return
     end
 
@@ -1017,7 +1057,9 @@ local function SetEffectToTrackID(id)
         end
 
         FancyActionBar:dbg("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")")
-        WM:GetControlByName("EffectToTrackTitle").desc:SetText(effectToTrackName)
+        if WM:GetControlByName("EffectToTrackTitle") then
+            WM:GetControlByName("EffectToTrackTitle").desc:SetText(effectToTrackName)
+        end
     end
 end
 
@@ -1040,17 +1082,22 @@ local function ResetUpdateSettings()
     skillEditChoice = skillEditTypes[skillEditType]
     selectedChangedSkill = 0
 
-    WM:GetControlByName("SkillToEditTitle").desc:SetText("")
-    WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
+    if WM:GetControlByName("SkillToEditTitle") then
+        WM:GetControlByName("SkillToEditTitle").desc:SetText("")
+    end
+    if WM:GetControlByName("EffectToTrackTitle") then
+        WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
+    end
+    if not IsConsoleUI() then
+        WM:GetControlByName("Change_Type_Dropdown"):UpdateChoices(GetSkillChangeOptions())
+        WM:GetControlByName("Change_Type_Dropdown").dropdown:SetSelectedItem(GetSkillChangeType())
 
-    WM:GetControlByName("Change_Type_Dropdown"):UpdateChoices(GetSkillChangeOptions())
-    WM:GetControlByName("Change_Type_Dropdown").dropdown:SetSelectedItem(GetSkillChangeType())
+        WM:GetControlByName("Saved_Changes_Dropdown"):UpdateChoices(GetChangedSkills())
+        WM:GetControlByName("Saved_Changes_Dropdown").dropdown:SetSelectedItem(GetSelectedChangedSkill())
 
-    WM:GetControlByName("Saved_Changes_Dropdown"):UpdateChoices(GetChangedSkills())
-    WM:GetControlByName("Saved_Changes_Dropdown").dropdown:SetSelectedItem(GetSelectedChangedSkill())
-
-    WM:GetControlByName("SkillToEditID_Editbox").editbox:SetText(GetSkillToEditID())
-    WM:GetControlByName("EffectToTrackID_Editbox").editbox:SetText("")
+        WM:GetControlByName("SkillToEditID_Editbox").editbox:SetText(GetSkillToEditID())
+        WM:GetControlByName("EffectToTrackID_Editbox").editbox:SetText("")
+    end
 end
 
 ---
@@ -1692,16 +1739,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         end
     end
 
-    local function SetUIPreset(preset)
-        local presetTable = uiPresets[preset]
-        for k, v in pairs(presetTable) do
-            if not presetIgnoreKeys[k] then
-                SV[k] = v
-            end
-        end
-        ReloadUI("ingame")
-    end
-
     local options =
     {
         {
@@ -1722,18 +1759,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 {
                     type = "dropdown",
                     name = "Select UI Preset",
+                    text = "Selecting a UI Preset requires reloading the game UI to take effect.",
                     scrollable = true,
                     tooltip = "Set a preset UI configuration.",
                     choices = FancyActionBar.GetPresets(),
                     sort = "name-up",
                     getFunc = function ()
-                        return "UI Defaults"
+                        return uiPresets[1][1]
                     end,
                     setFunc = function (value)
                         SetUIPreset(value)
                     end,
-                    default = "UI Defaults",
-                    warning = "Will reload the UI.",
+                    default = 1,
+                    warning = "Requires Reloading the UI.",
+                    requiresReload = true,
                 },
             },
         },
@@ -4933,6 +4972,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             name = "|cFFFACDAbility Configuration|r",
             controls =
             {
+            {
+                type = "checkbox",
+                name = "Accountwide Skill Settings",
+                tooltip = "If accountwide settings is enabled, changes made will affect a changed skill's ability timer for all characters.",
+                default = true,
+                getFunc = function ()
+                    return CV.useAccountWide
+                end,
+                setFunc = function (value)
+                    CV.useAccountWide = value or false
+                end,
+                requiresReload = true,
+                width = "full",
+            },
 
                 {
                     type = "submenu",
@@ -4976,27 +5029,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 {
                                     type = "description",
                                     title = "",
-                                    text = "Here you can edit which effect you want the timer for a specific skill to track.\nTo track a different effect, make sure to enter the ID of the skill and the ID of the new effect, before clicking the button to confirm.\nThis function is still in early testing stage and errors are likely to occur for some skills, but you can always reset any skill you altered and it will be working as it used to.",
+                                    text = "Here you can edit which effect you want the timer for a specific skill to track.\nTo track a different effect, enter the ID of the skill and the ID of the new effect, then click confirm.",
                                     width = "full",
                                 },
                             },
-                        },
-
-                        { type = "divider" },
-
-                        {
-                            type = "checkbox",
-                            name = "Accountwide Skill Settings",
-                            tooltip = "If the accountwide setting is enabled, changes made will affect only the shared settings between all characters. If the setting is disabled, only changes made from your current character will be different from the default.",
-                            default = true,
-                            getFunc = function ()
-                                return CV.useAccountWide
-                            end,
-                            setFunc = function (value)
-                                CV.useAccountWide = value or false
-                            end,
-                            requiresReload = true,
-                            width = "full",
                         },
 
                         { type = "divider" },
@@ -5013,7 +5049,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 SetChangedSkillToEdit(value)
                             end,
                             reference = "Saved_Changes_Dropdown",
-                            default = "== Select a Skill ==",
+                            default = 0,
                             width = "half",
                         },
 
@@ -5057,7 +5093,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             end,
                             width = "half",
                             reference = "Change_Type_Dropdown",
-                            default = "",
+                            default = 0,
                         },
 
                         { type = "description", text = "", width = "half" },
