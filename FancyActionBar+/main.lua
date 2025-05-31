@@ -4133,7 +4133,7 @@ end
 
 -- Slot ability changed, e.g. summoned a pet, procced crystal, etc.
 local function OnSlotChanged(_, slotNum, hotbarCategory)
-    local style = FancyActionBar.GetContants()
+    --local style = FancyActionBar.GetContants()
     local currentHotbarCategory = GetActiveHotbarCategory()
     local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
     local slotIndex = hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum
@@ -4148,7 +4148,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
             FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
         end
         FancyActionBar.UpdateInactiveBarIcon(slotNum, inactiveBar)
-        FancyActionBar.SetupButtonText(btn, style, slotIndex)
+        --FancyActionBar.SetupButtonText(btn, style, slotIndex)
     end
     -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
