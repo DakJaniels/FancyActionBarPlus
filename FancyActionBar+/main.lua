@@ -5006,13 +5006,11 @@ local function ActionBarActivated(eventCode, initial)
         -- OnAllHotbarsUpdated()
         FancyActionBar.EffectCheck()
     end
-    FancyActionBar.OnPlayerActivated()
-    FancyActionBar.ApplyAbilityFxOverrides()
-    if initial then
-        zo_callLater(function ()
-            FancyActionBar.ApplyActiveHotbarStyle()
-        end, 750)
-    end
+    zo_callLater(function ()
+        FancyActionBar.OnPlayerActivated()
+        FancyActionBar.ApplyAbilityFxOverrides()
+        FancyActionBar.ApplyActiveHotbarStyle()
+    end, 750)
 end
 
 local function RegisterClassEffects()
