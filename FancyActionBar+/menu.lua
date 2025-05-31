@@ -349,7 +349,7 @@ local function SetSkillToBlacklistID(id)
         Chat("|cffffff" .. id .. " is not a valid ID.")
         skillToBlacklistID = 0
         skillToBlacklistName = ""
-        if WM:GetControlByName("SkillToBlacklistTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
         end
         return
@@ -359,7 +359,7 @@ local function SetSkillToBlacklistID(id)
         skillToBlacklistID = tonumber(id)
         skillToBlacklistName = GetAbilityName(skillToBlacklistID)
         FancyActionBar:dbg("Skill to blacklist updated to: " .. skillToBlacklistName .. " (" .. skillToBlacklistID .. ")")
-        if WM:GetControlByName("SkillToBlacklistTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("SkillToBlacklistTitle").desc:SetText(skillToBlacklistName)
         end
     end
@@ -486,7 +486,7 @@ local function SetMultiTargetSkillToBlacklistID(id)
         Chat("|cffffff" .. id .. " is not a valid ID.")
         multiTargetSkillToBlacklistID = 0
         multiTargetSkillToBlacklistName = ""
-        if WM:GetControlByName("MultiTargetSkillToBlacklistTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
         end
         return
@@ -496,7 +496,7 @@ local function SetMultiTargetSkillToBlacklistID(id)
         multiTargetSkillToBlacklistID = tonumber(id)
         multiTargetSkillToBlacklistName = GetAbilityName(multiTargetSkillToBlacklistID)
         FancyActionBar:dbg("Skill to blacklist updated to: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")")
-        if WM:GetControlByName("MultiTargetSkillToBlacklistTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText(multiTargetSkillToBlacklistName)
         end
     end
@@ -966,7 +966,7 @@ local function SetSkillToEditID(id)
         end
         skillToEditID = 0
         skillToEditName = ""
-        if WM:GetControlByName("SkillToEditTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText("")
         end
         return
@@ -1005,14 +1005,14 @@ local function SetSkillToEditID(id)
             skillToEditName = GetCraftedAbilityDisplayName(craftedId)
         end
         FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
-        if WM:GetControlByName("SkillToEditTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
         end
     else
         skillToEditID = extractedAbilityId
         skillToEditName = GetAbilityName(tonumber(skillToEditID))
         FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
-        if WM:GetControlByName("SkillToEditTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditID)
         end
     end
@@ -1026,7 +1026,7 @@ local function SetEffectToTrackID(id)
         end
         effectToTrackID = 0
         effectToTrackName = ""
-        if WM:GetControlByName("EffectToTrackTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
         end
         return
@@ -1057,7 +1057,7 @@ local function SetEffectToTrackID(id)
         end
 
         FancyActionBar:dbg("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")")
-        if WM:GetControlByName("EffectToTrackTitle") then
+        if not IsConsoleUI() then
             WM:GetControlByName("EffectToTrackTitle").desc:SetText(effectToTrackName)
         end
     end
@@ -1082,13 +1082,9 @@ local function ResetUpdateSettings()
     skillEditChoice = skillEditTypes[skillEditType]
     selectedChangedSkill = 0
 
-    if WM:GetControlByName("SkillToEditTitle") then
-        WM:GetControlByName("SkillToEditTitle").desc:SetText("")
-    end
-    if WM:GetControlByName("EffectToTrackTitle") then
-        WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
-    end
     if not IsConsoleUI() then
+        WM:GetControlByName("SkillToEditTitle").desc:SetText("")
+        WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
         WM:GetControlByName("Change_Type_Dropdown"):UpdateChoices(GetSkillChangeOptions())
         WM:GetControlByName("Change_Type_Dropdown").dropdown:SetSelectedItem(GetSkillChangeType())
 
