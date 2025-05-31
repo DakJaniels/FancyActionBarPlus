@@ -4148,7 +4148,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
             FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
         end
         FancyActionBar.UpdateInactiveBarIcon(slotNum, inactiveBar)
-        FancyActionBar.SetupButtonText(btn, style, slotIndex)
+        --FancyActionBar.SetupButtonText(btn, style, slotIndex)
     end
     -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
