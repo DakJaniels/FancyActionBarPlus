@@ -1735,8 +1735,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         end
     end
 
-    local options =
-    {
+    local function BuildOptions()
+        local optionsTable = {}
+        local tableIndex = 1
+
+        table.insert(optionsTable,
         {
             type = "button",
             name = "Hide Actionbar",
@@ -1745,8 +1748,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 ToggleActionBarInMenu(ACTION_BAR:IsHidden())
             end,
             width = "full",
-        },
+        })
+        tableIndex = tableIndex + 1
+
         -- ===========[	UI Presets	]===================
+        table.insert(optionsTable,
         {
             type = "submenu",
             name = "|cFFFACDUI Presets|r",
@@ -1771,21 +1777,22 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     requiresReload = true,
                 },
             },
-        },
-        { type = "divider" },
-        -- ===========[	Actionbar Scaling	]===================
-        {
-            type = "submenu",
-            name = "|cFFFACDActionbar Size & Position|r",
-            controls =
+        })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable, { type = "divider" })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable,
             {
+                type = "submenu",
+                name = "|cFFFACDActionbar Size & Position|r",
+                controls = {}
+            })
 
-                {
-                    type = "description",
-                    title = "This section is still undergoing test for compatibility with other addons, so think carefully before enabling",
-                    width = "full",
-                },
-
+        -- ===========[	Actionbar Scaling	]===================
+        if not IsConsoleUI() then
+            local kbScalingTable = {
                 {
                     type = "description",
                     title = "[ |cffdf80Keyboard UI|r ]",
@@ -1865,9 +1872,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     width = "full",
                 },
-
                 { type = "divider" },
+                }
+            for k, v in pairs(kbScalingTable) do
+                table.insert(optionsTable[tableIndex].controls, v)
+            end
+        end
 
+        local gpScalingTable = {
                 {
                     type = "description",
                     title = "[ |cffdf80Gamepad UI|r ]",
@@ -1947,8 +1959,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     width = "full",
                 },
-
                 { type = "divider" },
+            }
+        for k, v in pairs(gpScalingTable) do
+            table.insert(optionsTable[tableIndex].controls, v)
+        end
+
+        local miscScalingTable = {
                 {
                     type = "button",
                     name = "Center Horizontally",
@@ -2157,143 +2174,151 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     width = "half",
                 },
-            },
-        },
+            }
+        for k, v in pairs(miscScalingTable) do
+            table.insert(optionsTable[tableIndex].controls, v)
+        end
+        tableIndex = tableIndex + 1
 
-        -- ===========[    General    ]===================
-        {
-            type = "submenu",
-            name = "|cFFFACDGeneral|r",
-            controls =
+        table.insert(optionsTable,
             {
+                type = "submenu",
+                name = "|cFFFACDGeneral|r",
+                controls =
+                {
 
-                -- ============[	Font/Back Bar Settings	]===============
-                {
-                    type = "description",
-                    title = "[ |cffdf80Front & Back Bars Position|r ]",
-                    text = "All changes will take effect after doing a weapon swap.",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Static bar positions",
-                    tooltip = "Front bar and back bar will not switch places on weapon swap.",
-                    default = defaults.staticBars,
-                    getFunc = function ()
-                        return SV.staticBars
-                    end,
-                    setFunc = function (value)
-                        SV.staticBars = value or false
-                        FancyActionBar.UpdateBarSettings()
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Front bar on top (only for static bars)",
-                    tooltip = "ON = Front bar on top and back bar on bottom.\nOFF = Front bar on bottom and back bar on top.",
-                    default = defaults.frontBarTop,
-                    disabled = function ()
-                        return not SV.staticBars
-                    end,
-                    getFunc = function ()
-                        return SV.frontBarTop
-                    end,
-                    setFunc = function (value)
-                        SV.frontBarTop = value or false
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Active bar on top (not for static bars)",
-                    tooltip = "ON = Active bar on top.\nOFF = Active bar on bottom.",
-                    default = defaults.activeBarTop,
-                    disabled = function ()
-                        return SV.staticBars
-                    end,
-                    getFunc = function ()
-                        return SV.activeBarTop
-                    end,
-                    setFunc = function (value)
-                        SV.activeBarTop = value or false
-                    end,
-                    width = "half",
-                },
+                    -- ============[	Font/Back Bar Settings	]===============
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Front & Back Bars Position|r ]",
+                        text = "All changes will take effect after doing a weapon swap.",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Static bar positions",
+                        tooltip = "Front bar and back bar will not switch places on weapon swap.",
+                        default = defaults.staticBars,
+                        getFunc = function ()
+                            return SV.staticBars
+                        end,
+                        setFunc = function (value)
+                            SV.staticBars = value or false
+                            FancyActionBar.UpdateBarSettings()
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Front bar on top (only for static bars)",
+                        tooltip = "ON = Front bar on top and back bar on bottom.\nOFF = Front bar on bottom and back bar on top.",
+                        default = defaults.frontBarTop,
+                        disabled = function ()
+                            return not SV.staticBars
+                        end,
+                        getFunc = function ()
+                            return SV.frontBarTop
+                        end,
+                        setFunc = function (value)
+                            SV.frontBarTop = value or false
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Active bar on top (not for static bars)",
+                        tooltip = "ON = Active bar on top.\nOFF = Active bar on bottom.",
+                        default = defaults.activeBarTop,
+                        disabled = function ()
+                            return SV.staticBars
+                        end,
+                        getFunc = function ()
+                            return SV.activeBarTop
+                        end,
+                        setFunc = function (value)
+                            SV.activeBarTop = value or false
+                        end,
+                        width = "half",
+                    },
 
-                -- ============[	Backbar Visuals	]=====================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Back Bar Visibility|r ]",
-                    text = "",
-                    width = "full",
-                },
-                {
-                    type = "slider",
-                    name = "Inactive bar alpha",
-                    tooltip = "Higher value = more solid.\nLower value = more see through.",
-                    default = defaults.alphaInactive,
-                    min = 0,
-                    max = 100,
-                    getFunc = function ()
-                        return SV.alphaInactive
-                    end,
-                    setFunc = function (value)
-                        SV.alphaInactive = value
-                        FancyActionBar.ApplyAlphaInactive(value)
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Inactive bar desaturation",
-                    tooltip = "Higher value = more grey.\nLower value = more colors.",
-                    default = defaults.desaturationInactive,
-                    min = 0,
-                    max = 100,
-                    getFunc = function ()
-                        return SV.desaturationInactive
-                    end,
-                    setFunc = function (value)
-                        FancyActionBar.ApplyDesaturationInactiveInactive(value)
-                    end,
-                    width = "half",
-                },
-                { type = "description", text = "", width = "full" },
+                    -- ============[	Backbar Visuals	]=====================
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Back Bar Visibility|r ]",
+                        text = "",
+                        width = "full",
+                    },
+                    {
+                        type = "slider",
+                        name = "Inactive bar alpha",
+                        tooltip = "Higher value = more solid.\nLower value = more see through.",
+                        default = defaults.alphaInactive,
+                        min = 0,
+                        max = 100,
+                        getFunc = function ()
+                            return SV.alphaInactive
+                        end,
+                        setFunc = function (value)
+                            SV.alphaInactive = value
+                            FancyActionBar.ApplyAlphaInactive(value)
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = "Inactive bar desaturation",
+                        tooltip = "Higher value = more grey.\nLower value = more colors.",
+                        default = defaults.desaturationInactive,
+                        min = 0,
+                        max = 100,
+                        getFunc = function ()
+                            return SV.desaturationInactive
+                        end,
+                        setFunc = function (value)
+                            FancyActionBar.ApplyDesaturationInactiveInactive(value)
+                        end,
+                        width = "half",
+                    },
+                    { type = "description", text = "", width = "full" },
 
-                -- ============[	Keybinds On / Off	]===================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Hotkey Text|r ]",
-                    text = "",
-                    width = "full",
+                    -- ============[	Keybinds On / Off	]===================
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Hotkey Text|r ]",
+                        text = "",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Show hotkeys",
+                        tooltip = "Show hotkeys under the action bar.",
+                        default = defaults.showHotkeys,
+                        getFunc = function ()
+                            return SV.showHotkeys
+                        end,
+                        setFunc = function (value)
+                            SV.showHotkeys = value or false
+                            FancyActionBar.HideHotkeys(not SV.showHotkeys)
+                        end,
+                        width = "half",
+                    },
+                    { type = "description", text = "", width = "half" },
                 },
-                {
-                    type = "checkbox",
-                    name = "Show hotkeys",
-                    tooltip = "Show hotkeys under the action bar.",
-                    default = defaults.showHotkeys,
-                    getFunc = function ()
-                        return SV.showHotkeys
-                    end,
-                    setFunc = function (value)
-                        SV.showHotkeys = value or false
-                        FancyActionBar.HideHotkeys(not SV.showHotkeys)
-                    end,
-                    width = "half",
-                },
-                { type = "description", text = "", width = "half" },
-            },
-        },
+            })
+        tableIndex = tableIndex + 1
 
-        -- ============[	UI Customization	]===================
+        table.insert(optionsTable,
         {
+        -- ============[	UI Customization	]===================
             type = "submenu",
             name = "|cFFFACDUI Customization|r",
-            controls =
-            {
+            controls = {}
+        })
+        
+        if not IsConsoleUI() then
 
-                -- ============[	Buttom Frames	]=======================
+            local kbCustomizationTable = {
+                -- ============[	Button Frames	]=======================
                 {
                     type = "description",
                     title = "[ |cffdf80Button Frames|r ]",
@@ -2351,7 +2376,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     width = "half",
                 },
                 { type = "divider" },
+            }
+            for k, v in pairs(kbCustomizationTable) do
+                table.insert(optionsTable[tableIndex].controls, v)
+            end
+        end
 
+        local gpMiscCustomizationTable = {
                 -- ============[	Active Highlight	]===================
                 {
                     type = "description",
@@ -2621,30 +2652,36 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     width = "full",
                 },
-            },
-        },
+            }
+        for k, v in pairs(gpMiscCustomizationTable) do
+            table.insert(optionsTable[tableIndex].controls, v)
+        end
+        tableIndex = tableIndex + 1
 
-        -- =============[  Timer Display  ]=======================
-        {
-            type = "submenu",
-            name = "|cFFFACDTimer Display|r",
-            controls =
+        table.insert(optionsTable,
             {
+                type = "submenu",
+                name = "|cFFFACDTimer Display|r",
+                controls = {}
+            })
 
+        table.insert(optionsTable[tableIndex].controls,
+            {
+                type = "submenu",
+                name = "|cFFFACDInfo|r",
+                controls =
                 {
-                    type = "submenu",
-                    name = "|cFFFACDInfo|r",
-                    controls =
                     {
-                        {
-                            type = "description",
-                            text = FancyActionBar.strings.subTimerDesc,
-                            width = "full",
-                        },
+                        type = "description",
+                        text = FancyActionBar.strings.subTimerDesc,
+                        width = "full",
                     },
                 },
+            })
 
-                -- ============[ Keyboard UI ]=========================
+        -- ============[ Keyboard UI ]=========================
+        if not IsConsoleUI() then
+            table.insert(optionsTable[tableIndex].controls,
                 {
                     type = "submenu",
                     name = "|cFFFACDKeyboard UI|r",
@@ -3647,10 +3684,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             },
                         },
                     },
-                },
-                { type = "divider" },
+                })
+            table.insert(optionsTable[tableIndex].controls, { type = "divider" })
+        end
 
-                -- ============[	Gamepad UI	]=========================
+        -- ============[	Gamepad UI	]=========================
+        table.insert(optionsTable[tableIndex].controls,
                 {
                     type = "submenu",
                     name = "|cFFFACDGamepad UI|r",
@@ -4698,13 +4737,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             },
                         },
                     },
-                },
-                { type = "divider" },
+                })
+        table.insert(optionsTable[tableIndex].controls, { type = "divider" })
 
-                -- ============[	Expiration Settings	]=================
+        -- ============[	Expiration Settings	]=================
+        table.insert(optionsTable[tableIndex].controls,
                 {
                     type = "submenu",
-                    name = "|cFFFACDKeyboard & Gamepad Shared|r",
+                    name = "|cFFFACDExpiration Settings (Shared)|r",
                     controls =
                     {
 
@@ -4957,16 +4997,17 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         },
                         { type = "description", text = "", width = "full" },
                     },
-                },
-            },
-        },
-        { type = "divider" },
+                })
+        tableIndex = tableIndex + 1
 
-        -- ==============[  Ability Config  ]=====================
-        {
-            type = "submenu",
-            name = "|cFFFACDAbility Configuration|r",
-            controls =
+        table.insert(optionsTable, { type = "divider" })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable, {
+    -- ==============[  Ability Config  ]=====================
+        type = "submenu",
+        name = "|cFFFACDAbility Configuration|r",
+        controls =
             {
             {
                 type = "checkbox",
@@ -5621,11 +5662,15 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     },
                 },
             },
-        },
-        { type = "divider" },
+        })
+        tableIndex = tableIndex + 1
 
-        -- ============[	Miscellaneous	]=======================
+        table.insert(optionsTable, { type = "divider" })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable,
         {
+        -- ============[	Miscellaneous	]=======================
             type = "submenu",
             name = "|cFFFACDMiscellaneous|r",
             controls =
@@ -5851,15 +5896,22 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     },
                 },
             },
-        },
-        { type = "divider" },
+        })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable, { type = "divider" })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable, {
         -- ===============[  Debugging  ]========================
-        {
             type = "description",
             title = "[ |cffdf80Debugging|r ]",
             text = "",
             width = "full",
-        },
+        })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable,
         {
             type = "checkbox",
             name = "Debug mode",
@@ -5873,17 +5925,25 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 FancyActionBar.SetDebugMode(value or false)
                 SV.debug = value or false
             end,
-        },
+        })
+        tableIndex = tableIndex + 1
 
-        { type = "divider" },
+        table.insert(optionsTable, { type = "divider" })
+        tableIndex = tableIndex + 1
 
-        {
+        table.insert(optionsTable, {
             type = "description",
             text = FancyActionBar.strings.disclaimer,
             width = "full",
-        },
-    }
+        })
+        tableIndex = tableIndex + 1
 
+        table.insert(optionsTable, { type = "divider" })
+
+        return optionsTable
+    end
+
+    local options = BuildOptions()
     LAM:RegisterOptionControls(name, options)
 
     --- @diagnostic disable-next-line: redefined-local
