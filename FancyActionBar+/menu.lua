@@ -1742,7 +1742,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         table.insert(optionsTable,
         {
             type = "button",
-            name = "Hide Actionbar",
+            name = "Toggle Actionbar Visibility",
             tooltip = "Only applies while in this settings menu.",
             func = function ()
                 ToggleActionBarInMenu(ACTION_BAR:IsHidden())
@@ -1878,93 +1878,228 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             for k, v in pairs(kbScalingTable) do
                 table.insert(optionsTable[tableIndex].controls, v)
             end
-        end
 
-        local gpScalingTable = {
-                {
-                    type = "description",
-                    title = "[ |cffdf80Gamepad UI|r ]",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Enable Actionbar Resize",
-                    default = defaults.abScaling.gp.enable,
-                    getFunc = function ()
-                        return SV.abScaling.gp.enable
-                    end,
-                    setFunc = function (value)
-                        SV.abScaling.gp.enable = value or false
-                        if FancyActionBar.style == 2 then
-                            FancyActionBar.constants.abScale.enable = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+            local gpScalingTablePC = {
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Gamepad UI|r ]",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Enable Actionbar Resize",
+                        default = defaults.abScaling.gp.enable,
+                        getFunc = function ()
+                            return SV.abScaling.gp.enable
+                        end,
+                        setFunc = function (value)
+                            SV.abScaling.gp.enable = value or false
+                            if FancyActionBar.style == 2 then
+                                FancyActionBar.constants.abScale.enable = value
+                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                                FancyActionBar.SetScale()
+                                FancyActionBar.ToggleMover(true)
+                                SetBarTheme(locked)
+                                if Azurah then UpdateAzurahDb() end
+                                FancyActionBar.ToggleMover(false)
+                                SetBarTheme(locked)
+                                if not FancyActionBar.wasMoved then
+                                    FancyActionBar.ResetMoveActionBar()
+                                    FancyActionBar.RepositionHealthBar()
+                                end
                             end
-                        end
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Actionbar Size",
-                    default = defaults.abScaling.gp.scale,
-                    min = 30,
-                    max = 250,
-                    step = 1,
-                    disabled = function ()
-                        return not SV.abScaling.gp.enable
-                    end,
-                    getFunc = function ()
-                        return SV.abScaling.gp.scale
-                    end,
-                    setFunc = function (value)
-                        SV.abScaling.gp.scale = value
-                        if FancyActionBar.style == 2 then
-                            FancyActionBar.constants.abScale.scale = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = "Actionbar Size",
+                        default = defaults.abScaling.gp.scale,
+                        min = 30,
+                        max = 250,
+                        step = 1,
+                        disabled = function ()
+                            return not SV.abScaling.gp.enable
+                        end,
+                        getFunc = function ()
+                            return SV.abScaling.gp.scale
+                        end,
+                        setFunc = function (value)
+                            SV.abScaling.gp.scale = value
+                            if FancyActionBar.style == 2 then
+                                FancyActionBar.constants.abScale.scale = value
+                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                                FancyActionBar.SetScale()
+                                FancyActionBar.ToggleMover(true)
+                                SetBarTheme(locked)
+                                if Azurah then UpdateAzurahDb() end
+                                FancyActionBar.ToggleMover(false)
+                                SetBarTheme(locked)
+                                if not FancyActionBar.wasMoved then
+                                    FancyActionBar.ResetMoveActionBar()
+                                    FancyActionBar.RepositionHealthBar()
+                                end
                             end
-                        end
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Unlock Actionbar Position (Gamepad)",
-                    default = unlocked,
-                    disabled = function ()
-                        return FancyActionBar.style == 1
-                    end,
-                    getFunc = function ()
-                        return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
-                    end,
-                    setFunc = function (value)
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.ToggleMover(value)
-                        SetBarTheme(locked)
-                    end,
-                    width = "full",
-                },
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Unlock Actionbar Position (Gamepad)",
+                        default = unlocked,
+                        disabled = function ()
+                            return FancyActionBar.style == 1
+                        end,
+                        getFunc = function ()
+                            return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
+                        end,
+                        setFunc = function (value)
+                            local _, locked = GetActiveWeaponPairInfo()
+                            FancyActionBar.ToggleMover(value)
+                            SetBarTheme(locked)
+                        end,
+                        width = "full",
+                    },
+                    { type = "divider" },
+                }
+            for k, v in pairs(gpScalingTablePC) do
+                table.insert(optionsTable[tableIndex].controls, v)
+            end
+        else
+            local gpScalingTableConsole = {
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Gamepad UI|r ]",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Enable Actionbar Resize",
+                        default = defaults.abScaling.gp.enable,
+                        getFunc = function ()
+                            return SV.abScaling.gp.enable
+                        end,
+                        setFunc = function (value)
+                            SV.abScaling.gp.enable = value or false
+                            if FancyActionBar.style == 2 then
+                                FancyActionBar.constants.abScale.enable = value
+                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                                FancyActionBar.SetScale()
+                                FancyActionBar.ToggleMover(true)
+                                SetBarTheme(locked)
+                                if Azurah then UpdateAzurahDb() end
+                                FancyActionBar.ToggleMover(false)
+                                SetBarTheme(locked)
+                                if not FancyActionBar.wasMoved then
+                                    FancyActionBar.ResetMoveActionBar()
+                                    FancyActionBar.RepositionHealthBar()
+                                end
+                            end
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = "Actionbar Size",
+                        default = defaults.abScaling.gp.scale,
+                        min = 30,
+                        max = 250,
+                        step = 1,
+                        disabled = function ()
+                            return not SV.abScaling.gp.enable
+                        end,
+                        getFunc = function ()
+                            return SV.abScaling.gp.scale
+                        end,
+                        setFunc = function (value)
+                            SV.abScaling.gp.scale = value
+                            if FancyActionBar.style == 2 then
+                                FancyActionBar.constants.abScale.scale = value
+                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                                FancyActionBar.SetScale()
+                                FancyActionBar.ToggleMover(true)
+                                SetBarTheme(locked)
+                                if Azurah then UpdateAzurahDb() end
+                                FancyActionBar.ToggleMover(false)
+                                SetBarTheme(locked)
+                                if not FancyActionBar.wasMoved then
+                                    FancyActionBar.ResetMoveActionBar()
+                                    FancyActionBar.RepositionHealthBar()
+                                end
+                            end
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Adjust Actionbar Position|r ]",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Unlock Actionbar Position",
+                        default = unlocked,
+                        disabled = function ()
+                            return FancyActionBar.style == 1
+                        end,
+                        getFunc = function ()
+                            return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
+                        end,
+                        setFunc = function (value)
+                            ACTION_BAR:SetHidden(false)
+                            local _, locked = GetActiveWeaponPairInfo()
+                            FancyActionBar.ToggleMover(value)
+                            SetBarTheme(locked)
+                        end,
+                        width = "full",
+                    },
+                    {
+                        type = "slider",
+                        name = "Horizontal (X) Position",
+                        default = 0,
+                        min = -GuiRoot:GetWidth(),
+                        max = GuiRoot:GetWidth(),
+                        step = 1,
+                        getFunc = function()
+                            if not FancyActionBar.wasMoved then return 0 end
+                            local x = SV.abMove.gp.x or 0
+                            local screenWidth = GuiRoot:GetWidth()
+                            local barWidth = ACTION_BAR:GetWidth()
+                            local _, d = FancyActionBar:GetMovableVarsForUI()
+                            local baseX = (screenWidth - barWidth) / 2 + d.x
+                            return x - baseX
+                        end,
+                        setFunc = function(value)
+                            FancyActionBar.ConsoleMoveActionBarViaMover(value, nil, true, false)
+                        end,
+                        width = "half",
+                    },
+                        {
+                            type = "slider",
+                            name = "Vertical (Y) Position",
+                            default = 0,
+                            min = -GuiRoot:GetHeight(),
+                            max = GuiRoot:GetHeight(),
+                            step = 1,
+                            getFunc = function()
+                                if not FancyActionBar.wasMoved then return 0 end
+                                local y = SV.abMove.gp.y or 0
+                                local screenHeight = GuiRoot:GetHeight()
+                                local barHeight = ACTION_BAR:GetHeight()
+                                local _, d = FancyActionBar:GetMovableVarsForUI()
+                                local baseY = screenHeight - barHeight + d.y
+                                return y - baseY
+                            end,
+                            setFunc = function(value)
+                                FancyActionBar.ConsoleMoveActionBarViaMover(nil, value, false, true)
+                            end,
+                            width = "half",
+                        },
                 { type = "divider" },
-            }
-        for k, v in pairs(gpScalingTable) do
-            table.insert(optionsTable[tableIndex].controls, v)
+                }
+            for k, v in pairs(gpScalingTableConsole) do
+                table.insert(optionsTable[tableIndex].controls, v)
+            end
         end
 
         local miscScalingTable = {
@@ -2002,6 +2137,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     width = "half",
                     func = function ()
                         FancyActionBar.ResetMoveActionBar()
+                        if IsConsoleUI then
+                            -- I have no idea why this needs a second delayed call on console but it does.
+                            zo_callLater(function ()
+                                FancyActionBar.ResetMoveActionBar()
+                            end, 10)
+                        end
                     end,
                     reference = "ABReset_Button",
                 },
@@ -5816,7 +5957,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     {
                         {
                             type = "description",
-                            title = "Early BETA version\nWorks fine but is not very pretty",
+                            title = "[ |cffdf80Adjust GCD Size|r ]",
                             width = "full",
                         },
                         {
@@ -5911,6 +6052,49 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 },
             },
         })
+        if IsConsoleUI() then
+            local moveGCD = {
+                {
+                    type = "description",
+                    title = "[ |cffdf80Adjust GCD Position|r ]",
+                    width = "full",
+                },
+                {
+                    type = "slider",
+                    name = "Horizontal (X) Position",
+                    default = defaults.gcd.x,
+                    min = 0,
+                    max = GuiRoot:GetWidth(),
+                    step = 1,
+                    getFunc = function ()
+                        return SV.gcd.x or defaults.gcd.x
+                    end,
+                    setFunc = function (value)
+                        SV.gcd.x = value
+                        FAB_GCD:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, SV.gcd.x, SV.gcd.y, FAB_GCD:GetResizeToFitConstrains())
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "slider",
+                    name = "Vertical (Y) Position",
+                    default = defaults.gcd.y,
+                    min = 0,
+                    max = GuiRoot:GetHeight(),
+                    step = 1,
+                    getFunc = function ()
+                        return SV.gcd.y or defaults.gcd.y
+                    end,
+                    setFunc = function (value)
+                        SV.gcd.y = value
+                        FAB_GCD:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, SV.gcd.x, SV.gcd.y, FAB_GCD:GetResizeToFitConstrains())
+                    end,
+                    width = "half",
+                }}
+            for k, v in pairs(moveGCD) do
+                table.insert(optionsTable[tableIndex].controls, v)
+            end
+        end
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
@@ -6709,29 +6893,38 @@ function FancyActionBar.ResetMoveActionBar()
     SaveCurrentLocation()
     ACTION_BAR:ClearAnchors()
 
-    -- Calculate center position
     local screenWidth = GuiRoot:GetWidth()
     local screenHeight = GuiRoot:GetHeight()
     local barWidth = ACTION_BAR:GetWidth()
     local barHeight = ACTION_BAR:GetHeight()
-    local centerX = (screenWidth - barWidth) / 2
-    local defaultY = screenHeight - barHeight - 20 -- 20px padding from bottom
 
-    -- Use the game's default bottom anchoring with calculated center position
-    ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y)
+    local posX, posY
 
-    -- Register for screen resize events to maintain position
-    ACTION_BAR:RegisterForEvent(EVENT_SCREEN_RESIZED, function ()
+    if IsConsoleUI() then
+        -- Translate BOTTOM anchoring to TOPLEFT anchoring for console
+        posX = (screenWidth - barWidth) / 2 + (d.x or 0)
+        posY = screenHeight - barHeight + (d.y or -75)
+        ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, posX, posY)
+    else
+        ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x or 0, d.y or 0)
+    end
+
+    ACTION_BAR:RegisterForEvent(EVENT_SCREEN_RESIZED, function()
         if not v.enable then
-            local newCenterX = (GuiRoot:GetWidth() - ACTION_BAR:GetWidth()) / 2
-            local newDefaultY = GuiRoot:GetHeight() - ACTION_BAR:GetHeight() - 20
-            ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x, d.y)
+            ACTION_BAR:ClearAnchors()
+            if IsConsoleUI() then
+                local newX = (GuiRoot:GetWidth() - ACTION_BAR:GetWidth()) / 2 + (d.x or 0)
+                local newY = GuiRoot:GetHeight() - ACTION_BAR:GetHeight() + (d.y or -75)
+                ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, newX, newY)
+            else
+                ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x or 0, d.y or 0)
+            end
         end
     end)
 
     ReanchorMover()
     FancyActionBar.SaveMoverPosition()
-    FancyActionBar.SetMoved(false)
+
     if FancyActionBar.style == 2 then
         SV.abMove.gp.x = d.x
         SV.abMove.gp.y = d.y
@@ -6745,6 +6938,7 @@ function FancyActionBar.ResetMoveActionBar()
     FancyActionBar.constants.move.x = d.x
     FancyActionBar.constants.move.y = d.y
     FancyActionBar.constants.move.enable = false
+    FancyActionBar.SetMoved(false)
     FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
 end
 
@@ -6835,8 +7029,7 @@ function FancyActionBar.SaveMoverPosition()
     local x = FAB_Mover:GetLeft()
     local y = FAB_Mover:GetTop()
 
-    if FancyActionBar.style == 2
-    then
+    if FancyActionBar.style == 2 then
         SV.abMove.gp.x = x
         SV.abMove.gp.y = y
         SV.abMove.gp.enable = true
@@ -6869,6 +7062,31 @@ function FancyActionBar.SaveMoverPosition()
     FancyActionBar.SetMoved(true)
     local activeWeaponPair, locked = GetActiveWeaponPairInfo()
     SetBarTheme(locked)
+end
+
+function FancyActionBar.ConsoleMoveActionBarViaMover(x, y, movedX, movedY)
+    local oldX = FAB_Mover:GetLeft()
+    local oldY = FAB_Mover:GetTop()
+    local v, d = FancyActionBar:GetMovableVarsForUI()
+    local screenWidth = GuiRoot:GetWidth()
+    local screenHeight = GuiRoot:GetHeight()
+    local barWidth = ACTION_BAR:GetWidth()
+    local barHeight = ACTION_BAR:GetHeight()
+
+    local newX, newY
+
+    -- Convert slider offset from BOTTOM anchor base to TOPLEFT anchor position
+    local baseX = (screenWidth - barWidth) / 2 + d.x
+    local baseY = screenHeight - barHeight + d.y
+
+    newX = movedX and (baseX + x) or oldX
+    newY = movedY and (baseY + y) or oldY
+
+    ACTION_BAR:ClearAnchors()
+    ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, newX, newY)
+
+    ReanchorMover()
+    FancyActionBar.SaveMoverPosition()
 end
 
 function FancyActionBar.RepositionHealthBar()
