@@ -5013,10 +5013,13 @@ local function ActionBarActivated(eventCode, initial)
     end, 750)
 end
 
-function FancyActionBar.RegisterClassEffects()
+function FancyActionBar.RegisterClassEffects(newSkillLineId)
     local skillData = SKILLS_DATA_MANAGER
     local skillLineIds = {}
-    if skillData and skillData.activeClassSkillLineDataList then
+
+    if newSkillLineId then
+        skillLineIds = { newSkillLineId }
+    elseif skillData and skillData.activeClassSkillLineDataList then
         if #skillData.activeClassSkillLineDataList > 0 then
             for i = 1, #skillData.activeClassSkillLineDataList do
                 local skillLineId = skillData.activeClassSkillLineDataList[i].id
@@ -5080,6 +5083,19 @@ function FancyActionBar.RegisterClassEffects()
 
         registeredSkillLines[skillLineId] = true
     end
+end
+
+--- @param eventCode number
+--- @param skillType SkillType
+--- @param skillLineIndex luaindex
+--- @param advised boolean
+function FancyActionBar.OnSkillLineAdded(eventCode, skillType, skillLineIndex, advised)
+    if skillType ~= SKILL_TYPE_CLASS then return end
+
+    local skillLineId = GetSkillLineId(skillType, skillLineIndex)
+    if not skillLineId or registeredSkillLines[skillLineId] then return end
+
+    FancyActionBar.RegisterClassEffects(skillLineId)
 end
 
 function FancyActionBar.Initialize()
@@ -5295,9 +5311,8 @@ function FancyActionBar.Initialize()
     end
 
     FancyActionBar.RegisterClassEffects()
-    -- EVENT_SKILL_LINE_ADDED is firing before the data in SKILLS_DATA_MANAGER is ready, so we need can't use it to register subclass changes
-    -- EM:RegisterForEvent(NAME, EVENT_SKILL_LINE_ADDED, FancyActionBar.RegisterClassEffects)
-    EM:RegisterForEvent(NAME, EVENT_ABILITY_LIST_CHANGED, FancyActionBar.RegisterClassEffects)
+    EM:RegisterForEvent(NAME, EVENT_SKILL_LINE_ADDED, FancyActionBar.OnSkillLineAdded)
+    -- EM:RegisterForEvent(NAME, EVENT_ABILITY_LIST_CHANGED, FancyActionBar.RegisterClassEffects)
 
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
