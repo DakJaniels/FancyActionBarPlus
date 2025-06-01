@@ -5013,25 +5013,29 @@ local function ActionBarActivated(eventCode, initial)
     end, 750)
 end
 
-local function RegisterClassEffects()
+function FancyActionBar.RegisterClassEffects()
     local skillData = SKILLS_DATA_MANAGER
     local skillLineIds = {}
-     if skillData and skillData.activeClassSkillLineDataList then
-        -- for i = 1, #skillData.activeClassSkillLineDataList do
-        --     local skillLineId = skillData.activeClassSkillLineDataList[i].id
-        --     if skillLineId then
-        --         skillLineIds[i] = skillLineId
-        --     end
-        -- end
-        for k, v in pairs(FancyActionBar.skillLineInfo) do
-            for i, skillLineId in pairs(v) do
-                table.insert(skillLineIds, skillLineId)
+    if skillData and skillData.activeClassSkillLineDataList then
+        if #skillData.activeClassSkillLineDataList > 0 then
+            for i = 1, #skillData.activeClassSkillLineDataList do
+                local skillLineId = skillData.activeClassSkillLineDataList[i].id
+                if skillLineId and not registeredSkillLines[skillLineId] then
+                    table.insert(skillLineIds, skillLineId)
+                end
+            end
+        else
+            for k, v in pairs(FancyActionBar.skillLineInfo) do
+                for i, skillLineId in pairs(v) do
+                    table.insert(skillLineIds, skillLineId)
+                end
             end
         end
     else
         local classId = GetUnitClassId("player")
         skillLineIds = FancyActionBar.skillLineInfo[classId] or { 0, 0, 0 }
     end
+    if not skillLineIds or #skillLineIds == 0 then return end
 
     for i= 1, #skillLineIds do
         local skillLineId = skillLineIds[i]
@@ -5290,7 +5294,10 @@ function FancyActionBar.Initialize()
         end
     end
 
-    RegisterClassEffects()
+    FancyActionBar.RegisterClassEffects()
+    -- EVENT_SKILL_LINE_ADDED is firing before the data in SKILLS_DATA_MANAGER is ready, so we need can't use it to register subclass changes
+    -- EM:RegisterForEvent(NAME, EVENT_SKILL_LINE_ADDED, FancyActionBar.RegisterClassEffects)
+    EM:RegisterForEvent(NAME, EVENT_ABILITY_LIST_CHANGED, FancyActionBar.RegisterClassEffects)
 
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
     --   Chat('ActionButton' .. slotNum .. ' pressed.')
