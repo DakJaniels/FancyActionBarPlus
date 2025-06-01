@@ -1830,6 +1830,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = defaults.abScale,
                     min = 30,
                     max = 250,
+                    step = 1,
                     disabled = function ()
                         return not SV.abScaling.kb.enable
                     end,
@@ -1917,6 +1918,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = defaults.abScaling.gp.scale,
                     min = 30,
                     max = 250,
+                    step = 1,
                     disabled = function ()
                         return not SV.abScaling.gp.enable
                     end,
@@ -2015,6 +2017,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomXOffsetGP or defaults.quickSlotCustomXOffsetKB,
                     min = -1200,
                     max = 1200,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomXOffsetGP or SV.quickSlotCustomXOffsetKB
                     end,
@@ -2035,6 +2038,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomYOffsetGP or defaults.quickSlotCustomYOffsetKB,
                     min = -600,
                     max = 600,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomYOffsetGP or SV.quickSlotCustomYOffsetKB
                     end,
@@ -2061,6 +2065,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomXOffsetGP or defaults.ultimateSlotCustomXOffsetKB,
                     min = -1200,
                     max = 1200,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomXOffsetGP or SV.ultimateSlotCustomXOffsetKB
                     end,
@@ -2081,6 +2086,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomYOffsetGP or defaults.ultimateSlotCustomYOffsetKB,
                     min = -600,
                     max = 600,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomYOffsetGP or SV.ultimateSlotCustomYOffsetKB
                     end,
@@ -2107,6 +2113,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.barXOffsetGP or defaults.barXOffsetKB,
                     min = -1200,
                     max = 1200,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.barXOffsetGP or SV.barXOffsetKB
                     end,
@@ -2130,6 +2137,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.barYOffsetGP or defaults.barYOffsetKB,
                     min = -600,
                     max = 600,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
                     end,
@@ -2157,6 +2165,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = FancyActionBar.useGamepadActionBar and defaults.abilitySlotOffsetXGP or defaults.abilitySlotOffsetXKB,
                     min = -600,
                     max = 600,
+                    step = 1,
                     getFunc = function ()
                         return FancyActionBar.useGamepadActionBar and SV.abilitySlotOffsetXGP or SV.abilitySlotOffsetXKB
                     end,
@@ -2255,6 +2264,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         default = defaults.alphaInactive,
                         min = 0,
                         max = 100,
+                        step = 1,
                         getFunc = function ()
                             return SV.alphaInactive
                         end,
@@ -2271,6 +2281,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         default = defaults.desaturationInactive,
                         min = 0,
                         max = 100,
+                        step = 1,
                         getFunc = function ()
                             return SV.desaturationInactive
                         end,
@@ -5785,6 +5796,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     default = defaults.markerSize,
                     min = 10,
                     max = 90,
+                    step = 1,
                     getFunc = function ()
                         return SV.markerSize
                     end,
@@ -5842,6 +5854,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             default = SV.gcd.sizeX,
                             min = 30,
                             max = 100,
+                            step = 1,
                             getFunc = function ()
                                 return SV.gcd.sizeY
                             end,
@@ -5857,6 +5870,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             default = defaults.gcd.sizeY,
                             min = 30,
                             max = 250,
+                            step = 1,
                             getFunc = function ()
                                 return SV.gcd.sizeX
                             end,
