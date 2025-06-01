@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.14.0
+## User Guide and Menu Option Documentation for v2.14.1
 
 ### UI Presets
 Set a preset UI configuration from a list of options. Includes a "Defaults UI" preset that will reset the action bar visual configuration (but not custom ability configurations) to default settings, a "Dev's Preferred UI" that toggles a number of non-default settings including forcing the gamepad action bar UI, enabling the "soonest expiring" timers configuration, displaying toggle tick rates, and more, and an "ADR-like UI" (in development), that configures the action bar to have the inactive bar slots on top, and hidden when there isn’t a timer active for those slots (Hide inactive slots on inactive bars) setting.
@@ -149,7 +149,7 @@ Options in this menu include settings to show or hide the companion ultimate (de
 
 Options for customizing the display of the quickslot. Options in this menu include settings to show or hide the cooldown duration for the slotted item (default: ON), as well as to set the timer font, font size, style, color (default: Tangerine), and vertical and horizontal alignment of the cooldown timer within the slot (default: upper middle center), and the quickslot stack count font style.
 
-### KEYBOARD & GAMEPAD SHARED
+### Expiration Settings (Shared)
 
 This menu contains settings that are shared across both keyboard and gamepad UI modes.
 
