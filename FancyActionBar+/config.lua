@@ -576,6 +576,9 @@ FancyActionBar.contingency =
     221176, -- Warden's Contingency
     221177, -- Warden's Contingency
     217608, -- Warding Contingency
+    240148, -- Ulfsild's Contingency
+    240149, -- Healing Contingency
+    240150, -- Ulfsild's Contingency
 }
 
 FancyActionBar.stackMap =

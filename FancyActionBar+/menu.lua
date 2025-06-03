@@ -984,7 +984,6 @@ local function SetSkillToEditID(id)
         craftedId = GetAbilityCraftedAbilityId(tonumber(extractedAbilityId))
         scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) }
         scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
-        d(scriptKey)
         if scriptKey ~= "0_0_0" then
 
             SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]))
