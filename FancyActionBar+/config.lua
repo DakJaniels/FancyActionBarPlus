@@ -737,6 +737,7 @@ FancyActionBar.stackMap =
         183241, -- impervious runeward
         184362, -- impervious runeward
         185901, -- spiteward
+        185824, -- tentacular dread
         238174, -- vengeance fatecarver
         238249, -- vengeance runespite ward
         238482, -- vengeance remedy cascade

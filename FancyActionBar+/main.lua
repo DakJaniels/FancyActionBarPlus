@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.14.2"
+local VERSION = "2.14.3"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -1178,6 +1178,8 @@ function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
             end
         end
         btn.icon:SetTexture(shouldHideSlot and "" or icon)
+        btn.icon:SetAlpha(shouldHideSlot and 0 or SV.alphaInactive / 100)
+        btn.icon:SetDesaturation(SV.desaturationInactive / 100)
         btn.icon:SetHidden(shouldHideSlot)
         btn.bg:SetHidden(shouldHideSlot)
         btn.slot:SetHidden(shouldHideSlot)
