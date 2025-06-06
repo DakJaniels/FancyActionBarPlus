@@ -1399,8 +1399,8 @@ local function GetCurrentFrontBarInfo()
         else
             if id > 0 then
                 if FancyActionBar.barHighlightDestroFix[id] then
-                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, 0, FancyActionBar.weaponFront))
-                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, 0, FancyActionBar.weaponFront) .. ")"
+                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponFront))
+                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponFront) .. ")"
                 else
                     name = GetAbilityName(id)
                     line = "|cffa31a" .. name .. "|r (" .. id .. ")"
@@ -1438,8 +1438,8 @@ local function GetCurrentBackBarInfo()
         else
             if id > 0 then
                 if FancyActionBar.barHighlightDestroFix[id] then
-                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, 1, FancyActionBar.weaponBack))
-                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, 1, FancyActionBar.weaponBack) .. ")"
+                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponBack))
+                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponBack) .. ")"
                 else
                     name = GetAbilityName(id)
                     line = "|cffa31a" .. name .. "|r (" .. id .. ")"

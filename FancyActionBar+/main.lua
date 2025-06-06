@@ -401,17 +401,16 @@ function FancyActionBar.GetSlotBoundAbilityId(index, bar)
         id = GetAbilityIdForCraftedAbilityId(id)
     elseif FancyActionBar.barHighlightDestroFix[id] then
         local weaponType = bar == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
-        id = FancyActionBar.GetCorrectedAbilityId(id, bar, weaponType)
+        id = FancyActionBar.GetCorrectedAbilityId(id, weaponType)
     end
     return id
 end
 
 --- Gets corrected ability ID based on weapon type and special cases
 --- @param abilityId integer Original ability ID
---- @param hotbarCategory number Hotbar category (HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP)
 --- @param weaponType number Weapon type (WEAPONTYPE_* constants)
 --- @return integer Corrected ability ID
-function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory, weaponType)
+function FancyActionBar.GetCorrectedAbilityId(abilityId, weaponType)
     local correctedAbilityId = abilityId
     local barHighlightDestroFix = FancyActionBar.barHighlightDestroFix
 
@@ -438,8 +437,7 @@ function FancyActionBar.GetCorrectedAbilityId(abilityId, hotbarCategory, weaponT
                     staffType = "none"
                 end
 
-                dbg("Bar: %s, Corrected ability ID from %d to %d for %s staff",
-                    hotbarCategory == HOTBAR_CATEGORY_PRIMARY and "Primary" or "Backup",
+                dbg("Corrected ability ID from %d to %d for %s staff",
                     abilityId, correctedAbilityId, staffType)
             end
         end
@@ -479,7 +477,7 @@ end
 
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
     if FancyActionBar.barHighlightDestroFix[abilityId] then
-        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId, nil, WEAPONTYPE_NONE)
+        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId, WEAPONTYPE_NONE)
     elseif FancyActionBar.styleFix[abilityId] then
         abilityId = FancyActionBar.styleFix[abilityId]
     end
@@ -870,19 +868,6 @@ function FancyActionBar.GetActionButton(index) -- get actionbutton by index.
     end
 end
 
-function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
-    if not userPreferenceChanged and not SV.applyActionBarSkillStyles then
-        return
-    end
-    local currentHotbarCategory = GetActiveHotbarCategory()
-    local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
-    for i = MIN_INDEX, MAX_INDEX do
-        FancyActionBar.SetActionButtonAbilityFxOverride(i)
-        FancyActionBar.UpdateInactiveBarIcon(i, inactiveBar)
-    end
-    FancyActionBar.SetActionButtonAbilityFxOverride(ULT_INDEX)
-end
-
 function FancyActionBar.SetActionButtonAbilityFxOverride(index)
     local btn = FancyActionBar.GetActionButton(index)
     if not btn then
@@ -895,6 +880,19 @@ function FancyActionBar.SetActionButtonAbilityFxOverride(index)
             btn.icon:SetTexture(icon)
         end
     end
+end
+
+function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
+    if not userPreferenceChanged and not SV.applyActionBarSkillStyles then
+        return
+    end
+    local currentHotbarCategory = GetActiveHotbarCategory()
+    local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
+    for i = MIN_INDEX, MAX_INDEX do
+        FancyActionBar.SetActionButtonAbilityFxOverride(i)
+        FancyActionBar.UpdateInactiveBarIcon(i, inactiveBar)
+    end
+    FancyActionBar.SetActionButtonAbilityFxOverride(ULT_INDEX)
 end
 
 function FancyActionBar.GetOverlay(index)
@@ -1155,21 +1153,20 @@ function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarg
     return 0
 end
 
-function FancyActionBar.UpdateInactiveBarIcon(index, bar) -- for bar swapping.
-    if index < MIN_INDEX or index > MAX_INDEX then
-        return
-    end
-    local id = FancyActionBar.GetSlotBoundAbilityId(index, bar)
-    local btn = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET]
+function FancyActionBar.UpdateInactiveBarIcon(slotNum, hotbarCategory) -- for bar swapping.
+    if slotNum < MIN_INDEX or slotNum > MAX_INDEX then return end
+    local id = FancyActionBar.GetSlotBoundAbilityId(slotNum, hotbarCategory)
+    local btn = FancyActionBar.buttons[slotNum + SLOT_INDEX_OFFSET]
     local icon = ""
-    local slotState = FancyActionBar.slotHidden[bar == HOTBAR_CATEGORY_BACKUP and index + SLOT_INDEX_OFFSET or index]
+    local slotState = FancyActionBar.slotHidden[hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum]
     local shouldHideSlot = SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked
     if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
         if FancyActionBar.barHighlightDestroFix[id] then
-            local weaponType = bar == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
-            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, bar, weaponType))
+            local weaponType = hotbarCategory == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
+            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or
+                GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, weaponType))
         else
-            id = GetEffectiveAbilityIdForAbilityOnHotbar(id, bar)
+            id = GetEffectiveAbilityIdForAbilityOnHotbar(id, hotbarCategory)
             if id == 31816 then
                 local hyper = CheckHyperTools()
                 icon = hyper ~= "" and GetHyperToolsIcon(hyper) or GetAbilityIcon(id)
@@ -1398,7 +1395,7 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
             FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
         end
         if (index > SLOT_INDEX_OFFSET and currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP) or
-            (index <= SLOT_INDEX_OFFSET and currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
+            (index < SLOT_INDEX_OFFSET and currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
             local shouldHideSlot = SV.hideLockedBar and isWeaponSwapLocked or SV.hideInactiveSlots and (not hasDuration)
             local doHideSlot = FancyActionBar.slotHidden[index] ~= shouldHideSlot
             FancyActionBar.slotHidden[index] = shouldHideSlot
@@ -3147,10 +3144,10 @@ function FancyActionBar.ApplyActiveHotbarStyle()
         button:ApplyStyle(style.buttonTemplate)
         FancyActionBar.SetupButtonText(button, style, i)
         FancyActionBar.SetupButtonStatus(button)
-        local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
-        if ult and ult.hasAction then
-            ult:UpdateUltimateMeter()
-        end
+    end
+    local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
+    if ult and ult.hasAction then
+        ult:UpdateUltimateMeter()
     end
 end
 
@@ -3408,8 +3405,7 @@ function FancyActionBar.ToggleOverlays(bar)
     end
 end
 
-function
-FancyActionBar.UpdateActiveBarIcons(currentHotbarCategory)
+function FancyActionBar.UpdateActiveBarIcons(currentHotbarCategory)
     for i = MIN_INDEX, MAX_INDEX do
         local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
         local overlay = FancyActionBar.overlays[index]
@@ -4132,26 +4128,29 @@ local function SetAbilityBarTimersEnabled()
     end
 end
 
-
--- Slot ability changed, e.g. summoned a pet, procced crystal, etc.
 local function OnSlotChanged(_, slotNum, hotbarCategory)
+    if slotNum < MIN_INDEX or slotNum > ULT_INDEX then return end
     --local style = FancyActionBar.GetContants()
     local currentHotbarCategory = GetActiveHotbarCategory()
-    local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
     local slotIndex = hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum
-    local btn = FancyActionBar.GetActionButton(slotIndex)
-    if btn then
-        btn:HandleSlotChanged()
-        if (slotIndex == ULT_INDEX or slotIndex == ULT_INDEX + SLOT_INDEX_OFFSET) then
-            FancyActionBar.UpdateUltimateCost()
+    if hotbarCategory == currentHotbarCategory then
+        local btn = FancyActionBar.GetActionButton(slotNum)
+        if btn then
+            btn:HandleSlotChanged()
         end
-        FancyActionBar.UpdateSlottedSkillsDecriptions()
         if SV.applyActionBarSkillStyles then
             FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
         end
-        FancyActionBar.UpdateInactiveBarIcon(slotNum, inactiveBar)
         --FancyActionBar.SetupButtonText(btn, style, slotIndex)
+    else
+        FancyActionBar.UpdateInactiveBarIcon(slotNum, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
     end
+
+    if (slotIndex == ULT_INDEX or slotIndex == ULT_INDEX + SLOT_INDEX_OFFSET) then
+        FancyActionBar.UpdateUltimateCost()
+    end
+    FancyActionBar.UpdateSlottedSkillsDecriptions()
+
     -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
 
