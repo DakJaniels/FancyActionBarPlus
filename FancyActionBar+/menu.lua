@@ -1791,6 +1791,29 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
         -- ===========[	Actionbar Scaling	]===================
         if not IsConsoleUI() then
+            local azurahTable = {
+                {
+                    type = "checkbox",
+                    name = "Use Azurah Actionbar Mover",
+                    default = defaults.forceAzurahMover,
+                    getFunc = function ()
+                        return SV.forceAzurahMover
+                    end,
+                    setFunc = function (value)
+                        SV.forceAzurahMover = value or false
+                    end,
+                    width = "full",
+                },
+                { type = "divider" },
+            }
+            if Azurah or SV.forceAzurahMover then
+                for k, v in pairs(azurahTable) do
+                    table.insert(optionsTable[tableIndex].controls, v)
+                end
+            end
+
+
+
             local kbScalingTable = {
                 {
                     type = "description",
@@ -1801,6 +1824,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     type = "checkbox",
                     name = "Enable Actionbar Resize",
                     default = defaults.abScaling.kb.enable,
+                    disabled = function ()
+                        return SV.forceAzurahMover
+                    end,
                     getFunc = function ()
                         return SV.abScaling.kb.enable
                     end,
@@ -1831,7 +1857,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     max = 250,
                     step = 1,
                     disabled = function ()
-                        return not SV.abScaling.kb.enable
+                        return SV.forceAzurahMover or not SV.abScaling.kb.enable
                     end,
                     getFunc = function ()
                         return SV.abScaling.kb.scale
@@ -1860,7 +1886,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     name = "Unlock Actionbar Position (Keyboard)",
                     default = unlocked,
                     disabled = function ()
-                        return FancyActionBar.style == 2
+                        return FancyActionBar.style == 2 or SV.forceAzurahMover
                     end,
                     getFunc = function ()
                         return FancyActionBar.style == 1 and FancyActionBar.IsUnlocked()
@@ -1888,6 +1914,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         type = "checkbox",
                         name = "Enable Actionbar Resize",
                         default = defaults.abScaling.gp.enable,
+                        disabled = function ()
+                            return SV.forceAzurahMover
+                        end,
                         getFunc = function ()
                             return SV.abScaling.gp.enable
                         end,
@@ -1918,7 +1947,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         max = 250,
                         step = 1,
                         disabled = function ()
-                            return not SV.abScaling.gp.enable
+                            return SV.forceAzurahMover or not SV.abScaling.gp.enable
                         end,
                         getFunc = function ()
                             return SV.abScaling.gp.scale
@@ -1947,7 +1976,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         name = "Unlock Actionbar Position (Gamepad)",
                         default = unlocked,
                         disabled = function ()
-                            return FancyActionBar.style == 1
+                            return FancyActionBar.style == 1 or SV.forceAzurahMover
                         end,
                         getFunc = function ()
                             return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()

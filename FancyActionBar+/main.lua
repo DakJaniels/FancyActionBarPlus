@@ -3423,10 +3423,12 @@ end
 
 function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
     FancyActionBar.HideHotkeys(not SV.showHotkeys)
+    if not SV.forceAzurahMover then
+        FancyActionBar.MoveActionBar()
+        if not FancyActionBar.wasMoved then
+            FancyActionBar.RepositionHealthBar()
+        end
 
-    FancyActionBar.MoveActionBar()
-    if not FancyActionBar.wasMoved then
-        FancyActionBar.RepositionHealthBar()
     end
 end
 
@@ -3445,7 +3447,7 @@ function FancyActionBar.SetScale() -- resize and check for other addons with sam
     local enable = FancyActionBar.constants.abScale.enable
     local s
 
-    if enable then
+    if enable and not SV.forceAzurahMover then
         local S = FancyActionBar.constants.abScale.scale
         s = S / 100
     else
