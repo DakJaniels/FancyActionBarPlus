@@ -734,7 +734,7 @@ FancyActionBar.stackMap =
         183241, -- impervious runeward
         184362, -- impervious runeward
         185901, -- spiteward
-        185824, -- tentacular dread
+        185823, -- tentacular dread
         238174, -- vengeance fatecarver
         238249, -- vengeance runespite ward
         238482, -- vengeance remedy cascade
@@ -1134,12 +1134,7 @@ FancyActionBar.fakeClassEffects =
     -- Templar
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
-    [28] =
-    { -- Restoring Light
-        [22265] = { duration = GetAbilityDuration(22265) / 1000, id = 22265 }, -- Cleansing Ritual
-        [22259] = { duration = GetAbilityDuration(22259) / 1000, id = 22259 }, -- Ritual of Retribution
-        [22262] = { duration = GetAbilityDuration(22262) / 1000, id = 22262 }, -- Extended Ritual
-    },
+    -- [28] = {}, -- Restoring Light
 
     -- Arcanist
     -- [218] = {}, -- Herald of the Tome
@@ -1265,7 +1260,11 @@ FancyActionBar.specialClassEffects =
     -- Templar
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
-    -- [28] = {}, -- Restoring Light
+    [28] = { -- Restoring Light
+        [22265] = { id = 22265, duration = GetAbilityDuration(22265) / 1000, onAbilityUsed = true }, -- Cleansing Ritual
+        [22259] = { id = 22259, duration = GetAbilityDuration(22259) / 1000, onAbilityUsed = true }, -- Ritual of Retribution
+        [22262] = { id = 22262, duration = GetAbilityDuration(22262) / 1000, onAbilityUsed = true }, -- Extended Ritual
+    },
 
     -- Arcanist
     -- [218] = {}, -- Herald of the Tome
