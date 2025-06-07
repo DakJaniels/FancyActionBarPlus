@@ -5,7 +5,7 @@
 ## APIVersion: 101046
 ## AddOnVersion: 21404
 ## SavedVariables: FancyActionBarSV
-## PCDependsOn: LibAddonMenu-2.0>=37
+## PCDependsOn: LibAddonMenu-2.0>=40
 ## ConsoleDependsOn: LibAddonMenu-2.0>=40
 ## OptionalDependsOn: Azurah BanditsUserInterface DarkUI LibChatMessage LibMediaProvider
 ## OptionalDependsOn: AdvancedDisableControllerUI LuiExtended PerfectWeave
