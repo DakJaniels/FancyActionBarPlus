@@ -5256,6 +5256,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
                         {
                             type = "dropdown",
+                            scrollable = 20,
                             name = "Saved Changes",
                             tooltip = "Easily find skills that you have made changes to.",
                             choices = GetChangedSkills(),
@@ -5441,6 +5442,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
                         {
                             type = "dropdown",
+                            scrollable = 20,
                             name = "Blacklisted IDs",
                             choices = GetBlacklistedSkills(),
                             getFunc = function ()
@@ -5735,6 +5737,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
                         {
                             type = "dropdown",
+                            scrollable = 20,
                             name = "Blacklisted IDs",
                             choices = GetBlacklistedMultiTargetSkills(),
                             getFunc = function ()
