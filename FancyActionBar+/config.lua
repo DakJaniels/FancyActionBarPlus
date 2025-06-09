@@ -1577,6 +1577,12 @@ FancyActionBar.ignoreFallbackTimers =
     [39012] = true, -- elemental blockade (fire)
     [39018] = true, -- elemental blockade (lightning)
     [39028] = true, -- elemental blockade (frost)
+    [31888] = true, -- molten armaments
+    [86050] = true,  -- betty netch
+    [86054] = true,  -- blue betty
+    [86058] = true,  -- bull netch
+    [24326] = true,  -- Daedric Curse
+    [24328] = true,  -- Daedric Prey
 }
 
 FancyActionBar.dontFade =
