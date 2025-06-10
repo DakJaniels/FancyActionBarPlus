@@ -3308,17 +3308,17 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
 end
 
 function FancyActionBar.ClearAnchors()
-    if ActionButton3 then
-        ActionButton3:ClearAnchors()
+    if _G["ActionButton3"] then
+        _G["ActionButton3"]:ClearAnchors()
     end
-    if ActionButton23 then
-        ActionButton23:ClearAnchors()
+    if _G["ActionButton23"] then
+        _G["ActionButton23"]:ClearAnchors()
     end
-    if ActionButtonOverlay3 then
-        ActionButtonOverlay3:ClearAnchors()
+    if _G["ActionButtonOverlay3"] then
+        _G["ActionButtonOverlay3"]:ClearAnchors()
     end
-    if ActionButtonOverlay23 then
-        ActionButtonOverlay23:ClearAnchors()
+    if _G["ActionButtonOverlay23"] then
+        _G["ActionButtonOverlay23"]:ClearAnchors()
     end
 end
 
@@ -3326,20 +3326,20 @@ function FancyActionBar.DetermineBarAndHide(locked)
     local currentHotbarCategory = GetActiveHotbarCategory()
     if currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         if SV.staticBars then
-            ApplyBarPosition(ActionButton23, ActionButton3, SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
-            ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(_G["ActionButton23"], _G["ActionButton3"], SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
         else
-            ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
-            ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
         end
         return HOTBAR_CATEGORY_BACKUP, HOTBAR_CATEGORY_PRIMARY, true
     else
         if SV.staticBars then
-            ApplyBarPosition(ActionButton3, ActionButton23, SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-            ApplyBarPosition(ActionButtonOverlay23, ActionButtonOverlay3, not SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
+            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
+            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
         else
-            ApplyBarPosition(ActionButton3, ActionButton23, SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-            ApplyBarPosition(ActionButtonOverlay3, ActionButtonOverlay23, SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
+            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
+            ApplyBarPosition(_G["ActionButtonOverlay3"], _G["ActionButtonOverlay23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
         end
         return HOTBAR_CATEGORY_PRIMARY, HOTBAR_CATEGORY_BACKUP, false
     end
