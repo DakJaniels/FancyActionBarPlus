@@ -2798,7 +2798,7 @@ end
 --  ---------------------------------
 ---
 --- This is now directly handled in the ui.xml OnInitialized
---- @param control TopLevelWindow
+-- @param control TopLevelWindow
 -- function FancyActionBar.OnActionBarInitialized(control) -- backbar control initialized.
 --     ULTIMATE_BUTTON_STYLE.parentBar = control
 
