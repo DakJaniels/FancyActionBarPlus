@@ -35,6 +35,7 @@ local specialHotbar =
 
 local GAMEPAD_CONSTANTS =
 {
+    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, -25),
     dimensions = 64,
     flipCardSize = 61,
     ultFlipCardSize = 67,
@@ -57,6 +58,7 @@ local GAMEPAD_CONSTANTS =
 }
 local KEYBOARD_CONSTANTS =
 {
+    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, 0),
     dimensions = 50,
     flipCardSize = 47,
     ultFlipCardSize = 47,
@@ -235,18 +237,16 @@ local slottedIds = {}                                  -- to match skills with t
 local effectSlots = {}                                 -- to indentify slots that track the same effect
 local debuffTargets = {}                               -- not used, but might be needed when I get better at writing tracking for debuffs on enemies
 local lastAreaTargets = {}                             -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
-local registeredSkillLines = {}                         -- to track skill lines that have been registered for ability changes
+local registeredSkillLines = {}                        -- to track skill lines that have been registered for ability changes
 -------------------------------------------------------------------------------
 ---------------------------[   Local Variables   ]-----------------------------
 -------------------------------------------------------------------------------
---- @class FAB_AC_SV
-local SV = ...                             -- saved variables (accountwide)
---- @class FAB_DC_SV
-local CV = ...                             -- saved variables (character)
-local debug = false                        -- debug mode
+local SV = ...         -- saved variables (accountwide)
+local CV = ...         -- saved variables (character)
+local debug = false    -- debug mode
 
-local scale = 100                          -- default or custom scale of the action bar to use
-local updateRate = 100                     -- overlay update interval
+local scale = 100      -- default or custom scale of the action bar to use
+local updateRate = 100 -- overlay update interval
 
 -- local lastButton = 0                       -- for repositioning of skill buttons
 local channeledAbilityUsed = nil           -- for tracking channeling abilities
@@ -1222,7 +1222,7 @@ function FancyActionBar.ResetOverlayDuration(overlay)
                 FancyActionBar.HandleTargetUpdate(effect.id, true)
                 resetTargetsControl = not (activeTargets > 0)
             else
-                
+
             end
         end
         if stacksControl and resetStacksControl then
@@ -1619,7 +1619,7 @@ end
 
 function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     local overlay = FancyActionBar.ultOverlays[index]
-    if not overlay then return end -- Added check for nil overlay
+    if not overlay then return end              -- Added check for nil overlay
 
     local effect = overlay.effect or { id = 0, endTime = -1 }
     local allowStacks = overlay.allowStacks
@@ -1698,12 +1698,12 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     end
 
     -- Use a slightly larger negative threshold to account for fade delay correctly
-    local displayThreshold = - ( (SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)
+    local displayThreshold = -((SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)
 
     if duration > displayThreshold then
-         local displayDuration = zo_max(0, duration) -- Ensure displayed value isn't negative
+        local displayDuration = zo_max(0, duration) -- Ensure displayed value isn't negative
 
-         if displayDuration > 0 then
+        if displayDuration > 0 then
             -- Format positive duration (either channeled or standard)
             if (FancyActionBar.constants.update.showDecimal and (displayDuration <= FancyActionBar.constants.update.showDecimalStart)) then
                 durationControl:SetText(strformat("%0.1f", displayDuration))
@@ -1714,13 +1714,13 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
             -- Apply color based on expiration or channel state
             -- (Note: isCastTime could be used here for a specific channel color if desired)
             if (displayDuration <= SV.showExpireStart) and SV.showExpire then
-                 durationControl:SetColor(unpack(SV.expireColor))
-            -- elseif isCastTime and SV.channelColor then -- Optional channel color?
-            --     durationControl:SetColor(unpack(SV.channelColor))
+                durationControl:SetColor(unpack(SV.expireColor))
+                -- elseif isCastTime and SV.channelColor then -- Optional channel color?
+                --     durationControl:SetColor(unpack(SV.channelColor))
             else
-                 durationControl:SetColor(unpack(timerColor))
+                durationControl:SetColor(unpack(timerColor))
             end
-         else
+        else
             -- Handle fade delay display (only applies if NOT channeling)
             if not isCastTime and SV.delayFade and not instantFade then
                 local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime
@@ -1737,14 +1737,14 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
                 -- No fade delay or instant fade, clear text immediately
                 durationControl:SetText("")
             end
-         end
+        end
     else
         -- Duration is too old (below display threshold)
         durationControl:SetText("")
-         -- Reset activeUlt if its time is being used and it expired
+        -- Reset activeUlt if its time is being used and it expired
         if not isCastTime and ultEndTime == activeUlt.endTime and activeUlt.endTime and activeUlt.endTime <= currentTime then
-           activeUlt.id = 0
-           activeUlt.endTime = -1
+            activeUlt.id = 0
+            activeUlt.endTime = -1
         end
     end
 
@@ -2071,7 +2071,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
     -- Assign effect to overlay.
     overlay["effect"] = effect
-    overlay["allowStacks"] =  effectId == abilityId or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
+    overlay["allowStacks"] = effectId == abilityId or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.IsValidStackId(stackId, abilityStackId) or FancyActionBar.HasDebuffStacks(effectId)
 
 
     if FancyActionBar.targets[effect.id] and (not SV.showTargetCount == false) then
@@ -2619,16 +2619,13 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
     FAB_ActionBarFakeQS:ClearAnchors()
     FAB_ActionBarFakeQS:SetAnchor(LEFT, ACTION_BAR, LEFT, 0, -5, FAB_ActionBarFakeQS:GetResizeToFitConstrains())
 
-    local style = FancyActionBar.GetContants()
-    local anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, 0, ANCHOR_CONSTRAINS_XY)
-
+    local style = IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS
+    local anchor = style.anchor
     if FancyActionBar.updateUI then
-        -- Move action bar and attributes up a bit.
         anchor:SetFromControlAnchor(ACTION_BAR)
         anchor:SetOffsets(nil, style.actionBarOffset)
         anchor:Set(ACTION_BAR)
     end
-
     anchor:SetFromControlAnchor(ZO_PlayerAttribute)
     anchor:SetOffsets(nil, style.attributesOffset)
     anchor:Set(ZO_PlayerAttribute)
@@ -3439,7 +3436,6 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
         if not FancyActionBar.wasMoved then
             FancyActionBar.RepositionHealthBar()
         end
-
     end
 end
 
@@ -4155,7 +4151,7 @@ end
 -- Call this function after slot changes or bar swap
 local function OnSlotChanged(_, slotNum, hotbarCategory)
     if slotNum < MIN_INDEX or slotNum > ULT_INDEX then return end
-    --local style = FancyActionBar.GetContants()
+    -- local style = FancyActionBar.GetContants()
     local currentHotbarCategory = GetActiveHotbarCategory()
     local slotIndex = hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum
     if hotbarCategory == currentHotbarCategory then
@@ -4166,7 +4162,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
         if SV.applyActionBarSkillStyles then
             FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
         end
-        --FancyActionBar.SetupButtonText(btn, style, slotIndex)
+        -- FancyActionBar.SetupButtonText(btn, style, slotIndex)
     else
         FancyActionBar.UpdateInactiveBarIcon(slotNum, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
     end
@@ -4470,7 +4466,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1
 
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
-       -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
+        -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
         if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
             effect.castEndTime = t + remain
         else
@@ -4642,7 +4638,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                     local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
                     _, _, stackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId)
                     FancyActionBar.stacks[stackableBuffId] = stackCount
-                end    
+                end
                 for id, knownEffect in pairs(FancyActionBar.effects) do
                     if knownEffect.stackId and ((effectType ~= DEBUFF) or FancyActionBar.fixedStacks[abilityId]) then
                         if FancyActionBar.fixedStacks[abilityId] then
@@ -5069,7 +5065,7 @@ function FancyActionBar.RegisterClassEffects(newSkillLineId)
     end
     if not skillLineIds or #skillLineIds == 0 then return end
 
-    for i= 1, #skillLineIds do
+    for i = 1, #skillLineIds do
         local skillLineId = skillLineIds[i]
         if registeredSkillLines[skillLineId] then return end
 
