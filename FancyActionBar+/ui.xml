@@ -16,7 +16,7 @@
                     button:SetupBounceAnimation()
                     button:UpdateState()
                     -- Force update the actionId properly
-                    button.button.actionId = GetSlotBoundId(i - 20, HOTBAR_CATEGORY_BACKUP)
+                    button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(i - 20, HOTBAR_CATEGORY_BACKUP)
                     FancyActionBar.buttons[i] = button
                   end
 

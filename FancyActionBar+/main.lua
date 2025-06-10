@@ -4147,7 +4147,7 @@ function FancyActionBar.UpdateBackbarButtonActionIds()
         local button = FancyActionBar.buttons[i]
         if button and button.button then
             -- Update actionId properly using original slot number without offset
-            button.button.actionId = GetSlotBoundId(i - SLOT_INDEX_OFFSET, HOTBAR_CATEGORY_BACKUP)
+            button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(i - SLOT_INDEX_OFFSET, HOTBAR_CATEGORY_BACKUP)
         end
     end
 end
