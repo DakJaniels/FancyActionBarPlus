@@ -2600,7 +2600,9 @@ end
 --  ---------------------------------
 --  UI Setup
 --  ---------------------------------
-function FancyActionBar.AdjustControlsPositions() -- resource bars and default action bar position
+
+-- Move action bar and attributes up a bit.
+function FancyActionBar:AdjustControlsPositions() -- resource bars and default action bar position
     if FAB_ActionBarFakeQS == nil then
         FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
     end
@@ -3438,7 +3440,7 @@ function FancyActionBar.UpdateBarSettings(locked) -- run all UI visual updates w
     -- FancyActionBar.SetMoved(false)
     FancyActionBar.ApplyStyle()
     FancyActionBar.SwapControls(locked)
-    FancyActionBar.AdjustControlsPositions()
+    FancyActionBar:AdjustControlsPositions()
     FancyActionBar.ApplyPosition()
     FancyActionBar.ApplyAbilityFxOverrides()
 end
@@ -4164,7 +4166,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
         FancyActionBar.UpdateUltimateCost()
     end
     FancyActionBar.UpdateSlottedSkillsDecriptions()
-FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
+    FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
 
     -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
