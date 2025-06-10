@@ -7,16 +7,21 @@
              movable="true">
             <OnInitialized>
                 <![CDATA[
-					self:SetParent(ZO_ActionBar1)
-					for i = 3 + 20, 7 + 20 do
-						local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, self, "ZO_ActionButton")
-						button:SetShowBindingText(false)
-						button.icon:SetHidden(true)
-						button:SetupBounceAnimation()
-						FancyActionBar.buttons[i] = button
-					end
-              		FancyActionBar.AdjustControlsPositions()
-				]]>
+                  self:SetParent(ZO_ActionBar1)
+
+                  for i = 3 + 20, 7 + 20 do
+                    local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, self, "ZO_ActionButton", HOTBAR_CATEGORY_BACKUP)
+                    button:SetShowBindingText(false)
+                    button.icon:SetHidden(true)
+                    button:SetupBounceAnimation()
+                    button:UpdateState()
+                    -- Force update the actionId properly
+                    button.button.actionId = GetSlotBoundId(i - 20, HOTBAR_CATEGORY_BACKUP)
+                    FancyActionBar.buttons[i] = button
+                  end
+
+                  FancyActionBar:AdjustControlsPositions()
+                ]]>
             </OnInitialized>
             <Controls>
                 <Texture name="$(parent)Arrow"

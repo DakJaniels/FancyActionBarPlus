@@ -4130,6 +4130,18 @@ local function SetAbilityBarTimersEnabled()
     end
 end
 
+-- Update actionId for backbar buttons
+function FancyActionBar.UpdateBackbarButtonActionIds()
+    for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
+        local button = FancyActionBar.buttons[i]
+        if button and button.button then
+            -- Update actionId properly using original slot number without offset
+            button.button.actionId = GetSlotBoundId(i - SLOT_INDEX_OFFSET, HOTBAR_CATEGORY_BACKUP)
+        end
+    end
+end
+
+-- Call this function after slot changes or bar swap
 local function OnSlotChanged(_, slotNum, hotbarCategory)
     if slotNum < MIN_INDEX or slotNum > ULT_INDEX then return end
     --local style = FancyActionBar.GetContants()
@@ -4152,6 +4164,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
         FancyActionBar.UpdateUltimateCost()
     end
     FancyActionBar.UpdateSlottedSkillsDecriptions()
+FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
 
     -- Chat('Slot ' .. tostring(slotNum) .. ' changed')
 end
@@ -4269,6 +4282,7 @@ local function OnAllHotbarsUpdated()
     FancyActionBar.UpdateSlottedSkillsDecriptions()
     FancyActionBar.EffectCheck()
     FancyActionBar.ApplyAbilityFxOverrides()
+FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
 end
 
 local function OnArmory()
@@ -4290,6 +4304,7 @@ local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
         isChanneling = false
         FancyActionBar.SwapControls(isWeaponSwapLocked)
         currentWeaponPair = activeWeaponPair
+        FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds after weapon swap
     end
 end
 
