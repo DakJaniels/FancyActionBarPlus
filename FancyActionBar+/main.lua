@@ -4282,7 +4282,7 @@ local function OnAllHotbarsUpdated()
     FancyActionBar.UpdateSlottedSkillsDecriptions()
     FancyActionBar.EffectCheck()
     FancyActionBar.ApplyAbilityFxOverrides()
-FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
+    FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
 end
 
 local function OnArmory()
