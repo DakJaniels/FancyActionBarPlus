@@ -54,7 +54,7 @@ local ultModeOptions =
     ["Current / Cost (dynamic)"] = 2,
     ["Current / Cost (static)"] = 3,
 }
-local skillToEditID = 0
+local skillToEditID = "0"
 local skillToEditName = ""
 local effectToTrackID = 0
 local effectToTrackName = ""
