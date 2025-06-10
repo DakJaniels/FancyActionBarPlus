@@ -98,10 +98,10 @@ local selectedDebuff = 0
 
 local uiPresets =
 {
-    [1] = {"None", {}},
-    [2] = {"Default UI", FancyActionBar.defaultSettings},
-    [3] = {"Dev's Preferred UI", FancyActionBar.devConfig},
-    [4] = {"ADR-like UI", FancyActionBar.adrConfig},
+    [1] = { "None", {} },
+    [2] = { "Default UI", FancyActionBar.defaultSettings },
+    [3] = { "Dev's Preferred UI", FancyActionBar.devConfig },
+    [4] = { "ADR-like UI", FancyActionBar.adrConfig },
 }
 
 local presetIgnoreKeys =
@@ -170,7 +170,7 @@ local function SetUIPreset(preset)
             SV[k] = v
         end
     end
-    --ReloadUI("ingame")
+    -- ReloadUI("ingame")
 end
 
 function FancyActionBar.GetDecimalOptions()
@@ -255,7 +255,7 @@ end
 --- @return boolean isValidAbility
 --- @return boolean isCraftedAbility
 local function IsValidId(id)
-    local abilityId --- @type string|number?
+    local abilityId                                       --- @type string|number?
     local isValidAbility, isCraftedAbility = false, false --- @type boolean, boolean
     if type(id) == "string" then
         local extractedAbilityId, extractedScriptKey = id:match("^(%d+)%-(.+)$")
@@ -866,7 +866,7 @@ local function GetSkillToEditID()
                 id = tostring(skillToEditID)
             else
                 local craftedId = GetAbilityCraftedAbilityId(extractedAbilityId)
-                local scripts ={ GetCraftedAbilityActiveScriptIds(craftedId) }
+                local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) }
                 local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
                 if scriptKey ~= "0_0_0" then
                     SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]))
@@ -983,17 +983,16 @@ local function SetSkillToEditID(id)
         scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) }
         scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
         if scriptKey ~= "0_0_0" then
-
             SetCraftedAbilityScriptSelectionOverride(tonumber(craftedId), tonumber(scripts[1]), tonumber(scripts[2]), tonumber(scripts[3]))
             id = tostring(extractedAbilityId) .. "-" .. tostring(scriptKey)
             skillToEditName = GetCraftedAbilityDisplayName(craftedId)
             ResetCraftedAbilityScriptSelectionOverride()
 
             scriptsStr = tostring(" [" ..
-            (GetCraftedAbilityScriptDisplayName(tonumber(scripts[1]))) ..
-            "/" ..
-            (GetCraftedAbilityScriptDisplayName(tonumber(scripts[2]))) ..
-            "/" .. (GetCraftedAbilityScriptDisplayName(tonumber(scripts[3]))) .. "]")
+                (GetCraftedAbilityScriptDisplayName(tonumber(scripts[1]))) ..
+                "/" ..
+                (GetCraftedAbilityScriptDisplayName(tonumber(scripts[2]))) ..
+                "/" .. (GetCraftedAbilityScriptDisplayName(tonumber(scripts[3]))) .. "]")
 
             skillToEditID = id
             WM:GetControlByName("SkillToEditID_Editbox").editbox:SetText(skillToEditID)
@@ -1737,44 +1736,44 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         local tableIndex = 1
 
         table.insert(optionsTable,
-        {
-            type = "button",
-            name = "Toggle Actionbar Visibility",
-            tooltip = "Only applies while in this settings menu.",
-            func = function ()
-                ToggleActionBarInMenu(ACTION_BAR:IsHidden())
-            end,
-            width = "full",
-        })
+            {
+                type = "button",
+                name = "Toggle Actionbar Visibility",
+                tooltip = "Only applies while in this settings menu.",
+                func = function ()
+                    ToggleActionBarInMenu(ACTION_BAR:IsHidden())
+                end,
+                width = "full",
+            })
         tableIndex = tableIndex + 1
 
         -- ===========[	UI Presets	]===================
         table.insert(optionsTable,
-        {
-            type = "submenu",
-            name = "|cFFFACDUI Presets|r",
-            controls =
             {
+                type = "submenu",
+                name = "|cFFFACDUI Presets|r",
+                controls =
                 {
-                    type = "dropdown",
-                    name = "Select UI Preset",
-                    text = "Selecting a UI Preset requires reloading the game UI to take effect.",
-                    scrollable = true,
-                    tooltip = "Set a preset UI configuration.",
-                    choices = FancyActionBar.GetPresets(),
-                    sort = "name-up",
-                    getFunc = function ()
-                        return uiPresets[1][1]
-                    end,
-                    setFunc = function (value)
-                        SetUIPreset(value)
-                    end,
-                    default = 1,
-                    warning = "Requires Reloading the UI.",
-                    requiresReload = true,
+                    {
+                        type = "dropdown",
+                        name = "Select UI Preset",
+                        text = "Selecting a UI Preset requires reloading the game UI to take effect.",
+                        scrollable = true,
+                        tooltip = "Set a preset UI configuration.",
+                        choices = FancyActionBar.GetPresets(),
+                        sort = "name-up",
+                        getFunc = function ()
+                            return uiPresets[1][1]
+                        end,
+                        setFunc = function (value)
+                            SetUIPreset(value)
+                        end,
+                        default = 1,
+                        warning = "Requires Reloading the UI.",
+                        requiresReload = true,
+                    },
                 },
-            },
-        })
+            })
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
@@ -1789,7 +1788,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
         -- ===========[	Actionbar Scaling	]===================
         if not IsConsoleUI() then
-            local azurahTable = {
+            local azurahTable =
+            {
                 {
                     type = "checkbox",
                     name = "Use Azurah Actionbar Mover",
@@ -1812,7 +1812,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
 
 
-            local kbScalingTable = {
+            local kbScalingTable =
+            {
                 {
                     type = "description",
                     title = "[ |cffdf80Keyboard UI|r ]",
@@ -1897,460 +1898,463 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     width = "full",
                 },
                 { type = "divider" },
-                }
+            }
             for k, v in pairs(kbScalingTable) do
                 table.insert(optionsTable[tableIndex].controls, v)
             end
 
-            local gpScalingTablePC = {
-                    {
-                        type = "description",
-                        title = "[ |cffdf80Gamepad UI|r ]",
-                        width = "full",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Enable Actionbar Resize",
-                        default = defaults.abScaling.gp.enable,
-                        disabled = function ()
-                            return SV.forceAzurahMover
-                        end,
-                        getFunc = function ()
-                            return SV.abScaling.gp.enable
-                        end,
-                        setFunc = function (value)
-                            SV.abScaling.gp.enable = value or false
-                            if FancyActionBar.style == 2 then
-                                FancyActionBar.constants.abScale.enable = value
-                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                                FancyActionBar.SetScale()
-                                FancyActionBar.ToggleMover(true)
-                                SetBarTheme(locked)
-                                if Azurah then UpdateAzurahDb() end
-                                FancyActionBar.ToggleMover(false)
-                                SetBarTheme(locked)
-                                if not FancyActionBar.wasMoved then
-                                    FancyActionBar.ResetMoveActionBar()
-                                    FancyActionBar.RepositionHealthBar()
-                                end
-                            end
-                        end,
-                        width = "half",
-                    },
-                    {
-                        type = "slider",
-                        name = "Actionbar Size",
-                        default = defaults.abScaling.gp.scale,
-                        min = 30,
-                        max = 250,
-                        step = 1,
-                        disabled = function ()
-                            return SV.forceAzurahMover or not SV.abScaling.gp.enable
-                        end,
-                        getFunc = function ()
-                            return SV.abScaling.gp.scale
-                        end,
-                        setFunc = function (value)
-                            SV.abScaling.gp.scale = value
-                            if FancyActionBar.style == 2 then
-                                FancyActionBar.constants.abScale.scale = value
-                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                                FancyActionBar.SetScale()
-                                FancyActionBar.ToggleMover(true)
-                                SetBarTheme(locked)
-                                if Azurah then UpdateAzurahDb() end
-                                FancyActionBar.ToggleMover(false)
-                                SetBarTheme(locked)
-                                if not FancyActionBar.wasMoved then
-                                    FancyActionBar.ResetMoveActionBar()
-                                    FancyActionBar.RepositionHealthBar()
-                                end
-                            end
-                        end,
-                        width = "half",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Unlock Actionbar Position (Gamepad)",
-                        default = unlocked,
-                        disabled = function ()
-                            return FancyActionBar.style == 1 or SV.forceAzurahMover
-                        end,
-                        getFunc = function ()
-                            return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
-                        end,
-                        setFunc = function (value)
-                            local _, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.ToggleMover(value)
+            local gpScalingTablePC =
+            {
+                {
+                    type = "description",
+                    title = "[ |cffdf80Gamepad UI|r ]",
+                    width = "full",
+                },
+                {
+                    type = "checkbox",
+                    name = "Enable Actionbar Resize",
+                    default = defaults.abScaling.gp.enable,
+                    disabled = function ()
+                        return SV.forceAzurahMover
+                    end,
+                    getFunc = function ()
+                        return SV.abScaling.gp.enable
+                    end,
+                    setFunc = function (value)
+                        SV.abScaling.gp.enable = value or false
+                        if FancyActionBar.style == 2 then
+                            FancyActionBar.constants.abScale.enable = value
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                            FancyActionBar.SetScale()
+                            FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                        end,
-                        width = "full",
-                    },
-                    { type = "divider" },
-                }
+                            if Azurah then UpdateAzurahDb() end
+                            FancyActionBar.ToggleMover(false)
+                            SetBarTheme(locked)
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "slider",
+                    name = "Actionbar Size",
+                    default = defaults.abScaling.gp.scale,
+                    min = 30,
+                    max = 250,
+                    step = 1,
+                    disabled = function ()
+                        return SV.forceAzurahMover or not SV.abScaling.gp.enable
+                    end,
+                    getFunc = function ()
+                        return SV.abScaling.gp.scale
+                    end,
+                    setFunc = function (value)
+                        SV.abScaling.gp.scale = value
+                        if FancyActionBar.style == 2 then
+                            FancyActionBar.constants.abScale.scale = value
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                            FancyActionBar.SetScale()
+                            FancyActionBar.ToggleMover(true)
+                            SetBarTheme(locked)
+                            if Azurah then UpdateAzurahDb() end
+                            FancyActionBar.ToggleMover(false)
+                            SetBarTheme(locked)
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "checkbox",
+                    name = "Unlock Actionbar Position (Gamepad)",
+                    default = unlocked,
+                    disabled = function ()
+                        return FancyActionBar.style == 1 or SV.forceAzurahMover
+                    end,
+                    getFunc = function ()
+                        return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
+                    end,
+                    setFunc = function (value)
+                        local _, locked = GetActiveWeaponPairInfo()
+                        FancyActionBar.ToggleMover(value)
+                        SetBarTheme(locked)
+                    end,
+                    width = "full",
+                },
+                { type = "divider" },
+            }
             for k, v in pairs(gpScalingTablePC) do
                 table.insert(optionsTable[tableIndex].controls, v)
             end
         else
-            local gpScalingTableConsole = {
-                    {
-                        type = "description",
-                        title = "[ |cffdf80Gamepad UI|r ]",
-                        width = "full",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Enable Actionbar Resize",
-                        default = defaults.abScaling.gp.enable,
-                        getFunc = function ()
-                            return SV.abScaling.gp.enable
-                        end,
-                        setFunc = function (value)
-                            SV.abScaling.gp.enable = value or false
-                            if FancyActionBar.style == 2 then
-                                FancyActionBar.constants.abScale.enable = value
-                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                                FancyActionBar.SetScale()
-                                FancyActionBar.ToggleMover(true)
-                                SetBarTheme(locked)
-                                if Azurah then UpdateAzurahDb() end
-                                FancyActionBar.ToggleMover(false)
-                                SetBarTheme(locked)
-                                if not FancyActionBar.wasMoved then
-                                    FancyActionBar.ResetMoveActionBar()
-                                    FancyActionBar.RepositionHealthBar()
-                                end
-                            end
-                        end,
-                        width = "half",
-                    },
-                    {
-                        type = "slider",
-                        name = "Actionbar Size",
-                        default = defaults.abScaling.gp.scale,
-                        min = 30,
-                        max = 250,
-                        step = 1,
-                        disabled = function ()
-                            return not SV.abScaling.gp.enable
-                        end,
-                        getFunc = function ()
-                            return SV.abScaling.gp.scale
-                        end,
-                        setFunc = function (value)
-                            SV.abScaling.gp.scale = value
-                            if FancyActionBar.style == 2 then
-                                FancyActionBar.constants.abScale.scale = value
-                                local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                                FancyActionBar.SetScale()
-                                FancyActionBar.ToggleMover(true)
-                                SetBarTheme(locked)
-                                if Azurah then UpdateAzurahDb() end
-                                FancyActionBar.ToggleMover(false)
-                                SetBarTheme(locked)
-                                if not FancyActionBar.wasMoved then
-                                    FancyActionBar.ResetMoveActionBar()
-                                    FancyActionBar.RepositionHealthBar()
-                                end
-                            end
-                        end,
-                        width = "half",
-                    },
-                    {
-                        type = "description",
-                        title = "[ |cffdf80Adjust Actionbar Position|r ]",
-                        width = "full",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Unlock Actionbar Position",
-                        default = unlocked,
-                        disabled = function ()
-                            return FancyActionBar.style == 1
-                        end,
-                        getFunc = function ()
-                            return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
-                        end,
-                        setFunc = function (value)
-                            ACTION_BAR:SetHidden(false)
-                            local _, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.ToggleMover(value)
+            local gpScalingTableConsole =
+            {
+                {
+                    type = "description",
+                    title = "[ |cffdf80Gamepad UI|r ]",
+                    width = "full",
+                },
+                {
+                    type = "checkbox",
+                    name = "Enable Actionbar Resize",
+                    default = defaults.abScaling.gp.enable,
+                    getFunc = function ()
+                        return SV.abScaling.gp.enable
+                    end,
+                    setFunc = function (value)
+                        SV.abScaling.gp.enable = value or false
+                        if FancyActionBar.style == 2 then
+                            FancyActionBar.constants.abScale.enable = value
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                            FancyActionBar.SetScale()
+                            FancyActionBar.ToggleMover(true)
                             SetBarTheme(locked)
-                        end,
-                        width = "full",
-                    },
-                    {
-                        type = "slider",
-                        name = "Horizontal (X) Position",
-                        default = 0,
-                        min = -GuiRoot:GetWidth(),
-                        max = GuiRoot:GetWidth(),
-                        step = 1,
-                        getFunc = function()
-                            if not FancyActionBar.wasMoved then return 0 end
-                            local x = SV.abMove.gp.x or 0
-                            local screenWidth = GuiRoot:GetWidth()
-                            local barWidth = ACTION_BAR:GetWidth()
-                            local _, d = FancyActionBar:GetMovableVarsForUI()
-                            local baseX = (screenWidth - barWidth) / 2 + d.x
-                            return x - baseX
-                        end,
-                        setFunc = function(value)
-                            FancyActionBar.ConsoleMoveActionBarViaMover(value, nil, true, false)
-                        end,
-                        width = "half",
-                    },
-                        {
-                            type = "slider",
-                            name = "Vertical (Y) Position",
-                            default = 0,
-                            min = -GuiRoot:GetHeight(),
-                            max = GuiRoot:GetHeight(),
-                            step = 1,
-                            getFunc = function()
-                                if not FancyActionBar.wasMoved then return 0 end
-                                local y = SV.abMove.gp.y or 0
-                                local screenHeight = GuiRoot:GetHeight()
-                                local barHeight = ACTION_BAR:GetHeight()
-                                local _, d = FancyActionBar:GetMovableVarsForUI()
-                                local baseY = screenHeight - barHeight + d.y
-                                return y - baseY
-                            end,
-                            setFunc = function(value)
-                                FancyActionBar.ConsoleMoveActionBarViaMover(nil, value, false, true)
-                            end,
-                            width = "half",
-                        },
+                            if Azurah then UpdateAzurahDb() end
+                            FancyActionBar.ToggleMover(false)
+                            SetBarTheme(locked)
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "slider",
+                    name = "Actionbar Size",
+                    default = defaults.abScaling.gp.scale,
+                    min = 30,
+                    max = 250,
+                    step = 1,
+                    disabled = function ()
+                        return not SV.abScaling.gp.enable
+                    end,
+                    getFunc = function ()
+                        return SV.abScaling.gp.scale
+                    end,
+                    setFunc = function (value)
+                        SV.abScaling.gp.scale = value
+                        if FancyActionBar.style == 2 then
+                            FancyActionBar.constants.abScale.scale = value
+                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
+                            FancyActionBar.SetScale()
+                            FancyActionBar.ToggleMover(true)
+                            SetBarTheme(locked)
+                            if Azurah then UpdateAzurahDb() end
+                            FancyActionBar.ToggleMover(false)
+                            SetBarTheme(locked)
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "description",
+                    title = "[ |cffdf80Adjust Actionbar Position|r ]",
+                    width = "full",
+                },
+                {
+                    type = "checkbox",
+                    name = "Unlock Actionbar Position",
+                    default = unlocked,
+                    disabled = function ()
+                        return FancyActionBar.style == 1
+                    end,
+                    getFunc = function ()
+                        return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
+                    end,
+                    setFunc = function (value)
+                        ACTION_BAR:SetHidden(false)
+                        local _, locked = GetActiveWeaponPairInfo()
+                        FancyActionBar.ToggleMover(value)
+                        SetBarTheme(locked)
+                    end,
+                    width = "full",
+                },
+                {
+                    type = "slider",
+                    name = "Horizontal (X) Position",
+                    default = 0,
+                    min = -GuiRoot:GetWidth(),
+                    max = GuiRoot:GetWidth(),
+                    step = 1,
+                    getFunc = function ()
+                        if not FancyActionBar.wasMoved then return 0 end
+                        local x = SV.abMove.gp.x or 0
+                        local screenWidth = GuiRoot:GetWidth()
+                        local barWidth = ACTION_BAR:GetWidth()
+                        local _, d = FancyActionBar:GetMovableVarsForUI()
+                        local baseX = (screenWidth - barWidth) / 2 + d.x
+                        return x - baseX
+                    end,
+                    setFunc = function (value)
+                        FancyActionBar.ConsoleMoveActionBarViaMover(value, nil, true, false)
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "slider",
+                    name = "Vertical (Y) Position",
+                    default = 0,
+                    min = -GuiRoot:GetHeight(),
+                    max = GuiRoot:GetHeight(),
+                    step = 1,
+                    getFunc = function ()
+                        if not FancyActionBar.wasMoved then return 0 end
+                        local y = SV.abMove.gp.y or 0
+                        local screenHeight = GuiRoot:GetHeight()
+                        local barHeight = ACTION_BAR:GetHeight()
+                        local _, d = FancyActionBar:GetMovableVarsForUI()
+                        local baseY = screenHeight - barHeight + d.y
+                        return y - baseY
+                    end,
+                    setFunc = function (value)
+                        FancyActionBar.ConsoleMoveActionBarViaMover(nil, value, false, true)
+                    end,
+                    width = "half",
+                },
                 { type = "divider" },
-                }
+            }
             for k, v in pairs(gpScalingTableConsole) do
                 table.insert(optionsTable[tableIndex].controls, v)
             end
         end
 
-        local miscScalingTable = {
-                {
-                    type = "button",
-                    name = "Center Horizontally",
-                    width = "half",
-                    func = function ()
-                        FancyActionBar.CenterActionBar(true, false)
-                    end,
-                    reference = "ABHorizCenter_Button",
-                },
-                {
-                    type = "button",
-                    name = "Center Vertically",
-                    width = "half",
-                    func = function ()
-                        FancyActionBar.CenterActionBar(false, true)
-                    end,
-                    reference = "ABVertCenter_Button",
-                },
-                { type = "divider" },
-                {
-                    type = "button",
-                    name = "Undo Last Move",
-                    width = "half",
-                    func = function ()
-                        FancyActionBar.UndoMove()
-                    end,
-                    reference = "ABUndo_Button",
-                },
-                {
-                    type = "button",
-                    name = "Reset Actionbar Position",
-                    width = "half",
-                    func = function ()
-                        FancyActionBar.ResetMoveActionBar()
-                        if IsConsoleUI then
-                            -- I have no idea why this needs a second delayed call on console but it does.
-                            zo_callLater(function ()
-                                FancyActionBar.ResetMoveActionBar()
-                            end, 10)
-                        end
-                    end,
-                    reference = "ABReset_Button",
-                },
-                { type = "divider" },
-                {
-                    type = "description",
-                    title = "[ |cffdf80Adjust Quickslot Slot Position|r ]",
-                    width = "full",
-                },
-                {
-                    type = "slider",
-                    name = "Horizontal (X) Position",
-                    default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomXOffsetGP or defaults.quickSlotCustomXOffsetKB,
-                    min = -1200,
-                    max = 1200,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomXOffsetGP or SV.quickSlotCustomXOffsetKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.quickSlotCustomXOffsetGP = value
-                        else
-                            SV.quickSlotCustomXOffsetKB = value
-                        end
-                        FancyActionBar.AdjustQuickSlotSpacing()
-                        -- FancyActionBar.ApplySettings();
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Vertical (Y) Position",
-                    default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomYOffsetGP or defaults.quickSlotCustomYOffsetKB,
-                    min = -600,
-                    max = 600,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomYOffsetGP or SV.quickSlotCustomYOffsetKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.quickSlotCustomYOffsetGP = value
-                        else
-                            SV.quickSlotCustomYOffsetKB = value
-                        end
-                        FancyActionBar.AdjustQuickSlotSpacing()
-                        -- FancyActionBar.ApplySettings();
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
-                {
-                    type = "description",
-                    title = "[ |cffdf80Adjust Ultimate Slot Position|r ]",
-                    width = "full",
-                },
-                {
-                    type = "slider",
-                    name = "Horizontal (X) Position",
-                    default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomXOffsetGP or defaults.ultimateSlotCustomXOffsetKB,
-                    min = -1200,
-                    max = 1200,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomXOffsetGP or SV.ultimateSlotCustomXOffsetKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.ultimateSlotCustomXOffsetGP = value
-                        else
-                            SV.ultimateSlotCustomXOffsetKB = value
-                        end
-                        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                        FancyActionBar.ApplySettings()
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Vertical (Y) Position",
-                    default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomYOffsetGP or defaults.ultimateSlotCustomYOffsetKB,
-                    min = -600,
-                    max = 600,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomYOffsetGP or SV.ultimateSlotCustomYOffsetKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.ultimateSlotCustomYOffsetGP = value
-                        else
-                            SV.ultimateSlotCustomYOffsetKB = value
-                        end
-                        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                        FancyActionBar.ApplySettings()
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
-                {
-                    type = "description",
-                    title = "[ |cffdf80Adjust Bar Spacing and Offset|r ]",
-                    width = "full",
-                },
-                {
-                    type = "slider",
-                    name = "Horizontal (X) Position",
-                    default = FancyActionBar.useGamepadActionBar and defaults.barXOffsetGP or defaults.barXOffsetKB,
-                    min = -1200,
-                    max = 1200,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.barXOffsetGP or SV.barXOffsetKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.barXOffsetGP = value
-                        else
-                            SV.barXOffsetKB = value
-                        end
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                        FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                        FancyActionBar.ApplySettings()
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Vertical (Y) Position",
-                    default = FancyActionBar.useGamepadActionBar and defaults.barYOffsetGP or defaults.barYOffsetKB,
-                    min = -600,
-                    max = 600,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.barYOffsetGP = value
-                        else
-                            SV.barYOffsetKB = value
-                        end
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                        FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                        FancyActionBar.ApplySettings()
-                        if not FancyActionBar.wasMoved then
+        local miscScalingTable =
+        {
+            {
+                type = "button",
+                name = "Center Horizontally",
+                width = "half",
+                func = function ()
+                    FancyActionBar.CenterActionBar(true, false)
+                end,
+                reference = "ABHorizCenter_Button",
+            },
+            {
+                type = "button",
+                name = "Center Vertically",
+                width = "half",
+                func = function ()
+                    FancyActionBar.CenterActionBar(false, true)
+                end,
+                reference = "ABVertCenter_Button",
+            },
+            { type = "divider" },
+            {
+                type = "button",
+                name = "Undo Last Move",
+                width = "half",
+                func = function ()
+                    FancyActionBar.UndoMove()
+                end,
+                reference = "ABUndo_Button",
+            },
+            {
+                type = "button",
+                name = "Reset Actionbar Position",
+                width = "half",
+                func = function ()
+                    FancyActionBar.ResetMoveActionBar()
+                    if IsConsoleUI then
+                        -- I have no idea why this needs a second delayed call on console but it does.
+                        zo_callLater(function ()
                             FancyActionBar.ResetMoveActionBar()
-                            FancyActionBar.RepositionHealthBar()
-                        end
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Button (X) Spacing",
-                    default = FancyActionBar.useGamepadActionBar and defaults.abilitySlotOffsetXGP or defaults.abilitySlotOffsetXKB,
-                    min = -600,
-                    max = 600,
-                    step = 1,
-                    getFunc = function ()
-                        return FancyActionBar.useGamepadActionBar and SV.abilitySlotOffsetXGP or SV.abilitySlotOffsetXKB
-                    end,
-                    setFunc = function (value)
-                        if FancyActionBar.useGamepadActionBar then
-                            SV.abilitySlotOffsetXGP = value
-                        else
-                            SV.abilitySlotOffsetXKB = value
-                        end
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                        FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                        FancyActionBar.ApplySettings()
-                    end,
-                    width = "half",
-                },
-            }
+                        end, 10)
+                    end
+                end,
+                reference = "ABReset_Button",
+            },
+            { type = "divider" },
+            {
+                type = "description",
+                title = "[ |cffdf80Adjust Quickslot Slot Position|r ]",
+                width = "full",
+            },
+            {
+                type = "slider",
+                name = "Horizontal (X) Position",
+                default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomXOffsetGP or defaults.quickSlotCustomXOffsetKB,
+                min = -1200,
+                max = 1200,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomXOffsetGP or SV.quickSlotCustomXOffsetKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.quickSlotCustomXOffsetGP = value
+                    else
+                        SV.quickSlotCustomXOffsetKB = value
+                    end
+                    FancyActionBar.AdjustQuickSlotSpacing()
+                    -- FancyActionBar.ApplySettings();
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Vertical (Y) Position",
+                default = FancyActionBar.useGamepadActionBar and defaults.quickSlotCustomYOffsetGP or defaults.quickSlotCustomYOffsetKB,
+                min = -600,
+                max = 600,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.quickSlotCustomYOffsetGP or SV.quickSlotCustomYOffsetKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.quickSlotCustomYOffsetGP = value
+                    else
+                        SV.quickSlotCustomYOffsetKB = value
+                    end
+                    FancyActionBar.AdjustQuickSlotSpacing()
+                    -- FancyActionBar.ApplySettings();
+                end,
+                width = "half",
+            },
+            { type = "divider" },
+            {
+                type = "description",
+                title = "[ |cffdf80Adjust Ultimate Slot Position|r ]",
+                width = "full",
+            },
+            {
+                type = "slider",
+                name = "Horizontal (X) Position",
+                default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomXOffsetGP or defaults.ultimateSlotCustomXOffsetKB,
+                min = -1200,
+                max = 1200,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomXOffsetGP or SV.ultimateSlotCustomXOffsetKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.ultimateSlotCustomXOffsetGP = value
+                    else
+                        SV.ultimateSlotCustomXOffsetKB = value
+                    end
+                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.ApplySettings()
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Vertical (Y) Position",
+                default = FancyActionBar.useGamepadActionBar and defaults.ultimateSlotCustomYOffsetGP or defaults.ultimateSlotCustomYOffsetKB,
+                min = -600,
+                max = 600,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.ultimateSlotCustomYOffsetGP or SV.ultimateSlotCustomYOffsetKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.ultimateSlotCustomYOffsetGP = value
+                    else
+                        SV.ultimateSlotCustomYOffsetKB = value
+                    end
+                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.ApplySettings()
+                end,
+                width = "half",
+            },
+            { type = "divider" },
+            {
+                type = "description",
+                title = "[ |cffdf80Adjust Bar Spacing and Offset|r ]",
+                width = "full",
+            },
+            {
+                type = "slider",
+                name = "Horizontal (X) Position",
+                default = FancyActionBar.useGamepadActionBar and defaults.barXOffsetGP or defaults.barXOffsetKB,
+                min = -1200,
+                max = 1200,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.barXOffsetGP or SV.barXOffsetKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.barXOffsetGP = value
+                    else
+                        SV.barXOffsetKB = value
+                    end
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
+                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.ApplySettings()
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Vertical (Y) Position",
+                default = FancyActionBar.useGamepadActionBar and defaults.barYOffsetGP or defaults.barYOffsetKB,
+                min = -600,
+                max = 600,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.barYOffsetGP = value
+                    else
+                        SV.barYOffsetKB = value
+                    end
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
+                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.ApplySettings()
+                    if not FancyActionBar.wasMoved then
+                        FancyActionBar.ResetMoveActionBar()
+                        FancyActionBar.RepositionHealthBar()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Button (X) Spacing",
+                default = FancyActionBar.useGamepadActionBar and defaults.abilitySlotOffsetXGP or defaults.abilitySlotOffsetXKB,
+                min = -600,
+                max = 600,
+                step = 1,
+                getFunc = function ()
+                    return FancyActionBar.useGamepadActionBar and SV.abilitySlotOffsetXGP or SV.abilitySlotOffsetXKB
+                end,
+                setFunc = function (value)
+                    if FancyActionBar.useGamepadActionBar then
+                        SV.abilitySlotOffsetXGP = value
+                    else
+                        SV.abilitySlotOffsetXKB = value
+                    end
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
+                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.ApplySettings()
+                end,
+                width = "half",
+            },
+        }
         for k, v in pairs(miscScalingTable) do
             table.insert(optionsTable[tableIndex].controls, v)
         end
@@ -2486,16 +2490,16 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable,
-        {
-        -- ============[	UI Customization	]===================
-            type = "submenu",
-            name = "|cFFFACDUI Customization|r",
-            controls = {}
-        })
-        
-        if not IsConsoleUI() then
+            {
+                -- ============[	UI Customization	]===================
+                type = "submenu",
+                name = "|cFFFACDUI Customization|r",
+                controls = {}
+            })
 
-            local kbCustomizationTable = {
+        if not IsConsoleUI() then
+            local kbCustomizationTable =
+            {
                 -- ============[	Button Frames	]=======================
                 {
                     type = "description",
@@ -2560,277 +2564,278 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             end
         end
 
-        local gpMiscCustomizationTable = {
-                -- ============[	Active Highlight	]===================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Active Ability Highlight|r ]",
-                    text = "",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Show highlight",
-                    tooltip = "Active skills will be highlighted.",
-                    default = defaults.showHighlight,
-                    getFunc = function ()
-                        return SV.showHighlight
-                    end,
-                    setFunc = function (value)
-                        SV.showHighlight = value or false
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "colorpicker",
-                    name = "Highlight color",
-                    default = ZO_ColorDef:New(unpack(defaults.highlightColor)),
-                    disabled = function ()
-                        return not SV.showHighlight
-                    end,
-                    getFunc = function ()
-                        return unpack(SV.highlightColor)
-                    end,
-                    setFunc = function (r, g, b, a)
-                        SV.highlightColor = { r, g, b, a }
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
+        local gpMiscCustomizationTable =
+        {
+            -- ============[	Active Highlight	]===================
+            {
+                type = "description",
+                title = "[ |cffdf80Active Ability Highlight|r ]",
+                text = "",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Show highlight",
+                tooltip = "Active skills will be highlighted.",
+                default = defaults.showHighlight,
+                getFunc = function ()
+                    return SV.showHighlight
+                end,
+                setFunc = function (value)
+                    SV.showHighlight = value or false
+                end,
+                width = "half",
+            },
+            {
+                type = "colorpicker",
+                name = "Highlight color",
+                default = ZO_ColorDef:New(unpack(defaults.highlightColor)),
+                disabled = function ()
+                    return not SV.showHighlight
+                end,
+                getFunc = function ()
+                    return unpack(SV.highlightColor)
+                end,
+                setFunc = function (r, g, b, a)
+                    SV.highlightColor = { r, g, b, a }
+                end,
+                width = "half",
+            },
+            { type = "divider" },
 
-                -- ============[   Toggled Highlight  ]===================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Toggled Ability Highlight|r ]",
-                    text = "If a toggled ability is activated you can choose to have the highlight display a different color by setting the following option to <On>. Toggled abilities will also be highlighted regardless of the <Show highlight> option if <Toggled highlight> is enabled. If disabled, the highlight will use your settings from above.",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Toggled highlight",
-                    default = defaults.toggledHighlight,
-                    getFunc = function ()
-                        return SV.toggledHighlight
-                    end,
-                    setFunc = function (value)
-                        SV.toggledHighlight = value or false
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "colorpicker",
-                    name = "Toggled highlight color",
-                    default = ZO_ColorDef:New(unpack(defaults.toggledColor)),
-                    disabled = function ()
-                        return not SV.toggledHighlight
-                    end,
-                    getFunc = function ()
-                        return unpack(SV.toggledColor)
-                    end,
-                    setFunc = function (r, g, b, a)
-                        SV.toggledColor = { r, g, b, a }
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
+            -- ============[   Toggled Highlight  ]===================
+            {
+                type = "description",
+                title = "[ |cffdf80Toggled Ability Highlight|r ]",
+                text = "If a toggled ability is activated you can choose to have the highlight display a different color by setting the following option to <On>. Toggled abilities will also be highlighted regardless of the <Show highlight> option if <Toggled highlight> is enabled. If disabled, the highlight will use your settings from above.",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Toggled highlight",
+                default = defaults.toggledHighlight,
+                getFunc = function ()
+                    return SV.toggledHighlight
+                end,
+                setFunc = function (value)
+                    SV.toggledHighlight = value or false
+                end,
+                width = "half",
+            },
+            {
+                type = "colorpicker",
+                name = "Toggled highlight color",
+                default = ZO_ColorDef:New(unpack(defaults.toggledColor)),
+                disabled = function ()
+                    return not SV.toggledHighlight
+                end,
+                getFunc = function ()
+                    return unpack(SV.toggledColor)
+                end,
+                setFunc = function (r, g, b, a)
+                    SV.toggledColor = { r, g, b, a }
+                end,
+                width = "half",
+            },
+            { type = "divider" },
 
-                -- ============[  Active Bar Arrow  ]=====================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Active Bar Arrow|r ]",
-                    text = "Weapon swap once after clicking the Show arrow button to make the change take effect.",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Show arrow",
-                    tooltip = "Show an arrow near the currently active bar.",
-                    default = defaults.showArrow,
-                    getFunc = function ()
-                        return SV.showArrow
-                    end,
-                    setFunc = function (value)
-                        SV.showArrow = value or false
-                        FancyActionBar.AdjustQuickSlotSpacing()
-                        FancyActionBar.AdjustUltimateSpacing()
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "colorpicker",
-                    name = "Arrow color",
-                    default = ZO_ColorDef:New(unpack(defaults.arrowColor)),
-                    disabled = function ()
-                        return not SV.showArrow
-                    end,
-                    getFunc = function ()
-                        return unpack(SV.arrowColor)
-                    end,
-                    setFunc = function (r, g, b, a)
-                        SV.arrowColor = { r, g, b, a }
-                        FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
+            -- ============[  Active Bar Arrow  ]=====================
+            {
+                type = "description",
+                title = "[ |cffdf80Active Bar Arrow|r ]",
+                text = "Weapon swap once after clicking the Show arrow button to make the change take effect.",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Show arrow",
+                tooltip = "Show an arrow near the currently active bar.",
+                default = defaults.showArrow,
+                getFunc = function ()
+                    return SV.showArrow
+                end,
+                setFunc = function (value)
+                    SV.showArrow = value or false
+                    FancyActionBar.AdjustQuickSlotSpacing()
+                    FancyActionBar.AdjustUltimateSpacing()
+                end,
+                width = "half",
+            },
+            {
+                type = "colorpicker",
+                name = "Arrow color",
+                default = ZO_ColorDef:New(unpack(defaults.arrowColor)),
+                disabled = function ()
+                    return not SV.showArrow
+                end,
+                getFunc = function ()
+                    return unpack(SV.arrowColor)
+                end,
+                setFunc = function (r, g, b, a)
+                    SV.arrowColor = { r, g, b, a }
+                    FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
+                end,
+                width = "half",
+            },
+            { type = "divider" },
 
-                -- =============[  Quickslot Position  ]==================
-                {
-                    type = "checkbox",
-                    name = "Adjust Quickslot placement",
-                    tooltip = "Move Quickslot closer to the Action Bar if the arrow is hidden.\nFor gamepad UI this will also adjust the gap between normal skill buttons and the ultimate button, as well as the gap between the ultimate button and the companion ultimate button (|cff6600Only|r if gamepad ult hotkeys are hidden).",
-                    default = defaults.moveQS,
-                    getFunc = function ()
-                        return SV.moveQS
-                    end,
-                    setFunc = function (value)
-                        SV.moveQS = value or false
-                        FancyActionBar.AdjustQuickSlotSpacing()
-                        FancyActionBar.AdjustUltimateSpacing()
-                    end,
-                    width = "half",
-                },
-                -- =============[  Miscellaneous  ]=================
-                { type = "divider" },
-                {
-                    type = "description",
-                    title = "[ |cffdf80Miscellaneous|r ]",
-                    text = "Additional Miscellaneous Options.",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Force enable gamepad Action Bar style",
-                    tooltip =
-                    "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessibility Mode. This setting force enables these additional UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.",
-                    default = defaults.forceGamepadStyle,
-                    getFunc = function ()
-                        return SV.forceGamepadStyle
-                    end,
-                    setFunc = function (value)
-                        SV.forceGamepadStyle = value or false
-                        FancyActionBar.updateUI = true
-                        FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                        FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                        FancyActionBar.ApplyActiveHotbarStyle()
-                        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                        FancyActionBar.ApplySettings()
-                        FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
-                        FancyActionBar.updateUI = false
-                    end,
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Show gamepad ultimate hotkeys",
-                    tooltip = "Show the LB RB labels for gamepad UI.",
-                    default = defaults.showHotkeysUltGP,
-                    getFunc = function ()
-                        return SV.showHotkeysUltGP
-                    end,
-                    setFunc = function (value)
-                        SV.showHotkeysUltGP = value or false
-                        FancyActionBar.HideHotkeys(not SV.showHotkeys)
-                        FancyActionBar.AdjustUltimateSpacing()
-                    end,
-                    disabled = function ()
-                        return not FancyActionBar.style == 2
-                    end, -- IsInGamepadPreferredMode() end,
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Use thin gamepad button frame borders",
-                    tooltip = "",
-                    default = defaults.useThinFrames,
-                    disabled = function ()
-                        return not FancyActionBar.style == 2
-                    end, -- IsInGamepadPreferredMode() end,
-                    getFunc = function ()
-                        return SV.useThinFrames
-                    end,
-                    setFunc = function (value)
-                        SV.useThinFrames = value or false
-                        FancyActionBar.ConfigureFrames()
-                    end,
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Hide companion ultimate slot",
-                    tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not.",
-                    default = defaults.hideCompanionUlt,
-                    getFunc = function ()
-                        return SV.hideCompanionUlt
-                    end,
-                    setFunc = function (value)
-                        SV.hideCompanionUlt = value or false
-                        FancyActionBar.HandleCompanionUltimate()
-                    end,
-                    width = "full",
-                },
-                -- =============[  OneBar Mode  ]==================
-                {
-                    type = "checkbox",
-                    name = "Hide locked Action Bars",
-                    tooltip = "If enabled, locked, inactive, action bars will be hidden, such when Oakensoul is equipped or the Werewolf transformation is activated.",
-                    default = defaults.hideLockedBar,
-                    getFunc = function ()
-                        return SV.hideLockedBar
-                    end,
-                    setFunc = function (value)
-                        SV.hideLockedBar = value or false
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar)
-                    end,
-                    width = "full"
-                },
-                {
-                    type = "checkbox",
-                    name = "Reposition active bar when locked",
-                    tooltip = "When the locked action bar is hidden the ui will reposition the active bar.",
-                    default = defaults.repositionActiveBar,
-                    getFunc = function ()
-                        return SV.repositionActiveBar
-                    end,
-                    setFunc = function (value)
-                        SV.repositionActiveBar = value or false
-                        local _, locked = GetActiveWeaponPairInfo()
-                        FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar)
-                    end,
-                    width = "full"
-                },
-                {
-                    type = "checkbox",
-                    name = "Hide inactive slots on inactive bars",
-                    tooltip = "Hide inactive action bar slots (slots without an active timer) on the inactive action bar.",
-                    default = defaults.hideInactiveSlots,
-                    getFunc = function ()
-                        return SV.hideInactiveSlots
-                    end,
-                    setFunc = function (value)
-                        SV.hideInactiveSlots = value or false
-                    end,
-                    width = "full"
-                },
-                -- =============[  Skill Styles  ]==================
-                {
-                    type = "checkbox",
-                    name = "Apply skill styles to Action Bar slots",
-                    tooltip = "If a given skill style override is unlocked and activated, and the applicable ability is slotted on the action bar, use the skill style icon instead of the ability icon .",
-                    default = defaults.applyActionBarSkillStyles,
-                    getFunc = function ()
-                        return SV.applyActionBarSkillStyles
-                    end,
-                    setFunc = function (value)
-                        SV.applyActionBarSkillStyles = value or false
-                        FancyActionBar.ApplyAbilityFxOverrides(true)
-                    end,
-                    width = "full",
-                },
-            }
+            -- =============[  Quickslot Position  ]==================
+            {
+                type = "checkbox",
+                name = "Adjust Quickslot placement",
+                tooltip = "Move Quickslot closer to the Action Bar if the arrow is hidden.\nFor gamepad UI this will also adjust the gap between normal skill buttons and the ultimate button, as well as the gap between the ultimate button and the companion ultimate button (|cff6600Only|r if gamepad ult hotkeys are hidden).",
+                default = defaults.moveQS,
+                getFunc = function ()
+                    return SV.moveQS
+                end,
+                setFunc = function (value)
+                    SV.moveQS = value or false
+                    FancyActionBar.AdjustQuickSlotSpacing()
+                    FancyActionBar.AdjustUltimateSpacing()
+                end,
+                width = "half",
+            },
+            -- =============[  Miscellaneous  ]=================
+            { type = "divider" },
+            {
+                type = "description",
+                title = "[ |cffdf80Miscellaneous|r ]",
+                text = "Additional Miscellaneous Options.",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Force enable gamepad Action Bar style",
+                tooltip =
+                "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessibility Mode. This setting force enables these additional UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.",
+                default = defaults.forceGamepadStyle,
+                getFunc = function ()
+                    return SV.forceGamepadStyle
+                end,
+                setFunc = function (value)
+                    SV.forceGamepadStyle = value or false
+                    FancyActionBar.updateUI = true
+                    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
+                    FancyActionBar.ApplyActiveHotbarStyle()
+                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.ApplySettings()
+                    FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
+                    FancyActionBar.updateUI = false
+                end,
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Show gamepad ultimate hotkeys",
+                tooltip = "Show the LB RB labels for gamepad UI.",
+                default = defaults.showHotkeysUltGP,
+                getFunc = function ()
+                    return SV.showHotkeysUltGP
+                end,
+                setFunc = function (value)
+                    SV.showHotkeysUltGP = value or false
+                    FancyActionBar.HideHotkeys(not SV.showHotkeys)
+                    FancyActionBar.AdjustUltimateSpacing()
+                end,
+                disabled = function ()
+                    return not FancyActionBar.style == 2
+                end, -- IsInGamepadPreferredMode() end,
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Use thin gamepad button frame borders",
+                tooltip = "",
+                default = defaults.useThinFrames,
+                disabled = function ()
+                    return not FancyActionBar.style == 2
+                end, -- IsInGamepadPreferredMode() end,
+                getFunc = function ()
+                    return SV.useThinFrames
+                end,
+                setFunc = function (value)
+                    SV.useThinFrames = value or false
+                    FancyActionBar.ConfigureFrames()
+                end,
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Hide companion ultimate slot",
+                tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not.",
+                default = defaults.hideCompanionUlt,
+                getFunc = function ()
+                    return SV.hideCompanionUlt
+                end,
+                setFunc = function (value)
+                    SV.hideCompanionUlt = value or false
+                    FancyActionBar.HandleCompanionUltimate()
+                end,
+                width = "full",
+            },
+            -- =============[  OneBar Mode  ]==================
+            {
+                type = "checkbox",
+                name = "Hide locked Action Bars",
+                tooltip = "If enabled, locked, inactive, action bars will be hidden, such when Oakensoul is equipped or the Werewolf transformation is activated.",
+                default = defaults.hideLockedBar,
+                getFunc = function ()
+                    return SV.hideLockedBar
+                end,
+                setFunc = function (value)
+                    SV.hideLockedBar = value or false
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar)
+                end,
+                width = "full"
+            },
+            {
+                type = "checkbox",
+                name = "Reposition active bar when locked",
+                tooltip = "When the locked action bar is hidden the ui will reposition the active bar.",
+                default = defaults.repositionActiveBar,
+                getFunc = function ()
+                    return SV.repositionActiveBar
+                end,
+                setFunc = function (value)
+                    SV.repositionActiveBar = value or false
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar)
+                end,
+                width = "full"
+            },
+            {
+                type = "checkbox",
+                name = "Hide inactive slots on inactive bars",
+                tooltip = "Hide inactive action bar slots (slots without an active timer) on the inactive action bar.",
+                default = defaults.hideInactiveSlots,
+                getFunc = function ()
+                    return SV.hideInactiveSlots
+                end,
+                setFunc = function (value)
+                    SV.hideInactiveSlots = value or false
+                end,
+                width = "full"
+            },
+            -- =============[  Skill Styles  ]==================
+            {
+                type = "checkbox",
+                name = "Apply skill styles to Action Bar slots",
+                tooltip = "If a given skill style override is unlocked and activated, and the applicable ability is slotted on the action bar, use the skill style icon instead of the ability icon .",
+                default = defaults.applyActionBarSkillStyles,
+                getFunc = function ()
+                    return SV.applyActionBarSkillStyles
+                end,
+                setFunc = function (value)
+                    SV.applyActionBarSkillStyles = value or false
+                    FancyActionBar.ApplyAbilityFxOverrides(true)
+                end,
+                width = "full",
+            },
+        }
         for k, v in pairs(gpMiscCustomizationTable) do
             table.insert(optionsTable[tableIndex].controls, v)
         end
@@ -3868,2221 +3873,2223 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
 
         -- ============[	Gamepad UI	]=========================
         table.insert(optionsTable[tableIndex].controls,
+            {
+                type = "submenu",
+                name = "|cFFFACDGamepad UI|r",
+                controls =
                 {
-                    type = "submenu",
-                    name = "|cFFFACDGamepad UI|r",
-                    controls =
+
+                    -- ============[	Gamepad Duration	]===================
                     {
-
-                        -- ============[	Gamepad Duration	]===================
+                        type = "submenu",
+                        name = "|cFFFACDTimer Settings|r",
+                        controls =
                         {
-                            type = "submenu",
-                            name = "|cFFFACDTimer Settings|r",
-                            controls =
                             {
-                                {
-                                    type = "dropdown",
-                                    name = "Timer font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display the timer in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.fontNameGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontNameGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.duration.font = value
-                                            FancyActionBar.ApplyTimerFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.fontNameGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Timer font size",
-                                    min = 20,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.fontSizeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontSizeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.duration.size = value
-                                            FancyActionBar.ApplyTimerFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.fontSizeGP,
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Font style",
-                                    tooltip = "Select which effect to display the timer font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.fontTypeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontTypeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.duration.outline = value
-                                            FancyActionBar.ApplyTimerFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.fontTypeGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Adjust timer height",
-                                    tooltip = "Move timer [<- down] or [up ->]",
-                                    default = defaults.timeYGP,
-                                    min = -15,
-                                    max = 15,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.timeYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.timeYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.duration.y = value
-                                            FancyActionBar.AdjustTimerY()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Timer color",
-                                    default = ZO_ColorDef:New(unpack(defaults.timeColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.timeColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.timeColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.duration.color = { r, g, b }
-                                        end
-                                    end,
-                                    width = "half",
-                                },
+                                type = "dropdown",
+                                name = "Timer font",
+                                scrollable = true,
+                                tooltip = "Select which font to display the timer in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.fontNameGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontNameGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.font = value
+                                        FancyActionBar.ApplyTimerFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.fontNameGP,
                             },
-                        },
-
-                        -- ============[	Gamepad Stacks	]======================
-                        {
-                            type = "submenu",
-                            name = "|cFFFACDstacks display settings|r",
-                            controls =
                             {
-                                {
-                                    type = "dropdown",
-                                    name = "Stacks font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display ability stacks in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.fontNameStackGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontNameStackGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.stacks.font = value
-                                            FancyActionBar.ApplyStackFont()
-                                        end
-                                    end,
-                                    default = defaults.fontNameStackGP,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Stacks font size",
-                                    min = 10,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.fontSizeStackGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontSizeStackGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.stacks.size = value
-                                        end
-                                        FancyActionBar.ApplyStackFont()
-                                    end,
-                                    default = defaults.fontSizeStackGP,
-                                    width = "half",
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Stack font style",
-                                    tooltip = "Select which effect to display the stacks font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.fontTypeStackGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontTypeStackGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.stacks.outline = value
-                                            FancyActionBar.ApplyTimerFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.fontTypeStackGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Adjust stacks horizonatal position",
-                                    tooltip = "Move stacks [<- left] or [right ->]",
-                                    default = defaults.stackXGP,
-                                    min = 0,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.stackXGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.stackXGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.stacks.x = value
-                                            FancyActionBar.AdjustStackX()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Adjust stacks vetrtical position",
-                                    tooltip = "Move stacks [<- up] or [down ->]",
-                                    default = defaults.stackYGP,
-                                    min = 0,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.stackYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.stackYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.stacks.y = value
-                                            FancyActionBar.AdjustStackY()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Stack color",
-                                    default = ZO_ColorDef:New(unpack(defaults.stackColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.stackColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.stackColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.stacks.color = { r, g, b }
-                                        end
-                                    end,
-                                    width = "half",
-                                },
+                                type = "slider",
+                                name = "Timer font size",
+                                min = 20,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.fontSizeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontSizeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.size = value
+                                        FancyActionBar.ApplyTimerFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.fontSizeGP,
                             },
-                        },
-
-                        -- ============[	Gamepad Targets	]======================
-                        {
-                            type = "submenu",
-                            name = "|cFFFACDTargets Display Settings|r",
-                            controls =
                             {
-                                {
-                                    type = "dropdown",
-                                    name = "Targets font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display ability targets in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.fontNameTargetGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontNameTargetGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.targets.font = value
-                                            FancyActionBar.ApplyTargetFont()
-                                        end
-                                    end,
-                                    default = defaults.fontNameTargetGP,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Targets font size",
-                                    min = 10,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.fontSizeTargetGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontSizeTargetGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.targets.size = value
-                                            FancyActionBar.ApplyTargetFont()
-                                        end
-                                    end,
-                                    default = defaults.fontSizeTargetGP,
-                                    width = "half",
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Target font style",
-                                    tooltip = "Select which effect to display the targets font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.fontTypeTargetGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.fontTypeTargetGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.targets.outline = value
-                                            FancyActionBar.ApplyTimerFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.fontTypeTargetGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Horizontal position",
-                                    tooltip = "Move targets [<- left] or [right ->]",
-                                    default = defaults.targetXGP,
-                                    min = 0,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.targetXGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.targetXGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.targets.x = value
-                                            FancyActionBar.AdjustTargetX()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Vertical position",
-                                    tooltip = "Move targets [<- up] or [down ->]",
-                                    default = defaults.targetYGP,
-                                    min = 0,
-                                    max = 40,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.targetYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.targetYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.targets.y = value
-                                            FancyActionBar.AdjustTargetY()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Target color",
-                                    default = ZO_ColorDef:New(unpack(defaults.targetColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.targetColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.targetColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.targets.color = { r, g, b }
-                                        end
-                                    end,
-                                    width = "half",
-                                },
+                                type = "dropdown",
+                                name = "Font style",
+                                tooltip = "Select which effect to display the timer font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.fontTypeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontTypeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.outline = value
+                                        FancyActionBar.ApplyTimerFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.fontTypeGP,
                             },
-                        },
-
-                        -- ============[ Gamepad Ultimate  ]====================
-                        {
-                            type = "submenu",
-                            name = "|cFFFACDUltimate Timer Settings|r",
-                            controls =
                             {
-                                {
-                                    type = "checkbox",
-                                    name = "Display Ultimate Timer",
-                                    default = defaults.ultShowGP,
-                                    getFunc = function ()
-                                        return SV.ultShowGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultShowGP = value or false
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.duration.show = value
-                                            -- FancyActionBar.ToggleUltimateValue()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                { type = "description", text = "", width = "full" },
-                                {
-                                    type = "dropdown",
-                                    name = "Ultimate timer font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display the timer in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.ultNameGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultNameGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.duration.font = value
-                                            FancyActionBar.ApplyUltFont(true)
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultNameGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Ultimate timer font size",
-                                    min = 10,
-                                    max = 45,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultSizeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultSizeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.duration.size = value
-                                            FancyActionBar.ApplyUltFont(true)
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultSizeGP,
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Ultimate timer font style",
-                                    tooltip = "Select which effect to display the timer font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.ultTypeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultTypeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.duration.outline = value
-                                            FancyActionBar.ApplyUltFont(true)
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultTypeGP,
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Ultimate timer color",
-                                    default = ZO_ColorDef:New(unpack(defaults.ultColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.ultColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.ultColorGP = { r, g, b }
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Vertical",
-                                    tooltip = "[<- down] or [up ->]",
-                                    default = defaults.ultYGP,
-                                    min = -70,
-                                    max = 70,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.duration.y = value
-                                            FancyActionBar.AdjustUltTimer(true)
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Horizontal",
-                                    tooltip = "[<- left] or [right ->]",
-                                    default = defaults.ultXGP,
-                                    min = -80,
-                                    max = 80,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultXGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultXGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.duration.x = value
-                                            FancyActionBar.AdjustUltTimer(true)
-                                        end
-                                    end,
-                                    width = "half",
-                                },
+                                type = "slider",
+                                name = "Adjust timer height",
+                                tooltip = "Move timer [<- down] or [up ->]",
+                                default = defaults.timeYGP,
+                                min = -15,
+                                max = 15,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.timeYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.timeYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.y = value
+                                        FancyActionBar.AdjustTimerY()
+                                    end
+                                end,
+                                width = "half",
                             },
-                        },
-
-                        -- ===========[ Gamepad Ultimate Value ]===============
-                        {
-                            type = "submenu",
-                            name = "|cFFFACDUltimate Value Settings|r",
-                            controls =
                             {
-                                {
-                                    type = "checkbox",
-                                    name = "Display ultimate number",
-                                    default = defaults.ultValueEnableGP,
-                                    getFunc = function ()
-                                        return SV.ultValueEnableGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueEnableGP = value or false
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.show = value
-                                            FancyActionBar.ToggleUltimateValue()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Display Mode",
-                                    tooltip = "Dynamic: display current / cost if current is lower than cost and only current when you have enough to cast it.\nStatic: always display current / cost.",
-                                    choices = GetUltValueOptions(),
-                                    getFunc = function ()
-                                        return GetUltValueMode(2)
-                                    end,
-                                    setFunc = function (mode)
-                                        SV.ultValueModeGP = ultModeOptions[mode]
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.mode = SV.ultValueModeGP
-                                            FancyActionBar.UpdateUltValueMode()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Ultimate value font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display the value in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.ultValueNameGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueNameGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.font = value
-                                        end
-                                        FancyActionBar.ApplyUltValueFont()
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultValueNameGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Ultimate value font size",
-                                    min = 10,
-                                    max = 60,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultValueSizeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueSizeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.size = value
-                                            FancyActionBar.ApplyUltValueFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultValueSizeGP,
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Ultimate value font style",
-                                    tooltip = "Select which effect to display the value font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.ultValueTypeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueTypeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.outline = value
-                                            FancyActionBar.ApplyUltValueFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultValueTypeGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Vertical",
-                                    tooltip = "[<- down] or [up ->]",
-                                    default = defaults.ultValueYGP,
-                                    min = -500,
-                                    max = 500,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultValueYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.y = value
-                                            FancyActionBar.AdjustUltValue()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Horizontal",
-                                    tooltip = "[<- left] or [right ->]",
-                                    default = defaults.ultValueXGP,
-                                    min = -500,
-                                    max = 500,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultValueXGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueXGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.x = value
-                                            FancyActionBar.AdjustUltValue()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                { type = "divider",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Ult Value Base Color",
-                                    default = ZO_ColorDef:New(unpack(defaults.ultValueColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.ultValueColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.ultValueColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.color = SV.ultValueColorGP
-                                            FancyActionBar.ApplyUltValueColor()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Ult Usable Value Color",
-                                    default = ZO_ColorDef:New(unpack(defaults.ultUsableValueColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.ultUsableValueColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.ultUsableValueColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.usableColor = SV.ultUsableValueColorGP
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Ult Max Value Color",
-                                    default = ZO_ColorDef:New(unpack(defaults.ultMaxValueColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.ultMaxValueColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.ultMaxValueColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.maxColor = SV.ultMaxValueColorGP
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Ult 'Almost Ready' Value Color",
-                                    default = ZO_ColorDef:New(unpack(defaults.ultUsableThresholdColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.ultUsableThresholdColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.ultUsableThresholdColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.usableThresholdColor = SV.ultUsableThresholdColorGP
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Ult 'Almost Ready' Threshold %",
-                                    min = 50,
-                                    max = 99,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return (SV.ultValueThresholdGP * 100)
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueThresholdGP = (value / 100)
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.value.threshold = value
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.ultValueThresholdGP,
-                                },
-                                { type = "divider",
-                                },
-                                {
-                                    type = "description",
-                                    title = "Ult Fill Frame Transparency",
-                                    text = "Transparency (alpha) settings for the fill frame and fill bar.",
-                                    width = "full",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Ult Fill Frame Alpha",
-                                    min = 0,
-                                    max = 100,
-                                    step = 1,
-                                    default = defaults.ultFillFrameAlpha,
-                                    getFunc = function ()
-                                        return SV.ultFillFrameAlpha * 100
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultFillFrameAlpha = value / 100
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.SetUltFrameAlpha()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Ult Fill Bar Alpha",
-                                    min = 0,
-                                    max = 100,
-                                    step = 1,
-                                    default = defaults.ultFillBarAlpha,
-                                    getFunc = function ()
-                                        return SV.ultFillBarAlpha * 100
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultFillBarAlpha = value / 100
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.SetUltFrameAlpha()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                { type = "divider",
-                                },
-                                {
-                                    type = "description",
-                                    title = "Companion Ultimate",
-                                    text = "Companion ultimate value will inherit font and size of the player ultimate value.\nAdjust position below.",
-                                    width = "full",
-                                },
-                                {
-                                    type = "checkbox",
-                                    name = "Display ultimate number for companion",
-                                    default = defaults.ultValueEnableCompanionGP,
-                                    getFunc = function ()
-                                        return SV.ultValueEnableCompanionGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueEnableCompanionGP = value or false
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.companion.show = value
-                                            FancyActionBar.ToggleUltimateValue()
-                                        end
-                                    end,
-                                    width = "full",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Vertical",
-                                    tooltip = "[<- down] or [up ->]",
-                                    default = defaults.ultValueCompanionYGP,
-                                    min = -50,
-                                    max = 50,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultValueCompanionYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueCompanionYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.companion.y = value
-                                            FancyActionBar.AdjustCompanionUltValue()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Horizontal",
-                                    tooltip = "[<- left] or [right ->]",
-                                    default = defaults.ultValueCompanionXGP,
-                                    min = -50,
-                                    max = 50,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.ultValueCompanionXGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.ultValueCompanionXGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.ult.companion.x = value
-                                            FancyActionBar.AdjustCompanionUltValue()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                            },
-                        },
-
-                        -- ============[	Gamepad Quickslot	]==================
-                        {
-                            type = "submenu",
-                            name = "|cFFFACDQuickslot display settings|r",
-                            controls =
-                            {
-                                {
-                                    type = "checkbox",
-                                    name = "Quickslot cooldown duration",
-                                    default = defaults.qsTimerEnableGP,
-                                    getFunc = function ()
-                                        return SV.qsTimerEnableGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsTimerEnableGP = value or false
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.show = value
-                                            FancyActionBar.ToggleQuickSlotDuration()
-                                        end
-                                    end,
-                                    width = "full",
-                                },
-                                { type = "description", text = "", width = "full",
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Quickslot timer font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display the timer in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.qsNameGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsNameGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.font = value
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.qsNameGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Quickslot timer font size",
-                                    min = 10,
-                                    max = 30,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.qsSizeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsSizeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.size = value
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.qsSizeGP,
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Quickslot timer font style",
-                                    tooltip = "Select which effect to display the timer font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.qsTypeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsTypeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.outline = value
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.qsTypeGP,
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Quickslot timer color",
-                                    default = ZO_ColorDef:New(unpack(defaults.qsColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.qsColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.qsColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.color = { r, g, b }
-                                            FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetColor(unpack(SV.qsColorGP))
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "description",
-                                    text = "Adjust position",
-                                    width = "full",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Vertical",
-                                    tooltip = "[<- down] or [up ->]",
-                                    default = defaults.qsYGP,
-                                    min = -50,
-                                    max = 50,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.qsYGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsYGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.y = value
-                                            FancyActionBar.AdjustQuickSlotTimer()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Horizontal",
-                                    tooltip = "[<- left] or [right ->]",
-                                    default = defaults.qsXGP,
-                                    min = -50,
-                                    max = 50,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.qsXGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsXGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.x = value
-                                            FancyActionBar.AdjustQuickSlotTimer()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
-                                { type = "divider" },
-                                {
-                                    type = "dropdown",
-                                    name = "Quickslot stack font",
-                                    scrollable = true,
-                                    tooltip = "Select which font to display the stack count in.",
-                                    choices = FancyActionBar.GetFonts(),
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.qsStackNameGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsStackNameGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.stackFont = value
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.qsStackNameGP,
-                                },
-                                {
-                                    type = "slider",
-                                    name = "Quickslot stack font size",
-                                    min = 10,
-                                    max = 30,
-                                    step = 1,
-                                    getFunc = function ()
-                                        return SV.qsStackSizeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsStackSizeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.stackSize = value
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.qsStackSizeGP,
-                                },
-                                {
-                                    type = "dropdown",
-                                    name = "Quickslot stack font style",
-                                    tooltip = "Select which effect to display the stack count font in.",
-                                    choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
-                                    sort = "name-up",
-                                    getFunc = function ()
-                                        return SV.qsStackTypeGP
-                                    end,
-                                    setFunc = function (value)
-                                        SV.qsStackTypeGP = value
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.stackOutline = value
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                    default = defaults.qsStackTypeGP,
-                                },
-                                {
-                                    type = "colorpicker",
-                                    name = "Quickslot stack color",
-                                    default = ZO_ColorDef:New(unpack(defaults.qsStackColorGP)),
-                                    getFunc = function ()
-                                        return unpack(SV.qsStackColorGP)
-                                    end,
-                                    setFunc = function (r, g, b)
-                                        SV.qsStackColorGP = { r, g, b }
-                                        if FancyActionBar.style == 2 then
-                                            FancyActionBar.constants.qs.stackColor = { r, g, b }
-                                            FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
-                                        end
-                                    end,
-                                    width = "half",
-                                },
+                                type = "colorpicker",
+                                name = "Timer color",
+                                default = ZO_ColorDef:New(unpack(defaults.timeColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.timeColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.timeColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.color = { r, g, b }
+                                    end
+                                end,
+                                width = "half",
                             },
                         },
                     },
-                })
+
+                    -- ============[	Gamepad Stacks	]======================
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDstacks display settings|r",
+                        controls =
+                        {
+                            {
+                                type = "dropdown",
+                                name = "Stacks font",
+                                scrollable = true,
+                                tooltip = "Select which font to display ability stacks in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.fontNameStackGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontNameStackGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.stacks.font = value
+                                        FancyActionBar.ApplyStackFont()
+                                    end
+                                end,
+                                default = defaults.fontNameStackGP,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Stacks font size",
+                                min = 10,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.fontSizeStackGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontSizeStackGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.stacks.size = value
+                                    end
+                                    FancyActionBar.ApplyStackFont()
+                                end,
+                                default = defaults.fontSizeStackGP,
+                                width = "half",
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Stack font style",
+                                tooltip = "Select which effect to display the stacks font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.fontTypeStackGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontTypeStackGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.stacks.outline = value
+                                        FancyActionBar.ApplyTimerFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.fontTypeStackGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Adjust stacks horizonatal position",
+                                tooltip = "Move stacks [<- left] or [right ->]",
+                                default = defaults.stackXGP,
+                                min = 0,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.stackXGP
+                                end,
+                                setFunc = function (value)
+                                    SV.stackXGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.stacks.x = value
+                                        FancyActionBar.AdjustStackX()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Adjust stacks vetrtical position",
+                                tooltip = "Move stacks [<- up] or [down ->]",
+                                default = defaults.stackYGP,
+                                min = 0,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.stackYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.stackYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.stacks.y = value
+                                        FancyActionBar.AdjustStackY()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Stack color",
+                                default = ZO_ColorDef:New(unpack(defaults.stackColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.stackColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.stackColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.stacks.color = { r, g, b }
+                                    end
+                                end,
+                                width = "half",
+                            },
+                        },
+                    },
+
+                    -- ============[	Gamepad Targets	]======================
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDTargets Display Settings|r",
+                        controls =
+                        {
+                            {
+                                type = "dropdown",
+                                name = "Targets font",
+                                scrollable = true,
+                                tooltip = "Select which font to display ability targets in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.fontNameTargetGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontNameTargetGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.targets.font = value
+                                        FancyActionBar.ApplyTargetFont()
+                                    end
+                                end,
+                                default = defaults.fontNameTargetGP,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Targets font size",
+                                min = 10,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.fontSizeTargetGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontSizeTargetGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.targets.size = value
+                                        FancyActionBar.ApplyTargetFont()
+                                    end
+                                end,
+                                default = defaults.fontSizeTargetGP,
+                                width = "half",
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Target font style",
+                                tooltip = "Select which effect to display the targets font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.fontTypeTargetGP
+                                end,
+                                setFunc = function (value)
+                                    SV.fontTypeTargetGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.targets.outline = value
+                                        FancyActionBar.ApplyTimerFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.fontTypeTargetGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Horizontal position",
+                                tooltip = "Move targets [<- left] or [right ->]",
+                                default = defaults.targetXGP,
+                                min = 0,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.targetXGP
+                                end,
+                                setFunc = function (value)
+                                    SV.targetXGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.targets.x = value
+                                        FancyActionBar.AdjustTargetX()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Vertical position",
+                                tooltip = "Move targets [<- up] or [down ->]",
+                                default = defaults.targetYGP,
+                                min = 0,
+                                max = 40,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.targetYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.targetYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.targets.y = value
+                                        FancyActionBar.AdjustTargetY()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Target color",
+                                default = ZO_ColorDef:New(unpack(defaults.targetColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.targetColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.targetColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.targets.color = { r, g, b }
+                                    end
+                                end,
+                                width = "half",
+                            },
+                        },
+                    },
+
+                    -- ============[ Gamepad Ultimate  ]====================
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDUltimate Timer Settings|r",
+                        controls =
+                        {
+                            {
+                                type = "checkbox",
+                                name = "Display Ultimate Timer",
+                                default = defaults.ultShowGP,
+                                getFunc = function ()
+                                    return SV.ultShowGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultShowGP = value or false
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.duration.show = value
+                                        -- FancyActionBar.ToggleUltimateValue()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            { type = "description", text = "", width = "full" },
+                            {
+                                type = "dropdown",
+                                name = "Ultimate timer font",
+                                scrollable = true,
+                                tooltip = "Select which font to display the timer in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.ultNameGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultNameGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.duration.font = value
+                                        FancyActionBar.ApplyUltFont(true)
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.ultNameGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Ultimate timer font size",
+                                min = 10,
+                                max = 45,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultSizeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultSizeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.duration.size = value
+                                        FancyActionBar.ApplyUltFont(true)
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.ultSizeGP,
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Ultimate timer font style",
+                                tooltip = "Select which effect to display the timer font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.ultTypeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultTypeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.duration.outline = value
+                                        FancyActionBar.ApplyUltFont(true)
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.ultTypeGP,
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Ultimate timer color",
+                                default = ZO_ColorDef:New(unpack(defaults.ultColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.ultColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.ultColorGP = { r, g, b }
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Vertical",
+                                tooltip = "[<- down] or [up ->]",
+                                default = defaults.ultYGP,
+                                min = -70,
+                                max = 70,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.duration.y = value
+                                        FancyActionBar.AdjustUltTimer(true)
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Horizontal",
+                                tooltip = "[<- left] or [right ->]",
+                                default = defaults.ultXGP,
+                                min = -80,
+                                max = 80,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultXGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultXGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.duration.x = value
+                                        FancyActionBar.AdjustUltTimer(true)
+                                    end
+                                end,
+                                width = "half",
+                            },
+                        },
+                    },
+
+                    -- ===========[ Gamepad Ultimate Value ]===============
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDUltimate Value Settings|r",
+                        controls =
+                        {
+                            {
+                                type = "checkbox",
+                                name = "Display ultimate number",
+                                default = defaults.ultValueEnableGP,
+                                getFunc = function ()
+                                    return SV.ultValueEnableGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueEnableGP = value or false
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.show = value
+                                        FancyActionBar.ToggleUltimateValue()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Display Mode",
+                                tooltip = "Dynamic: display current / cost if current is lower than cost and only current when you have enough to cast it.\nStatic: always display current / cost.",
+                                choices = GetUltValueOptions(),
+                                getFunc = function ()
+                                    return GetUltValueMode(2)
+                                end,
+                                setFunc = function (mode)
+                                    SV.ultValueModeGP = ultModeOptions[mode]
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.mode = SV.ultValueModeGP
+                                        FancyActionBar.UpdateUltValueMode()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Ultimate value font",
+                                scrollable = true,
+                                tooltip = "Select which font to display the value in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.ultValueNameGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueNameGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.font = value
+                                    end
+                                    FancyActionBar.ApplyUltValueFont()
+                                end,
+                                width = "half",
+                                default = defaults.ultValueNameGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Ultimate value font size",
+                                min = 10,
+                                max = 60,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultValueSizeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueSizeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.size = value
+                                        FancyActionBar.ApplyUltValueFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.ultValueSizeGP,
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Ultimate value font style",
+                                tooltip = "Select which effect to display the value font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.ultValueTypeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueTypeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.outline = value
+                                        FancyActionBar.ApplyUltValueFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.ultValueTypeGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Vertical",
+                                tooltip = "[<- down] or [up ->]",
+                                default = defaults.ultValueYGP,
+                                min = -500,
+                                max = 500,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultValueYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.y = value
+                                        FancyActionBar.AdjustUltValue()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Horizontal",
+                                tooltip = "[<- left] or [right ->]",
+                                default = defaults.ultValueXGP,
+                                min = -500,
+                                max = 500,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultValueXGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueXGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.x = value
+                                        FancyActionBar.AdjustUltValue()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            { type = "divider",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Ult Value Base Color",
+                                default = ZO_ColorDef:New(unpack(defaults.ultValueColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.ultValueColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.ultValueColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.color = SV.ultValueColorGP
+                                        FancyActionBar.ApplyUltValueColor()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Ult Usable Value Color",
+                                default = ZO_ColorDef:New(unpack(defaults.ultUsableValueColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.ultUsableValueColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.ultUsableValueColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.usableColor = SV.ultUsableValueColorGP
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Ult Max Value Color",
+                                default = ZO_ColorDef:New(unpack(defaults.ultMaxValueColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.ultMaxValueColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.ultMaxValueColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.maxColor = SV.ultMaxValueColorGP
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Ult 'Almost Ready' Value Color",
+                                default = ZO_ColorDef:New(unpack(defaults.ultUsableThresholdColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.ultUsableThresholdColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.ultUsableThresholdColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.usableThresholdColor = SV.ultUsableThresholdColorGP
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Ult 'Almost Ready' Threshold %",
+                                min = 50,
+                                max = 99,
+                                step = 1,
+                                getFunc = function ()
+                                    return (SV.ultValueThresholdGP * 100)
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueThresholdGP = (value / 100)
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.value.threshold = value
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.ultValueThresholdGP,
+                            },
+                            { type = "divider",
+                            },
+                            {
+                                type = "description",
+                                title = "Ult Fill Frame Transparency",
+                                text = "Transparency (alpha) settings for the fill frame and fill bar.",
+                                width = "full",
+                            },
+                            {
+                                type = "slider",
+                                name = "Ult Fill Frame Alpha",
+                                min = 0,
+                                max = 100,
+                                step = 1,
+                                default = defaults.ultFillFrameAlpha,
+                                getFunc = function ()
+                                    return SV.ultFillFrameAlpha * 100
+                                end,
+                                setFunc = function (value)
+                                    SV.ultFillFrameAlpha = value / 100
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.SetUltFrameAlpha()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Ult Fill Bar Alpha",
+                                min = 0,
+                                max = 100,
+                                step = 1,
+                                default = defaults.ultFillBarAlpha,
+                                getFunc = function ()
+                                    return SV.ultFillBarAlpha * 100
+                                end,
+                                setFunc = function (value)
+                                    SV.ultFillBarAlpha = value / 100
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.SetUltFrameAlpha()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            { type = "divider",
+                            },
+                            {
+                                type = "description",
+                                title = "Companion Ultimate",
+                                text = "Companion ultimate value will inherit font and size of the player ultimate value.\nAdjust position below.",
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Display ultimate number for companion",
+                                default = defaults.ultValueEnableCompanionGP,
+                                getFunc = function ()
+                                    return SV.ultValueEnableCompanionGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueEnableCompanionGP = value or false
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.companion.show = value
+                                        FancyActionBar.ToggleUltimateValue()
+                                    end
+                                end,
+                                width = "full",
+                            },
+                            {
+                                type = "slider",
+                                name = "Vertical",
+                                tooltip = "[<- down] or [up ->]",
+                                default = defaults.ultValueCompanionYGP,
+                                min = -50,
+                                max = 50,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultValueCompanionYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueCompanionYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.companion.y = value
+                                        FancyActionBar.AdjustCompanionUltValue()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Horizontal",
+                                tooltip = "[<- left] or [right ->]",
+                                default = defaults.ultValueCompanionXGP,
+                                min = -50,
+                                max = 50,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.ultValueCompanionXGP
+                                end,
+                                setFunc = function (value)
+                                    SV.ultValueCompanionXGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.ult.companion.x = value
+                                        FancyActionBar.AdjustCompanionUltValue()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                        },
+                    },
+
+                    -- ============[	Gamepad Quickslot	]==================
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDQuickslot display settings|r",
+                        controls =
+                        {
+                            {
+                                type = "checkbox",
+                                name = "Quickslot cooldown duration",
+                                default = defaults.qsTimerEnableGP,
+                                getFunc = function ()
+                                    return SV.qsTimerEnableGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsTimerEnableGP = value or false
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.show = value
+                                        FancyActionBar.ToggleQuickSlotDuration()
+                                    end
+                                end,
+                                width = "full",
+                            },
+                            { type = "description", text = "", width = "full",
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Quickslot timer font",
+                                scrollable = true,
+                                tooltip = "Select which font to display the timer in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.qsNameGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsNameGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.font = value
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.qsNameGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Quickslot timer font size",
+                                min = 10,
+                                max = 30,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.qsSizeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsSizeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.size = value
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.qsSizeGP,
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Quickslot timer font style",
+                                tooltip = "Select which effect to display the timer font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.qsTypeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsTypeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.outline = value
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.qsTypeGP,
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Quickslot timer color",
+                                default = ZO_ColorDef:New(unpack(defaults.qsColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.qsColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.qsColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.color = { r, g, b }
+                                        FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetColor(unpack(SV.qsColorGP))
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                text = "Adjust position",
+                                width = "full",
+                            },
+                            {
+                                type = "slider",
+                                name = "Vertical",
+                                tooltip = "[<- down] or [up ->]",
+                                default = defaults.qsYGP,
+                                min = -50,
+                                max = 50,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.qsYGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsYGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.y = value
+                                        FancyActionBar.AdjustQuickSlotTimer()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Horizontal",
+                                tooltip = "[<- left] or [right ->]",
+                                default = defaults.qsXGP,
+                                min = -50,
+                                max = 50,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.qsXGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsXGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.x = value
+                                        FancyActionBar.AdjustQuickSlotTimer()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            { type = "divider" },
+                            {
+                                type = "dropdown",
+                                name = "Quickslot stack font",
+                                scrollable = true,
+                                tooltip = "Select which font to display the stack count in.",
+                                choices = FancyActionBar.GetFonts(),
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.qsStackNameGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsStackNameGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.stackFont = value
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.qsStackNameGP,
+                            },
+                            {
+                                type = "slider",
+                                name = "Quickslot stack font size",
+                                min = 10,
+                                max = 30,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.qsStackSizeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsStackSizeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.stackSize = value
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.qsStackSizeGP,
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Quickslot stack font style",
+                                tooltip = "Select which effect to display the stack count font in.",
+                                choices = { "normal", "outline", "shadow", "soft-shadow-thick", "soft-shadow-thin", "thick-outline" },
+                                sort = "name-up",
+                                getFunc = function ()
+                                    return SV.qsStackTypeGP
+                                end,
+                                setFunc = function (value)
+                                    SV.qsStackTypeGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.stackOutline = value
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                                default = defaults.qsStackTypeGP,
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Quickslot stack color",
+                                default = ZO_ColorDef:New(unpack(defaults.qsStackColorGP)),
+                                getFunc = function ()
+                                    return unpack(SV.qsStackColorGP)
+                                end,
+                                setFunc = function (r, g, b)
+                                    SV.qsStackColorGP = { r, g, b }
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.qs.stackColor = { r, g, b }
+                                        FancyActionBar.ApplyQuickSlotFont()
+                                        DisplayQuickSlotLabelChanges()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                        },
+                    },
+                },
+            })
         table.insert(optionsTable[tableIndex].controls, { type = "divider" })
 
         -- ============[	Expiration Settings	]=================
         table.insert(optionsTable[tableIndex].controls,
-                {
-                    type = "submenu",
-                    name = "|cFFFACDExpiration Settings (Shared)|r",
-                    controls =
-                    {
-
-                        -- ============[  Timer Fade Delay  ]==================
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Timer Fade|r ]",
-                            width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Delay timer fade",
-                            tooltip = "Let the timer label display 0 for a set duration as a reminder that the ability has expired.",
-                            default = defaults.delayFade,
-                            getFunc = function ()
-                                return SV.delayFade
-                            end,
-                            setFunc = function (value)
-                                SV.delayFade = value or false
-                            end,
-                            width = "half",
-                        },
-                        {
-                            type = "slider",
-                            name = "Fade delay",
-                            tooltip = "How long you would like the timer label to keep displaying 0 after the ability has expired",
-                            default = defaults.fadeDelay,
-                            disabled = function ()
-                                return not SV.delayFade
-                            end,
-                            min = 0.5,
-                            max = 5,
-                            step = 0.1,
-                            decimals = 1,
-                            clampInput = true,
-                            getFunc = function ()
-                                return SV.fadeDelay
-                            end,
-                            setFunc = function (value)
-                                SV.fadeDelay = value
-                            end,
-                            width = "half",
-                        },
-                        { type = "description", text = "", width = "full" },
-
-                        -- ============[  Timer Decimals  ]====================
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Duration Display Decimals|r ]",
-                            width = "full",
-                        },
-                        {
-                            type = "dropdown",
-                            name = "Enable timer decimals",
-                            tooltip = "Always = Will always display decimals if the timer is active.\nExpire = Will enable more options.\nNever = Never.",
-                            choices = FancyActionBar.GetDecimalOptions(),
-                            default = defaults.showDecimal,
-                            getFunc = function ()
-                                return SV.showDecimal
-                            end,
-                            setFunc = function (value)
-                                SV.showDecimal = value
-                                FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
-                            end,
-                            width = "half",
-                        },
-                        {
-                            type = "slider",
-                            name = "Decimals threshold",
-                            tooltip = "Decimals will show when timers fall below selected amount of seconds remaining",
-                            default = defaults.showDecimalStart,
-                            disabled = function ()
-                                if SV.showDecimal == "Expire" then
-                                    return false
-                                else
-                                    return true
-                                end
-                            end,
-                            min = 0,
-                            max = 10,
-                            step = 0.1,
-                            decimals = 1,
-                            clampInput = true,
-                            getFunc = function ()
-                                return SV.showDecimalStart
-                            end,
-                            setFunc = function (value)
-                                SV.showDecimalStart = value
-                                FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
-                            end,
-                            width = "half",
-                        },
-                        { type = "description", text = "", width = "full" },
-
-                        -- ============[  Expiring Effect Start  ]=============
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Display Changes For Expiring Effects|r ]",
-                            width = "full",
-                        },
-                        {
-                            type = "slider",
-                            name = "Expiring timer threshold",
-                            tooltip = "The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
-                            default = defaults.showExpireStart,
-                            min = 0,
-                            max = 10,
-                            step = 0.1,
-                            decimals = 1,
-                            clampInput = true,
-                            getFunc = function ()
-                                return SV.showExpireStart
-                            end,
-                            setFunc = function (value)
-                                SV.showExpireStart = value
-                            end,
-                            width = "half",
-                        },
-
-                        -- ============[	Expiring Timer Color	]=============
-                        { type = "description", title = "[ |cffdf80Timer Text|r ]", width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Change expiring timer text color",
-                            tooltip = "Change timer text color when duration is running out.",
-                            default = defaults.showExpire,
-                            getFunc = function ()
-                                return SV.showExpire
-                            end,
-                            setFunc = function (value)
-                                SV.showExpire = value or false
-                            end,
-                            width = "full",
-                        },
-                        {
-                            type = "colorpicker",
-                            name = "Select timer text color for expiring effect",
-                            default = ZO_ColorDef:New(unpack(defaults.expireColor)),
-                            disabled = function ()
-                                return (not SV.showExpire)
-                            end,
-                            getFunc = function ()
-                                return unpack(SV.expireColor)
-                            end,
-                            setFunc = function (r, g, b)
-                                SV.expireColor = { r, g, b }
-                            end,
-                            width = "full",
-                        },
-                        { type = "description", text = "", width = "full" },
-
-                        -- ============[	Expiring Highlight Color	]=========
-                        { type = "description", title = "[ |cffdf80Highlight|r ]", width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Change expiring timer highlight color",
-                            tooltip = "Change highligh color when duration is running out.",
-                            default = defaults.highlightExpire,
-                            getFunc = function ()
-                                return SV.highlightExpire
-                            end,
-                            setFunc = function (value)
-                                SV.highlightExpire = value or false
-                            end,
-                            width = "full",
-                        },
-                        {
-                            type = "colorpicker",
-                            name = "Select highlight color for expiring effects",
-                            default = ZO_ColorDef:New(unpack(defaults.highlightExpireColor)),
-                            disabled = function ()
-                                return (not SV.highlightExpireColor)
-                            end,
-                            getFunc = function ()
-                                return unpack(SV.highlightExpireColor)
-                            end,
-                            setFunc = function (r, g, b, a)
-                                SV.highlightExpireColor = { r, g, b, a }
-                            end,
-                            width = "full",
-                        },
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Display Changes For Toggled Effects|r ]",
-                            width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Tick Rate for Toggles",
-                            tooltip = "Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.",
-                            default = defaults.showToggleTicks,
-                            getFunc = function ()
-                                return SV.showToggleTicks
-                            end,
-                            setFunc = function (value)
-                                SV.showToggleTicks = value or false
-                            end,
-                        },
-                        {
-                            type = "slider",
-                            name = "Tick alert threshold",
-                            tooltip = "The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
-                            default = defaults.showTickStart,
-                            min = 0,
-                            max = 10,
-                            step = 0.1,
-                            decimals = 1,
-                            clampInput = true,
-                            getFunc = function ()
-                                return SV.showTickStart
-                            end,
-                            setFunc = function (value)
-                                SV.showTickStart = value
-                            end,
-                            width = "half",
-                        },
-
-                        -- ============[	Tick Alert Color	]=============
-                        { type = "description", title = "[ |cffdf80Toggle Timer Text|r ]", width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Change tick alert text color",
-                            tooltip = "Change timer text color when the tick alert threshold is reached, or a toggled effect becomes untoggled.",
-                            default = defaults.showTickExpire,
-                            getFunc = function ()
-                                return SV.showTickExpire
-                            end,
-                            setFunc = function (value)
-                                SV.showTickExpire = value or false
-                            end,
-                            width = "full",
-                        },
-                        {
-                            type = "colorpicker",
-                            name = "Select timer text color for tick alert effect",
-                            default = ZO_ColorDef:New(unpack(defaults.tickColor)),
-                            disabled = function ()
-                                return (not SV.showTickExpire)
-                            end,
-                            getFunc = function ()
-                                return unpack(SV.tickColor)
-                            end,
-                            setFunc = function (r, g, b)
-                                SV.tickColor = { r, g, b }
-                            end,
-                            width = "full",
-                        },
-                        { type = "description", text = "", width = "full" },
-                    },
-                })
-        tableIndex = tableIndex + 1
-
-        table.insert(optionsTable, { type = "divider" })
-        tableIndex = tableIndex + 1
-
-        table.insert(optionsTable, {
-    -- ==============[  Ability Config  ]=====================
-        type = "submenu",
-        name = "|cFFFACDAbility Configuration|r",
-        controls =
             {
-            {
-                type = "checkbox",
-                name = "Accountwide Skill Settings",
-                tooltip = "If accountwide settings is enabled, changes made will affect a changed skill's ability timer for all characters.",
-                default = true,
-                getFunc = function ()
-                    return CV.useAccountWide
-                end,
-                setFunc = function (value)
-                    CV.useAccountWide = value or false
-                end,
-                requiresReload = true,
-                width = "full",
-            },
-
+                type = "submenu",
+                name = "|cFFFACDExpiration Settings (Shared)|r",
+                controls =
                 {
-                    type = "submenu",
-                    name = "|cFFFACDCurrently Slotted Ability IDs|r",
-                    controls =
+
+                    -- ============[  Timer Fade Delay  ]==================
                     {
-
-                        {
-                            type = "description",
-                            title = "Front Bar",
-                            text = function ()
-                                return GetCurrentFrontBarInfo()
-                            end,
-                            width = "half",
-                            reference = "Front_Bar_List",
-                        },
-                        {
-                            type = "description",
-                            title = "Back Bar",
-                            text = function ()
-                                return GetCurrentBackBarInfo()
-                            end,
-                            width = "half",
-                            reference = "Back_Bar_List",
-                        },
+                        type = "description",
+                        title = "[ |cffdf80Timer Fade|r ]",
+                        width = "full",
                     },
-                },
-
-                {
-                    type = "submenu",
-                    name = "|cFFFACDTracked Effects|r",
-                    controls =
                     {
-
-                        {
-                            type = "submenu",
-                            name = "Info",
-                            controls =
-                            {
-
-                                {
-                                    type = "description",
-                                    title = "",
-                                    text = "Here you can edit which effect you want the timer for a specific skill to track.\nTo track a different effect, enter the ID of the skill and the ID of the new effect, then click confirm.",
-                                    width = "full",
-                                },
-                            },
-                        },
-
-                        { type = "divider" },
-
-                        {
-                            type = "dropdown",
-                            scrollable = 20,
-                            name = "Saved Changes",
-                            tooltip = "Easily find skills that you have made changes to.",
-                            choices = GetChangedSkills(),
-                            getFunc = function ()
-                                GetSelectedChangedSkill()
-                            end,
-                            setFunc = function (value)
-                                SetChangedSkillToEdit(value)
-                            end,
-                            reference = "Saved_Changes_Dropdown",
-                            default = 0,
-                            width = "half",
-                        },
-
-                        { type = "description", text = "", width = "half" },
-
-                        {
-                            type = "editbox",
-                            name = "Skill ID",
-                            tooltip = "Enter the ID of the skill you want to edit.",
-                            -- default = '',
-                            getFunc = function ()
-                                return GetSkillToEditID()
-                            end,
-                            setFunc = function (value)
-                                SetSkillToEditID(value)
-                            end,
-                            reference = "SkillToEditID_Editbox",
-                            isMultiline = false,
-                            isExtraWide = false,
-                            width = "half",
-                        },
-                        {
-                            type = "description",
-                            title = "Selected Skill:",
-                            text = function ()
-                                return GetSkillToEditName()
-                            end,
-                            width = "half",
-                            reference = "SkillToEditTitle",
-                        },
-                        {
-                            type = "dropdown",
-                            name = "Change Type",
-                            tooltip = "Select which type of change you want to apply to the skill.",
-                            choices = GetSkillChangeOptions(),
-                            getFunc = function ()
-                                return GetSkillChangeType()
-                            end,
-                            setFunc = function (value)
-                                SetSkillChangeType(value)
-                            end,
-                            width = "half",
-                            reference = "Change_Type_Dropdown",
-                            default = 0,
-                        },
-
-                        { type = "description", text = "", width = "half" },
-
-                        {
-                            type = "editbox",
-                            name = "New Effect ID",
-                            tooltip = "Enter the ID of the effect you want to have tracked from the selected skill.",
-                            -- default = '',
-                            getFunc = function ()
-                                return GetEffectToTrackID()
-                            end,
-                            setFunc = function (value)
-                                SetEffectToTrackID(value)
-                            end,
-                            reference = "EffectToTrackID_Editbox",
-                            isMultiline = false,
-                            isExtraWide = false,
-                            width = "half",
-                        },
-                        {
-                            type = "description",
-                            title = "Selected Effect:",
-                            text = function ()
-                                return GetEffectToTrackName()
-                            end,
-                            width = "half",
-                            reference = "EffectToTrackTitle",
-                        },
-
-                        {
-                            type = "button",
-                            name = "Confirm Change",
-                            width = "full",
-                            func = function ()
-                                ValidateSkillChange()
-                            end,
-                            disabled = function ()
-                                return IsChangePossible()
-                            end,
-                        },
-                        -- {	type = 'checkbox', 			name = 'Only Update Used Skill',
-                        --   tooltip = 'Only update the timer for the button used to cast the effect.',
-                        --   getFunc = function() return GetUpdateUsedButtonOnly() end,
-                        --   setFunc = function(value) GetUpdateUsedButtonOnly(skillToEditID, value) end,
-                        --   disabled = function() return skillToEditID == 0 or not IsValidId(skillToEditID) end,
-                        --   width = 'half'
-                        -- }
+                        type = "checkbox",
+                        name = "Delay timer fade",
+                        tooltip = "Let the timer label display 0 for a set duration as a reminder that the ability has expired.",
+                        default = defaults.delayFade,
+                        getFunc = function ()
+                            return SV.delayFade
+                        end,
+                        setFunc = function (value)
+                            SV.delayFade = value or false
+                        end,
+                        width = "half",
                     },
-                },
-                -- {	type = 'divider'  },
-
-                -- ==============[  External Buff Tracking  ]==============
-                {
-                    type = "submenu",
-                    name = "|cFFFACDBuffs Gained From others|r",
-                    controls =
                     {
-
-                        {
-                            type = "submenu",
-                            name = "Info",
-                            controls =
-                            {
-
-                                { type = "description", text = "Here you can enable the ability timers to track the duration if their tracked effect is gained from an ally.\nYou can also select which effects you do not want to have tracked if you are not the source.",
-                                },
-                            },
-                        },
-
-                        {
-                            type = "checkbox",
-                            name = "Track Buffs From Others",
-                            default = defaults.externalBuffs,
-                            getFunc = function ()
-                                return SV.externalBuffs
-                            end,
-                            setFunc = function (value)
-                                SV.externalBuffs = value or false
-                                FancyActionBar.SetExternalBuffTracking()
-                            end,
-                            width = "half",
-                        },
-                        { type = "description", width = "half" },
-
-                        {
-                            type = "editbox",
-                            name = "Add to Blacklist",
-                            tooltip = "Enter the ID of the skill you dont want to have updated when you gain the effect from someone else.",
-                            -- default = '',
-                            getFunc = function ()
-                                return GetSkillToBlacklistID()
-                            end,
-                            setFunc = function (value)
-                                SetSkillToBlacklistID(value)
-                            end,
-                            reference = "SkillToBlacklistID_Editbox",
-                            isMultiline = false,
-                            isExtraWide = false,
-                            width = "half",
-                        },
-                        {
-                            type = "description",
-                            title = "Selected Buff:",
-                            text = function ()
-                                return GetSkillToBlacklistName()
-                            end,
-                            width = "half",
-                            reference = "SkillToBlacklistTitle",
-                        },
-
-                        { type = "description", width = "half" },
-
-                        {
-                            type = "button",
-                            name = "Confirm Blacklist",
-                            width = "half",
-                            func = function ()
-                                BlacklistId()
-                            end,
-                            disabled = function ()
-                                return not CanBlacklistId()
-                            end,
-                            reference = "SkillToBlacklist_Button",
-                        },
-
-                        { type = "description", width = "full" },
-
-                        {
-                            type = "dropdown",
-                            scrollable = 20,
-                            name = "Blacklisted IDs",
-                            choices = GetBlacklistedSkills(),
-                            getFunc = function ()
-                                GetSelectedBlacklist()
-                            end,
-                            setFunc = function (value)
-                                SetSelectedBlacklist(value)
-                            end,
-                            reference = "Blacklist_Dropdown",
-                            -- default = '== Select a Skill ==',
-                            width = "half",
-                        },
-
-                        {
-                            type = "button",
-                            name = "Remove From Blacklist",
-                            width = "half",
-                            func = function ()
-                                ClearBlacklistId()
-                            end,
-                            disabled = function ()
-                                return not CanClearBlacklistId()
-                            end,
-                            reference = "BlacklistToClear_Button",
-                        },
+                        type = "slider",
+                        name = "Fade delay",
+                        tooltip = "How long you would like the timer label to keep displaying 0 after the ability has expired",
+                        default = defaults.fadeDelay,
+                        disabled = function ()
+                            return not SV.delayFade
+                        end,
+                        min = 0.5,
+                        max = 5,
+                        step = 0.1,
+                        decimals = 1,
+                        clampInput = true,
+                        getFunc = function ()
+                            return SV.fadeDelay
+                        end,
+                        setFunc = function (value)
+                            SV.fadeDelay = value
+                        end,
+                        width = "half",
                     },
-                },
-                -- {	type = 'divider'  },
+                    { type = "description", text = "", width = "full" },
 
-                -- ==================[  Target Debuffs  ]==================
-                {
-                    type = "submenu",
-                    name = "|cFFFACDDebuffs on Target|r",
-                    controls =
+                    -- ============[  Timer Decimals  ]====================
                     {
-
-                        {
-                            type = "checkbox",
-                            name = "Debuff timers for current target",
-                            tooltip = "Update timer duration of debuffs when changing target, to display the remaining duration on them specifically.\nOnly for alive enemy targets.",
-                            default = defaults.advancedDebuff,
-                            getFunc = function ()
-                                return SV.advancedDebuff
-                            end,
-                            setFunc = function (value)
-                                SV.advancedDebuff = value or false
-                                FancyActionBar:UpdateDebuffTracking()
-                            end,
-                        },
-
-                        {
-                            type = "checkbox",
-                            name = "Keep Timers For Last Target",
-                            tooltip = "Keep timers when you look away from your target until you have a new enemy target.",
-                            default = defaults.keepLastTarget,
-                            getFunc = function ()
-                                return SV.keepLastTarget
-                            end,
-                            setFunc = function (value)
-                                SV.keepLastTarget = value or false
-                            end,
-                            disabled = function ()
-                                return not SV.advancedDebuff
-                            end,
-                        },
-
-                        {
-                            type = "checkbox",
-                            name = "Show Stack Count for Overtaunt Debuff",
-                            tooltip = "Multiple taunt sources can cause an enemy to gain taunt immunity, this stack counter tracks the status of this debuff.",
-                            default = defaults.showOvertauntStacks,
-                            getFunc = function ()
-                                return SV.showOvertauntStacks
-                            end,
-                            setFunc = function (value)
-                                SV.showOvertauntStacks = value or false
-                            end,
-                            disabled = function ()
-                                return not SV.advancedDebuff
-                            end,
-                        },
-
-                        {
-                            type = "description",
-                            text = "More options to come.",
-                            width = "full",
-                        },
-
-                        -- { type = 'checkbox',      name = 'Hide timers if not on target',
-                        --   tooltip = 'This will determine if the timers for active debuffs should be hidden if they are not active on your current target.\nThis setting will apply to all debuffs that has not been added to individual settings below, and will be ignored for the ones that has.',
-                        --   disabled = function() return not SV.advancedDebuff end,
-                        --   getFunc = function() return FancyActionBar.GetHideOnNoTargetGlobalSetting() end,
-                        --   setFunc = function(value) FancyActionBar.SetHideOnNoTargetGlobalSetting(value) end,
-                        -- },
-                        --
-                        -- { type = 'checkbox',      name = 'Lower timer visibility if not on target',
-                        --   tooltip = 'If timers are not hidden when the debuff is not on your current target, you can choose to lower its visibility instead.',
-                        --   disabled = function() return not SV.advancedDebuff or not FancyActionBar.GetHideOnNoTargetGlobalSetting() end,
-                        --   default = defaults.noTargetFade,
-                        --   getFunc = function() return FancyActionBar.GetNoTargetFade() end,
-                        --   setFunc = function(value) FancyActionBar.SetNoTargetFade(value) end,
-                        --   width = 'half',
-                        -- },
-                        --
-                        -- {	type = 'slider',        name = 'Timer visibility if not on target',
-                        --   default  = defaults.noTargetAlpha,
-                        --   disabled = function() return not SV.advancedDebuff or not SV.noTargetFade or not FancyActionBar.GetHideOnNoTargetGlobalSetting() end,
-                        --   min      = 10, max = 100, step = 1,
-                        --   getFunc  = function() return FancyActionBar.GetNoTargetAlpha() * 100 end,
-                        --   setFunc  = function(value) FancyActionBar.SetNoTargetAlpha(value) end,
-                        --   width    = 'half'
-                        -- },
-                        --
-                        -- {	type = 'description',   title = 'Specify for debuff',
-                        --   text = 'If you have added the ID for a debuff to this section it will ignore the above settings for visibility, and instead use the options specified below.',
-                        --   width = 'full',
-                        -- },
-
-                        -- { type = 'editbox',       name = 'Add Debuff',
-                        --   tooltip = 'Enter the ID of the debuff you want to enable specific options for.',
-                        --     -- default = '',
-                        --     getFunc = function() return GetDebuffToAddID() end,
-                        --     setFunc = function(value) SetDebuffToAddID(value) end,
-                        --     reference = 'DebuffToAdd_Editbox',
-                        --     isMultiline = false,
-                        --     isExtraWide = false,
-                        --     width = 'half'
-                        -- },
-                        -- { type = 'description',   title = 'Selected Debuff:',
-                        --   text = function() return GetDebuffToAddName() end,
-                        --   width = 'half',
-                        --   reference = 'DebuffToAdd_Title'
-                        -- },
-                        --
-                        -- {	type = 'description',   width = 'half' },
-                        --
-                        -- { type = "button",        name = "Confirm Debuff Changes",
-                        --   width = "half",
-                        --   func = function() AddDebuff() end,
-                        --   disabled = function() return not CanAddDebuff() end,
-                        --   reference = 'DebuffToAdd_Button'
-                        -- },
-                        --
-                        -- {	type = 'description',   width = 'full' },
-                        --
-                        -- { type = 'dropdown',      name = 'Debuffs',
-                        --   choices = GetDebuffNames(),
-                        --   getFunc = function() GetSelectedDebuff() end,
-                        --   setFunc = function(value) SetSelectedDebuff(value) end,
-                        --   reference = 'Debuff_Dropdown',
-                        --   -- default = '== Select a Skill ==',
-                        --   width = 'half'
-                        -- },
-                        --
-                        -- { type = "button",        name = "Remove Debuff",
-                        --   width = "half",
-                        --   func = function() ClearDebuff() end,
-                        --   disabled = function() return not CanClearDebuff() end,
-                        --   reference = 'DebuffToClear_Button'
-                        -- }
+                        type = "description",
+                        title = "[ |cffdf80Duration Display Decimals|r ]",
+                        width = "full",
                     },
-                },
-                -- {	type = 'divider'  },
-
-                -- ============[  Additional Tracking Options  ]===========
-                {
-                    type = "submenu",
-                    name = "|cFFFACDAdditional Tracking Options|r",
-                    controls =
                     {
-
-
-                        -- { type = 'divider'	},
-
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Effect Duration Thresholds|r ]",
-                            text = "Set the limits for when to ignore effects based on their duration.",
-                            width = "full",
-                        },
-                        {
-                            type = "slider",
-                            name = "Minimum",
-                            min = 1,
-                            max = 4,
-                            step = 0.5,
-                            getFunc = function ()
-                                return SV.durationMin
-                            end,
-                            setFunc = function (value)
-                                SV.durationMin = value
-                                FancyActionBar.UpdateDurationLimits()
-                            end,
-                            width = "half",
-                            default = defaults.durationMin,
-                        },
-                        {
-                            type = "slider",
-                            name = "Maximum",
-                            min = 30,
-                            max = 130,
-                            step = 1,
-                            getFunc = function ()
-                                return SV.durationMax
-                            end,
-                            setFunc = function (value)
-                                SV.durationMax = value
-                                FancyActionBar.UpdateDurationLimits()
-                            end,
-                            width = "half",
-                            default = defaults.durationMax,
-                        },
-
-                        { type = "divider" },
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Multitarget Effect Tracking Options|r ]",
-                            text = "Options for configuring the behavior and tracked abilities for the Target Instance Counter.",
-                            width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Target Instance Counter",
-                            tooltip = "Abilities that track an effect that can be applied to multiple targets simultaneously will show an instance counter on the top left of the ability icon.",
-                            default = defaults.showTargetCount,
-                            getFunc = function ()
-                                return SV.showTargetCount
-                            end,
-                            setFunc = function (value)
-                                SV.showTargetCount = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Instance Count for One Active Instance",
-                            tooltip = "Show the target instance counter if only one instance of the effect is active. Note that this does not apply to debuffs when 'Debuffs on target' mode is enabled.",
-                            default = defaults.showSingleTargetInstance,
-                            disabled = function ()
-                                return not SV.showTargetCount
-                            end,
-                            getFunc = function ()
-                                return SV.showSingleTargetInstance
-                            end,
-                            setFunc = function (value)
-                                SV.showSingleTargetInstance = value or false
-                            end,
-                        },
-                        { type = "divider" },
-                        {
-                            type = "editbox",
-                            name = "Add to Blacklist",
-                            tooltip =
-                            "Enter the ID of the skill you dont want to track multiple target instances of.",
-                            -- default = '',
-                            getFunc = function ()
-                                return GetMultiTargetSkillToBlacklistID()
-                            end,
-                            setFunc = function (value)
-                                SetMultiTargetSkillToBlacklistID(value)
-                            end,
-                            reference = "MultiTargetSkillToBlacklistID_Editbox",
-                            isMultiline = false,
-                            isExtraWide = false,
-                            width = "half",
-                        },
-                        {
-                            type = "description",
-                            title = "Selected Skill:",
-                            text = function ()
-                                return GetMultiTargetSkillToBlacklistName()
-                            end,
-                            width = "half",
-                            reference = "MultiTargetSkillToBlacklistTitle",
-                        },
-
-                        { type = "description", width = "half" },
-
-                        {
-                            type = "button",
-                            name = "Confirm Blacklist",
-                            width = "half",
-                            func = function ()
-                                BlacklistMultiTargetId()
-                            end,
-                            disabled = function ()
-                                return not CanBlacklistMultiTargetId()
-                            end,
-                            reference = "MultiTargetSkillToBlacklist_Button",
-                        },
-
-                        { type = "description", width = "full" },
-
-                        {
-                            type = "dropdown",
-                            scrollable = 20,
-                            name = "Blacklisted IDs",
-                            choices = GetBlacklistedMultiTargetSkills(),
-                            getFunc = function ()
-                                GetSelectedMultiTargetBlacklist()
-                            end,
-                            setFunc = function (value)
-                                SetSelectedMultiTargetBlacklist(value)
-                            end,
-                            reference = "MultiTargetBlacklist_Dropdown",
-                            -- default = '== Select a Skill ==',
-                            width = "half",
-                        },
-
-                        {
-                            type = "button",
-                            name = "Remove From Blacklist",
-                            width = "half",
-                            func = function ()
-                                ClearMultiTargetBlacklistId()
-                            end,
-                            disabled = function ()
-                                return not CanClearBlacklistMultiTargetId()
-                            end,
-                            reference = "MultiTargetBlacklistToClear_Button",
-                        },
-                        { type = "divider" },
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Miscellaneous Options|r ]",
-                            text = "Additional settings for configuring ability tracking.",
-                            width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Stack Counter",
-                            tooltip = "Show stack count for abilities that can have multiple stacks, or can stack multiple times.",
-                            default = defaults.showStackCount,
-                            getFunc = function ()
-                                return SV.showStackCount
-                            end,
-                            setFunc = function (value)
-                                SV.showStackCount = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Cast/Channel Times on Action Slots",
-                            tooltip = "If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled.",
-                            default = defaults.showCastDuration,
-                            getFunc = function ()
-                                return SV.showCastDuration
-                            end,
-                            setFunc = function (value)
-                                SV.showCastDuration = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Ignore Initial Trap Placement",
-                            tooltip = "By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT",
-                            default = defaults.ignoreTrapPlacement,
-                            getFunc = function ()
-                                return SV.ignoreTrapPlacement
-                            end,
-                            setFunc = function (value)
-                                SV.ignoreTrapPlacement = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Show Timer For Soonest Expiring Target",
-                            tooltip = "By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.",
-                            default = defaults.showSoonestExpire,
-                            getFunc = function ()
-                                return SV.showSoonestExpire
-                            end,
-                            setFunc = function (value)
-                                SV.showSoonestExpire = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Ignore Ungrouped Allies",
-                            tooltip = "By default all buffs applied to allies are tracked. With this setting enabled, while you are in a group only buffs applied to group members will be tracked.",
-                            default = defaults.ignoreUngroupedAliies,
-                            getFunc = function ()
-                                return SV.ignoreUngroupedAliies
-                            end,
-                            setFunc = function (value)
-                                SV.ignoreUngroupedAliies = value or false
-                            end,
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Allow Fallback Timers",
-                            tooltip = "By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.",
-                            default = defaults.allowParentTime,
-                            getFunc = function ()
-                                return SV.allowParentTime
-                            end,
-                            setFunc = function (value)
-                                SV.allowParentTime = value or false
-                            end,
-                        },
+                        type = "dropdown",
+                        name = "Enable timer decimals",
+                        tooltip = "Always = Will always display decimals if the timer is active.\nExpire = Will enable more options.\nNever = Never.",
+                        choices = FancyActionBar.GetDecimalOptions(),
+                        default = defaults.showDecimal,
+                        getFunc = function ()
+                            return SV.showDecimal
+                        end,
+                        setFunc = function (value)
+                            SV.showDecimal = value
+                            FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
+                        end,
+                        width = "half",
                     },
+                    {
+                        type = "slider",
+                        name = "Decimals threshold",
+                        tooltip = "Decimals will show when timers fall below selected amount of seconds remaining",
+                        default = defaults.showDecimalStart,
+                        disabled = function ()
+                            if SV.showDecimal == "Expire" then
+                                return false
+                            else
+                                return true
+                            end
+                        end,
+                        min = 0,
+                        max = 10,
+                        step = 0.1,
+                        decimals = 1,
+                        clampInput = true,
+                        getFunc = function ()
+                            return SV.showDecimalStart
+                        end,
+                        setFunc = function (value)
+                            SV.showDecimalStart = value
+                            FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
+                        end,
+                        width = "half",
+                    },
+                    { type = "description", text = "", width = "full" },
+
+                    -- ============[  Expiring Effect Start  ]=============
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Display Changes For Expiring Effects|r ]",
+                        width = "full",
+                    },
+                    {
+                        type = "slider",
+                        name = "Expiring timer threshold",
+                        tooltip = "The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
+                        default = defaults.showExpireStart,
+                        min = 0,
+                        max = 10,
+                        step = 0.1,
+                        decimals = 1,
+                        clampInput = true,
+                        getFunc = function ()
+                            return SV.showExpireStart
+                        end,
+                        setFunc = function (value)
+                            SV.showExpireStart = value
+                        end,
+                        width = "half",
+                    },
+
+                    -- ============[	Expiring Timer Color	]=============
+                    { type = "description", title = "[ |cffdf80Timer Text|r ]", width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Change expiring timer text color",
+                        tooltip = "Change timer text color when duration is running out.",
+                        default = defaults.showExpire,
+                        getFunc = function ()
+                            return SV.showExpire
+                        end,
+                        setFunc = function (value)
+                            SV.showExpire = value or false
+                        end,
+                        width = "full",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = "Select timer text color for expiring effect",
+                        default = ZO_ColorDef:New(unpack(defaults.expireColor)),
+                        disabled = function ()
+                            return (not SV.showExpire)
+                        end,
+                        getFunc = function ()
+                            return unpack(SV.expireColor)
+                        end,
+                        setFunc = function (r, g, b)
+                            SV.expireColor = { r, g, b }
+                        end,
+                        width = "full",
+                    },
+                    { type = "description", text = "", width = "full" },
+
+                    -- ============[	Expiring Highlight Color	]=========
+                    { type = "description", title = "[ |cffdf80Highlight|r ]", width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Change expiring timer highlight color",
+                        tooltip = "Change highligh color when duration is running out.",
+                        default = defaults.highlightExpire,
+                        getFunc = function ()
+                            return SV.highlightExpire
+                        end,
+                        setFunc = function (value)
+                            SV.highlightExpire = value or false
+                        end,
+                        width = "full",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = "Select highlight color for expiring effects",
+                        default = ZO_ColorDef:New(unpack(defaults.highlightExpireColor)),
+                        disabled = function ()
+                            return (not SV.highlightExpireColor)
+                        end,
+                        getFunc = function ()
+                            return unpack(SV.highlightExpireColor)
+                        end,
+                        setFunc = function (r, g, b, a)
+                            SV.highlightExpireColor = { r, g, b, a }
+                        end,
+                        width = "full",
+                    },
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Display Changes For Toggled Effects|r ]",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Show Tick Rate for Toggles",
+                        tooltip = "Some toggled abilities have effects that `tick` while the ability is toggled, such as the resource return on Meditate. If enabled, the action bar will attempt to show the timer until the next tick. Load screens can cause this timer to desync from the game engine timer until the ability is retoggled.",
+                        default = defaults.showToggleTicks,
+                        getFunc = function ()
+                            return SV.showToggleTicks
+                        end,
+                        setFunc = function (value)
+                            SV.showToggleTicks = value or false
+                        end,
+                    },
+                    {
+                        type = "slider",
+                        name = "Tick alert threshold",
+                        tooltip = "The color of durations and highlights will change when timers fall below selected amount of seconds remaining, if their individual settings are enabled",
+                        default = defaults.showTickStart,
+                        min = 0,
+                        max = 10,
+                        step = 0.1,
+                        decimals = 1,
+                        clampInput = true,
+                        getFunc = function ()
+                            return SV.showTickStart
+                        end,
+                        setFunc = function (value)
+                            SV.showTickStart = value
+                        end,
+                        width = "half",
+                    },
+
+                    -- ============[	Tick Alert Color	]=============
+                    { type = "description", title = "[ |cffdf80Toggle Timer Text|r ]", width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Change tick alert text color",
+                        tooltip = "Change timer text color when the tick alert threshold is reached, or a toggled effect becomes untoggled.",
+                        default = defaults.showTickExpire,
+                        getFunc = function ()
+                            return SV.showTickExpire
+                        end,
+                        setFunc = function (value)
+                            SV.showTickExpire = value or false
+                        end,
+                        width = "full",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = "Select timer text color for tick alert effect",
+                        default = ZO_ColorDef:New(unpack(defaults.tickColor)),
+                        disabled = function ()
+                            return (not SV.showTickExpire)
+                        end,
+                        getFunc = function ()
+                            return unpack(SV.tickColor)
+                        end,
+                        setFunc = function (r, g, b)
+                            SV.tickColor = { r, g, b }
+                        end,
+                        width = "full",
+                    },
+                    { type = "description", text = "", width = "full" },
                 },
-            },
-        })
+            })
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable,
-        {
-        -- ============[	Miscellaneous	]=======================
-            type = "submenu",
-            name = "|cFFFACDMiscellaneous|r",
-            controls =
             {
-
+                -- ==============[  Ability Config  ]=====================
+                type = "submenu",
+                name = "|cFFFACDAbility Configuration|r",
+                controls =
                 {
-                    type = "checkbox",
-                    name = "Show bar while dead",
-                    tooltip = "Will display the action bar while you are dead if enabled.",
-                    default = defaults.showDeath,
-                    getFunc = function ()
-                        return SV.showDeath
-                    end,
-                    setFunc = function (value)
-                        SV.showDeath = value or false
-                        CheckDeathState()
-                        FancyActionBar.ApplyDeathStateOption()
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Prevent casting in trade",
-                    tooltip = "Blocks the use of skills while in trade, but allows the use of them while in settings and when map is open.\nThis will prevent Perfect Weave from working as intended.",
-                    default = defaults.lockInTrade,
-                    getFunc = function ()
-                        return SV.lockInTrade
-                    end,
-                    setFunc = function (value)
-                        SV.lockInTrade = value or false
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Enable Perfect Weave",
-                    tooltip = "In order for Perfect Weave to work, changes that allows for skills to be cast while in settings or when map is open ect. has to be disabled.\nThe game did not consider these thigns well in the past, which is why I made a few alterations to them. They have been slightly improved and you can rely on them if you want to use Perfect Weave and this addon together.",
-                    default = defaults.perfectWeave,
-                    getFunc = function ()
-                        return SV.perfectWeave
-                    end,
-                    setFunc = function (value)
-                        SV.perfectWeave = value or false
-                    end,
-                    requiresReload = true,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Adjust Health Bar",
-                    tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
-                    default = defaults.moveHealthBar,
-                    getFunc = function ()
-                        return SV.moveHealthBar
-                    end,
-                    setFunc = function (value)
-                        SV.moveHealthBar = value or false
-                        if not FancyActionBar.wasMoved then
-                            FancyActionBar.ResetMoveActionBar()
-                            FancyActionBar.RepositionHealthBar()
-                        end
-                    end,
-                    requiresReload = true,
-                    width = "half",
-                },
-                {
-                    type = "checkbox",
-                    name = "Adjust Mag/Stam Bars",
-                    tooltip = "Also adjust the position of the magicka and stamina bars to align with health bar.",
-                    default = defaults.moveResourceBars,
-                    getFunc = function ()
-                        return SV.moveResourceBars
-                    end,
-                    setFunc = function (value)
-                        SV.moveResourceBars = value or false
-                        if not FancyActionBar.wasMoved then
-                            FancyActionBar.ResetMoveActionBar()
-                            FancyActionBar.RepositionHealthBar()
-                        end
-                    end,
-                    disabled = function ()
-                        return not SV.moveHealthBar
-                    end,
-                    requiresReload = true,
-                    width = "half",
-                },
-                { type = "description", text = "", width = "half" },
-
-                -- ============[	Enemy Markers	]=======================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Enemy Markers|r ]",
-                    text = "This replicates a similar feature found in the Untaunted addon.",
-                    width = "full",
-                },
-                {
-                    type = "checkbox",
-                    name = "Show Enemy Markers",
-                    tooltip = "Display a red arrow over the head of enemies you are currently in combat with.",
-                    default = defaults.showMarker,
-                    getFunc = function ()
-                        return SV.showMarker
-                    end,
-                    setFunc = function (value)
-                        SV.showMarker = value or false
-                    end,
-                    width = "half",
-                },
-                {
-                    type = "slider",
-                    name = "Enemy Marker Size",
-                    default = defaults.markerSize,
-                    min = 10,
-                    max = 90,
-                    step = 1,
-                    getFunc = function ()
-                        return SV.markerSize
-                    end,
-                    setFunc = function (value)
-                        SV.markerSize = value
-                        FancyActionBar.SetMarker(value)
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
-
-                -- ===============[  GCD Tracker  ]======================
-                {
-                    type = "submenu",
-                    name = "|cFFFACDGlobal Cooldown Tracker|r",
-                    controls =
                     {
-                        {
-                            type = "description",
-                            title = "[ |cffdf80Adjust GCD Size|r ]",
-                            width = "full",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Enable GCD",
-                            default = defaults.gcd.enable,
-                            getFunc = function ()
-                                return SV.gcd.enable
-                            end,
-                            setFunc = function (value)
-                                SV.gcd.enable = value or false
-                                FancyActionBar.ToggleGCD()
-                            end,
-                            width = "half",
-                        },
-                        {
-                            type = "checkbox",
-                            name = "Only in combat",
-                            default = defaults.gcd.combatOnly,
-                            getFunc = function ()
-                                return SV.gcd.combatOnly
-                            end,
-                            setFunc = function (value)
-                                SV.gcd.combatOnly = value or false
-                                FancyActionBar.ToggleGCD()
-                            end,
-                            width = "half",
-                        },
+                        type = "checkbox",
+                        name = "Accountwide Skill Settings",
+                        tooltip = "If accountwide settings is enabled, changes made will affect a changed skill's ability timer for all characters.",
+                        default = true,
+                        getFunc = function ()
+                            return CV.useAccountWide
+                        end,
+                        setFunc = function (value)
+                            CV.useAccountWide = value or false
+                        end,
+                        requiresReload = true,
+                        width = "full",
+                    },
 
-                        { type = "divider" },
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDCurrently Slotted Ability IDs|r",
+                        controls =
+                        {
 
-                        {
-                            type = "slider",
-                            name = "Height",
-                            default = SV.gcd.sizeX,
-                            min = 30,
-                            max = 100,
-                            step = 1,
-                            getFunc = function ()
-                                return SV.gcd.sizeY
-                            end,
-                            setFunc = function (value)
-                                SV.gcd.sizeY = value
-                                FancyActionBar.UpdateGCDSize()
-                            end,
-                            width = "half",
+                            {
+                                type = "description",
+                                title = "Front Bar",
+                                text = function ()
+                                    return GetCurrentFrontBarInfo()
+                                end,
+                                width = "half",
+                                reference = "Front_Bar_List",
+                            },
+                            {
+                                type = "description",
+                                title = "Back Bar",
+                                text = function ()
+                                    return GetCurrentBackBarInfo()
+                                end,
+                                width = "half",
+                                reference = "Back_Bar_List",
+                            },
                         },
+                    },
+
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDTracked Effects|r",
+                        controls =
                         {
-                            type = "slider",
-                            name = "Width",
-                            default = defaults.gcd.sizeY,
-                            min = 30,
-                            max = 250,
-                            step = 1,
-                            getFunc = function ()
-                                return SV.gcd.sizeX
-                            end,
-                            setFunc = function (value)
-                                SV.gcd.sizeX = value
-                                FancyActionBar.UpdateGCDSize()
-                            end,
-                            width = "half",
+
+                            {
+                                type = "submenu",
+                                name = "Info",
+                                controls =
+                                {
+
+                                    {
+                                        type = "description",
+                                        title = "",
+                                        text = "Here you can edit which effect you want the timer for a specific skill to track.\nTo track a different effect, enter the ID of the skill and the ID of the new effect, then click confirm.",
+                                        width = "full",
+                                    },
+                                },
+                            },
+
+                            { type = "divider" },
+
+                            {
+                                type = "dropdown",
+                                scrollable = 20,
+                                name = "Saved Changes",
+                                tooltip = "Easily find skills that you have made changes to.",
+                                choices = GetChangedSkills(),
+                                getFunc = function ()
+                                    GetSelectedChangedSkill()
+                                end,
+                                setFunc = function (value)
+                                    SetChangedSkillToEdit(value)
+                                end,
+                                reference = "Saved_Changes_Dropdown",
+                                default = 0,
+                                width = "half",
+                            },
+
+                            { type = "description", text = "", width = "half" },
+
+                            {
+                                type = "editbox",
+                                name = "Skill ID",
+                                tooltip = "Enter the ID of the skill you want to edit.",
+                                -- default = '',
+                                getFunc = function ()
+                                    return GetSkillToEditID()
+                                end,
+                                setFunc = function (value)
+                                    SetSkillToEditID(value)
+                                end,
+                                reference = "SkillToEditID_Editbox",
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                title = "Selected Skill:",
+                                text = function ()
+                                    return GetSkillToEditName()
+                                end,
+                                width = "half",
+                                reference = "SkillToEditTitle",
+                            },
+                            {
+                                type = "dropdown",
+                                name = "Change Type",
+                                tooltip = "Select which type of change you want to apply to the skill.",
+                                choices = GetSkillChangeOptions(),
+                                getFunc = function ()
+                                    return GetSkillChangeType()
+                                end,
+                                setFunc = function (value)
+                                    SetSkillChangeType(value)
+                                end,
+                                width = "half",
+                                reference = "Change_Type_Dropdown",
+                                default = 0,
+                            },
+
+                            { type = "description", text = "", width = "half" },
+
+                            {
+                                type = "editbox",
+                                name = "New Effect ID",
+                                tooltip = "Enter the ID of the effect you want to have tracked from the selected skill.",
+                                -- default = '',
+                                getFunc = function ()
+                                    return GetEffectToTrackID()
+                                end,
+                                setFunc = function (value)
+                                    SetEffectToTrackID(value)
+                                end,
+                                reference = "EffectToTrackID_Editbox",
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                title = "Selected Effect:",
+                                text = function ()
+                                    return GetEffectToTrackName()
+                                end,
+                                width = "half",
+                                reference = "EffectToTrackTitle",
+                            },
+
+                            {
+                                type = "button",
+                                name = "Confirm Change",
+                                width = "full",
+                                func = function ()
+                                    ValidateSkillChange()
+                                end,
+                                disabled = function ()
+                                    return IsChangePossible()
+                                end,
+                            },
+                            -- {	type = 'checkbox', 			name = 'Only Update Used Skill',
+                            --   tooltip = 'Only update the timer for the button used to cast the effect.',
+                            --   getFunc = function() return GetUpdateUsedButtonOnly() end,
+                            --   setFunc = function(value) GetUpdateUsedButtonOnly(skillToEditID, value) end,
+                            --   disabled = function() return skillToEditID == 0 or not IsValidId(skillToEditID) end,
+                            --   width = 'half'
+                            -- }
                         },
+                    },
+                    -- {	type = 'divider'  },
+
+                    -- ==============[  External Buff Tracking  ]==============
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDBuffs Gained From others|r",
+                        controls =
                         {
-                            type = "colorpicker",
-                            name = "Fill color",
-                            default = ZO_ColorDef:New(unpack(defaults.gcd.fillColor)),
-                            getFunc = function ()
-                                return unpack(SV.gcd.fillColor)
-                            end,
-                            setFunc = function (r, g, b, a)
-                                SV.gcd.fillColor = { r, g, b, a }
-                                FAB_GCD.fill:SetCenterColor(unpack(SV.gcd.fillColor))
-                                FAB_GCD.fill:SetEdgeColor(unpack(SV.gcd.fillColor))
-                            end,
-                            width = "half",
+
+                            {
+                                type = "submenu",
+                                name = "Info",
+                                controls =
+                                {
+
+                                    { type = "description", text = "Here you can enable the ability timers to track the duration if their tracked effect is gained from an ally.\nYou can also select which effects you do not want to have tracked if you are not the source.",
+                                    },
+                                },
+                            },
+
+                            {
+                                type = "checkbox",
+                                name = "Track Buffs From Others",
+                                default = defaults.externalBuffs,
+                                getFunc = function ()
+                                    return SV.externalBuffs
+                                end,
+                                setFunc = function (value)
+                                    SV.externalBuffs = value or false
+                                    FancyActionBar.SetExternalBuffTracking()
+                                end,
+                                width = "half",
+                            },
+                            { type = "description", width = "half" },
+
+                            {
+                                type = "editbox",
+                                name = "Add to Blacklist",
+                                tooltip = "Enter the ID of the skill you dont want to have updated when you gain the effect from someone else.",
+                                -- default = '',
+                                getFunc = function ()
+                                    return GetSkillToBlacklistID()
+                                end,
+                                setFunc = function (value)
+                                    SetSkillToBlacklistID(value)
+                                end,
+                                reference = "SkillToBlacklistID_Editbox",
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                title = "Selected Buff:",
+                                text = function ()
+                                    return GetSkillToBlacklistName()
+                                end,
+                                width = "half",
+                                reference = "SkillToBlacklistTitle",
+                            },
+
+                            { type = "description", width = "half" },
+
+                            {
+                                type = "button",
+                                name = "Confirm Blacklist",
+                                width = "half",
+                                func = function ()
+                                    BlacklistId()
+                                end,
+                                disabled = function ()
+                                    return not CanBlacklistId()
+                                end,
+                                reference = "SkillToBlacklist_Button",
+                            },
+
+                            { type = "description", width = "full" },
+
+                            {
+                                type = "dropdown",
+                                scrollable = 20,
+                                name = "Blacklisted IDs",
+                                choices = GetBlacklistedSkills(),
+                                getFunc = function ()
+                                    GetSelectedBlacklist()
+                                end,
+                                setFunc = function (value)
+                                    SetSelectedBlacklist(value)
+                                end,
+                                reference = "Blacklist_Dropdown",
+                                -- default = '== Select a Skill ==',
+                                width = "half",
+                            },
+
+                            {
+                                type = "button",
+                                name = "Remove From Blacklist",
+                                width = "half",
+                                func = function ()
+                                    ClearBlacklistId()
+                                end,
+                                disabled = function ()
+                                    return not CanClearBlacklistId()
+                                end,
+                                reference = "BlacklistToClear_Button",
+                            },
                         },
+                    },
+                    -- {	type = 'divider'  },
+
+                    -- ==================[  Target Debuffs  ]==================
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDDebuffs on Target|r",
+                        controls =
                         {
-                            type = "colorpicker",
-                            name = "Edge color",
-                            default = ZO_ColorDef:New(unpack(defaults.gcd.frameColor)),
-                            getFunc = function ()
-                                return unpack(SV.gcd.frameColor)
-                            end,
-                            setFunc = function (r, g, b, a)
-                                SV.gcd.frameColor = { r, g, b, a }
-                                FAB_GCD.frame:SetColor(unpack(SV.gcd.frameColor))
-                            end,
-                            width = "half",
+
+                            {
+                                type = "checkbox",
+                                name = "Debuff timers for current target",
+                                tooltip = "Update timer duration of debuffs when changing target, to display the remaining duration on them specifically.\nOnly for alive enemy targets.",
+                                default = defaults.advancedDebuff,
+                                getFunc = function ()
+                                    return SV.advancedDebuff
+                                end,
+                                setFunc = function (value)
+                                    SV.advancedDebuff = value or false
+                                    FancyActionBar:UpdateDebuffTracking()
+                                end,
+                            },
+
+                            {
+                                type = "checkbox",
+                                name = "Keep Timers For Last Target",
+                                tooltip = "Keep timers when you look away from your target until you have a new enemy target.",
+                                default = defaults.keepLastTarget,
+                                getFunc = function ()
+                                    return SV.keepLastTarget
+                                end,
+                                setFunc = function (value)
+                                    SV.keepLastTarget = value or false
+                                end,
+                                disabled = function ()
+                                    return not SV.advancedDebuff
+                                end,
+                            },
+
+                            {
+                                type = "checkbox",
+                                name = "Show Stack Count for Overtaunt Debuff",
+                                tooltip = "Multiple taunt sources can cause an enemy to gain taunt immunity, this stack counter tracks the status of this debuff.",
+                                default = defaults.showOvertauntStacks,
+                                getFunc = function ()
+                                    return SV.showOvertauntStacks
+                                end,
+                                setFunc = function (value)
+                                    SV.showOvertauntStacks = value or false
+                                end,
+                                disabled = function ()
+                                    return not SV.advancedDebuff
+                                end,
+                            },
+
+                            {
+                                type = "description",
+                                text = "More options to come.",
+                                width = "full",
+                            },
+
+                            -- { type = 'checkbox',      name = 'Hide timers if not on target',
+                            --   tooltip = 'This will determine if the timers for active debuffs should be hidden if they are not active on your current target.\nThis setting will apply to all debuffs that has not been added to individual settings below, and will be ignored for the ones that has.',
+                            --   disabled = function() return not SV.advancedDebuff end,
+                            --   getFunc = function() return FancyActionBar.GetHideOnNoTargetGlobalSetting() end,
+                            --   setFunc = function(value) FancyActionBar.SetHideOnNoTargetGlobalSetting(value) end,
+                            -- },
+                            --
+                            -- { type = 'checkbox',      name = 'Lower timer visibility if not on target',
+                            --   tooltip = 'If timers are not hidden when the debuff is not on your current target, you can choose to lower its visibility instead.',
+                            --   disabled = function() return not SV.advancedDebuff or not FancyActionBar.GetHideOnNoTargetGlobalSetting() end,
+                            --   default = defaults.noTargetFade,
+                            --   getFunc = function() return FancyActionBar.GetNoTargetFade() end,
+                            --   setFunc = function(value) FancyActionBar.SetNoTargetFade(value) end,
+                            --   width = 'half',
+                            -- },
+                            --
+                            -- {	type = 'slider',        name = 'Timer visibility if not on target',
+                            --   default  = defaults.noTargetAlpha,
+                            --   disabled = function() return not SV.advancedDebuff or not SV.noTargetFade or not FancyActionBar.GetHideOnNoTargetGlobalSetting() end,
+                            --   min      = 10, max = 100, step = 1,
+                            --   getFunc  = function() return FancyActionBar.GetNoTargetAlpha() * 100 end,
+                            --   setFunc  = function(value) FancyActionBar.SetNoTargetAlpha(value) end,
+                            --   width    = 'half'
+                            -- },
+                            --
+                            -- {	type = 'description',   title = 'Specify for debuff',
+                            --   text = 'If you have added the ID for a debuff to this section it will ignore the above settings for visibility, and instead use the options specified below.',
+                            --   width = 'full',
+                            -- },
+
+                            -- { type = 'editbox',       name = 'Add Debuff',
+                            --   tooltip = 'Enter the ID of the debuff you want to enable specific options for.',
+                            --     -- default = '',
+                            --     getFunc = function() return GetDebuffToAddID() end,
+                            --     setFunc = function(value) SetDebuffToAddID(value) end,
+                            --     reference = 'DebuffToAdd_Editbox',
+                            --     isMultiline = false,
+                            --     isExtraWide = false,
+                            --     width = 'half'
+                            -- },
+                            -- { type = 'description',   title = 'Selected Debuff:',
+                            --   text = function() return GetDebuffToAddName() end,
+                            --   width = 'half',
+                            --   reference = 'DebuffToAdd_Title'
+                            -- },
+                            --
+                            -- {	type = 'description',   width = 'half' },
+                            --
+                            -- { type = "button",        name = "Confirm Debuff Changes",
+                            --   width = "half",
+                            --   func = function() AddDebuff() end,
+                            --   disabled = function() return not CanAddDebuff() end,
+                            --   reference = 'DebuffToAdd_Button'
+                            -- },
+                            --
+                            -- {	type = 'description',   width = 'full' },
+                            --
+                            -- { type = 'dropdown',      name = 'Debuffs',
+                            --   choices = GetDebuffNames(),
+                            --   getFunc = function() GetSelectedDebuff() end,
+                            --   setFunc = function(value) SetSelectedDebuff(value) end,
+                            --   reference = 'Debuff_Dropdown',
+                            --   -- default = '== Select a Skill ==',
+                            --   width = 'half'
+                            -- },
+                            --
+                            -- { type = "button",        name = "Remove Debuff",
+                            --   width = "half",
+                            --   func = function() ClearDebuff() end,
+                            --   disabled = function() return not CanClearDebuff() end,
+                            --   reference = 'DebuffToClear_Button'
+                            -- }
+                        },
+                    },
+                    -- {	type = 'divider'  },
+
+                    -- ============[  Additional Tracking Options  ]===========
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDAdditional Tracking Options|r",
+                        controls =
+                        {
+
+
+                            -- { type = 'divider'	},
+
+                            {
+                                type = "description",
+                                title = "[ |cffdf80Effect Duration Thresholds|r ]",
+                                text = "Set the limits for when to ignore effects based on their duration.",
+                                width = "full",
+                            },
+                            {
+                                type = "slider",
+                                name = "Minimum",
+                                min = 1,
+                                max = 4,
+                                step = 0.5,
+                                getFunc = function ()
+                                    return SV.durationMin
+                                end,
+                                setFunc = function (value)
+                                    SV.durationMin = value
+                                    FancyActionBar.UpdateDurationLimits()
+                                end,
+                                width = "half",
+                                default = defaults.durationMin,
+                            },
+                            {
+                                type = "slider",
+                                name = "Maximum",
+                                min = 30,
+                                max = 130,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.durationMax
+                                end,
+                                setFunc = function (value)
+                                    SV.durationMax = value
+                                    FancyActionBar.UpdateDurationLimits()
+                                end,
+                                width = "half",
+                                default = defaults.durationMax,
+                            },
+
+                            { type = "divider" },
+                            {
+                                type = "description",
+                                title = "[ |cffdf80Multitarget Effect Tracking Options|r ]",
+                                text = "Options for configuring the behavior and tracked abilities for the Target Instance Counter.",
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Show Target Instance Counter",
+                                tooltip = "Abilities that track an effect that can be applied to multiple targets simultaneously will show an instance counter on the top left of the ability icon.",
+                                default = defaults.showTargetCount,
+                                getFunc = function ()
+                                    return SV.showTargetCount
+                                end,
+                                setFunc = function (value)
+                                    SV.showTargetCount = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Show Instance Count for One Active Instance",
+                                tooltip = "Show the target instance counter if only one instance of the effect is active. Note that this does not apply to debuffs when 'Debuffs on target' mode is enabled.",
+                                default = defaults.showSingleTargetInstance,
+                                disabled = function ()
+                                    return not SV.showTargetCount
+                                end,
+                                getFunc = function ()
+                                    return SV.showSingleTargetInstance
+                                end,
+                                setFunc = function (value)
+                                    SV.showSingleTargetInstance = value or false
+                                end,
+                            },
+                            { type = "divider" },
+                            {
+                                type = "editbox",
+                                name = "Add to Blacklist",
+                                tooltip =
+                                "Enter the ID of the skill you dont want to track multiple target instances of.",
+                                -- default = '',
+                                getFunc = function ()
+                                    return GetMultiTargetSkillToBlacklistID()
+                                end,
+                                setFunc = function (value)
+                                    SetMultiTargetSkillToBlacklistID(value)
+                                end,
+                                reference = "MultiTargetSkillToBlacklistID_Editbox",
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                title = "Selected Skill:",
+                                text = function ()
+                                    return GetMultiTargetSkillToBlacklistName()
+                                end,
+                                width = "half",
+                                reference = "MultiTargetSkillToBlacklistTitle",
+                            },
+
+                            { type = "description", width = "half" },
+
+                            {
+                                type = "button",
+                                name = "Confirm Blacklist",
+                                width = "half",
+                                func = function ()
+                                    BlacklistMultiTargetId()
+                                end,
+                                disabled = function ()
+                                    return not CanBlacklistMultiTargetId()
+                                end,
+                                reference = "MultiTargetSkillToBlacklist_Button",
+                            },
+
+                            { type = "description", width = "full" },
+
+                            {
+                                type = "dropdown",
+                                scrollable = 20,
+                                name = "Blacklisted IDs",
+                                choices = GetBlacklistedMultiTargetSkills(),
+                                getFunc = function ()
+                                    GetSelectedMultiTargetBlacklist()
+                                end,
+                                setFunc = function (value)
+                                    SetSelectedMultiTargetBlacklist(value)
+                                end,
+                                reference = "MultiTargetBlacklist_Dropdown",
+                                -- default = '== Select a Skill ==',
+                                width = "half",
+                            },
+
+                            {
+                                type = "button",
+                                name = "Remove From Blacklist",
+                                width = "half",
+                                func = function ()
+                                    ClearMultiTargetBlacklistId()
+                                end,
+                                disabled = function ()
+                                    return not CanClearBlacklistMultiTargetId()
+                                end,
+                                reference = "MultiTargetBlacklistToClear_Button",
+                            },
+                            { type = "divider" },
+                            {
+                                type = "description",
+                                title = "[ |cffdf80Miscellaneous Options|r ]",
+                                text = "Additional settings for configuring ability tracking.",
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Show Stack Counter",
+                                tooltip = "Show stack count for abilities that can have multiple stacks, or can stack multiple times.",
+                                default = defaults.showStackCount,
+                                getFunc = function ()
+                                    return SV.showStackCount
+                                end,
+                                setFunc = function (value)
+                                    SV.showStackCount = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Show Cast/Channel Times on Action Slots",
+                                tooltip = "If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled.",
+                                default = defaults.showCastDuration,
+                                getFunc = function ()
+                                    return SV.showCastDuration
+                                end,
+                                setFunc = function (value)
+                                    SV.showCastDuration = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Ignore Initial Trap Placement",
+                                tooltip = "By default 'Trap' effects, such as Trap Beast and Scalding Rune display an initial timer and stack when placed, and switch to tracking the DOT when triggered. Toggle ON to only track the DOT",
+                                default = defaults.ignoreTrapPlacement,
+                                getFunc = function ()
+                                    return SV.ignoreTrapPlacement
+                                end,
+                                setFunc = function (value)
+                                    SV.ignoreTrapPlacement = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Show Timer For Soonest Expiring Target",
+                                tooltip = "By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.",
+                                default = defaults.showSoonestExpire,
+                                getFunc = function ()
+                                    return SV.showSoonestExpire
+                                end,
+                                setFunc = function (value)
+                                    SV.showSoonestExpire = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Ignore Ungrouped Allies",
+                                tooltip = "By default all buffs applied to allies are tracked. With this setting enabled, while you are in a group only buffs applied to group members will be tracked.",
+                                default = defaults.ignoreUngroupedAliies,
+                                getFunc = function ()
+                                    return SV.ignoreUngroupedAliies
+                                end,
+                                setFunc = function (value)
+                                    SV.ignoreUngroupedAliies = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Allow Fallback Timers",
+                                tooltip = "By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.",
+                                default = defaults.allowParentTime,
+                                getFunc = function ()
+                                    return SV.allowParentTime
+                                end,
+                                setFunc = function (value)
+                                    SV.allowParentTime = value or false
+                                end,
+                            },
                         },
                     },
                 },
-            },
-        })
+            })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable, { type = "divider" })
+        tableIndex = tableIndex + 1
+
+        table.insert(optionsTable,
+            {
+                -- ============[	Miscellaneous	]=======================
+                type = "submenu",
+                name = "|cFFFACDMiscellaneous|r",
+                controls =
+                {
+
+                    {
+                        type = "checkbox",
+                        name = "Show bar while dead",
+                        tooltip = "Will display the action bar while you are dead if enabled.",
+                        default = defaults.showDeath,
+                        getFunc = function ()
+                            return SV.showDeath
+                        end,
+                        setFunc = function (value)
+                            SV.showDeath = value or false
+                            CheckDeathState()
+                            FancyActionBar.ApplyDeathStateOption()
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Prevent casting in trade",
+                        tooltip = "Blocks the use of skills while in trade, but allows the use of them while in settings and when map is open.\nThis will prevent Perfect Weave from working as intended.",
+                        default = defaults.lockInTrade,
+                        getFunc = function ()
+                            return SV.lockInTrade
+                        end,
+                        setFunc = function (value)
+                            SV.lockInTrade = value or false
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Enable Perfect Weave",
+                        tooltip = "In order for Perfect Weave to work, changes that allows for skills to be cast while in settings or when map is open ect. has to be disabled.\nThe game did not consider these thigns well in the past, which is why I made a few alterations to them. They have been slightly improved and you can rely on them if you want to use Perfect Weave and this addon together.",
+                        default = defaults.perfectWeave,
+                        getFunc = function ()
+                            return SV.perfectWeave
+                        end,
+                        setFunc = function (value)
+                            SV.perfectWeave = value or false
+                        end,
+                        requiresReload = true,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Adjust Health Bar",
+                        tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
+                        default = defaults.moveHealthBar,
+                        getFunc = function ()
+                            return SV.moveHealthBar
+                        end,
+                        setFunc = function (value)
+                            SV.moveHealthBar = value or false
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end,
+                        requiresReload = true,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Adjust Mag/Stam Bars",
+                        tooltip = "Also adjust the position of the magicka and stamina bars to align with health bar.",
+                        default = defaults.moveResourceBars,
+                        getFunc = function ()
+                            return SV.moveResourceBars
+                        end,
+                        setFunc = function (value)
+                            SV.moveResourceBars = value or false
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end,
+                        disabled = function ()
+                            return not SV.moveHealthBar
+                        end,
+                        requiresReload = true,
+                        width = "half",
+                    },
+                    { type = "description", text = "", width = "half" },
+
+                    -- ============[	Enemy Markers	]=======================
+                    {
+                        type = "description",
+                        title = "[ |cffdf80Enemy Markers|r ]",
+                        text = "This replicates a similar feature found in the Untaunted addon.",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Show Enemy Markers",
+                        tooltip = "Display a red arrow over the head of enemies you are currently in combat with.",
+                        default = defaults.showMarker,
+                        getFunc = function ()
+                            return SV.showMarker
+                        end,
+                        setFunc = function (value)
+                            SV.showMarker = value or false
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = "Enemy Marker Size",
+                        default = defaults.markerSize,
+                        min = 10,
+                        max = 90,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.markerSize
+                        end,
+                        setFunc = function (value)
+                            SV.markerSize = value
+                            FancyActionBar.SetMarker(value)
+                        end,
+                        width = "half",
+                    },
+                    { type = "divider" },
+
+                    -- ===============[  GCD Tracker  ]======================
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDGlobal Cooldown Tracker|r",
+                        controls =
+                        {
+                            {
+                                type = "description",
+                                title = "[ |cffdf80Adjust GCD Size|r ]",
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Enable GCD",
+                                default = defaults.gcd.enable,
+                                getFunc = function ()
+                                    return SV.gcd.enable
+                                end,
+                                setFunc = function (value)
+                                    SV.gcd.enable = value or false
+                                    FancyActionBar.ToggleGCD()
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Only in combat",
+                                default = defaults.gcd.combatOnly,
+                                getFunc = function ()
+                                    return SV.gcd.combatOnly
+                                end,
+                                setFunc = function (value)
+                                    SV.gcd.combatOnly = value or false
+                                    FancyActionBar.ToggleGCD()
+                                end,
+                                width = "half",
+                            },
+
+                            { type = "divider" },
+
+                            {
+                                type = "slider",
+                                name = "Height",
+                                default = SV.gcd.sizeX,
+                                min = 30,
+                                max = 100,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.gcd.sizeY
+                                end,
+                                setFunc = function (value)
+                                    SV.gcd.sizeY = value
+                                    FancyActionBar.UpdateGCDSize()
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Width",
+                                default = defaults.gcd.sizeY,
+                                min = 30,
+                                max = 250,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.gcd.sizeX
+                                end,
+                                setFunc = function (value)
+                                    SV.gcd.sizeX = value
+                                    FancyActionBar.UpdateGCDSize()
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Fill color",
+                                default = ZO_ColorDef:New(unpack(defaults.gcd.fillColor)),
+                                getFunc = function ()
+                                    return unpack(SV.gcd.fillColor)
+                                end,
+                                setFunc = function (r, g, b, a)
+                                    SV.gcd.fillColor = { r, g, b, a }
+                                    FAB_GCD.fill:SetCenterColor(unpack(SV.gcd.fillColor))
+                                    FAB_GCD.fill:SetEdgeColor(unpack(SV.gcd.fillColor))
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "colorpicker",
+                                name = "Edge color",
+                                default = ZO_ColorDef:New(unpack(defaults.gcd.frameColor)),
+                                getFunc = function ()
+                                    return unpack(SV.gcd.frameColor)
+                                end,
+                                setFunc = function (r, g, b, a)
+                                    SV.gcd.frameColor = { r, g, b, a }
+                                    FAB_GCD.frame:SetColor(unpack(SV.gcd.frameColor))
+                                end,
+                                width = "half",
+                            },
+                        },
+                    },
+                },
+            })
         if IsConsoleUI() then
-            local moveGCD = {
+            local moveGCD =
+            {
                 {
                     type = "description",
                     title = "[ |cffdf80Adjust GCD Position|r ]",
@@ -6119,7 +6126,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         FAB_GCD:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, SV.gcd.x, SV.gcd.y, FAB_GCD:GetResizeToFitConstrains())
                     end,
                     width = "half",
-                }}
+                }
+            }
             for k, v in pairs(moveGCD) do
                 table.insert(optionsTable[tableIndex].controls, v)
             end
@@ -6129,40 +6137,42 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
 
-        table.insert(optionsTable, {
-        -- ===============[  Debugging  ]========================
-            type = "description",
-            title = "[ |cffdf80Debugging|r ]",
-            text = "",
-            width = "full",
-        })
+        table.insert(optionsTable,
+            {
+                -- ===============[  Debugging  ]========================
+                type = "description",
+                title = "[ |cffdf80Debugging|r ]",
+                text = "",
+                width = "full",
+            })
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable,
-        {
-            type = "checkbox",
-            name = "Debug mode",
-            tooltip = "Display internal events in the chat",
-            default = defaults.debug,
-            getFunc = function ()
-                return SV.debug
-            end, -- FancyActionBar.IsDebugMode() end,
-            setFunc = function (value)
-                -- FancyActionBar.SetDebugMode(value or false)
-                FancyActionBar.SetDebugMode(value or false)
-                SV.debug = value or false
-            end,
-        })
+            {
+                type = "checkbox",
+                name = "Debug mode",
+                tooltip = "Display internal events in the chat",
+                default = defaults.debug,
+                getFunc = function ()
+                    return SV.debug
+                end, -- FancyActionBar.IsDebugMode() end,
+                setFunc = function (value)
+                    -- FancyActionBar.SetDebugMode(value or false)
+                    FancyActionBar.SetDebugMode(value or false)
+                    SV.debug = value or false
+                end,
+            })
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
 
-        table.insert(optionsTable, {
-            type = "description",
-            text = FancyActionBar.strings.disclaimer,
-            width = "full",
-        })
+        table.insert(optionsTable,
+            {
+                type = "description",
+                text = FancyActionBar.strings.disclaimer,
+                width = "full",
+            })
         tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
@@ -6938,7 +6948,7 @@ function FancyActionBar.ResetMoveActionBar()
         ACTION_BAR:SetAnchor(BOTTOM, GuiRoot, BOTTOM, d.x or 0, d.y or 0)
     end
 
-    ACTION_BAR:RegisterForEvent(EVENT_SCREEN_RESIZED, function()
+    ACTION_BAR:RegisterForEvent(EVENT_SCREEN_RESIZED, function ()
         if not v.enable then
             ACTION_BAR:ClearAnchors()
             if IsConsoleUI() then
