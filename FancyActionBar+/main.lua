@@ -3504,7 +3504,7 @@ ActionButton["SetShowBindingText"] = FancySetShowBindingText
 
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
-    local isSlotUsed = IsSlotUsed(ULT_INDEX, self.button.hotbarCategory)
+    local isSlotUsed = IsSlotUsed(ULT_INDEX, self.slot.hotbarCategory)
     local barTexture = GetControl(self.slot, "UltimateBar")
     local leadingEdge = GetControl(self.slot, "LeadingEdge")
     local ultimateReadyBurstTexture = GetControl(self.slot, "ReadyBurst")
