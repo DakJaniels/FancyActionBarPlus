@@ -500,10 +500,10 @@ FancyActionBar.abilityConfig =
     [183709] = { 183712 }, -- vitalizing glyphic
     [193794] = { 193797 }, -- glyphic of the tides
     [193558] = { 193559 }, -- resonating glyphic
-    [183648] = {61694},    -- fatewoven armor
-    [185908] = {61694},    -- cruxweaver armor
-    [186477] = {61694},    -- unbreakable fate
-    [238256] = {61694},    -- vengeance fatewoven armor
+    [183648] = { 61694 },  -- fatewoven armor
+    [185908] = { 61694 },  -- cruxweaver armor
+    [186477] = { 61694 },  -- unbreakable fate
+    [238256] = { 61694 },  -- vengeance fatewoven armor
 
     -- Volendrung
     [116095] = { 61665 }, -- Major Brutality
@@ -788,7 +788,8 @@ FancyActionBar.stackMap =
     },
 
     -- Brutal Pounce (Carnage Bleed)
-    [137189] = {
+    [137189] =
+    {
         137189,
         137184,
         39105
@@ -1090,7 +1091,7 @@ FancyActionBar.fakeClassEffects =
     -- Dragonknight
     -- [35] = {}, -- Ardent Flame
     [36] =
-    { -- Draconic Power
+    {                                             -- Draconic Power
         [31841] = { duration = 2.5, id = 31841 }, -- inhale
         [32788] = { duration = 2.5, id = 32788 }, -- draw essence
         [32796] = { duration = 2.5, id = 32796 }, -- deep breath
@@ -1118,14 +1119,14 @@ FancyActionBar.fakeClassEffects =
 
     -- Necromancer
     [131] =
-    { -- Grave Lord
+    {                                              -- Grave Lord
         [115924] = { duration = 20, id = 116445 }, -- Shocking Siphon
         [118008] = { duration = 20, id = 118009 }, -- Mystic Siphon
         [118763] = { duration = 20, id = 118764 }, -- Detonating Siphon
     },
     -- [132] = {}, -- Bone Tyrant
     [133] =
-     { -- Living Death
+    {                                              -- Living Death
         [115926] = { duration = 12, id = 116450 }, -- Restoring Tether
         [118122] = { duration = 12, id = 118123 }, -- Mortal Coil
         [118070] = { duration = 12, id = 118071 }, -- Braided Tether
@@ -1167,10 +1168,10 @@ FancyActionBar.fakeClassEffects =
 --- @type table<integer, FAB_BuffInfo>
 FancyActionBar.specialEffects =
 {
-    [16536] = { id = 16536, stackId = { 16536 }, procs = 1, hasProced = 0, isMultiTarget = true }, -- meteor
-    [63430] = { id = 16536, stackId = { 16536 }, procs = 1, hasProced = 0, isMultiTarget = true }, -- meteor
-    [40489] = { id = 40489, stackId = { 40489 }, procs = 1, hasProced = 0, isMultiTarget = true }, -- ice comet
-    [63456] = { id = 40489, stackId = { 40489 }, procs = 1, hasProced = 0, isMultiTarget = true }, -- ice comet
+    [16536] = { id = 16536, stackId = { 16536 }, procs = 1, hasProced = 0, isMultiTarget = true },                                                                                                            -- meteor
+    [63430] = { id = 16536, stackId = { 16536 }, procs = 1, hasProced = 0, isMultiTarget = true },                                                                                                            -- meteor
+    [40489] = { id = 40489, stackId = { 40489 }, procs = 1, hasProced = 0, isMultiTarget = true },                                                                                                            -- ice comet
+    [63456] = { id = 40489, stackId = { 40489 }, procs = 1, hasProced = 0, isMultiTarget = true },                                                                                                            -- ice comet
 
     [35750] = { id = 35750, stackId = { 35750 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true, forceExpireStacks = true, onAbilityUsed = true, needCombatEvent = true }, -- Trap Beast Placed
     [35756] = { id = 35750, stackId = { 35750 }, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true },                                                    -- Trap Beast DOT
@@ -1179,17 +1180,17 @@ FancyActionBar.specialEffects =
     [40382] = { id = 40382, stackId = { 40382 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true, forceExpireStacks = true, onAbilityUsed = true, needCombatEvent = true }, -- Barbed Trap Placed
     [40385] = { id = 40382, stackId = { 40382 }, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true },                                                    -- Barbed Trap DOT
 
-    [40465] = { id = 40465, stackId = { 40465 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                      -- Scalding Rune Placed
-    [40468] = { id = 40465, stackId = { 40465 }, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true }, -- Scalding Rune DOT
+    [40465] = { id = 40465, stackId = { 40465 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                                                                         -- Scalding Rune Placed
+    [40468] = { id = 40465, stackId = { 40465 }, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true },                                                    -- Scalding Rune DOT
 
-    [28727] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true, }, -- defensive posture
-    [126604] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true, }, -- defensive posture
+    [28727] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- defensive posture
+    [126604] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                   -- defensive posture
 
-    [38312] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true, }, -- defensive stance
-    [126608] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true, }, -- defensive stance
+    [38312] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- defensive stance
+    [126608] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                   -- defensive stance
 
-    [38317] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true, }, -- absorb missile
-    [38324] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true, }, -- absorb missile
+    [38317] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- absorb missile
+    [38324] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- absorb missile
 }
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
@@ -1214,10 +1215,12 @@ FancyActionBar.specialClassEffects =
     -- [37] = {}, -- Earthen Heart
 
     -- Sorcerer
-    [41] = { -- Dark Magic
+    [41] =
+    {                                                                                        -- Dark Magic
         [46331] = { id = 46331, stackId = { 46331 }, stacks = 2, procs = 1, hasProced = 0 }, -- Crystal Weapon
     },
-    [42] = { -- Daedric Summoning
+    [42] =
+    {                                                                                                                                                                           -- Daedric Summoning
         [24330] = { id = 24330, stackId = { 24330 }, setTime = true, duration = 3.5, stacks = 2, procs = 1, hasProced = 0, isSpecialDebuff = true, keepOnTargetChange = true }, -- Haunting Curse, first proc
         [89491] = { id = 24330, stackId = { 24330 }, setTime = true, duration = 8.5, stacks = 1, procs = 1, hasProced = 1, isSpecialDebuff = true, keepOnTargetChange = true }, -- Haunting Curse, second proc
     },
@@ -1225,15 +1228,17 @@ FancyActionBar.specialClassEffects =
 
     -- Nightblade
     -- [38] = {}, -- Assassination
-    [39] = { -- Shadow
-        [37475] = { id = 37475, stackId = { 37475 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true }, -- manifestation of terror
+    [39] =
+    {                                                                                                                                                                                        -- Shadow
+        [37475] = { id = 37475, stackId = { 37475 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                                                    -- manifestation of terror
         [76639] = { id = 37475, stackId = { 37475 }, setTime = true, duration = 4, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true }, -- manifestation of terror (fear)
         -- [147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (major cowardice)
     },
     -- [40] = {}, -- Siphoning
 
     -- Warden
-    [127] = { -- Animal Companions
+    [127] =
+    {                                                                                                                       -- Animal Companions
         [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
         [178020] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Scorch, second proc
         [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
@@ -1242,14 +1247,15 @@ FancyActionBar.specialClassEffects =
         [178028] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Deep Fissure, second proc
     },
     -- [128] = {}, -- Green Balance
-    [129] = { -- Winter's Embrace
+    [129] =
+    {                                                                                                          -- Winter's Embrace
         [86135] = { id = 86135, stackId = { 86135 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized shield
         [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized slab
         [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- shimmering shield
 
-        [86175] = { id = 86175, stackId = { 86175 }, handler = "device" }, -- frozen gate
-        [86179] = { id = 86179, stackId = { 86179 }, handler = "device" }, -- frozen device
-        [86183] = { id = 86183, stackId = { 86183 }, handler = "device" }, -- frozen retreat
+        [86175] = { id = 86175, stackId = { 86175 }, handler = "device" },                                     -- frozen gate
+        [86179] = { id = 86179, stackId = { 86179 }, handler = "device" },                                     -- frozen device
+        [86183] = { id = 86183, stackId = { 86183 }, handler = "device" },                                     -- frozen retreat
     },
 
     -- Necromancer
@@ -1260,7 +1266,8 @@ FancyActionBar.specialClassEffects =
     -- Templar
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
-    [28] = { -- Restoring Light
+    [28] =
+    {                                                                                                -- Restoring Light
         [22265] = { id = 22265, duration = GetAbilityDuration(22265) / 1000, onAbilityUsed = true }, -- Cleansing Ritual
         [22259] = { id = 22259, duration = GetAbilityDuration(22259) / 1000, onAbilityUsed = true }, -- Ritual of Retribution
         [22262] = { id = 22262, duration = GetAbilityDuration(22262) / 1000, onAbilityUsed = true }, -- Extended Ritual
@@ -1280,10 +1287,12 @@ FancyActionBar.specialClassEffectProcs =
     -- [37] = {}, -- Earthen Heart
 
     -- Sorcerer
-    [41] = { -- Dark Magic
+    [41] =
+    { -- Dark Magic
         [46331] = { [1] = { id = 46331, stacks = 0, procs = 1, hasProced = 0 } },
     },
-    [42] = { -- Daedric Summoning
+    [42] =
+    { -- Daedric Summoning
         [24330] = { [1] = { id = 24330, stacks = 0, procs = 1, hasProced = 0, faded = false }, },
         [89491] = { [1] = { id = 24330, stacks = 0, procs = 1, hasProced = 0, faded = false } },
     },
@@ -1291,7 +1300,8 @@ FancyActionBar.specialClassEffectProcs =
 
     -- Nightblade
     -- [38] = {}, -- Assassination
-    [39] = { -- Shadow
+    [39] =
+    { -- Shadow
         [37475] = { [1] = { id = 37475, stacks = 0, procs = 1, hasProced = 0, isDebuff = false, } },
         [76639] = { [1] = { id = 37475, stacks = 0, procs = 1, hasProced = 0, isDebuff = true } },
         -- [147643] = { [1] = { id = 37475; stacks = 0; procs = 1; hasProced = 0; isDebuff = true } };
@@ -1299,7 +1309,8 @@ FancyActionBar.specialClassEffectProcs =
     -- [40] = {}, -- Siphoning
 
     -- Warden
-    [127] = { -- Animal Companions
+    [127] =
+    { -- Animal Companions
         [86009] = { [1] = { id = 86009, stacks = 0, procs = 1, hasProced = 0 }, },
         [178020] = { [1] = { id = 86009, stacks = 0, procs = 1, hasProced = 0 } },
         [86019] = { [1] = { id = 86019, stacks = 0, procs = 1, hasProced = 0 }, },
@@ -1336,14 +1347,14 @@ FancyActionBar.needCombatEvent =
     [216940] = { duration = 5, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = false },                                                                                                                    -- Leashing Soul (Potent Soul), Anchorite's Potency
 
     -- Class Specific UltGen Passives that need Combat Events
-    [29474] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Mountain's Blessing I
-    [45005] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Mountain's Blessing II
-    [36589] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },    -- Transfer I
-    [45146] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },    -- Transfer II
-    [88512] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },    -- Savage Beast I
-    [88513] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },    -- Savage Beast II
-    [31746] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },    -- Prism I
-    [45217] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },    -- Prism II
+    [29474] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },   -- Mountain's Blessing I
+    [45005] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },   -- Mountain's Blessing II
+    [36589] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },   -- Transfer I
+    [45146] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },   -- Transfer II
+    [88512] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },  -- Savage Beast I
+    [88513] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },  -- Savage Beast II
+    [31746] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },   -- Prism I
+    [45217] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },   -- Prism II
     [185051] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 }, -- Implacable Outcome I
     [185070] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 }, -- Implacable Outcome II
 }
@@ -1565,19 +1576,19 @@ FancyActionBar.ignoreFallbackTimers =
     [186477] = true, -- unbreakable fate
     [238256] = true, -- vengeance fatewoven armor
     [118680] = true, -- skeletal arcanist
-    [28858] = true, -- wall of elements
-    [39052] = true, -- unstable wall of elements
-    [39011] = true, -- elemental blockade
-    [28807] = true, -- wall of elements (fire)
-    [28854] = true, -- wall of elements (lightning)
-    [28849] = true, -- wall of elements (frost)
-    [39053] = true, -- unstable wall of elements (fire)
-    [39073] = true, -- unstable wall of elements (lightning)
-    [39067] = true, -- unstable wall of elements (frost)
-    [39012] = true, -- elemental blockade (fire)
-    [39018] = true, -- elemental blockade (lightning)
-    [39028] = true, -- elemental blockade (frost)
-    [31888] = true, -- molten armaments
+    [28858] = true,  -- wall of elements
+    [39052] = true,  -- unstable wall of elements
+    [39011] = true,  -- elemental blockade
+    [28807] = true,  -- wall of elements (fire)
+    [28854] = true,  -- wall of elements (lightning)
+    [28849] = true,  -- wall of elements (frost)
+    [39053] = true,  -- unstable wall of elements (fire)
+    [39073] = true,  -- unstable wall of elements (lightning)
+    [39067] = true,  -- unstable wall of elements (frost)
+    [39012] = true,  -- elemental blockade (fire)
+    [39018] = true,  -- elemental blockade (lightning)
+    [39028] = true,  -- elemental blockade (frost)
+    [31888] = true,  -- molten armaments
     [86050] = true,  -- betty netch
     [86054] = true,  -- blue betty
     [86058] = true,  -- bull netch
@@ -1927,37 +1938,44 @@ FancyActionBar.styleFix =
 
 FancyActionBar.skillLineInfo =
 {
-    [1] = {  -- Dragonknight
+    [1] =
+    {       -- Dragonknight
         35, -- Ardent Flame
         36, -- Draconic Power
         37, -- Earthen Heart
     },
-    [2] = {  -- Sorcerer
+    [2] =
+    {       -- Sorcerer
         41, -- Dark Magic
         42, -- Daedric Summoning
         43, -- Storm Calling
     },
-    [3] = {  -- Nightblade
+    [3] =
+    {       -- Nightblade
         38, -- Assassination
         39, -- Shadow
         40, -- Siphoning
     },
-    [4] = { -- Warden
+    [4] =
+    {        -- Warden
         127, -- Animal Companions
         128, -- Green Balance
         129, -- Winter's Embrace
     },
-    [5] = {  -- Necromancer
+    [5] =
+    {        -- Necromancer
         131, -- Grave Lord
         132, -- Bone Tyrant
         133, -- Living Death
     },
-    [6] = { -- Templar
-        22, --Aedric Spear
+    [6] =
+    {       -- Templar
+        22, -- Aedric Spear
         27, -- Dawn's Wrath
         28, -- Restoring Light
     },
-    [117] = { -- Arcanist
+    [117] =
+    {        -- Arcanist
         218, -- Herald of the Tome
         219, -- Soldier of Apocrypha
         220, -- Curative Runeforms
