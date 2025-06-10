@@ -22,7 +22,7 @@ local ACTION_BAR = GetControl("ZO_ActionBar1")
 local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
 local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
-local currentWeaponPair = GetActiveWeaponPairInfo()
+local currentWeaponPair = GetHeldWeaponPair()
 local isWeaponSwapLocked = false  -- for tracking weapon swap lock state
 local specialHotbarActive = false -- for tracking if a specialHotbar is active
 
