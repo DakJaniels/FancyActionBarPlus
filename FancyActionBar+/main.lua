@@ -701,8 +701,8 @@ end
 
 ---
 --- @return table
-function FancyActionBar.GetContants()
-    if FancyActionBar.updateUI then
+function FancyActionBar.GetConstants()
+    if FancyActionBar.updateUI or not (FancyActionBar.constants and FancyActionBar.constants.style) then
         FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1
         local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
         FancyActionBar.constants.style = s
@@ -2619,7 +2619,9 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
     FAB_ActionBarFakeQS:ClearAnchors()
     FAB_ActionBarFakeQS:SetAnchor(LEFT, ACTION_BAR, LEFT, 0, -5, FAB_ActionBarFakeQS:GetResizeToFitConstrains())
 
-    local style = IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS
+    local constants = FancyActionBar.GetConstants()
+    local style = (constants and next(constants)) and constants
+            or (IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS)
     local anchor = style.anchor
     if FancyActionBar.updateUI then
         anchor:SetFromControlAnchor(ACTION_BAR)
@@ -2633,33 +2635,42 @@ end
 
 function FancyActionBar.AdjustQuickSlotSpacing(lock)
     if SV.hideLockedBar then
-        lock = lock or isWeaponSwapLocked or nil
+        lock = lock or isWeaponSwapLocked
     end
 
     local abilitySlotOffsetX = FancyActionBar.constants.abilitySlot.offsetX
     local QSB = GetControl("QuickslotButton")
     local xOffset = (FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB) or SV.quickSlotCustomXOffsetGP or 0
     local yOffset = (FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB) or SV.quickSlotCustomYOffsetGP or 0
-    local anchorOffsetX = (abilitySlotOffsetX + xOffset) * scale
     local anchorOffsetY = yOffset * scale
-
-    QSB:ClearAnchors()
+    local anchorControl, anchorPoint, relPoint, anchorX
 
     if not SV.showArrow or lock then
-        if SV.moveQS then
+        if SV.moveQS and weaponSwapControl then
+            anchorControl = weaponSwapControl
+            anchorPoint = RIGHT
+            relPoint = RIGHT
             if FancyActionBar.style == 2 then
-                QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(2 + (SLOT_COUNT * anchorOffsetX)), anchorOffsetY, QSB:GetResizeToFitConstrains())
+                anchorX = -(2 + (SLOT_COUNT * abilitySlotOffsetX) + xOffset) * scale
             else
-                QSB:SetAnchor(RIGHT, weaponSwapControl, RIGHT, -(5 + anchorOffsetX), anchorOffsetY, QSB:GetResizeToFitConstrains())
+                anchorX = -(5 + abilitySlotOffsetX + xOffset) * scale
             end
         else
-            QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, xOffset, anchorOffsetY, QSB:GetResizeToFitConstrains())
+            anchorControl = FAB_ActionBarFakeQS
+            anchorPoint = LEFT
+            relPoint = LEFT
+            anchorX = xOffset
         end
     else
-        QSB:SetAnchor(LEFT, FAB_ActionBarFakeQS, LEFT, xOffset, anchorOffsetY, QSB:GetResizeToFitConstrains())
+        anchorControl = FAB_ActionBarFakeQS
+        anchorPoint = LEFT
+        relPoint = LEFT
+        anchorX = xOffset
         FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
     end
 
+    QSB:ClearAnchors()
+    QSB:SetAnchor(anchorPoint, anchorControl, relPoint, anchorX, anchorOffsetY, QSB:GetResizeToFitConstrains())
     FAB_ActionBarArrow:SetHidden(lock or not SV.showArrow)
 end
 
@@ -2667,7 +2678,7 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
     if FancyActionBar.style == 1 then
         return
     end
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
 
     ActionButton8:ClearAnchors()
     CompanionUltimateButton:ClearAnchors()
@@ -3096,7 +3107,7 @@ local createOverlays = function (style, QSB)
 end
 
 function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to settings
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
     local QSB = QuickslotButton
 
     -- Apply styles to buttons
@@ -3124,7 +3135,7 @@ end
 --- Apply style to action bars depending on keyboard/gamepad mode.
 function FancyActionBar.ApplyStyle()
     FancyActionBar.UpdateStyle()
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
 
     FancyActionBar.SetupActionBar(style)
     FancyActionBar.SetupButtons(style)
@@ -3147,7 +3158,7 @@ function FancyActionBar.SetupActionBar(style)
 end
 
 function FancyActionBar.ApplyActiveHotbarStyle()
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
     for i = MIN_INDEX, MAX_INDEX do
         local button = ZO_ActionBar_GetButton(i)
         button:ApplyStyle(style.buttonTemplate)
@@ -3352,7 +3363,7 @@ function FancyActionBar.DetermineBarAndHide(locked)
 end
 
 function FancyActionBar.SetBarPositions(bar)
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
     bar = bar or GetActiveHotbarCategory()
     for i = MIN_INDEX, MAX_INDEX do
         FancyActionBar.UpdateInactiveBarIcon(i, bar)
@@ -3592,7 +3603,7 @@ end
 ActionButton["SetUltimateMeter"] = FancySetUltimateMeter
 
 local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
     local GROW_SCALE = 1.1
     local shrink = timeline:GetAnimation(1)
     local grow = timeline:GetAnimation(2)
@@ -4151,7 +4162,7 @@ end
 -- Call this function after slot changes or bar swap
 local function OnSlotChanged(_, slotNum, hotbarCategory)
     if slotNum < MIN_INDEX or slotNum > ULT_INDEX then return end
-    -- local style = FancyActionBar.GetContants()
+    -- local style = FancyActionBar.GetConstants()
     local currentHotbarCategory = GetActiveHotbarCategory()
     local slotIndex = hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum
     if hotbarCategory == currentHotbarCategory then
@@ -4256,7 +4267,7 @@ end
 
 -- Any skill swapped. Setup buttons and slot effects.
 local function OnAllHotbarsUpdated()
-    local style = FancyActionBar.GetContants()
+    local style = FancyActionBar.GetConstants()
     local currentHotbarCategory = GetActiveHotbarCategory()
     local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
     if ultButton then
@@ -5290,7 +5301,7 @@ function FancyActionBar.Initialize()
     end)
 
     SecurePostHook(ActionButton, "ApplyStyle", function (self)
-        local style = FancyActionBar.GetContants()
+        local style = FancyActionBar.GetConstants()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
         setFlipCardDimensions(style)
         FancyActionBar.ApplyQuickSlotFont()

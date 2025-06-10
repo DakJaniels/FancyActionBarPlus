@@ -1679,7 +1679,7 @@ local function SetDefaultAbilityFrame()
 end
 
 local function GetUltimateFlipCardSize()
-    local c = FancyActionBar.GetContants()
+    local c = FancyActionBar.GetConstants()
     return c.ultFlipCardSize
 end
 
@@ -7136,7 +7136,7 @@ function FancyActionBar.RepositionHealthBar()
         return
     end
     if SV.moveHealthBar then
-        local c = FancyActionBar.GetContants()
+        local c = FancyActionBar.GetConstants()
         local scale = FancyActionBar.GetScale()
         local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
         local abTop = ACTION_BAR:GetTop()
