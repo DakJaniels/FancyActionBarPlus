@@ -271,7 +271,7 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
 local ChatManager =
 {
     prefix = "[FAB+]",
-    libChat = nil
+    libChat = nil --- @type LibChatMessage
 }
 
 --- Initialize the chat manager
