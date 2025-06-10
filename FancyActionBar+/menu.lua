@@ -5,9 +5,7 @@ local LMP = LibMediaProvider
 local EM = GetEventManager()
 local WM = GetWindowManager()
 local GetAbilityDuration = FancyActionBar.GetAbilityDuration
---- @class FAB_AC_SV
 local SV = ...
---- @class FAB_DC_SV
 local CV = ...
 local ACTION_BAR = GetControl("ZO_ActionBar1")
 local MIN_INDEX = 3          -- first ability index

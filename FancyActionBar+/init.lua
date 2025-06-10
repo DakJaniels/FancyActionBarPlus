@@ -404,7 +404,7 @@ FancyActionBar.strings =
 
 --- Returns a table with the configuration for the given mode and style
 --- @param mode number 1 for keyboard, 2 for gamepad
---- @param vars table|FAB_AC_SV the saved variables
+--- @param vars table the saved variables
 --- @param style table the style table
 --- @return table
 function FancyActionBar:UpdateContants(mode, vars, style)
