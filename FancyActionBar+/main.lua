@@ -3177,7 +3177,6 @@ end
 
 --- Setup the button text.
 --- @param button {buttonText:LabelControl}
---- @param weaponSwapControl userdata
 --- @param style table
 --- @param index number
 function FancyActionBar.SetupButtonText(button, style, index)
