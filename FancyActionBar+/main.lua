@@ -2256,18 +2256,28 @@ end
 --------------
 -- GCD
 --------------
+
+-- Helper function to get just cooldown and duration
+local function GetCooldownInfo(slotIndex)
+    local cooldown, duration = GetSlotCooldownInfo(slotIndex, HOTBAR_CATEGORY_PRIMARY)
+    return cooldown, duration
+end
+
 function FancyActionBar.UpdateGCD()
-    local cooldown, duration, global, globalSlotType = GetSlotCooldownInfo(MIN_INDEX)
-    local cooldown2, duration2, _, _ = GetSlotCooldownInfo(MIN_INDEX + 1)
+    local cooldown, duration = GetCooldownInfo(MIN_INDEX)
+    local cooldown2, duration2 = GetCooldownInfo(MIN_INDEX + 1)
+
     if (cooldown2 > cooldown) or (duration2 > duration) then
         cooldown = cooldown2
         duration = duration2
     end
-    if duration < 1 then
+
+    if duration <= 1 then
         duration = 1
     end
-    local h = (cooldown / duration) * SV.gcd.sizeY
-    FAB_GCD.fill:SetHeight(h)
+
+    local height = (cooldown / duration) * SV.gcd.sizeY
+    FAB_GCD.fill:SetHeight(height)
 end
 
 --------------
