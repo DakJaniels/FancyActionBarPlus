@@ -1513,9 +1513,9 @@ FancyActionBar.bannerBearer =
 FancyActionBar.toggleTickRate =
 {
     [227116] = 5000,
-    [172418] = GetAbilityFrequencyMS(132141),
-    [134166] = GetAbilityFrequencyMS(134160),
-    [172648] = GetAbilityFrequencyMS(135841),
+    [172418] = GetAbilityFrequencyMS(132141, "player"),
+    [134166] = GetAbilityFrequencyMS(134160, "player"),
+    [172648] = GetAbilityFrequencyMS(135841, "player"),
 }
 
 FancyActionBar.passive =
