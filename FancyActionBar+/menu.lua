@@ -297,7 +297,7 @@ local function SetBarTheme(locked)
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-    FancyActionBar.ApplySettings()
+    FancyActionBar:ApplySettings()
 end
 ----------------------------------------------
 -----------[   External Buffs   ]-------------
@@ -2247,7 +2247,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.ultimateSlotCustomXOffsetKB = value
                     end
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar.ApplySettings()
+                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2268,7 +2268,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.ultimateSlotCustomYOffsetKB = value
                     end
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar.ApplySettings()
+                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2298,7 +2298,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
                     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar.ApplySettings()
+                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2322,7 +2322,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
                     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar.ApplySettings()
+                    FancyActionBar:ApplySettings()
                     if not FancyActionBar.wasMoved then
                         FancyActionBar.ResetMoveActionBar()
                         FancyActionBar.RepositionHealthBar()
@@ -2350,7 +2350,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
                     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar.ApplySettings()
+                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2721,7 +2721,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
                     FancyActionBar.ApplyActiveHotbarStyle()
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar.ApplySettings()
+                    FancyActionBar:ApplySettings()
                     FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
                     FancyActionBar.updateUI = false
                 end,
@@ -3758,7 +3758,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         SV.qsYKB = value
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.y = value
-                                            FancyActionBar.AdjustQuickSlotTimer()
+                                            FancyActionBar:AdjustQuickSlotTimer()
                                             DisplayQuickSlotLabelChanges()
                                         end
                                     end,
@@ -3779,7 +3779,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         SV.qsXKB = value
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.x = value
-                                            FancyActionBar.AdjustQuickSlotTimer()
+                                            FancyActionBar:AdjustQuickSlotTimer()
                                             DisplayQuickSlotLabelChanges()
                                         end
                                     end,
@@ -4812,7 +4812,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.qsYGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.y = value
-                                        FancyActionBar.AdjustQuickSlotTimer()
+                                        FancyActionBar:AdjustQuickSlotTimer()
                                         DisplayQuickSlotLabelChanges()
                                     end
                                 end,
@@ -4833,7 +4833,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.qsXGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.x = value
-                                        FancyActionBar.AdjustQuickSlotTimer()
+                                        FancyActionBar:AdjustQuickSlotTimer()
                                         DisplayQuickSlotLabelChanges()
                                     end
                                 end,
@@ -6610,9 +6610,11 @@ function FancyActionBar.AdjustTargetY()
     end
 end
 
-function FancyActionBar.AdjustQuickSlotTimer()
-    local timerX = FancyActionBar.constants.qs.x
-    local timerY = FancyActionBar.constants.qs.y
+function FancyActionBar:AdjustQuickSlotTimer()
+    local constants = self.constants
+    local qs = constants.qs
+    local timerX = qs.x
+    local timerY = qs.y
     local x = timerX
     local y
 
@@ -6624,10 +6626,10 @@ function FancyActionBar.AdjustQuickSlotTimer()
         y = timerY - (timerY * 2)
     end
 
-    local qs = FancyActionBar.qsOverlay
-    local d = qs:GetNamedChild("Duration")
+    local qsOverlay = self.qsOverlay
+    local d = qsOverlay:GetNamedChild("Duration")
     d:ClearAnchors()
-    d:SetAnchor(CENTER, qs, CENTER, x, y)
+    d:SetAnchor(CENTER, qsOverlay, CENTER, x, y)
 end
 
 function FancyActionBar.ApplyQuickSlotFont()
