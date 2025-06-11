@@ -221,8 +221,32 @@ FancyActionBar.constants =
     {
         offsetX = 2,
     },
-    style = {},
-    update = {}
+    style =
+    {
+        abilitySlotWidth    = nil,
+        actionBarOffset     = nil,
+        anchor              = nil,
+        anchorOffsetY       = nil,
+        attributesOffset    = nil,
+        bindingTextOnUlt    = nil,
+        buttonTemplate      = nil,
+        buttonTextOffsetY   = nil,
+        dimensions          = nil,
+        flipCardSize        = nil,
+        overlayTemplate     = nil,
+        qsOverlayTemplate   = nil,
+        quickslotOffsetX    = nil,
+        showKeybindBG       = nil,
+        ultButtonTemplate   = nil,
+        ultFlipCardSize     = nil,
+        ultOverlayTemplate  = nil,
+        ultSize             = nil,
+        ultimateSlotOffsetX = nil,
+        width               = nil,
+    },
+    update = {},
+    hideOnNoTargetGlobal = {},
+    hideOnNoTargetList = {}
 }
 -------------------------------------------------------------------------------
 -----------------------------[    Tables    ]----------------------------------
@@ -699,14 +723,61 @@ function FancyActionBar.UpdateDurationLimits()
     FancyActionBar.durationMin, FancyActionBar.durationMax = FancyActionBar.GetAbilityDurationLimits()
 end
 
----
---- @return table
+--- @class ActionBarConstants
+--- @field abilitySlotWidth integer
+--- @field actionBarOffset integer
+--- @field anchor table|ZO_Anchor
+--- @field anchorOffsetY integer
+--- @field attributesOffset integer
+--- @field bindingTextOnUlt boolean
+--- @field buttonTemplate string
+--- @field buttonTextOffsetY integer
+--- @field dimensions integer
+--- @field flipCardSize integer
+--- @field overlayTemplate string
+--- @field qsOverlayTemplate string
+--- @field quickslotOffsetX integer
+--- @field showKeybindBG boolean
+--- @field ultButtonTemplate string
+--- @field ultFlipCardSize integer
+--- @field ultOverlayTemplate string
+--- @field ultSize integer
+--- @field ultimateSlotOffsetX integer
+--- @field width integer
+
+--- @class FancyActionBarConstants
+--- @field abScale table
+--- @field abilitySlot table
+--- @field duration table
+--- @field hideOnNoTargetGlobal {[integer]:boolean}
+--- @field hideOnNoTargetList {[integer]:boolean}
+--- @field move table
+--- @field noTargetAlpha integer
+--- @field noTargetFade any
+--- @field qs table
+--- @field stacks table
+--- @field style ActionBarConstants
+--- @field targets table
+--- @field ult table
+--- @field update table
+
+--- Gets the appropriate action bar constants based on current UI mode
+--- Updates the constants if needed and returns the style-specific constants
+--- @return ActionBarConstants constants The keyboard or gamepad constants table
 function FancyActionBar.GetConstants()
+    -- Check if UI update is needed or constants haven't been initialized
     if FancyActionBar.updateUI or not (FancyActionBar.constants and FancyActionBar.constants.style) then
+        -- Determine style: 2 for gamepad, 1 for keyboard
         FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1
-        local s = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
-        FancyActionBar.constants.style = s
+
+        -- Select appropriate constants based on style
+        --- @type ActionBarConstants
+        local selectedConstants = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
+
+        -- Update the style constants
+        FancyActionBar.constants.style = selectedConstants
     end
+
     return FancyActionBar.constants.style
 end
 
@@ -2621,7 +2692,7 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
 
     local constants = FancyActionBar.GetConstants()
     local style = (constants and next(constants)) and constants
-            or (IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS)
+        or (IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS)
     local anchor = style.anchor
     if FancyActionBar.updateUI then
         anchor:SetFromControlAnchor(ACTION_BAR)
@@ -2707,37 +2778,37 @@ function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button acc
     end
 end
 
-function FancyActionBar.ApplySettings() -- apply all UI settings for current UI mode
-    FancyActionBar.AdjustQuickSlotSpacing()
+function FancyActionBar:ApplySettings() -- apply all UI settings for current UI mode
+    self.AdjustQuickSlotSpacing()
 
-    FancyActionBar.ConfigureFrames()
-    FancyActionBar.ApplyTimerFont()
-    FancyActionBar.AdjustTimerY()
+    self.ConfigureFrames()
+    self.ApplyTimerFont()
+    self.AdjustTimerY()
 
-    FancyActionBar.ApplyStackFont()
-    FancyActionBar.AdjustStackX()
-    FancyActionBar.AdjustStackY()
+    self.ApplyStackFont()
+    self.AdjustStackX()
+    self.AdjustStackY()
 
-    FancyActionBar.ApplyTargetFont()
-    FancyActionBar.AdjustTargetX()
-    FancyActionBar.AdjustTargetY()
+    self.ApplyTargetFont()
+    self.AdjustTargetX()
+    self.AdjustTargetY()
 
-    FancyActionBar.AdjustUltTimer(false)
-    FancyActionBar.ApplyUltFont(false)
+    self.AdjustUltTimer(false)
+    self.ApplyUltFont(false)
 
-    FancyActionBar.AdjustUltValue()
-    FancyActionBar.ApplyUltValueColor()
-    FancyActionBar.AdjustCompanionUltValue()
-    FancyActionBar.ApplyUltValueFont()
-    FancyActionBar.UpdateUltimateCost()
+    self.AdjustUltValue()
+    self.ApplyUltValueColor()
+    self.AdjustCompanionUltValue()
+    self.ApplyUltValueFont()
+    self.UpdateUltimateCost()
 
-    FancyActionBar.AdjustQuickSlotTimer()
-    FancyActionBar.ApplyQuickSlotFont()
-    FancyActionBar.ToggleQuickSlotDuration()
+    self:AdjustQuickSlotTimer()
+    self.ApplyQuickSlotFont()
+    self.ToggleQuickSlotDuration()
 
-    FancyActionBar.ToggleGCD()
+    self.ToggleGCD()
 
-    FancyActionBar.ApplyPosition()
+    self.ApplyPosition()
 end
 
 function FancyActionBar.ToggleQuickSlotDuration() -- enable / disable quickslot timer
@@ -3142,7 +3213,7 @@ function FancyActionBar.ApplyStyle()
     FancyActionBar.SetupOverlays(style)
 
     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-    FancyActionBar.ApplySettings()
+    FancyActionBar:ApplySettings()
 end
 
 --- Setup the action bar with the given style.
@@ -5135,7 +5206,7 @@ function FancyActionBar.OnSkillLineAdded(eventCode, skillType, skillLineIndex, a
 end
 
 function FancyActionBar.Initialize()
-    defaultSettings = FancyActionBar.defaultSettings
+    -- defaultSettings = FancyActionBar.defaultSettings
     SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName())
     CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName())
     -- Initialize saved variables
@@ -5225,7 +5296,7 @@ function FancyActionBar.Initialize()
         FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
         FancyActionBar.ApplyActiveHotbarStyle()
         FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-        FancyActionBar.ApplySettings()
+        FancyActionBar:ApplySettings()
         FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
         FancyActionBar.updateUI = false
         -- ReloadUI("ingame");
