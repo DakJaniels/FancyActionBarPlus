@@ -704,6 +704,12 @@ function FancyActionBar.GetMultiTargetBlacklist()
 end
 
 ---
+--- @return table
+function FancyActionBar.GetParentTimeBlacklist()
+    return SV.parentTimeBlacklist
+end
+
+---
 --- @return table var
 --- @return table def
 function FancyActionBar:GetMovableVarsForUI()
@@ -4522,7 +4528,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
     local stackCount
     local t = time()
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
-    if FancyActionBar.specialEffects[abilityId] or FancyActionBar.ignoreFallbackTimers[abilityId] then
+    if FancyActionBar.specialEffects[abilityId] or SV.parentTimeBlacklist[abilityId] then
         return
     end
 
@@ -5125,26 +5131,24 @@ function FancyActionBar.RegisterClassEffects(newSkillLineId)
     local skillLineIds = {}
 
     if newSkillLineId then
+        if registeredSkillLines[newSkillLineId] then return end
         skillLineIds = { newSkillLineId }
-    elseif skillData and skillData.activeClassSkillLineDataList then
-        if #skillData.activeClassSkillLineDataList > 0 then
-            for i = 1, #skillData.activeClassSkillLineDataList do
-                local skillLineId = skillData.activeClassSkillLineDataList[i].id
-                if skillLineId and not registeredSkillLines[skillLineId] then
-                    table.insert(skillLineIds, skillLineId)
-                end
-            end
-        else
-            for k, v in pairs(FancyActionBar.skillLineInfo) do
-                for i, skillLineId in pairs(v) do
-                    table.insert(skillLineIds, skillLineId)
-                end
+    elseif SKILLS_DATA_MANAGER:IsDataReady() then
+        for i = 1, 3 do
+            local skillLine = SKILLS_DATA_MANAGER:GetActiveClassSkillLine(i)
+            if skillLine and skillLine.id and not registeredSkillLines[skillLine.id] then
+                table.insert(skillLineIds, skillLine.id)
             end
         end
     else
-        local classId = GetUnitClassId("player")
-        skillLineIds = FancyActionBar.skillLineInfo[classId] or { 0, 0, 0 }
+        -- Fallback to the skill line info table if data is not ready to to ensure all skill line effects are set up
+        for k, v in pairs(FancyActionBar.skillLineInfo) do
+            for i, skillLineId in pairs(v) do
+                table.insert(skillLineIds, skillLineId)
+            end
+        end
     end
+
     if not skillLineIds or #skillLineIds == 0 then return end
 
     for i = 1, #skillLineIds do
@@ -5504,55 +5508,113 @@ local function ValidateBlacklists(sv)
         -- just add all resto staff skills by default and player can take it from there.
         sv.externalBlackList =
         {
-            [28385] = "Grand Healing",
-            [28536] = "Regeneration",
-            [29224] = "Igneous Shield",
-            [31531] = "Force Siphon",
-            [37232] = "Steadfast Ward",
-            [38552] = "Panacea",
-            [40058] = "Illustrious Healing",
-            [40060] = "Healing Springs",
-            [40076] = "Rapid Regeneration",
-            [40079] = "Radiating Regeneration",
-            [40109] = "Siphon Spirit",
-            [40116] = "Quick Siphon",
-            [40126] = "Healing Ward",
-            [40130] = "Ward Ally",
-            [61504] = "Vigor",
-            [61506] = "Echoing Vigor",
-            [61665] = "Major Brutality",
-            [61687] = "Major Sorcery",
-            [61693] = "Minor Resolve",
-            [61694] = "Major Resolve",
-            [61697] = "Minor Fortitude",
-            [61704] = "Minor Endurance",
-            [61706] = "Minor Intellect",
-            [61721] = "Minor Protection",
-            [76518] = "Major Brutality",
-            [83850] = "Life Giver",
-            [85132] = "Lights Champion",
-            [88758] = "Major Resolve",
-            [92503] = "Major Sorcery",
-            [176991] = "Minor Resolve",
-            [186493] = "Minor Protection",
+            [28385] = true, --"Grand Healing"
+            [40058] = true, --"Illustrious Healing"
+            [40060] = true, --"Healing Springs"
+            [28536] = true, --"Regeneration"
+            [40076] = true, --"Rapid Regeneration"
+            [40079] = true, --"Radiating Regeneration"
+            [29224] = true, --"Igneous Shield"
+            [31531] = true, --"Force Siphon"
+            [37232] = true, --"Steadfast Ward"
+            [38552] = true, --"Panacea"
+            [40109] = true, --"Siphon Spirit"
+            [40116] = true, --"Quick Siphon"
+            [40126] = true, --"Healing Ward"
+            [40130] = true, --"Ward Ally"
+            [61504] = true, --"Vigor"
+            [61506] = true, --"Echoing Vigor"
+            [61665] = true, --"Major Brutality"
+            [61687] = true, --"Major Sorcery"
+            [61693] = true, --"Minor Resolve"
+            [61694] = true, --"Major Resolve"
+            [61697] = true, --"Minor Fortitude"
+            [61704] = true, --"Minor Endurance"
+            [61706] = true, --"Minor Intellect"
+            [61721] = true, --"Minor Protection"
+            [76518] = true, --"Major Brutality"
+            [83850] = true, --"Life Giver"
+            [85132] = true, --"Lights Champion"
+            [88758] = true, --"Major Resolve"
+            [92503] = true, --"Major Sorcery"
+            [176991] = true, --"Minor Resolve"
+            [186493] = true, --"Minor Protection"
         }
         sv.externalBlackListRun = true
+    end
+    -- Update external blacklist with new abilities from config
+    for abilityId, value in pairs(FancyActionBar.externalBlacklistUpdates) do
+        if not sv.externalBlackList[abilityId] and value then
+            sv.externalBlackList[abilityId] = GetAbilityName(abilityId)
+        elseif sv.externalBlackList[abilityId] and not value then
+            sv.externalBlackList[abilityId] = nil
+        end
     end
 
     -- Multi-target blacklist validation
     if not sv.multiTargetBlackListRun then
         sv.multiTargetBlacklist =
         {
-            [18746] = "Mages' Fury",
-            [19118] = "Endless Fury",
-            [19125] = "Mages' Wrath",
-            [24326] = "Daedric Curse",
-            [24328] = "Daedric Prey",
-            [24330] = "Haunting Curse",
-            [40229] = "Siege Weapon Shield",
-            [51392] = "Bolt Escape Fatigue",
+            [18746] = true, --"Mages' Fury"
+            [19118] = true, --"Endless Fury"
+            [19125] = true, --"Mages' Wrath"
+            [24326] = true, --"Daedric Curse"
+            [24328] = true, --"Daedric Prey"
+            [24330] = true, --"Haunting Curse"
+            [40229] = true, --"Siege Weapon Shield"
+            [51392] = true, --"Bolt Escape Fatigue"
         }
         sv.multiTargetBlackListRun = true
+    end
+    -- Update multi-target blacklist with new abilities from config
+    for abilityId, value in pairs(FancyActionBar.multiTargetBlacklistUpdates) do
+        if not sv.multiTargetBlacklist[abilityId] and value then
+            sv.multiTargetBlacklist[abilityId] = GetAbilityName(abilityId)
+        elseif sv.multiTargetBlacklist[abilityId] and not value then
+            sv.multiTargetBlacklist[abilityId] = nil
+        end
+    end
+
+    -- Parent/Fallback time blacklist validation
+    if not sv.parentTimeBlackListRun then
+        sv.parentTimeBlacklist =
+        {
+            [39089] = true,  -- ele sus
+            [117805] = true, -- boneyard
+            [39192] = true,  -- elude
+            [183648] = true, -- fatewoven armor
+            [185908] = true, -- cruxweaver armor
+            [186477] = true, -- unbreakable fate
+            [238256] = true, -- vengeance fatewoven armor
+            [118680] = true, -- skeletal arcanist
+            [28858] = true,  -- wall of elements
+            [39052] = true,  -- unstable wall of elements
+            [39011] = true,  -- elemental blockade
+            [28807] = true,  -- wall of elements (fire)
+            [28854] = true,  -- wall of elements (lightning)
+            [28849] = true,  -- wall of elements (frost)
+            [39053] = true,  -- unstable wall of elements (fire)
+            [39073] = true,  -- unstable wall of elements (lightning)
+            [39067] = true,  -- unstable wall of elements (frost)
+            [39012] = true,  -- elemental blockade (fire)
+            [39018] = true,  -- elemental blockade (lightning)
+            [39028] = true,  -- elemental blockade (frost)
+            [31888] = true,  -- molten armaments
+            [86050] = true,  -- betty netch
+            [86054] = true,  -- blue betty
+            [86058] = true,  -- bull netch
+            [24326] = true,  -- Daedric Curse
+            [24328] = true,  -- Daedric Prey
+        }
+        sv.parentTimeBlackListRun = true
+    end
+    -- Update Parent/Fallback with new abilities from config
+    for abilityId, value in pairs(FancyActionBar.parentTimeBlacklistUpdates) do
+        if not sv.parentTimeBlacklist[abilityId] and value then
+            sv.parentTimeBlacklist[abilityId] = GetAbilityName(abilityId)
+        elseif sv.parentTimeBlacklist[abilityId] and not value then
+            sv.parentTimeBlacklist[abilityId] = nil
+        end
     end
 end
 

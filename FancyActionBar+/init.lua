@@ -37,8 +37,8 @@ FancyActionBar.defaultSettings =
     forceGamepadStyle = false,
 
     externalBuffs = false,
-    externalBlackList = {},
     externalBlackListRun = false,
+    externalBlackList = {},
 
     multiTargetBlackListRun = false,
     multiTargetBlacklist = {},
@@ -108,6 +108,8 @@ FancyActionBar.defaultSettings =
     showTickStart = 2,
     tickColor = { 1, 1, 0 },
     allowParentTime = false,
+    parentTimeBlackListRun = false,
+    parentTimeBlacklist = {},
     -- keyboard UI visuals
     -- duration
     fontNameKB = "Univers 67",
