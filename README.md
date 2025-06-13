@@ -2,7 +2,7 @@ Fancy Action Bar+ builds on the original [Fancy Action Bar](https://www.esoui.co
 
 Bug reports, feedback, and feature requests strongly encouraged! (GitHub preferred: [GitHub](https://github.com/DakJaniels/FancyActionBarPlus))
 
-## User Guide and Menu Option Documentation for v2.14.6
+## User Guide and Menu Option Documentation for v2.14.7
 
 ### UI Presets
 Set a preset UI configuration from a list of options. Includes a "Defaults UI" preset that will reset the action bar visual configuration (but not custom ability configurations) to default settings, a "Dev's Preferred UI" that toggles a number of non-default settings including forcing the gamepad action bar UI, enabling the "soonest expiring" timers configuration, displaying toggle tick rates, and more, and an "ADR-like UI" (in development), that configures the action bar to have the inactive bar slots on top, and hidden when there isn’t a timer active for those slots (Hide inactive slots on inactive bars) setting.
@@ -240,13 +240,18 @@ Additional options for configuring the Targets Tracker behavior that by default,
 
 Additionally a menu is provided to allow blacklisting effects that you do not want to display a target counter for.
 
+### Fallback Timers Options
+Fallback timers allow ability slots to display additional effect timers associated with the parent ability ID as determined by ZOS's API. These, in effect, represent the basegame timers that would normally be displayed on the basegame action slots. Here you can enable or disable the display of these timers, and blacklist specific abilities that shouldn't disaply them even if the overall setting is enabled. Note that many scribed abilities are not configured by default and require this setting to function unless they are manually configured.
+
+* Allow Fallback Timers (default: OFF) – By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the game’s duration for the "parent" (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.
+* Blacklisting Options for Fallback Timers
+
 #### Miscellaneous Options
 
 * Show Stack Counter (default: ON) - Show stack count for abilities that can have multiple stacks, or can stack multiple times. 
 * Show Cast/Channel Times on Action Slots (default: ON) – If an ability has a cast or channel time, it will display that duration on the slot while the ability is being cast/channeled. Abilities must have a cast or channel time longer than 1 second for this timer to display.
 * Show Timer For Soonest Expiring Target (default: OFF) - By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.
 * Ignore Ungrouped Allies (default: OFF) - By default FAB will track buffs applied to all allied players. With this setting enabled only buffs applied to group members will be tracked. If you are not grouped this setting will be ignored and buffs will be tracked on all players.
-* Allow Fallback Timers (default: OFF) – By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the game’s duration for the "parent" (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.
 
 ### MISCELLANEOUS
 

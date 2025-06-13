@@ -135,6 +135,7 @@ local debuffNames = {}
 local debuffIds = {}
 local selectedDebuff = 0
 
+local selectedPreset = 0
 local uiPresets =
 {
     [1] = { "None", {} },
@@ -209,7 +210,7 @@ local function SetUIPreset(preset)
             SV[k] = v
         end
     end
-    -- ReloadUI("ingame")
+    ReloadUI("ingame")
 end
 
 function FancyActionBar.GetDecimalOptions()
@@ -1671,12 +1672,22 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             return uiPresets[1][1]
                         end,
                         setFunc = function (value)
-                            SetUIPreset(value)
+                            selectedPreset = value
                         end,
                         default = 1,
-                        warning = "Requires Reloading the UI.",
-                        requiresReload = true,
                     },
+                    {
+                        type = "button",
+                        name = "Confirm Preset",
+                        width = "half",
+                        func = function ()
+                            SetUIPreset(selectedPreset)
+                        end,
+                        warning = "Will Reload the UI.",
+                        requiresReload = true,
+                        reference = "ConfirmPresetButton",
+                    },
+
                 },
             })
         tableIndex = tableIndex + 1
@@ -5175,8 +5186,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 setFunc = function (value)
                                     SetChangedSkillToEdit(value)
                                 end,
+                                default = 1,
                                 reference = "Saved_Changes_Dropdown",
-                                default = 0,
                                 width = "half",
                             },
 
@@ -5360,8 +5371,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 setFunc = function (value)
                                     SetSelectedBlacklist(value, SV.externalBlackList, externalBlacklistConfigData)
                                 end,
+                                default = 1,
                                 reference = externalBlacklistConfigData.controls.blacklistDropdown,
-                                -- default = '== Select a Skill ==',
                                 width = "half",
                             },
 
@@ -5655,8 +5666,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 setFunc = function (value)
                                     SetSelectedBlacklist(value, SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
+                                default = 1,
                                 reference = multiTargetBlacklistConfigData.controls.blacklistDropdown,
-                                -- default = '== Select a Skill ==',
                                 width = "half",
                             },
 
@@ -5671,6 +5682,104 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     return not CanClearBlacklistId(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
                                 reference = multiTargetBlacklistConfigData.controls.clearBlacklistButton,
+                            },
+                            { type = "divider" },
+                            {
+                                type = "description",
+                                title = "[ |cffdf80Fallback Timers Options|r ]",
+                                text = "Fallback timers allow ability slots to display additional effect timers associated with the parent ability ID as determined by ZOS's API. These, in effect, represent the basegame timers that would normally be displayed on the basegame action slots. Here you can enable or disable the display of these timers, and blacklist specific abilities that shouldn't disaply them even if the overall setting is enabled. Note that many scribed abilities are not configured by default and require this setting to function unless they are manually configured.",
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Allow Fallback Timers",
+                                tooltip = "By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs. An example of this behavior is with Boundless Storm, if set to track the effect for Major Expedition, the timer will initially show the duration for Major Expedition, and then fall back to the duration for Boundless Storm (Major Resolve) once Major Expedition expires if this setting is enabled.",
+                                default = defaults.allowParentTime,
+                                getFunc = function ()
+                                    return SV.allowParentTime
+                                end,
+                                setFunc = function (value)
+                                    SV.allowParentTime = value or false
+                                end,
+                            },
+                            {
+                                type = "description",
+                                title = "[ |cffdf80Fallback Timers Blacklist|r ]",
+                                text = "Abilities that should strictly only display the timer for the specific tracked effect even if Allow Fallback Timers is active.",
+                                tooltip = "Configuring an ability in this blacklist will prevent fallback timers for activating for it. For example, blacklisting Boundless Storm here would prevent the timer from falling back to the duration of Major Resolve when Major Expedition expires if it is set to track Major Expedition, even though the ability is still active and other abilities would still show their fallback timers.This can also be used to blacklist abilities that show unexpected or unwanted timers beyond their configured tracked effect.",
+                                width = "full",
+                            },
+                            {
+                                type = "editbox",
+                                name = "Add to Blacklist",
+                                tooltip =
+                                "Enter the ID of the skill you dont want to track multiple target instances of.",
+                                -- default = '',
+                                getFunc = function ()
+                                    return GetSkillToBlacklistID(parentTimeBlacklistConfigData)
+                                end,
+                                setFunc = function (value)
+                                    SetSkillToBlacklistID(value, parentTimeBlacklistConfigData)
+                                end,
+                                reference = parentTimeBlacklistConfigData.controls.skillToBlacklistID_Editbox,
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                title = "Selected Skill:",
+                                text = function ()
+                                    return GetSkillToBlacklistName(parentTimeBlacklistConfigData)
+                                end,
+                                width = "half",
+                                reference = parentTimeBlacklistConfigData.controls.skillToBlacklistTitle,
+                            },
+
+                            { type = "description", width = "half" },
+
+                            {
+                                type = "button",
+                                name = "Confirm Blacklist",
+                                width = "half",
+                                func = function ()
+                                    BlacklistId(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+                                end,
+                                disabled = function ()
+                                    return not CanBlacklistId(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+                                end,
+                                reference = parentTimeBlacklistConfigData.controls.blacklistButton,
+                            },
+
+                            { type = "description", width = "full" },
+
+                            {
+                                type = "dropdown",
+                                scrollable = 20,
+                                name = "Blacklisted IDs",
+                                choices = GetBlacklistedSkills(SV.parentTimeBlacklist),
+                                getFunc = function ()
+                                    GetSelectedBlacklist(parentTimeBlacklistConfigData)
+                                end,
+                                setFunc = function (value)
+                                    SetSelectedBlacklist(value, SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+                                end,
+                                default = 1,
+                                reference = parentTimeBlacklistConfigData.controls.blacklistDropdown,
+                                width = "half",
+                            },
+
+                            {
+                                type = "button",
+                                name = "Remove From Blacklist",
+                                width = "half",
+                                func = function ()
+                                    ClearBlacklistId(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+                                end,
+                                disabled = function ()
+                                    return not CanClearBlacklistId(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+                                end,
+                                reference = parentTimeBlacklistConfigData.controls.clearBlacklistButton,
                             },
                             { type = "divider" },
                             {
@@ -5739,18 +5848,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.ignoreUngroupedAliies = value or false
                                 end,
                             },
-                            {
-                                type = "checkbox",
-                                name = "Allow Fallback Timers",
-                                tooltip = "By default only durations for the specific effect will be tracked for configured abilities. When tracking an effect ID that is a shorter duration than the “parent” (slotted) ability, allow the action bar timer to fallback to the parent ability timer for the remaining duration. This will also cause the slot to swap to the expiring effect highlight (but not timer) color when this changeover occurs.",
-                                default = defaults.allowParentTime,
-                                getFunc = function ()
-                                    return SV.allowParentTime
-                                end,
-                                setFunc = function (value)
-                                    SV.allowParentTime = value or false
-                                end,
-                            },
+
                         },
                     },
                 },
