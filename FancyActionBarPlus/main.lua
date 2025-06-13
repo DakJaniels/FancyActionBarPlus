@@ -3,7 +3,7 @@ local FancyActionBar = FancyActionBar
 -------------------------------------------------------------------------------
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
-local NAME = "FancyActionBar+"
+local NAME = "FancyActionBarPlus"
 local VERSION = "2.14.6"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
@@ -3029,10 +3029,10 @@ local configureFillAnimationsAndFrames = function (style)
 
         -- Set textures for gamepad mode
         if isGamepad then
-            leftFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            rightFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            leftFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            rightFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            leftFill:SetTexture("FancyActionBarPlus/texture/gp_ultimatefill_512.dds")
+            rightFill:SetTexture("FancyActionBarPlus/texture/gp_ultimatefill_512.dds")
+            leftFillC:SetTexture("FancyActionBarPlus/texture/gp_ultimatefill_512.dds")
+            rightFillC:SetTexture("FancyActionBarPlus/texture/gp_ultimatefill_512.dds")
         end
 
         -- Set fill animations
@@ -3210,7 +3210,7 @@ end
 --- @param button {status:TextureControl}
 function FancyActionBar.SetupButtonStatus(button)
     if SV.toggledHighlight or SV.showHighlight then
-        button.status:SetTexture("FancyActionBar+/texture/blank.dds")
+        button.status:SetTexture("FancyActionBarPlus/texture/blank.dds")
     else
         button.status:SetTexture("EsoUI/Art/ActionBar/ActionSlot_toggledon.dds")
     end
@@ -3543,8 +3543,8 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
 
         -- Set textures for gamepad mode
         if isGamepad then
-            ultimateFillLeftTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            ultimateFillRightTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+            ultimateFillLeftTexture:SetTexture("FancyActionBarPlus/texture/gp_ultimatefill_512.dds")
+            ultimateFillRightTexture:SetTexture("FancyActionBarPlus/texture/gp_ultimatefill_512.dds")
             ultimateFillLeftTexture:SetWidth(70)
             ultimateFillRightTexture:SetWidth(70)
         end

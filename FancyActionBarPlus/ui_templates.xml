@@ -349,7 +349,7 @@
                 </Backdrop>
                 <Texture name="$(parent)FillAnimationLeft"
                          level="2"
-                         textureFile="/FancyActionBar+/texture/gp_ultimatefill_512.dds">
+                         textureFile="/FancyActionBarPlus/texture/gp_ultimatefill_512.dds">
                     <Dimensions x="70"/>
                     <Anchor point="TOPLEFT"
                             relativeTo="$(parent)FlipCard"
@@ -362,7 +362,7 @@
                 </Texture>
                 <Texture name="$(parent)FillAnimationRight"
                          level="2"
-                         textureFile="/FancyActionBar+/texture/gp_ultimatefill_512.dds">
+                         textureFile="/FancyActionBarPlus/texture/gp_ultimatefill_512.dds">
                     <Dimensions x="70"/>
                     <Anchor point="TOPLEFT"
                             relativeTo="$(parent)FlipCard"
@@ -443,7 +443,7 @@
                  alpha="1"
                  tier="HIGH"
                  level="6"
-                 textureFile="/FancyActionBar+/texture/abilityframe64_up.dds"
+                 textureFile="/FancyActionBarPlus/texture/abilityframe64_up.dds"
                  inheritAlpha="false"
                  hidden="true"
                  virtual="true">
@@ -501,7 +501,7 @@
                          alpha="1"
                          tier="HIGH"
                          level="6"
-                         textureFile="/FancyActionBar+/texture/abilityframe64_up.dds"
+                         textureFile="/FancyActionBarPlus/texture/abilityframe64_up.dds"
                          inheritAlpha="false"
                          hidden="true">
                     <Anchor point="TOPLEFT"
@@ -575,7 +575,7 @@
                          alpha="1"
                          tier="HIGH"
                          level="6"
-                         textureFile="/FancyActionBar+/texture/abilityframe64_up.dds"
+                         textureFile="/FancyActionBarPlus/texture/abilityframe64_up.dds"
                          inherits="FAB_ActionButton_FlipCardControl"
                          inheritAlpha="false"
                          hidden="true">
@@ -748,7 +748,7 @@
                          alpha="1"
                          tier="HIGH"
                          level="6"
-                         textureFile="/FancyActionBar+/texture/abilityframe64_up.dds"
+                         textureFile="/FancyActionBarPlus/texture/abilityframe64_up.dds"
                          inheritAlpha="false"
                          hidden="true">
                     <Anchor point="TOPLEFT"
