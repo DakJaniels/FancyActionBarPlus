@@ -1566,36 +1566,6 @@ FancyActionBar.ignore =
     [114716] = true, -- crystal frags
 }
 
-FancyActionBar.ignoreFallbackTimers =
-{
-    [39089] = true,  -- ele sus
-    [117805] = true, -- boneyard
-    [39192] = true,  -- elude
-    [183648] = true, -- fatewoven armor
-    [185908] = true, -- cruxweaver armor
-    [186477] = true, -- unbreakable fate
-    [238256] = true, -- vengeance fatewoven armor
-    [118680] = true, -- skeletal arcanist
-    [28858] = true,  -- wall of elements
-    [39052] = true,  -- unstable wall of elements
-    [39011] = true,  -- elemental blockade
-    [28807] = true,  -- wall of elements (fire)
-    [28854] = true,  -- wall of elements (lightning)
-    [28849] = true,  -- wall of elements (frost)
-    [39053] = true,  -- unstable wall of elements (fire)
-    [39073] = true,  -- unstable wall of elements (lightning)
-    [39067] = true,  -- unstable wall of elements (frost)
-    [39012] = true,  -- elemental blockade (fire)
-    [39018] = true,  -- elemental blockade (lightning)
-    [39028] = true,  -- elemental blockade (frost)
-    [31888] = true,  -- molten armaments
-    [86050] = true,  -- betty netch
-    [86054] = true,  -- blue betty
-    [86058] = true,  -- bull netch
-    [24326] = true,  -- Daedric Curse
-    [24328] = true,  -- Daedric Prey
-}
-
 FancyActionBar.dontFade =
 {
     -- don't reset duration when effect fades until function to update corretly is in place.
@@ -1635,6 +1605,8 @@ FancyActionBar.dontFade =
     -- [83217] = true; -- berserker strike
     -- [83230] = true; -- onslaught
     -- [83239] = true; -- berserker rage
+    [28297] = true, -- momentum
+    [38794] = true, -- forward momentum
 
     -- Dual Wield
     -- [29293] = true; -- twin slashes
@@ -1982,8 +1954,16 @@ FancyActionBar.skillLineInfo =
     },
 }
 
--- * GetSkillLineIndicesFromSkillLineId(*integer* _skillLineId_)
--- ** _Returns:_ *[SkillType|#SkillType]* _skillType_, *luaindex* _skillLineIndex_
+-- Tables to push new blacklist updates to saved variables on version change 
+--[abilityId] = true, -- abilityId is the id of the ability to be blacklisted.
+FancyActionBar.externalBlacklistUpdates =
+{
+}
 
--- * EVENT_SKILL_BUILD_SELECTION_UPDATED
--- * EVENT_SKILL_LINE_ADDED (*[SkillType|#SkillType]* _skillType_, *luaindex* _skillLineIndex_, *bool* _advised_)
+FancyActionBar.multiTargetBlacklistUpdates =
+{
+}
+
+FancyActionBar.parentTimeBlacklistUpdates =
+{
+}

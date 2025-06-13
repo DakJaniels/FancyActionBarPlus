@@ -78,17 +78,56 @@ local changedSkillIds = {}
 local changedSkillStrings = {}
 local selectedChangedSkill = 0
 
-local skillToBlacklistID = 0
-local skillToBlacklistName = ""
-local blacklistedSkillNames = {}
-local blacklistedSkillIds = {}
-local selectedBlacklist = 0
+local externalBlacklistConfigData =
+{
+    skillToBlacklistID = 0,
+    skillToBlacklistName = "",
+    blacklistedSkillNames = {},
+    blacklistedSkillIds = {},
+    selectedBlacklist = 0,
+    controls =
+    {
+        skillToBlacklistTitle = "SkillToBlacklistTitle",
+        skillToBlacklistID_Editbox = "SkillToBlacklistID_Editbox",
+        blacklistDropdown = "Blacklist_Dropdown",
+        blacklistButton = "SkillToBlacklist_Button",
+        clearBlacklistButton = "BlacklistToClear_Button",
+    },
+}
 
-local multiTargetSkillToBlacklistID = 0
-local multiTargetSkillToBlacklistName = ""
-local blacklistedMultiTargetSkillNames = {}
-local blacklistedMultiTargetSkillIds = {}
-local selectedMultiTargetBlacklist = 0
+local multiTargetBlacklistConfigData =
+{
+    skillToBlacklistID = 0,
+    skillToBlacklistName = "",
+    blacklistedSkillNames = {},
+    blacklistedSkillIds = {},
+    selectedBlacklist = 0,
+    controls =
+    {
+        skillToBlacklistTitle = "MultiTargetSkillToBlacklistTitle",
+        skillToBlacklistID_Editbox = "MultiTargetSkillToBlacklistID_Editbox",
+        blacklistDropdown = "MultiTargetBlacklist_Dropdown",
+        blacklistButton = "MultiTargetSkillToBlacklist_Button",
+        clearBlacklistButton = "MultiTargetBlacklistToClear_Button",
+    },
+}
+
+local parentTimeBlacklistConfigData =
+{
+    skillToBlacklistID = 0,
+    skillToBlacklistName = "",
+    blacklistedSkillNames = {},
+    blacklistedSkillIds = {},
+    selectedBlacklist = 0,
+    controls =
+    {
+        skillToBlacklistTitle = "ParentTimeSkillToBlacklistTitle",
+        skillToBlacklistID_Editbox = "ParentTimeSkillToBlacklistID_Editbox",
+        blacklistDropdown = "ParentTimeBlacklist_Dropdown",
+        blacklistButton = "ParentTimeSkillToBlacklist_Button",
+        clearBlacklistButton = "ParentTimeBlacklistToClear_Button",
+    },
+}
 
 local debuffToEditID = 0
 local debuffToEditName = ""
@@ -299,276 +338,142 @@ local function SetBarTheme(locked)
     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
     FancyActionBar:ApplySettings()
 end
+
 ----------------------------------------------
------------[   External Buffs   ]-------------
+----------[ Blacklist ID Parsing ]------------
 ----------------------------------------------
-local function ParseExternalBlacklist()
-    for id, name in pairs(SV.externalBlackList) do
-        blacklistedSkillIds[id] = name
-        blacklistedSkillNames[name] = id
+local function ParseBlacklist(blacklist, blacklistConfigData)
+    for id, _ in pairs(blacklist) do
+        local name = GetAbilityName(id) or "Unknown Ability"
+        local nameString = name .. " (" .. id .. ")"
+        blacklistConfigData.blacklistedSkillIds[id] = nameString
+        blacklistConfigData.blacklistedSkillNames[nameString] = id
     end
 end
 
-local function CanBlacklistId()
+local function CanBlacklistId(blacklist, blacklistConfigData)
     local possible = true
-    if skillToBlacklistID == 0 or SV.externalBlackList[skillToBlacklistID] ~= nil then
+    if blacklistConfigData.skillToBlacklistID == 0 or blacklist[blacklistConfigData.skillToBlacklistID] ~= nil then
         possible = false
     end
     return possible
 end
 
-local function CanClearBlacklistId()
+local function CanClearBlacklistId(blacklist, blacklistConfigData)
     local possible = true
-    if selectedBlacklist == 0 or SV.externalBlackList[selectedBlacklist] == nil then
+    if blacklistConfigData.selectedBlacklist == 0 or blacklist[blacklistConfigData.selectedBlacklist] == nil then
         possible = false
     end
     return possible
 end
 
-local function GetSkillToBlacklistID()
+local function GetSkillToBlacklistID(blacklistConfigData)
     local id = ""
-    if skillToBlacklistID > 0 then
-        id = tostring(skillToBlacklistID)
+    if blacklistConfigData.skillToBlacklistID > 0 then
+        id = tostring(blacklistConfigData.skillToBlacklistID)
     end
     return id
 end
 
-local function GetSkillToBlacklistName()
+local function GetSkillToBlacklistName(blacklistConfigData)
     local name = ""
-    if skillToBlacklistID > 0 then
-        name = "|cffa31a" .. GetAbilityName(skillToBlacklistID) .. "|r"
+    if blacklistConfigData.skillToBlacklistID > 0 then
+        name = "|cffa31a" .. GetAbilityName(blacklistConfigData.skillToBlacklistID) .. "|r"
     end
     return name
 end
 
-local function SetSkillToBlacklistID(id)
+local function SetSkillToBlacklistID(id, blacklistConfigData)
     local isValid = IsValidId(id)
     if not isValid then
         Chat("|cffffff" .. id .. " is not a valid ID.")
-        skillToBlacklistID = 0
-        skillToBlacklistName = ""
+        blacklistConfigData.skillToBlacklistID = 0
+        blacklistConfigData.skillToBlacklistName = ""
         if not IsConsoleUI() then
-            WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
+            WM:GetControlByName(blacklistConfigData.controls.skillToBlacklistTitle).desc:SetText("")
         end
         return
     end
 
     if tonumber(id) then
-        skillToBlacklistID = tonumber(id)
-        skillToBlacklistName = GetAbilityName(skillToBlacklistID)
-        FancyActionBar:dbg("Skill to blacklist updated to: " .. skillToBlacklistName .. " (" .. skillToBlacklistID .. ")")
+        blacklistConfigData.skillToBlacklistID = tonumber(id)
+        blacklistConfigData.skillToBlacklistName = GetAbilityName(blacklistConfigData.skillToBlacklistID)
+        FancyActionBar:dbg("Skill to blacklist updated to: " .. blacklistConfigData.skillToBlacklistName)
         if not IsConsoleUI() then
-            WM:GetControlByName("SkillToBlacklistTitle").desc:SetText(skillToBlacklistName)
+            WM:GetControlByName(blacklistConfigData.controls.skillToBlacklistTitle).desc:SetText(blacklistConfigData.skillToBlacklistName)
         end
     end
 end
 
-local function GetSelectedBlacklist()
-    if blacklistedSkillIds[selectedBlacklist] then
-        return blacklistedSkillIds[selectedBlacklist]
+local function GetSelectedBlacklist(blacklistConfigData)
+    if blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist] then
+        return blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist]
     end
 end
 
-local function SetSelectedBlacklist(string)
+local function SetSelectedBlacklist(string, blacklist, blacklistConfigData)
     if string == "== Select a Skill ==" or string == "" or string == nil then
         return
     end
-    if blacklistedSkillNames[string] then
-        local id = blacklistedSkillNames[string]
+    if blacklistConfigData.blacklistedSkillNames[string] then
+        local id = blacklistConfigData.blacklistedSkillNames[string]
         if type(id) == "string" then
             id = tonumber(id)
         end
-        if SV.externalBlackList[id] then
-            selectedBlacklist = id
-            FancyActionBar:dbg("selected " .. string .. " (" .. selectedBlacklist .. ")")
+        if blacklist[id] then
+            blacklistConfigData.selectedBlacklist = id
+            FancyActionBar:dbg("selected: " .. string)
         end
     end
 end
 
-local function GetBlacklistedSkills()
+local function GetBlacklistedSkills(blacklist)
     local list = {}
     local default = "== Select a Skill =="
     table.insert(list, default)
 
-    for id, name in pairs(SV.externalBlackList) do
-        -- blacklistedSkillIds[id]     = name
-        -- blacklistedSkillNames[name] = id
-        table.insert(list, name)
+    for id, _ in pairs(blacklist) do
+        local name = GetAbilityName(id) or "Unknown Ability"
+        local nameString = name .. " (" .. id .. ")"
+        table.insert(list, nameString)
     end
     return list
 end
 
-local function BlacklistId()
-    if CanBlacklistId() then
-        SV.externalBlackList[skillToBlacklistID] = skillToBlacklistName
+local function BlacklistId(blacklist, blacklistConfigData)
+    if CanBlacklistId(blacklist, blacklistConfigData) then
+        blacklist[blacklistConfigData.skillToBlacklistID] = true
 
-        skillToBlacklistID = 0
-        skillToBlacklistName = ""
+        blacklistConfigData.skillToBlacklistID = 0
+        blacklistConfigData.skillToBlacklistName = ""
 
-        ParseExternalBlacklist()
+        ParseBlacklist(blacklist, blacklistConfigData)
         if not IsConsoleUI() then
-            WM:GetControlByName("SkillToBlacklistTitle").desc:SetText("")
-            WM:GetControlByName("SkillToBlacklistID_Editbox").editbox:SetText("")
-            WM:GetControlByName("Blacklist_Dropdown"):UpdateChoices(GetBlacklistedSkills())
-            WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedBlacklist())
+            WM:GetControlByName(blacklistConfigData.controls.skillToBlacklistTitle).desc:SetText("")
+            WM:GetControlByName(blacklistConfigData.controls.skillToBlacklistID_Editbox).editbox:SetText("")
+            WM:GetControlByName(blacklistConfigData.controls.blacklistDropdown):UpdateChoices(GetBlacklistedSkills(blacklist))
+            WM:GetControlByName(blacklistConfigData.controls.blacklistDropdown).dropdown:SetSelectedItem(GetSelectedBlacklist(blacklistConfigData))
         end
     else
-        Chat("failed to blacklist: " .. skillToBlacklistName .. " (" .. skillToBlacklistID .. ")")
+        Chat("Failed to blacklist: " .. blacklistConfigData.skillToBlacklistName)
     end
 end
 
-local function ClearBlacklistId()
-    if SV.externalBlackList[selectedBlacklist] then
+local function ClearBlacklistId(blacklist, blacklistConfigData)
+    if blacklist[blacklistConfigData.selectedBlacklist] then
         -- if CanClearBlacklistId() then
-        SV.externalBlackList[selectedBlacklist] = nil
+        blacklist[blacklistConfigData.selectedBlacklist] = nil
 
-        blacklistedSkillNames[blacklistedSkillIds[selectedBlacklist]] = nil
-        blacklistedSkillIds[selectedBlacklist] = nil
+        blacklistConfigData.blacklistedSkillNames[blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist]] = nil
+        blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist] = nil
 
         -- Chat(selectedBlacklist .. ' clear')
-        selectedBlacklist = 0
+        blacklistConfigData.selectedBlacklist = 0
 
-        ParseExternalBlacklist()
+        ParseBlacklist(blacklist, blacklistConfigData)
         if not IsConsoleUI() then
-            WM:GetControlByName("Blacklist_Dropdown"):UpdateChoices(GetBlacklistedSkills())
-            WM:GetControlByName("Blacklist_Dropdown").dropdown:SetSelectedItem(nil)
-        end
-    end
-end
-
-----------------------------------------------
-------------[ MultiTarget Effects ]-----------
-----------------------------------------------
-local function ParseMultiTargetBlacklist()
-    for id, name in pairs(SV.multiTargetBlacklist) do
-        blacklistedMultiTargetSkillIds[id] = name
-        blacklistedMultiTargetSkillNames[name] = id
-    end
-end
-
-local function CanBlacklistMultiTargetId()
-    local possible = true
-    if multiTargetSkillToBlacklistID == 0 or SV.multiTargetBlacklist[multiTargetSkillToBlacklistID] ~= nil then
-        possible = false
-    end
-    return possible
-end
-
-local function CanClearBlacklistMultiTargetId()
-    local possible = true
-    if selectedMultiTargetBlacklist == 0 or SV.multiTargetBlacklist[selectedMultiTargetBlacklist] == nil then
-        possible = false
-    end
-    return possible
-end
-
-local function GetMultiTargetSkillToBlacklistID()
-    local id = ""
-    if multiTargetSkillToBlacklistID > 0 then
-        id = tostring(multiTargetSkillToBlacklistID)
-    end
-    return id
-end
-
-local function GetMultiTargetSkillToBlacklistName()
-    local name = ""
-    if multiTargetSkillToBlacklistID > 0 then
-        name = "|cffa31a" .. GetAbilityName(multiTargetSkillToBlacklistID) .. "|r"
-    end
-    return name
-end
-
-local function SetMultiTargetSkillToBlacklistID(id)
-    local isValid = IsValidId(id)
-    if not isValid then
-        Chat("|cffffff" .. id .. " is not a valid ID.")
-        multiTargetSkillToBlacklistID = 0
-        multiTargetSkillToBlacklistName = ""
-        if not IsConsoleUI() then
-            WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
-        end
-        return
-    end
-
-    if tonumber(id) then
-        multiTargetSkillToBlacklistID = tonumber(id)
-        multiTargetSkillToBlacklistName = GetAbilityName(multiTargetSkillToBlacklistID)
-        FancyActionBar:dbg("Skill to blacklist updated to: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")")
-        if not IsConsoleUI() then
-            WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText(multiTargetSkillToBlacklistName)
-        end
-    end
-end
-
-local function GetSelectedMultiTargetBlacklist()
-    if blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist] then
-        return blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist]
-    end
-end
-
-local function SetSelectedMultiTargetBlacklist(string)
-    if string == "== Select a Skill ==" or string == "" or string == nil then
-        return
-    end
-    if blacklistedMultiTargetSkillNames[string] then
-        local id = blacklistedMultiTargetSkillNames[string]
-        if type(id) == "string" then
-            id = tonumber(id)
-        end
-        if SV.multiTargetBlacklist[id] then
-            selectedMultiTargetBlacklist = id
-            FancyActionBar:dbg("selected " .. string .. " (" .. selectedMultiTargetBlacklist .. ")")
-        end
-    end
-end
-
-local function GetBlacklistedMultiTargetSkills()
-    local list = {}
-    local default = "== Select a Skill =="
-    table.insert(list, default)
-
-    for id, name in pairs(SV.multiTargetBlacklist) do
-        -- blacklistedMultiTargetSkillIds[id]     = name
-        -- blacklistedMultiTargetSkillNames[name] = id
-        table.insert(list, name)
-    end
-    return list
-end
-
-local function BlacklistMultiTargetId()
-    if CanBlacklistMultiTargetId() then
-        SV.multiTargetBlacklist[multiTargetSkillToBlacklistID] = multiTargetSkillToBlacklistName
-
-        multiTargetSkillToBlacklistID = 0
-        multiTargetSkillToBlacklistName = ""
-
-        ParseMultiTargetBlacklist()
-        if not IsConsoleUI() then
-            WM:GetControlByName("MultiTargetSkillToBlacklistTitle").desc:SetText("")
-            WM:GetControlByName("MultiTargetSkillToBlacklistID_Editbox").editbox:SetText("")
-            WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills())
-            WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(GetSelectedMultiTargetBlacklist())
-        end
-    else
-        Chat("failed to blacklist: " .. multiTargetSkillToBlacklistName .. " (" .. multiTargetSkillToBlacklistID .. ")")
-    end
-end
-
-local function ClearMultiTargetBlacklistId()
-    if SV.multiTargetBlacklist[selectedMultiTargetBlacklist] then
-        -- if CanClearBlacklistMultiTargetId() then
-        SV.multiTargetBlacklist[selectedMultiTargetBlacklist] = nil
-
-        blacklistedMultiTargetSkillNames[blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist]] = nil
-        blacklistedMultiTargetSkillIds[selectedMultiTargetBlacklist] = nil
-
-        -- Chat(selectedMultiTargetBlacklist .. ' clear')
-        selectedMultiTargetBlacklist = 0
-
-        ParseMultiTargetBlacklist()
-        if not IsConsoleUI() then
-            WM:GetControlByName("MultiTargetBlacklist_Dropdown"):UpdateChoices(GetBlacklistedMultiTargetSkills())
-            WM:GetControlByName("MultiTargetBlacklist_Dropdown").dropdown:SetSelectedItem(nil)
+            WM:GetControlByName(blacklistConfigData.controls.blacklistDropdown):UpdateChoices(GetBlacklistedSkills(blacklist))
+            WM:GetControlByName(blacklistConfigData.controls.blacklistDropdown).dropdown:SetSelectedItem(nil)
         end
     end
 end
@@ -5407,12 +5312,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 tooltip = "Enter the ID of the skill you dont want to have updated when you gain the effect from someone else.",
                                 -- default = '',
                                 getFunc = function ()
-                                    return GetSkillToBlacklistID()
+                                    return GetSkillToBlacklistID(externalBlacklistConfigData)
                                 end,
                                 setFunc = function (value)
-                                    SetSkillToBlacklistID(value)
+                                    SetSkillToBlacklistID(value, externalBlacklistConfigData)
                                 end,
-                                reference = "SkillToBlacklistID_Editbox",
+                                reference = externalBlacklistConfigData.controls.skillToBlacklistID_Editbox,
                                 isMultiline = false,
                                 isExtraWide = false,
                                 width = "half",
@@ -5421,10 +5326,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "description",
                                 title = "Selected Buff:",
                                 text = function ()
-                                    return GetSkillToBlacklistName()
+                                    return GetSkillToBlacklistName(externalBlacklistConfigData)
                                 end,
                                 width = "half",
-                                reference = "SkillToBlacklistTitle",
+                                reference = externalBlacklistConfigData.controls.skillToBlacklistTitle,
                             },
 
                             { type = "description", width = "half" },
@@ -5434,12 +5339,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Confirm Blacklist",
                                 width = "half",
                                 func = function ()
-                                    BlacklistId()
+                                    BlacklistId(SV.externalBlackList, externalBlacklistConfigData)
                                 end,
                                 disabled = function ()
-                                    return not CanBlacklistId()
+                                    return not CanBlacklistId(SV.externalBlackList, externalBlacklistConfigData)
                                 end,
-                                reference = "SkillToBlacklist_Button",
+                                reference = externalBlacklistConfigData.controls.blacklistButton,
                             },
 
                             { type = "description", width = "full" },
@@ -5448,14 +5353,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "dropdown",
                                 scrollable = 20,
                                 name = "Blacklisted IDs",
-                                choices = GetBlacklistedSkills(),
+                                choices = GetBlacklistedSkills(SV.externalBlackList),
                                 getFunc = function ()
-                                    GetSelectedBlacklist()
+                                    GetSelectedBlacklist(externalBlacklistConfigData)
                                 end,
                                 setFunc = function (value)
-                                    SetSelectedBlacklist(value)
+                                    SetSelectedBlacklist(value, SV.externalBlackList, externalBlacklistConfigData)
                                 end,
-                                reference = "Blacklist_Dropdown",
+                                reference = externalBlacklistConfigData.controls.blacklistDropdown,
                                 -- default = '== Select a Skill ==',
                                 width = "half",
                             },
@@ -5465,12 +5370,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Remove From Blacklist",
                                 width = "half",
                                 func = function ()
-                                    ClearBlacklistId()
+                                    ClearBlacklistId(SV.externalBlackList, externalBlacklistConfigData)
                                 end,
                                 disabled = function ()
-                                    return not CanClearBlacklistId()
+                                    return not CanClearBlacklistId(SV.externalBlackList, externalBlacklistConfigData)
                                 end,
-                                reference = "BlacklistToClear_Button",
+                                reference = externalBlacklistConfigData.controls.clearBlacklistButton,
                             },
                         },
                     },
@@ -5702,12 +5607,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 "Enter the ID of the skill you dont want to track multiple target instances of.",
                                 -- default = '',
                                 getFunc = function ()
-                                    return GetMultiTargetSkillToBlacklistID()
+                                    return GetSkillToBlacklistID(multiTargetBlacklistConfigData)
                                 end,
                                 setFunc = function (value)
-                                    SetMultiTargetSkillToBlacklistID(value)
+                                    SetSkillToBlacklistID(value, multiTargetBlacklistConfigData)
                                 end,
-                                reference = "MultiTargetSkillToBlacklistID_Editbox",
+                                reference = multiTargetBlacklistConfigData.controls.skillToBlacklistID_Editbox,
                                 isMultiline = false,
                                 isExtraWide = false,
                                 width = "half",
@@ -5716,10 +5621,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "description",
                                 title = "Selected Skill:",
                                 text = function ()
-                                    return GetMultiTargetSkillToBlacklistName()
+                                    return GetSkillToBlacklistName(multiTargetBlacklistConfigData)
                                 end,
                                 width = "half",
-                                reference = "MultiTargetSkillToBlacklistTitle",
+                                reference = multiTargetBlacklistConfigData.controls.skillToBlacklistTitle,
                             },
 
                             { type = "description", width = "half" },
@@ -5729,12 +5634,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Confirm Blacklist",
                                 width = "half",
                                 func = function ()
-                                    BlacklistMultiTargetId()
+                                    BlacklistId(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
                                 disabled = function ()
-                                    return not CanBlacklistMultiTargetId()
+                                    return not CanBlacklistId(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
-                                reference = "MultiTargetSkillToBlacklist_Button",
+                                reference = multiTargetBlacklistConfigData.controls.blacklistButton,
                             },
 
                             { type = "description", width = "full" },
@@ -5743,14 +5648,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "dropdown",
                                 scrollable = 20,
                                 name = "Blacklisted IDs",
-                                choices = GetBlacklistedMultiTargetSkills(),
+                                choices = GetBlacklistedSkills(SV.multiTargetBlacklist),
                                 getFunc = function ()
-                                    GetSelectedMultiTargetBlacklist()
+                                    GetSelectedBlacklist(multiTargetBlacklistConfigData)
                                 end,
                                 setFunc = function (value)
-                                    SetSelectedMultiTargetBlacklist(value)
+                                    SetSelectedBlacklist(value, SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
-                                reference = "MultiTargetBlacklist_Dropdown",
+                                reference = multiTargetBlacklistConfigData.controls.blacklistDropdown,
                                 -- default = '== Select a Skill ==',
                                 width = "half",
                             },
@@ -5760,12 +5665,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Remove From Blacklist",
                                 width = "half",
                                 func = function ()
-                                    ClearMultiTargetBlacklistId()
+                                    ClearBlacklistId(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
                                 disabled = function ()
-                                    return not CanClearBlacklistMultiTargetId()
+                                    return not CanClearBlacklistId(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
                                 end,
-                                reference = "MultiTargetBlacklistToClear_Button",
+                                reference = multiTargetBlacklistConfigData.controls.clearBlacklistButton,
                             },
                             { type = "divider" },
                             {
@@ -6217,8 +6122,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         end
     end)
 
-    ParseExternalBlacklist()
-    ParseMultiTargetBlacklist()
+    ParseBlacklist(SV.externalBlackList, externalBlacklistConfigData)
+    ParseBlacklist(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
+    ParseBlacklist(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
 end
 
 -------------------------------------------------------------------------------
