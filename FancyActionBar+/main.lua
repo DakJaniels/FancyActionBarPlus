@@ -3920,15 +3920,11 @@ function FancyActionBar.ShouldHideIfNotOnTarget(Id) -- a setting I didn't finish
     return hide
 end
 
-local fdNum = 0
-local fdStacks = {}
-local lastCW = 0 -- track when last crystal weapon debuff was applied
-
 function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
     local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id])
     if specialEffect.handler then
         if specialEffect.handler == "device" then
-            FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
+            FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, beginTime, endTime)
         end
         return
     end
@@ -4051,40 +4047,145 @@ function FancyActionBar.UpdateEffectProcs(effect, specialEffect, stackCount)
     return true
 end
 
-function FancyActionBar.HandleFrozenDevice(id, updateTime, beginTime, endTime)
-    local effect = FancyActionBar.effects[id]
-    local faded, fadeTime = 0, 0
-    if effect then
-        for i = 1, #fdStacks do
-            if fdStacks[i] == beginTime then
-                faded = i
-                fdStacks = 0
-            else
-                if fdStacks[i] > fadeTime then
-                    fadeTime = fdStacks[i]
+function FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, beginTime, endTime)
+    local parentId = specialEffect.id
+
+    -- =================================================================
+    -- Handle abilities that can be cast multiple times (allowMulti)
+    -- =================================================================
+    if specialEffect.allowMulti then
+        local parentEffect = FancyActionBar.effects[parentId] or { id = parentId }
+        local effectDuration = specialEffect.duration or 0
+        FancyActionBar.effects[parentId] = parentEffect
+        
+        parentEffect.placements = parentEffect.placements or {}
+
+        if change == EFFECT_RESULT_GAINED then
+            table.insert(parentEffect.placements, {
+                instanceId = id,
+                beginTime = beginTime,
+                endTime = endTime
+            })
+        elseif change == EFFECT_RESULT_FADED then
+            local foundIndex = -1
+            for i = 1, #parentEffect.placements do
+                if parentEffect.placements[i].instanceId == id then
+                    foundIndex = i
+                    break
                 end
             end
-            if faded > 0 and i > faded then
-                fdStacks[i - 1] = fdStacks[i]
+
+            if foundIndex ~= -1 then
+                table.remove(parentEffect.placements, foundIndex)
             end
         end
 
-        fdNum = fdNum - 1
-        if fdNum >= 1 then
-            if fadeTime + 15.5 > updateTime then
-                effect.endTime = fadeTime + 15.5
-                FancyActionBar.stacks[id] = fdNum
+        local stackCount = #parentEffect.placements
+        local effectiveEndTime = 0
+        local latestBeginTimeOfActive = 0
+        local soonestEndTime = nil
+        local latestEndTime = nil
+
+        if stackCount > 0 then
+            for _, placementData in pairs(parentEffect.placements) do
+                if soonestEndTime == nil or placementData.endTime < soonestEndTime then
+                    soonestEndTime = placementData.endTime
+                end
+
+                if latestEndTime == nil or placementData.endTime > latestEndTime then
+                    latestEndTime = placementData.endTime
+                end
+                
+                if placementData.beginTime > latestBeginTimeOfActive then
+                    latestBeginTimeOfActive = placementData.beginTime
+                end
+            end
+            
+            if SV.showSoonestExpire then
+                effectiveEndTime = soonestEndTime
             else
-                FancyActionBar.stacks[id] = 0
-                effect.endTime = endTime
+                effectiveEndTime = latestEndTime
+            end
+
+            if not SV.showSoonestExpire then
+                local latestActiveDurationExtended = latestBeginTimeOfActive + effectDuration + 0.5
+                if latestActiveDurationExtended > updateTime and latestActiveDurationExtended > effectiveEndTime then
+                    effectiveEndTime = latestActiveDurationExtended
+                end
             end
         else
-            FancyActionBar.stacks[id] = 0
-            effect.endTime = endTime
+            -- No active stacks, effectiveEndTime should be 0
+            effectiveEndTime = 0
+        end
+
+        parentEffect.endTime = effectiveEndTime
+        FancyActionBar.stacks[parentId] = stackCount
+        FancyActionBar.UpdateEffect(parentEffect)
+        FancyActionBar.HandleStackUpdate(parentId)
+        return
+    end
+
+    -- =================================================================
+    -- Handle abilities that spawn multiple unique devices
+    -- =================================================================
+    local isParentAbilityEvent = (id == parentId)
+
+    if change == EFFECT_RESULT_GAINED then
+        FancyActionBar.effects[id] = {
+            id = parentId,
+            beginTime = beginTime,
+            endTime = endTime,
+            isDevice = true,
+        }
+        if isParentAbilityEvent then
+            FancyActionBar.effects[parentId] = FancyActionBar.effects[parentId] or {}
+        end
+
+    elseif change == EFFECT_RESULT_FADED then
+        local existingEffect = FancyActionBar.effects[id]
+        if existingEffect and existingEffect.isDevice then
+            if existingEffect.beginTime and (updateTime - existingEffect.beginTime < 0.3) then
+                return -- Ignore this fade event (fade so soon is a recast)
+            end
+            FancyActionBar.effects[id] = nil
+        end
+
+        if isParentAbilityEvent then
+            for effectId, effectData in pairs(FancyActionBar.effects) do
+                if effectData and effectData.isDevice and effectData.id == parentId then
+                    FancyActionBar.effects[effectId] = nil
+                end
+            end
+            FancyActionBar.effects[parentId] = nil
+            FancyActionBar.stacks[parentId] = 0
+            FancyActionBar.UpdateEffect({id = parentId, endTime = 0})
+            FancyActionBar.HandleStackUpdate(parentId)
+            return
         end
     end
-    FancyActionBar.UpdateEffect(effect)
-    FancyActionBar.HandleStackUpdate(effect.id)
+
+    -- Recalculate Stack Group State for the Parent Ability
+    local activeCount = 0
+    local latestEnd = 0
+    for effectId, effectData in pairs(FancyActionBar.effects) do
+        if effectData and effectData.isDevice and effectData.id == parentId then
+            if effectData.endTime > updateTime then
+                activeCount = activeCount + 1
+                if effectData.endTime > latestEnd then
+                    latestEnd = effectData.endTime
+                end
+            end
+        end
+    end
+
+    -- Update the parent's aggregate entry in FancyActionBar.effects
+    FancyActionBar.effects[parentId] = FancyActionBar.effects[parentId] or {}
+    FancyActionBar.effects[parentId].id = parentId
+    FancyActionBar.effects[parentId].endTime = (activeCount > 0) and latestEnd or 0
+    FancyActionBar.stacks[parentId] = activeCount
+
+    FancyActionBar.UpdateEffect(FancyActionBar.effects[parentId])
+    FancyActionBar.HandleStackUpdate(parentId)
 end
 
 function FancyActionBar.RefreshEffects()
@@ -4600,6 +4701,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
     end
 end
 
+local lastCW = 0 -- track when last crystal weapon debuff was applied
 local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
     if SV.debugAll then
         FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)

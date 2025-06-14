@@ -1218,6 +1218,23 @@ FancyActionBar.specialClassEffects =
     [41] =
     {                                                                                        -- Dark Magic
         [46331] = { id = 46331, stackId = { 46331 }, stacks = 2, procs = 1, hasProced = 0 }, -- Crystal Weapon
+
+        [24828] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (Parent Ability)
+        [24830] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (1st Mine)
+        [24832] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (2nd Mine)
+        [24833] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (3rd Mine)
+
+        [24842] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (Parent Ability)
+        [24844] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (1st Mine)
+        [24846] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (2nd Mine)
+        [24847] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (3rd Mine)
+
+        [24834] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (Parent Ability)
+        [25157] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (1st Ward)
+        [25158] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (2nd Ward)
+        [25159] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (3rd Ward)
+        [25160] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (4th Ward)
+        [25162] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (5th Ward)
     },
     [42] =
     {                                                                                                                                                                           -- Daedric Summoning
@@ -1253,9 +1270,9 @@ FancyActionBar.specialClassEffects =
         [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized slab
         [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- shimmering shield
 
-        [86175] = { id = 86175, stackId = { 86175 }, handler = "device" },                                     -- frozen gate
-        [86179] = { id = 86179, stackId = { 86179 }, handler = "device" },                                     -- frozen device
-        [86183] = { id = 86183, stackId = { 86183 }, handler = "device" },                                     -- frozen retreat
+        [86175] = { id = 86175, stackId = { 86175 }, duration = GetAbilityDuration(86175) / 1000, handler = "device", allowMulti = true }, -- frozen gate
+        [86179] = { id = 86179, stackId = { 86179 }, duration = GetAbilityDuration(86179) / 1000, handler = "device", allowMulti = true }, -- frozen device
+        [86183] = { id = 86183, stackId = { 86183 }, duration = GetAbilityDuration(86183) / 1000, handler = "device", allowMulti = true }, -- frozen retreat
     },
 
     -- Necromancer
@@ -1804,7 +1821,6 @@ FancyActionBar.stackableBuff =
 
     -- -- Grand Rejuvenation
     -- [40080] = 40080; -- This is incompatible with showing stacks for Healing Springs Mag Recovey [40062] in stackMap
-
 }
 
 FancyActionBar.confirmBuffFade =
