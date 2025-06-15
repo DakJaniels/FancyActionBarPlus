@@ -4049,144 +4049,102 @@ end
 
 function FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, beginTime, endTime)
     local parentId = specialEffect.id
+    local allowMulti = specialEffect.allowMulti
+    local duration = specialEffect.duration or 0
 
-    -- =================================================================
-    -- Handle abilities that can be cast multiple times (allowMulti)
-    -- =================================================================
-    if specialEffect.allowMulti then
-        local parentEffect = FancyActionBar.effects[parentId] or { id = parentId }
-        local effectDuration = specialEffect.duration or 0
+    -- Ensure parent effect entry
+    local parentEffect = FancyActionBar.effects[parentId]
+    if not parentEffect then
+        parentEffect = { id = parentId, instances = {} }
         FancyActionBar.effects[parentId] = parentEffect
-        
-        parentEffect.placements = parentEffect.placements or {}
-
-        if change == EFFECT_RESULT_GAINED then
-            table.insert(parentEffect.placements, {
-                instanceId = id,
-                beginTime = beginTime,
-                endTime = endTime
-            })
-        elseif change == EFFECT_RESULT_FADED then
-            local foundIndex = -1
-            for i = 1, #parentEffect.placements do
-                if parentEffect.placements[i].instanceId == id then
-                    foundIndex = i
-                    break
-                end
-            end
-
-            if foundIndex ~= -1 then
-                table.remove(parentEffect.placements, foundIndex)
-            end
-        end
-
-        local stackCount = #parentEffect.placements
-        local effectiveEndTime = 0
-        local latestBeginTimeOfActive = 0
-        local soonestEndTime = nil
-        local latestEndTime = nil
-
-        if stackCount > 0 then
-            for _, placementData in pairs(parentEffect.placements) do
-                if soonestEndTime == nil or placementData.endTime < soonestEndTime then
-                    soonestEndTime = placementData.endTime
-                end
-
-                if latestEndTime == nil or placementData.endTime > latestEndTime then
-                    latestEndTime = placementData.endTime
-                end
-                
-                if placementData.beginTime > latestBeginTimeOfActive then
-                    latestBeginTimeOfActive = placementData.beginTime
-                end
-            end
-            
-            if SV.showSoonestExpire then
-                effectiveEndTime = soonestEndTime
-            else
-                effectiveEndTime = latestEndTime
-            end
-
-            if not SV.showSoonestExpire then
-                local latestActiveDurationExtended = latestBeginTimeOfActive + effectDuration + 0.5
-                if latestActiveDurationExtended > updateTime and latestActiveDurationExtended > effectiveEndTime then
-                    effectiveEndTime = latestActiveDurationExtended
-                end
-            end
-        else
-            -- No active stacks, effectiveEndTime should be 0
-            effectiveEndTime = 0
-        end
-
-        parentEffect.endTime = effectiveEndTime
-        FancyActionBar.stacks[parentId] = stackCount
-        FancyActionBar.UpdateEffect(parentEffect)
-        FancyActionBar.HandleStackUpdate(parentId)
-        return
     end
-
-    -- =================================================================
-    -- Handle abilities that spawn multiple unique devices
-    -- =================================================================
-    local isParentAbilityEvent = (id == parentId)
+    parentEffect.instances = parentEffect.instances or {}
+    local instances = parentEffect.instances
 
     if change == EFFECT_RESULT_GAINED then
-        FancyActionBar.effects[id] = {
-            id = parentId,
-            beginTime = beginTime,
-            endTime = endTime,
-            isDevice = true,
-        }
-        if isParentAbilityEvent then
-            FancyActionBar.effects[parentId] = FancyActionBar.effects[parentId] or {}
-        end
-
-    elseif change == EFFECT_RESULT_FADED then
-        local existingEffect = FancyActionBar.effects[id]
-        if existingEffect and existingEffect.isDevice then
-            if existingEffect.beginTime and (updateTime - existingEffect.beginTime < 0.3) then
-                return -- Ignore this fade event (fade so soon is a recast)
-            end
-            FancyActionBar.effects[id] = nil
-        end
-
-        if isParentAbilityEvent then
-            for effectId, effectData in pairs(FancyActionBar.effects) do
-                if effectData and effectData.isDevice and effectData.id == parentId then
-                    FancyActionBar.effects[effectId] = nil
-                end
-            end
-            FancyActionBar.effects[parentId] = nil
-            FancyActionBar.stacks[parentId] = 0
-            FancyActionBar.UpdateEffect({id = parentId, endTime = 0})
-            FancyActionBar.HandleStackUpdate(parentId)
+    if not allowMulti and id ~= parentId then
+        local existing = FancyActionBar.effects[id]
+        if existing and existing.beginTime and (updateTime - existing.beginTime < 0.3) then
             return
         end
     end
 
-    -- Recalculate Stack Group State for the Parent Ability
-    local activeCount = 0
-    local latestEnd = 0
-    for effectId, effectData in pairs(FancyActionBar.effects) do
-        if effectData and effectData.isDevice and effectData.id == parentId then
-            if effectData.endTime > updateTime then
-                activeCount = activeCount + 1
-                if effectData.endTime > latestEnd then
-                    latestEnd = effectData.endTime
+        local instance = {
+            id = id,
+            beginTime = beginTime,
+            endTime = endTime,
+            isDevice = not allowMulti,
+        }
+
+        if allowMulti then
+            table.insert(instances, instance)
+        else
+            FancyActionBar.effects[id] = instance
+            instances[id] = instance
+        end
+
+    elseif change == EFFECT_RESULT_FADED then
+        if not allowMulti then
+            local inst = FancyActionBar.effects[id]
+            if inst and inst.beginTime and (updateTime - inst.beginTime < 0.3) then
+                return -- skip recast fade
+            end
+            FancyActionBar.effects[id] = nil
+            instances[id] = nil
+        else
+            -- Remove the instance matching this id
+            local removeIndex = nil
+            for i, inst in ipairs(instances) do
+                if inst.id == id then
+                    removeIndex = i
+                    break
                 end
+            end
+            if removeIndex then
+                table.remove(instances, removeIndex)
+            end
+        end
+
+        -- If the fade is for the parent ability, wipe all devices
+        if not allowMulti and id == parentId then
+            for instId, instData in pairs(instances) do
+                FancyActionBar.effects[instId] = nil
+            end
+            parentEffect.instances = {}
+        end
+    end
+
+    -- Aggregate timing info
+    local stackCount, latestBegin, soonestEnd, latestEnd = 0, 0, nil, nil
+    for _, inst in pairs(instances) do
+        if inst.endTime > updateTime then
+            stackCount = stackCount + 1
+            if inst.beginTime > latestBegin then latestBegin = inst.beginTime end
+            if not soonestEnd or inst.endTime < soonestEnd then soonestEnd = inst.endTime end
+            if not latestEnd or inst.endTime > latestEnd then latestEnd = inst.endTime end
+        end
+    end
+
+    -- Compute effective end time
+    local effectiveEndTime = 0
+    if stackCount > 0 then
+        if SV.showSoonestExpire then
+            effectiveEndTime = soonestEnd
+        else
+            effectiveEndTime = latestEnd
+            local extended = latestBegin + duration + 0.5
+            if extended > updateTime and extended > effectiveEndTime then
+                effectiveEndTime = extended
             end
         end
     end
 
-    -- Update the parent's aggregate entry in FancyActionBar.effects
-    FancyActionBar.effects[parentId] = FancyActionBar.effects[parentId] or {}
-    FancyActionBar.effects[parentId].id = parentId
-    FancyActionBar.effects[parentId].endTime = (activeCount > 0) and latestEnd or 0
-    FancyActionBar.stacks[parentId] = activeCount
-
-    FancyActionBar.UpdateEffect(FancyActionBar.effects[parentId])
+    parentEffect.endTime = effectiveEndTime
+    FancyActionBar.stacks[parentId] = stackCount
+    FancyActionBar.UpdateEffect(parentEffect)
     FancyActionBar.HandleStackUpdate(parentId)
 end
+
 
 function FancyActionBar.RefreshEffects()
     FancyActionBar.activeCasts = {}
