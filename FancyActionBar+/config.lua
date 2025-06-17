@@ -295,7 +295,6 @@ FancyActionBar.abilityConfig =
     [24584] = { 114903 },  -- Dark Exchange
     [24589] = { 114909 },  -- dark conversion
     [24595] = { 114908 },  -- dark deal
-    [24842] = { 24844 },   -- daedric tomb (first mine) 24846; 24847
     [77182] = { 77187 },   -- volatile pulse
     [23316] = { 77187 },   -- summon volatile familiar
     [77140] = { 77354 },   -- twilight tormentor enrage
