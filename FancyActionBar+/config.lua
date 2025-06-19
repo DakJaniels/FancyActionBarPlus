@@ -272,9 +272,6 @@ FancyActionBar.abilityConfig =
     [29004] = { 61698 },  -- dragon blood (major fortitude)
     [32722] = { 61698 },  -- coagulating blood (major fortitude)
     [32744] = { 61549 },  -- green dragon blood (minor vitality)
-    [31837] = { 31841 },  -- inhale
-    [32785] = { 32788 },  -- draw essence
-    [32792] = { 32796 },  -- deep breath
     [32715] = { 61814 },  -- ferocious leap
     [133027] = { 31816 }, -- track stone giant
     [32673] = { 61711 },  -- fragmented shield
@@ -428,9 +425,6 @@ FancyActionBar.abilityConfig =
     [117690] = { 117691 }, -- blighted blastbones
     [117693] = { 117691 }, -- blighted blastbones
     [117749] = {},         -- grave lord's sacrifice
-    [115924] = { 116445 }, -- shocking siphon
-    [118763] = { 118764 }, -- detonating siphon
-    [118008] = { 118009 }, -- mystic siphon
     [122174] = { 106754 }, -- frozen colossus (major vuln)
     [122388] = { 106754 }, -- glacial colossus (major vuln)
     [122391] = { 106754 }, -- pestilent colossus (major vuln)
@@ -448,9 +442,6 @@ FancyActionBar.abilityConfig =
     [115315] = { 115326 }, -- life amid death
     [118017] = { 118022 }, -- renewing undeath
     [118809] = { 118814 }, -- enduring undeath
-    [115926] = { 116450 }, -- restoring tether
-    [118070] = { 118071 }, -- braided teher
-    [118122] = { 118123 }, -- mortal coil
     [115410] = false,      -- reanimate
     [118367] = false,      -- renewing animation
     [118379] = false,      -- animate blastbones
@@ -1077,70 +1068,7 @@ function FancyActionBar.IsAbilityTaunt(abilityId)
     return FancyActionBar.tauntSkills[abilityId] ~= nil
 end
 
-FancyActionBar.fakeClassEffects =
-{
-    --[[
-  scuffed way of updating certain abilities; but updates as intended without much work.
-  abilities that can't be tracked in EVENT_EFFECT_CHANGED alone.
-  filter so only abilities from the current class is being tracked.
-  when the game registers that you press the button for the ability;
-  it allows EVENT_COMBAT_EVENT to update the timer on the first encounter or the id.
-  needs to be given specific duration to update correctly.
-]]
-    -- Dragonknight
-    -- [35] = {}, -- Ardent Flame
-    [36] =
-    {                                             -- Draconic Power
-        [31841] = { duration = 2.5, id = 31841 }, -- inhale
-        [32788] = { duration = 2.5, id = 32788 }, -- draw essence
-        [32796] = { duration = 2.5, id = 32796 }, -- deep breath
-    },
-    -- [37] = {}, -- Earthen Heart
 
-    -- Sorcerer
-    -- [41] = {}, -- Dark Magic
-    -- [42] = {}, -- Daedric Summoning
-    -- [43] = {}, -- Storm Calling
-
-    -- Nightblade
-    -- [38] = {}, -- Assassination
-    -- [39] = { -- Shadow
-    -- [33211] = { duration = GetAbilityDuration(33211) / 1000, id = 33211 }, -- Summon Shade
-    -- [35434] = { duration = GetAbilityDuration(35438) / 1000, id = 35438 }, -- Dark Shade
-    -- [35441] = { duration = GetAbilityDuration(35441) / 1000, id = 35441 },  -- Shadow Image
-    -- },
-    -- [40] = {}, -- Siphoning
-
-    -- Warden
-    -- [127] = {}, -- Animal Companions
-    -- [128] = {}, -- Green Balance
-    -- [129] = {}, -- Winter's Embrace
-
-    -- Necromancer
-    [131] =
-    {                                              -- Grave Lord
-        [115924] = { duration = 20, id = 116445 }, -- Shocking Siphon
-        [118008] = { duration = 20, id = 118009 }, -- Mystic Siphon
-        [118763] = { duration = 20, id = 118764 }, -- Detonating Siphon
-    },
-    -- [132] = {}, -- Bone Tyrant
-    [133] =
-    {                                              -- Living Death
-        [115926] = { duration = 12, id = 116450 }, -- Restoring Tether
-        [118122] = { duration = 12, id = 118123 }, -- Mortal Coil
-        [118070] = { duration = 12, id = 118071 }, -- Braided Tether
-    },
-
-    -- Templar
-    -- [22] = {}, --Aedric Spear
-    -- [27] = {}, -- Dawn's Wrath
-    -- [28] = {}, -- Restoring Light
-
-    -- Arcanist
-    -- [218] = {}, -- Herald of the Tome
-    -- [219] = {}, -- Soldier of Apocrypha
-    -- [220] = {}, -- Curative Runeforms
-}
 
 -- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
@@ -1182,14 +1110,14 @@ FancyActionBar.specialEffects =
     [40465] = { id = 40465, stackId = { 40465 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                                                                         -- Scalding Rune Placed
     [40468] = { id = 40465, stackId = { 40465 }, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true },                                                    -- Scalding Rune DOT
 
-    [28727] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- defensive posture
-    [126604] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                   -- defensive posture
+    [28727] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- defensive posture
+    [126604] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                   -- defensive posture
 
-    [38312] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- defensive stance
-    [126608] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                   -- defensive stance
+    [38312] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- defensive stance
+    [126608] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                   -- defensive stance
 
-    [38317] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- absorb missile
-    [38324] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true, },                                                                                                    -- absorb missile
+    [38317] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- absorb missile
+    [38324] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- absorb missile
 }
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
@@ -1210,7 +1138,12 @@ FancyActionBar.specialClassEffects =
 {
     -- Dragonknight
     -- [35] = {}, -- Ardent Flame
-    -- [36] = {}, -- Draconic Power
+    [36] =
+    {                                                                                      -- Draconic Power
+        [31841] = { id = 31837, stackId = {31837}, duration = 2.5, onAbilityUsed = true }, -- Inhale
+        [32788] = { id = 32785, stackId = {32785}, duration = 2.5, onAbilityUsed = true }, -- Draw Essence
+        [32796] = { id = 32792, stackId = {32792}, duration = 2.5, onAbilityUsed = true }, -- Deep Breath
+    },
     -- [37] = {}, -- Earthen Heart
 
     -- Sorcerer
@@ -1246,9 +1179,9 @@ FancyActionBar.specialClassEffects =
     -- [38] = {}, -- Assassination
     [39] =
     {                                                                                                                                                                                        -- Shadow
-        [37475] = { id = 37475, stackId = { 37475 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                                                    -- manifestation of terror
-        [76639] = { id = 37475, stackId = { 37475 }, setTime = true, duration = 4, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true }, -- manifestation of terror (fear)
-        -- [147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- manifestation of terror (major cowardice)
+        [37475] = { id = 37475, stackId = { 37475 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                                                    -- Manifestation of Terror
+        [76639] = { id = 37475, stackId = { 37475 }, setTime = true, duration = 4, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true }, -- Manifestation of Terror (Fear)
+        -- [147643] = { id = 37475; stackId = { 37475 }; stacks = 0; procs = 1; hasProced = 1; isDebuff = true; keepOnTargetChange = true }; -- Manifestation of Terror (Major Cowardice)
     },
     -- [40] = {}, -- Siphoning
 
@@ -1265,25 +1198,35 @@ FancyActionBar.specialClassEffects =
     -- [128] = {}, -- Green Balance
     [129] =
     {                                                                                                          -- Winter's Embrace
-        [86135] = { id = 86135, stackId = { 86135 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized shield
-        [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- crystallized slab
-        [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- shimmering shield
+        [86135] = { id = 86135, stackId = { 86135 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- Crystallized Shield
+        [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- Crystallized Slab
+        [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- Shimmering Shield
 
-        [86175] = { id = 86175, stackId = { 86175 }, duration = GetAbilityDuration(86175) / 1000, handler = "device", allowMulti = true }, -- frozen gate
-        [86179] = { id = 86179, stackId = { 86179 }, duration = GetAbilityDuration(86179) / 1000, handler = "device", allowMulti = true }, -- frozen device
-        [86183] = { id = 86183, stackId = { 86183 }, duration = GetAbilityDuration(86183) / 1000, handler = "device", allowMulti = true }, -- frozen retreat
+        [86175] = { id = 86175, stackId = { 86175 }, duration = GetAbilityDuration(86175) / 1000, handler = "device", allowMulti = true }, -- Frozen Gate
+        [86179] = { id = 86179, stackId = { 86179 }, duration = GetAbilityDuration(86179) / 1000, handler = "device", allowMulti = true }, -- Frozen Device
+        [86183] = { id = 86183, stackId = { 86183 }, duration = GetAbilityDuration(86183) / 1000, handler = "device", allowMulti = true }, -- Frozen Retreat
     },
 
     -- Necromancer
-    -- [131] = {}, -- Grave Lord
+    [131] =
+    {                                                                                          -- Grave Lord
+        [116445] = {id = 115924, stackId = { 115924 }, duration = 20, onAbilityUsed = true  }, -- Shocking Siphon
+        [118009] = {id = 118008, stackId = { 118008 }, duration = 20, onAbilityUsed = true  }, -- Mystic Siphon
+        [118764] = {id = 118763, stackId = { 118763 }, duration = 20, onAbilityUsed = true  }, -- Detonating Siphon
+    },
     -- [132] = {}, -- Bone Tyrant
-    -- [133] = {}, -- Living Death
+    [133] =
+    {                                                                                           -- Living Death
+        [116450] = { id = 115926, stackId = { 115926 }, duration = 12, onAbilityUsed = true  }, -- Restoring Tether
+        [118123] = { id = 118122, stackId = { 118122 }, duration = 12, onAbilityUsed = true  }, -- Mortal Coil
+        [118071] = { id = 118070, stackId = { 118070 }, duration = 12, onAbilityUsed = true  }, -- Braided Tether
+    },
 
     -- Templar
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
     [28] =
-    {                                                                                                -- Restoring Light
+    {                                                                                                                -- Restoring Light
         [22265] = { id = 22265, duration = GetAbilityDuration(22265) / 1000, onAbilityUsed = true }, -- Cleansing Ritual
         [22259] = { id = 22259, duration = GetAbilityDuration(22259) / 1000, onAbilityUsed = true }, -- Ritual of Retribution
         [22262] = { id = 22262, duration = GetAbilityDuration(22262) / 1000, onAbilityUsed = true }, -- Extended Ritual

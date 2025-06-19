@@ -254,8 +254,6 @@ FancyActionBar.constants =
 local defaultSettings = FancyActionBar.defaultSettings -- default settings variables...
 local abilityConfig = {}                               -- parsed FancyActionBar.abilityConfig.
 local specialIds = {}                                  -- abilities that needs to be updated individually when fired ( cause too special to be tracked by effect changed events, or if I wanna do something more with them )
-local fakes = {}                                       -- problematic abilities from current class and shared skill lines ( mostly ground AoE's and traps )
-local activeFakes = {}                                 -- enables OnCombatEvent to update timers with hard coded durations if the button for the effect has been pressed (:4House:)
 local sourceAbilities = {}                             -- to track which abilities are currently slotting effects
 local slottedIds = {}                                  -- to match skills with their tracked effect
 local effectSlots = {}                                 -- to indentify slots that track the same effect
@@ -4491,9 +4489,6 @@ local function OnAbilityUsed(_, n)
         if idCheck == false then
             local E = FancyActionBar.effects[i]
             if E then
-                if fakes[i] then
-                    activeFakes[i] = true
-                end
                 if FancyActionBar.activeCasts[E.id] then
                     FancyActionBar.activeCasts[E.id].cast = t
                 end
@@ -4513,9 +4508,6 @@ local function OnAbilityUsed(_, n)
             if effect.id ~= id then
                 local e = FancyActionBar.effects[i]
                 if e then
-                    if fakes[i] then
-                        activeFakes[i] = true
-                    end
                     FancyActionBar:dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000)
                     if SV.showCastDuration then
                         wasBlockActive = IsBlockActive()
@@ -4552,10 +4544,6 @@ local function OnAbilityUsed(_, n)
                     if specialEffect.stacks then
                         FancyActionBar.stacks[specialEffect.stackId[1] or specialEffect.id] = specialEffect.stacks
                         FancyActionBar.HandleStackUpdate(effect.id)
-                    end
-                else
-                    if fakes[id] then
-                        activeFakes[id] = true
                     end
                     FancyActionBar:dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
                 end
@@ -5081,21 +5069,6 @@ local function OnCombatEvent(eventId, result, isError, abilityName, abilityGraph
         end
     end
 
-    -- Handle fake effects
-    if result == ACTION_RESULT_EFFECT_GAINED and activeFakes[abilityId] then
-        activeFakes[abilityId] = false
-        effect = FancyActionBar.effects[abilityId]
-        if effect then
-            effect.endTime = currentTime + fakes[abilityId].duration
-            -- Debug logging for fake effects
-            -- local ts = tostring
-            -- Chat('===================')
-            -- Chat(abilityName..' ('..ts(abilityId)..') || result: '..ts(result)..' || hit: '..ts(hitValue))
-            -- Chat('===================')
-            FancyActionBar.UpdateEffect(effect)
-        end
-    end
-
     -- Handle Grave Lord Sacrifice
     if abilityId == FancyActionBar.graveLordSacrifice.eventId then
         effect = FancyActionBar.effects[FancyActionBar.graveLordSacrifice.id]
@@ -5214,12 +5187,6 @@ function FancyActionBar.RegisterClassEffects(newSkillLineId)
     for i = 1, #skillLineIds do
         local skillLineId = skillLineIds[i]
         if registeredSkillLines[skillLineId] then return end
-
-        if FancyActionBar.fakeClassEffects[skillLineId] then
-            for j, x in pairs(FancyActionBar.fakeClassEffects[skillLineId]) do
-                fakes[j] = x
-            end
-        end
 
         if FancyActionBar.specialClassEffects[skillLineId] then
             for j, x in pairs(FancyActionBar.specialClassEffects[skillLineId]) do
@@ -5453,11 +5420,6 @@ function FancyActionBar.Initialize()
     for i = MIN_INDEX, ULT_INDEX do
         EM:UnregisterForEvent("ActionButton" .. i, EVENT_INTERFACE_SETTING_CHANGED)
         EM:UnregisterForEvent("ActionBarTimer" .. i, EVENT_INTERFACE_SETTING_CHANGED)
-    end
-
-    for id in pairs(fakes) do
-        EM:RegisterForEvent(NAME .. id, EVENT_COMBAT_EVENT, OnCombatEvent)
-        EM:AddFilterForEvent(NAME .. id, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, id, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
     end
 
     for id in pairs(FancyActionBar.needCombatEvent) do
