@@ -1226,10 +1226,10 @@ FancyActionBar.specialClassEffects =
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
     [28] =
-    {                                                                                                                -- Restoring Light
-        [22265] = { id = 22265, duration = GetAbilityDuration(22265) / 1000, onAbilityUsed = true }, -- Cleansing Ritual
-        [22259] = { id = 22259, duration = GetAbilityDuration(22259) / 1000, onAbilityUsed = true }, -- Ritual of Retribution
-        [22262] = { id = 22262, duration = GetAbilityDuration(22262) / 1000, onAbilityUsed = true }, -- Extended Ritual
+    {                                                                                                                                        -- Restoring Light
+        [22265] = { id = 22265, stackId = { 22265 }, duration = GetAbilityDuration(22265) / 1000, onAbilityUsed = true }, -- Cleansing Ritual
+        [22259] = { id = 22259, stackId = { 22259 }, duration = GetAbilityDuration(22259) / 1000, onAbilityUsed = true }, -- Ritual of Retribution
+        [22262] = { id = 22262, stackId = { 22262 }, duration = GetAbilityDuration(22262) / 1000, onAbilityUsed = true }, -- Extended Ritual
     },
 
     -- Arcanist
