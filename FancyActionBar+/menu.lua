@@ -1510,6 +1510,9 @@ local function ToggleFrameType()
     if SV.useThinFrames then
         RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BD_EDGE)
         RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER)
+    elseif SV.hideDefaultFrames then
+        RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BLANK)
+        RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER)
     else
         RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds",
             "esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds")
@@ -2412,20 +2415,21 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 name = "|cFFFACDUI Customization|r",
                 controls = {}
             })
+        
+        table.insert(optionsTable[tableIndex].controls,
+            {
+                -- ============[	Button Frames	]=======================
+                type = "description",
+                title = "[ |cffdf80Button Frames|r ]",
+                width = "full",
+            })
 
         if not IsConsoleUI() then
             local kbCustomizationTable =
             {
-                -- ============[	Button Frames	]=======================
-                {
-                    type = "description",
-                    title = "[ |cffdf80Button Frames|r ]",
-                    text = "Only for keyboard UI.",
-                    width = "full",
-                },
                 {
                     type = "checkbox",
-                    name = "Show frames",
+                    name = "Custom frames (keyboard)",
                     tooltip = "Show a frame around buttons on the actionbar.",
                     default = defaults.showFrames,
                     disabled = function ()
@@ -2456,32 +2460,46 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     width = "half",
                 },
-                {
-                    type = "checkbox",
-                    name = "Hide default frames",
-                    tooltip = "Hide the default actionbutton frames.\nIf the setting was enabled then you need to reload UI when disabling in order for inactive bar to display them correctly.",
-                    default = defaults.hideDefaultFrames,
-                    disabled = function ()
-                        return FancyActionBar.style == 2
-                    end, -- IsInGamepadPreferredMode() end,
-                    getFunc = function ()
-                        return SV.hideDefaultFrames
-                    end,
-                    setFunc = function (value)
-                        SV.hideDefaultFrames = value or false
-                        FancyActionBar.ConfigureFrames()
-                    end,
-                    width = "half",
-                },
-                { type = "divider" },
             }
             for k, v in pairs(kbCustomizationTable) do
                 table.insert(optionsTable[tableIndex].controls, v)
             end
         end
 
-        local gpMiscCustomizationTable =
+        local customizationTable =
         {
+            {
+                type = "checkbox",
+                name = "Hide default frames",
+                tooltip = "Hide the default actionbutton frames.\nIf the setting was enabled then you need to reload UI when disabling in order for inactive bar to display them correctly.",
+                default = defaults.hideDefaultFrames,
+                getFunc = function ()
+                    return SV.hideDefaultFrames
+                end,
+                setFunc = function (value)
+                    SV.hideDefaultFrames = value or false
+                    FancyActionBar.ConfigureFrames()
+                end,
+                width = "half",
+            },
+            {
+                type = "checkbox",
+                name = "Use thin frames (gamepad)",
+                tooltip = "",
+                default = defaults.useThinFrames,
+                disabled = function ()
+                    return not (FancyActionBar.style == 2)
+                end, -- IsInGamepadPreferredMode() end,
+                getFunc = function ()
+                    return SV.useThinFrames
+                end,
+                setFunc = function (value)
+                    SV.useThinFrames = value or false
+                    FancyActionBar.ConfigureFrames()
+                end,
+                width = "half",
+            },
+            { type = "divider" },
             -- ============[	Active Highlight	]===================
             {
                 type = "description",
@@ -2663,23 +2681,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             {
                 type = "checkbox",
-                name = "Use thin gamepad button frame borders",
-                tooltip = "",
-                default = defaults.useThinFrames,
-                disabled = function ()
-                    return not FancyActionBar.style == 2
-                end, -- IsInGamepadPreferredMode() end,
-                getFunc = function ()
-                    return SV.useThinFrames
-                end,
-                setFunc = function (value)
-                    SV.useThinFrames = value or false
-                    FancyActionBar.ConfigureFrames()
-                end,
-                width = "full",
-            },
-            {
-                type = "checkbox",
                 name = "Hide companion ultimate slot",
                 tooltip = "Hide the companion ultimate slot regardless of the companion having a slotted ultimate or not.",
                 default = defaults.hideCompanionUlt,
@@ -2752,7 +2753,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 width = "full",
             },
         }
-        for k, v in pairs(gpMiscCustomizationTable) do
+        for k, v in pairs(customizationTable) do
             table.insert(optionsTable[tableIndex].controls, v)
         end
         tableIndex = tableIndex + 1
