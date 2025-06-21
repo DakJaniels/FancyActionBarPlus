@@ -66,9 +66,10 @@ Show hotkeys (default: ON) – show the hotkeys under the action bar icons.
 
 Button frames options only apply to Keyboard UI
 
-* Show frames (default: ON) – show a colored frame around the action bar icons
+* Custom frames (keyboard) (default: ON) – show a colored frame around the action bar icons (keyboard UI only)
 * Frame color (default: R:0;G:0;B:0;A:255 –  Black) – allows customization of the ability frame color
 * Hide default frames (default: OFF) – if "Show Frames" is disabled, then the default ESO action bar frames will be shown around ability Icons. If both show frames is off, and hide default frames is on, then ability icons will be shown entirely without frame borders
+* Use thin frames (gamepad) (default: OFF) – Replaces the default gamepad frames with a minimal 1px black frame border with no backdrop
 
 #### Active Ability Highlight
 
@@ -81,7 +82,6 @@ Button frames options only apply to Keyboard UI
 
 * Force enable gamepad Action Bar style (default: off) - Setting to ON allows the use of the gamepad action bar theme including animations while in the Keyboard UI. Note that while in this mode FAB+ menu settings, and default options (unless adjusted) that refer to the Gamepad UI will be used.
 * Show gamepad ultimate hotkeys (default: ON) – Show the LB RB labels for gamepad UI. Set this to OFF to allow quickslot placement adjustments in gamepad UI
-* •	Use thin gamepad button frames borders (default: OFF) – Replaces the default gamepad frames with a minimal 1px black frame border with no backdrop
 * Hide companion ultimate slot (default: OFF) – When enabled, the companion ultimate slot, normally anchored to the right of the player ultimate slot when a companion has an ultimate ability slotted will always be hidden
 * Hide locked Action Bars (default: ON) – When enabled if an effect locks the ability to barswap (such as equipping the Oakensoul ring, transforming into a Werewolf, picking up Volendrung, or various effects in dungeons or Trials such as the Ghost light Transformation in Lucent Citadel) the UI will switch to a "one bar" mode that only shows the active bar.
 [![Hide locked Action Bars](https://i.imgur.com/SEVGXcd.png)](https://i.imgur.com/SEVGXcd.png)
