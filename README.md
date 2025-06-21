@@ -64,8 +64,6 @@ Show hotkeys (default: ON) – show the hotkeys under the action bar icons.
 
 #### Button Frames
 
-Button frames options only apply to Keyboard UI
-
 * Custom frames (keyboard) (default: ON) – show a colored frame around the action bar icons (keyboard UI only)
 * Frame color (default: R:0;G:0;B:0;A:255 –  Black) – allows customization of the ability frame color
 * Hide default frames (default: OFF) – if "Show Frames" is disabled, then the default ESO action bar frames will be shown around ability Icons. If both show frames is off, and hide default frames is on, then ability icons will be shown entirely without frame borders
