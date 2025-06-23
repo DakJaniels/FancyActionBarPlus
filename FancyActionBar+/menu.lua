@@ -5948,6 +5948,27 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         requiresReload = true,
                         width = "half",
                     },
+                    {
+                        type = "checkbox",
+                        name = "Adjust Synergy Prompt",
+                        tooltip = "Also adjust the position of the synergy prompt to not conflict with the buff bar in console UI.",
+                        default = defaults.moveSynergy,
+                        getFunc = function ()
+                            return SV.moveSynergy
+                        end,
+                        setFunc = function (value)
+                            SV.moveSynergy = value or false
+                            if not FancyActionBar.wasMoved then
+                                FancyActionBar.ResetMoveActionBar()
+                                FancyActionBar.RepositionHealthBar()
+                            end
+                        end,
+                        disabled = function ()
+                            return not SV.moveHealthBar
+                        end,
+                        requiresReload = true,
+                        width = "half",
+                    },
                     { type = "description", text = "", width = "half" },
 
                     -- ============[	Enemy Markers	]=======================
@@ -7164,6 +7185,15 @@ function FancyActionBar.RepositionHealthBar()
             local stamX = ZO_PlayerAttributeStamina:GetLeft()
             ZO_PlayerAttributeStamina:ClearAnchors()
             ZO_PlayerAttributeStamina:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, stamX, healthTop)
+        end
+
+        if SV.moveSynergy then
+            local synergyControl = GetControl("ZO_SynergyTopLevel")
+            if synergyControl then
+                local isValidAnchor, point, relativeTo, relativePoint, offsetX, offsetY, anchorConstrains = synergyControl:GetAnchor(BOTTOM)
+                synergyControl:ClearAnchors()
+                synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (offsetY - ((c.dimensions * scale) + 4 + barYOffset)))
+            end
         end
     end
 end

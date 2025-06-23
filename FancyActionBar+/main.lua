@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.14.8"
+local VERSION = "2.14.9"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -5496,6 +5496,7 @@ local function ValidateBasicSettings(sv, d)
         "moveQS",
         "moveHealthBar",
         "moveResourceBars",
+        "moveSynergy",
         "showStackCount",
         "showOvertauntStacks",
         "showTargetCount",
