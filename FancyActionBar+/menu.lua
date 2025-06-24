@@ -7191,56 +7191,93 @@ function FancyActionBar.ConsoleMoveActionBarViaMover(x, y, movedX, movedY)
     FancyActionBar.SaveMoverPosition()
 end
 
-local synergyOrigY = nil
-function FancyActionBar.RepositionElements()
-    if FancyActionBar.wasMoved and not SV.forceReposition then
-        return
+local frameDimensionsCache = {}
+function FancyActionBar.GetAnchorRelativeToScreen(frame, dimensions, scale, barYOffset)
+    local left, top, right, bottom
+    
+    -- Check if the frame's dimensions are already in the cache
+    if frameDimensionsCache[frame] then
+        local cached = frameDimensionsCache[frame]
+        left = cached.left
+        top = cached.top
+        right = cached.right
+        bottom = cached.bottom
+    else
+        -- If not in cache, get the dimensions and store them
+        left, top     = frame:GetLeft(), frame:GetTop()
+        right, bottom = frame:GetRight(), frame:GetBottom()
+        frameDimensionsCache[frame] = {
+            left = left,
+            top = top,
+            right = right,
+            bottom = bottom
+        }
     end
-    if Azurah then
-        return
-    end
 
-    local c = FancyActionBar.GetConstants()
-    local scale = FancyActionBar.GetScale()
-    local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
-    local abTop = ACTION_BAR:GetTop()
+    local rootW, rootH	= GuiRoot:GetWidth(), GuiRoot:GetHeight()
+    local abTop, abHeight = ACTION_BAR:GetTop(), ACTION_BAR:GetHeight()
+    --local rootDiff = rootH - (abTop + abHeight * 2) + (barYOffset / 2) + 8
+    local rootDiff = rootH - (abTop + (abHeight / scale) * 2) + (((barYOffset / scale) / 2) + (16 * scale)) * scale
 
-    if SV.moveHealthBar then
-        -- Reposition Health Bar
-        ZO_PlayerAttributeHealth:ClearAnchors()
-        ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - ((c.dimensions * scale) + 4 + barYOffset)))
-
-        if SV.moveResourceBars then
-            -- Reposition Magicka Bar
-            local magX = ZO_PlayerAttributeMagicka:GetRight()
-            ZO_PlayerAttributeMagicka:ClearAnchors()
-            ZO_PlayerAttributeMagicka:SetAnchor(RIGHT, ZO_PlayerAttributeHealth, LEFT, magX)
-
-            -- Reposition Stamina Bar
-            local stamX = ZO_PlayerAttributeStamina:GetLeft()
-            ZO_PlayerAttributeStamina:ClearAnchors()
-            ZO_PlayerAttributeStamina:SetAnchor(LEFT, ZO_PlayerAttributeHealth, TOPLEFT, stamX)
-        end
-
-        if SV.moveBuffs then
-            ZO_BuffDebuffTopLevelSelfContainer:ClearAnchors()
-            ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, TOP, 0, -50)
-        end
-
-        if SV.moveSynergy then
-            local synergyControl = GetControl("ZO_SynergyTopLevel")
-            if synergyControl then
-                local isValidAnchor, point, relativeTo, relativePoint, offsetX, offsetY, anchorConstrains = synergyControl:GetAnchor(BOTTOM)
-                if not synergyOrigY then
-                    synergyOrigY = offsetY or 0
-                end
-                synergyControl:ClearAnchors()
-                synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (synergyOrigY - ((c.dimensions * scale) + 4 + barYOffset)))
-            end
-        end
-    end
+    local point = 0
+	local x, y
+    -- Calculate the position based on the frame's position relative to GuiRoot
+    -- special case for Magicka/Stamina frames to keep 'expansion' alignment (provided by Garkin, via Azurah)
+	if (frame == ZO_PlayerAttributeMagicka) then
+		x		= right - rootW
+		y = ((bottom + top - rootH) / 2) - rootDiff
+		point	= RIGHT
+	elseif (frame == ZO_PlayerAttributeStamina) then
+		x		= left
+		y = ((bottom + top - rootH) / 2) - rootDiff
+		point	= LEFT
+	else
+		x = (left + right) / 2 - rootW / 2
+		y = ((bottom + top - rootH) / 2) - rootDiff
+        point = CENTER
+	end
+	return ZO_Anchor:New(point, GuiRoot, point, x, y)
 end
 
+function FancyActionBar.RepositionElements()
+	if FancyActionBar.wasMoved and not SV.forceReposition then return end
+	if Azurah then return end
+
+	local c = FancyActionBar.GetConstants()
+	local scale = FancyActionBar.GetScale()
+	local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
+    
+	if SV.moveHealthBar then
+		local anchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeHealth, c.dimensions, scale, barYOffset)
+		ZO_PlayerAttributeHealth:ClearAnchors()
+		anchor:Set(ZO_PlayerAttributeHealth)
+
+		if SV.moveResourceBars then
+			local magAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeMagicka, c.dimensions, scale, barYOffset)
+			ZO_PlayerAttributeMagicka:ClearAnchors()
+			magAnchor:Set(ZO_PlayerAttributeMagicka)
+
+			local stamAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeStamina, c.dimensions, scale, barYOffset)
+			ZO_PlayerAttributeStamina:ClearAnchors()
+			stamAnchor:Set(ZO_PlayerAttributeStamina)
+		end
+	end
+
+	if SV.moveBuffs then
+		ZO_BuffDebuffTopLevelSelfContainer:ClearAnchors()
+		ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, CENTER, 0, -44)
+	end
+
+	if SV.moveSynergy then
+		local synergyControl = GetControl("ZO_SynergyTopLevel")
+		if synergyControl then
+			local _, _, _, _, offsetX, offsetY = synergyControl:GetAnchor(BOTTOM)
+			if not synergyOrigY then synergyOrigY = offsetY or 0 end
+			synergyControl:ClearAnchors()
+			synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (synergyOrigY - ((c.dimensions * scale) + 4 + barYOffset)))
+		end
+	end
+end
 local function PlayerDeath(oldState, newState)
     if newState == SCENE_SHOWN then
         ACTION_BAR:SetHidden(false)
