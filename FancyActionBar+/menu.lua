@@ -7211,17 +7211,15 @@ function FancyActionBar.RepositionElements()
         ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - ((c.dimensions * scale) + 4 + barYOffset)))
 
         if SV.moveResourceBars then
-            local healthTop = ZO_PlayerAttributeHealth:GetTop()
-
             -- Reposition Magicka Bar
-            local magX = ZO_PlayerAttributeMagicka:GetLeft()
+            local magX = ZO_PlayerAttributeMagicka:GetRight()
             ZO_PlayerAttributeMagicka:ClearAnchors()
-            ZO_PlayerAttributeMagicka:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, magX, healthTop)
+            ZO_PlayerAttributeMagicka:SetAnchor(RIGHT, ZO_PlayerAttributeHealth, LEFT, magX)
 
             -- Reposition Stamina Bar
             local stamX = ZO_PlayerAttributeStamina:GetLeft()
             ZO_PlayerAttributeStamina:ClearAnchors()
-            ZO_PlayerAttributeStamina:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, stamX, healthTop)
+            ZO_PlayerAttributeStamina:SetAnchor(LEFT, ZO_PlayerAttributeHealth, TOPLEFT, stamX)
         end
 
         if SV.moveBuffs then
