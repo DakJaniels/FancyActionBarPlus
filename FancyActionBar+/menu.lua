@@ -7192,7 +7192,7 @@ function FancyActionBar.ConsoleMoveActionBarViaMover(x, y, movedX, movedY)
 end
 
 local frameDimensionsCache = {}
-function FancyActionBar.GetAnchorRelativeToScreen(frame, dimensions, scale, barYOffset)
+function FancyActionBar.GetAnchorRelativeToScreen(frame, constants, scale, barYOffset)
     local left, top, right, bottom
     
     -- Check if the frame's dimensions are already in the cache
@@ -7216,9 +7216,8 @@ function FancyActionBar.GetAnchorRelativeToScreen(frame, dimensions, scale, barY
 
     local rootW, rootH	= GuiRoot:GetWidth(), GuiRoot:GetHeight()
     local abTop, abHeight = ACTION_BAR:GetTop(), ACTION_BAR:GetHeight()
-    --local rootDiff = rootH - (abTop + abHeight * 2) + (barYOffset / 2) + 8
-    local rootDiff = rootH - (abTop + (abHeight / scale) * 2) + (((barYOffset / scale) / 2) + (16 * scale)) * scale
-
+    local offsetFactor = (bottom - top) + (constants.dimensions / 2) * (IsConsoleUI() and 0.1 or FancyActionBar.useGamepadActionBar and 1.5 or 1)
+    local rootDiff = rootH - (abTop + (abHeight / scale) * 2) + (((barYOffset / scale) / 2) + (offsetFactor * scale)) * scale
     local point = 0
 	local x, y
     -- Calculate the position based on the frame's position relative to GuiRoot
@@ -7248,16 +7247,16 @@ function FancyActionBar.RepositionElements()
 	local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
     
 	if SV.moveHealthBar then
-		local anchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeHealth, c.dimensions, scale, barYOffset)
+		local anchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeHealth, c, scale, barYOffset)
 		ZO_PlayerAttributeHealth:ClearAnchors()
 		anchor:Set(ZO_PlayerAttributeHealth)
 
 		if SV.moveResourceBars then
-			local magAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeMagicka, c.dimensions, scale, barYOffset)
+			local magAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeMagicka, c, scale, barYOffset)
 			ZO_PlayerAttributeMagicka:ClearAnchors()
 			magAnchor:Set(ZO_PlayerAttributeMagicka)
 
-			local stamAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeStamina, c.dimensions, scale, barYOffset)
+			local stamAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeStamina, c, scale, barYOffset)
 			ZO_PlayerAttributeStamina:ClearAnchors()
 			stamAnchor:Set(ZO_PlayerAttributeStamina)
 		end
@@ -7265,7 +7264,7 @@ function FancyActionBar.RepositionElements()
 
 	if SV.moveBuffs then
 		ZO_BuffDebuffTopLevelSelfContainer:ClearAnchors()
-		ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, CENTER, 0, -44)
+		ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, CENTER, 0, -c.dimensions)
 	end
 
 	if SV.moveSynergy then
@@ -7278,6 +7277,7 @@ function FancyActionBar.RepositionElements()
 		end
 	end
 end
+
 local function PlayerDeath(oldState, newState)
     if newState == SCENE_SHOWN then
         ACTION_BAR:SetHidden(false)
