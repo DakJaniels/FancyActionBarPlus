@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.14.9"
+local VERSION = "2.14.10"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -3519,8 +3519,8 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
     FancyActionBar.HideHotkeys(not SV.showHotkeys)
     if not SV.forceAzurahMover then
         FancyActionBar.MoveActionBar()
-        if not FancyActionBar.wasMoved then
-            FancyActionBar.RepositionHealthBar()
+        if SV.forceReposition or not FancyActionBar.wasMoved then
+            FancyActionBar.RepositionElements()
         end
     end
 end
@@ -5496,7 +5496,9 @@ local function ValidateBasicSettings(sv, d)
         "moveQS",
         "moveHealthBar",
         "moveResourceBars",
+        "moveBuffs",
         "moveSynergy",
+        "forceReposition",
         "showStackCount",
         "showOvertauntStacks",
         "showTargetCount",

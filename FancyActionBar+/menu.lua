@@ -1761,7 +1761,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
                                 FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                                FancyActionBar.RepositionElements()
                             end
                         end
                     end,
@@ -1793,7 +1793,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
                                 FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                                FancyActionBar.RepositionElements()
                             end
                         end
                     end,
@@ -1852,7 +1852,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
                                 FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                                FancyActionBar.RepositionElements()
                             end
                         end
                     end,
@@ -1884,7 +1884,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
                                 FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                                FancyActionBar.RepositionElements()
                             end
                         end
                     end,
@@ -1940,7 +1940,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
                                 FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                                FancyActionBar.RepositionElements()
                             end
                         end
                     end,
@@ -1972,7 +1972,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             SetBarTheme(locked)
                             if not FancyActionBar.wasMoved then
                                 FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                                FancyActionBar.RepositionElements()
                             end
                         end
                     end,
@@ -2244,7 +2244,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     FancyActionBar:ApplySettings()
                     if not FancyActionBar.wasMoved then
                         FancyActionBar.ResetMoveActionBar()
-                        FancyActionBar.RepositionHealthBar()
+                        FancyActionBar.RepositionElements()
                     end
                 end,
                 width = "half",
@@ -5919,9 +5919,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.moveHealthBar = value or false
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                            if SV.forceReposition or not FancyActionBar.wasMoved then
+                                FancyActionBar.RepositionElements()
                             end
                         end,
                         requiresReload = true,
@@ -5937,9 +5936,28 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.moveResourceBars = value or false
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                            if SV.forceReposition or not FancyActionBar.wasMoved then
+                                FancyActionBar.RepositionElements()
+                            end
+                        end,
+                        disabled = function ()
+                            return not SV.moveHealthBar
+                        end,
+                        requiresReload = true,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Adjust Player Buffs Bar",
+                        tooltip = "Also adjust the position of the player buffs bar to not conflict with the adjusted attribute bars in console UI.",
+                        default = defaults.moveBuffs,
+                        getFunc = function ()
+                            return SV.moveBuffs
+                        end,
+                        setFunc = function (value)
+                            SV.moveBuffs = value or false
+                            if SV.forceReposition or not FancyActionBar.wasMoved then
+                                FancyActionBar.RepositionElements()
                             end
                         end,
                         disabled = function ()
@@ -5958,10 +5976,27 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.moveSynergy = value or false
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionHealthBar()
+                            if SV.forceReposition or not FancyActionBar.wasMoved then
+                                FancyActionBar.RepositionElements()
                             end
+                        end,
+                        disabled = function ()
+                            return not SV.moveHealthBar
+                        end,
+                        requiresReload = true,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Force UI Adjustments",
+                        tooltip = "By default respositioning the Resource Bars, Synergy Prompt, and Buff Bars only occurs with the action bar in its defualt postion, enabling this setting forces these adjustments to always occur.",
+                        default = defaults.forceReposition,
+                        getFunc = function ()
+                            return SV.forceReposition
+                        end,
+                        setFunc = function (value)
+                            SV.forceReposition = value or false
+                            FancyActionBar.RepositionElements()
                         end,
                         disabled = function ()
                             return not SV.moveHealthBar
@@ -7156,19 +7191,21 @@ function FancyActionBar.ConsoleMoveActionBarViaMover(x, y, movedX, movedY)
     FancyActionBar.SaveMoverPosition()
 end
 
-function FancyActionBar.RepositionHealthBar()
-    if FancyActionBar.wasMoved then
+local synergyOrigY = nil
+function FancyActionBar.RepositionElements()
+    if FancyActionBar.wasMoved and not SV.forceReposition then
         return
     end
     if Azurah then
         return
     end
-    if SV.moveHealthBar then
-        local c = FancyActionBar.GetConstants()
-        local scale = FancyActionBar.GetScale()
-        local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
-        local abTop = ACTION_BAR:GetTop()
 
+    local c = FancyActionBar.GetConstants()
+    local scale = FancyActionBar.GetScale()
+    local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
+    local abTop = ACTION_BAR:GetTop()
+
+    if SV.moveHealthBar then
         -- Reposition Health Bar
         ZO_PlayerAttributeHealth:ClearAnchors()
         ZO_PlayerAttributeHealth:SetAnchor(TOP, GuiRoot, TOP, 0, (abTop - ((c.dimensions * scale) + 4 + barYOffset)))
@@ -7187,12 +7224,20 @@ function FancyActionBar.RepositionHealthBar()
             ZO_PlayerAttributeStamina:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, stamX, healthTop)
         end
 
+        if SV.moveBuffs then
+            ZO_BuffDebuffTopLevelSelfContainer:ClearAnchors()
+            ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, TOP, 0, -50)
+        end
+
         if SV.moveSynergy then
             local synergyControl = GetControl("ZO_SynergyTopLevel")
             if synergyControl then
                 local isValidAnchor, point, relativeTo, relativePoint, offsetX, offsetY, anchorConstrains = synergyControl:GetAnchor(BOTTOM)
+                if not synergyOrigY then
+                    synergyOrigY = offsetY or 0
+                end
                 synergyControl:ClearAnchors()
-                synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (offsetY - ((c.dimensions * scale) + 4 + barYOffset)))
+                synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (synergyOrigY - ((c.dimensions * scale) + 4 + barYOffset)))
             end
         end
     end

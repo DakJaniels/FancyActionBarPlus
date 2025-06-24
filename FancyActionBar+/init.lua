@@ -91,7 +91,9 @@ FancyActionBar.defaultSettings =
     barYOffsetGP = 0,
     moveHealthBar = true,
     moveResourceBars = IsConsoleUI(),
+    moveBuffs = IsConsoleUI(),
     moveSynergy = IsConsoleUI(),
+    forceReposition = false,
     forceAzurahMover = false,
 
     -- back bar visibility
