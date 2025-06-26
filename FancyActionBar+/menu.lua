@@ -901,7 +901,9 @@ local function SetSkillToEditID(id)
                 "/" .. (GetCraftedAbilityScriptDisplayName(tonumber(scripts[3]))) .. "]")
 
             skillToEditID = id
-            WM:GetControlByName("SkillToEditID_Editbox").editbox:SetText(skillToEditID)
+            if not IsConsoleUI() then
+                WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditID)
+            end
         else
             skillToEditID = extractedAbilityId
             skillToEditName = GetCraftedAbilityDisplayName(craftedId)
