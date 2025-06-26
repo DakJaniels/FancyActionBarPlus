@@ -7240,6 +7240,7 @@ function FancyActionBar.GetAnchorRelativeToScreen(frame, constants, scale, barYO
 	return ZO_Anchor:New(point, GuiRoot, point, x, y)
 end
 
+local healthOrig
 function FancyActionBar.RepositionElements()
 	if FancyActionBar.wasMoved and not SV.forceReposition then return end
 	if Azurah then return end
@@ -7247,6 +7248,9 @@ function FancyActionBar.RepositionElements()
 	local c = FancyActionBar.GetConstants()
 	local scale = FancyActionBar.GetScale()
 	local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
+    if not healthOrig then
+        healthOrig = ZO_PlayerAttributeHealth:GetTop()
+    end
     
 	if SV.moveHealthBar then
 		local anchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeHealth, c, scale, barYOffset)
@@ -7272,10 +7276,11 @@ function FancyActionBar.RepositionElements()
 	if SV.moveSynergy then
 		local synergyControl = GetControl("ZO_SynergyTopLevel")
 		if synergyControl then
-			local _, _, _, _, offsetX, offsetY = synergyControl:GetAnchor(BOTTOM)
-			if not synergyOrigY then synergyOrigY = offsetY or 0 end
-			synergyControl:ClearAnchors()
-			synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (synergyOrigY - ((c.dimensions * scale) + 4 + barYOffset)))
+            local _, _, _, _, offsetX, offsetY = synergyControl:GetAnchor(BOTTOM)
+            local healthTop = ZO_PlayerAttributeHealth:GetTop()
+            local healthDiff = healthTop - healthOrig
+            synergyControl:ClearAnchors()
+            synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (healthTop - healthOrig - ((c.dimensions * scale) + barYOffset)))
 		end
 	end
 end
