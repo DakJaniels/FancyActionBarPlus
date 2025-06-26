@@ -7240,7 +7240,7 @@ function FancyActionBar.GetAnchorRelativeToScreen(frame, constants, scale, barYO
 	return ZO_Anchor:New(point, GuiRoot, point, x, y)
 end
 
-local healthOrig
+local healthOrig, synergyOrig
 function FancyActionBar.RepositionElements()
 	if FancyActionBar.wasMoved and not SV.forceReposition then return end
 	if Azurah then return end
@@ -7277,10 +7277,13 @@ function FancyActionBar.RepositionElements()
 		local synergyControl = GetControl("ZO_SynergyTopLevel")
 		if synergyControl then
             local _, _, _, _, offsetX, offsetY = synergyControl:GetAnchor(BOTTOM)
+            if not synergyOrig then 
+                synergyOrig = offsetY
+            end
             local healthTop = ZO_PlayerAttributeHealth:GetTop()
-            local healthDiff = healthTop - healthOrig
+            local newY = synergyOrig + (healthTop - healthOrig - c.dimensions)
             synergyControl:ClearAnchors()
-            synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, (healthTop - healthOrig - ((c.dimensions * scale) + barYOffset)))
+            synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, newY)
 		end
 	end
 end
