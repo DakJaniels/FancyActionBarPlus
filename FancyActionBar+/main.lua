@@ -289,7 +289,22 @@ local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
 -----------------------------[ 		Utility    ]----------------------------------
 --------------------------------------------------------------------------------
 
-local dbg = function (...) end
+do
+    --- Adds a system message to the chat.
+    --- @param messageOrFormatter string: The message to be printed.
+    --- @param ... string: Variable number of arguments to be formatted into the message.
+    local function AddSystemMessage(messageOrFormatter, ...)
+        local formattedMessage
+        if select("#", ...) > 0 then
+            formattedMessage = strformat(messageOrFormatter or "", ...)
+        else
+            formattedMessage = messageOrFormatter or ""
+        end
+        CHAT_ROUTER:AddSystemMessage(formattedMessage)
+    end
+
+    FancyActionBar.AddSystemMessage = AddSystemMessage
+end
 
 --- Slash command handler
 --- @param str string
@@ -302,7 +317,7 @@ function FancyActionBar.SlashCommand(str)
     if cmd == "dbg 0" then
         SV.debug = false
         SV.debugAll = false
-        dbg("[FAB+] debug: Off.")
+        FancyActionBar.AddSystemMessage("[FAB+] debug: Off.")
     elseif cmd == "dbg 1" then
         SV.debug = not SV.debug
         if SV.debug then
@@ -310,7 +325,7 @@ function FancyActionBar.SlashCommand(str)
         else
             setting = "Off."
         end
-        dbg("[FAB+] debug1: " .. setting)
+        FancyActionBar.AddSystemMessage("[FAB+] debug1: " .. setting)
     elseif cmd == "dbg 2" then
         SV.debugAll = not SV.debugAll
         if SV.debugAll then
@@ -318,7 +333,7 @@ function FancyActionBar.SlashCommand(str)
         else
             setting = "Off."
         end
-        dbg("[FAB+] debugAll: " .. setting)
+        FancyActionBar.AddSystemMessage("[FAB+] debugAll: " .. setting)
     elseif cmd == "dbg 3" then
         SV.debugVerbose = not SV.debugVerbose
         if SV.debugVerbose then
@@ -326,7 +341,7 @@ function FancyActionBar.SlashCommand(str)
         else
             setting = "Off."
         end
-        dbg("[FAB+] Verbose debug: " .. setting)
+        FancyActionBar.AddSystemMessage("[FAB+] Verbose debug: " .. setting)
     elseif cmd == "bar1" then
         FancyActionBar.PostSlottedSkills(1)
     elseif cmd == "bar2" then
@@ -340,19 +355,19 @@ function FancyActionBar.SlashCommand(str)
     elseif cmd == "stacks" then
         for id, effect in pairs(FancyActionBar.stackMap) do
             for i = 1, #effect do
-                dbg("[" .. id .. "] = " .. effect[i])
+                FancyActionBar.AddSystemMessage("[" .. id .. "] = " .. effect[i])
             end
         end
     elseif cmd == "targets" then
         for id, effect in pairs(FancyActionBar.targets) do
             for i = 1, #effect do
-                dbg("[" .. id .. "] = " .. effect[i])
+                FancyActionBar.AddSystemMessage("[" .. id .. "] = " .. effect[i])
             end
         end
     elseif cmd == "dbt" then
-        dbg("[FAB+] Registered Debuff IDs:")
+        FancyActionBar.AddSystemMessage("[FAB+] Registered Debuff IDs:")
         for id in pairs(SV.debuffTable) do
-            dbg(tostring(id))
+            FancyActionBar.AddSystemMessage(tostring(id))
         end
     end
 end
@@ -404,7 +419,7 @@ function FancyActionBar.GetCorrectedAbilityId(abilityId, weaponType)
                     staffType = "none"
                 end
 
-                dbg("Corrected ability ID from %d to %d for %s staff",
+                FancyActionBar.AddSystemMessage("Corrected ability ID from %d to %d for %s staff",
                     abilityId, correctedAbilityId, staffType)
             end
         end
@@ -545,7 +560,7 @@ local function GetSlotInfoString(index, bar)
 end
 
 function FancyActionBar.PostAbilityConfig()
-    dbg("FAB+ Ability Configuration:")
+    FancyActionBar.AddSystemMessage("FAB+ Ability Configuration:")
 
     local s = FancyActionBar.abilityConfig
 
@@ -564,24 +579,24 @@ function FancyActionBar.PostAbilityConfig()
         else
             v = tostring(id)
         end
-        dbg("[|cffffff" .. tostring(skill) .. "|r] = |cff6600" .. v .. "|r")
+        FancyActionBar.AddSystemMessage("[|cffffff" .. tostring(skill) .. "|r] = |cff6600" .. v .. "|r")
     end
 end
 
 ---
 --- @param bar HotBarCategory
 function FancyActionBar.PostSlottedSkills(bar)
-    dbg("[FAB+] Current Skills:")
+    FancyActionBar.AddSystemMessage("[FAB+] Current Skills:")
     if bar == 1 or bar == 3 then
-        dbg("Front Bar")
+        FancyActionBar.AddSystemMessage("Front Bar")
         for i = 3, 8 do
-            dbg(GetSlotInfoString(i, 0))
+            FancyActionBar.AddSystemMessage(GetSlotInfoString(i, 0))
         end
     end
     if bar == 2 or bar == 3 then
-        dbg("Back Bar")
+        FancyActionBar.AddSystemMessage("Back Bar")
         for i = 3, 8 do
-            dbg(GetSlotInfoString(i, 1))
+            FancyActionBar.AddSystemMessage(GetSlotInfoString(i, 1))
         end
     end
 end
@@ -591,15 +606,15 @@ function FancyActionBar.PostOverlayEffects()
         local o1 = FancyActionBar.overlays[i]
         local o2 = FancyActionBar.overlays[i + 20]
         if o1.effect and o1.effect.id and o1.effect.id > 0 then
-            dbg("[" .. i .. "]: " .. o1.effect.id)
+            FancyActionBar.AddSystemMessage("[" .. i .. "]: " .. o1.effect.id)
             for k, v in pairs(o1.effect) do
-                dbg(" - [" .. k .. "]: " .. tostring(v))
+                FancyActionBar.AddSystemMessage(" - [" .. k .. "]: " .. tostring(v))
             end
         end
         if o2.effect and o2.effect.id and o2.effect.id > 0 then
-            dbg("[" .. i + 20 .. "]: " .. o2.effect.id)
+            FancyActionBar.AddSystemMessage("[" .. i + 20 .. "]: " .. o2.effect.id)
             for k, v in pairs(o2.effect) do
-                dbg(" - [" .. k .. "]: " .. tostring(v))
+                FancyActionBar.AddSystemMessage(" - [" .. k .. "]: " .. tostring(v))
             end
         end
     end
@@ -993,11 +1008,11 @@ function FancyActionBar.IsSameEffect(index, abilityId)
         local e, a = FancyActionBar.GetSlottedEffect(index)
         if overlay.effect.id == e and abilityId == a then
             -- local o = e or 0
-            -- dbg('overlay '..ts(index)..' effect '..ts(abilityId)..' already slotted ('..ts(o)..')')
+            -- FancyActionBar.AddSystemMessage('overlay '..ts(index)..' effect '..ts(abilityId)..' already slotted ('..ts(o)..')')
             return true
         end
     end
-    -- dbg('overlay '..ts(index)..' new effect: '..ts(abilityId))
+    -- FancyActionBar.AddSystemMessage('overlay '..ts(index)..' new effect: '..ts(abilityId))
     return false
 end
 
@@ -1271,7 +1286,7 @@ function FancyActionBar.FadeEffect(effect) -- reset effect variables and make su
     end
     -- effect.faded = true
 
-    -- dbg('Effect <' .. GetAbilityName(effect.id) .. '> (' .. effect.id .. ') faded')
+    -- FancyActionBar.AddSystemMessage('Effect <' .. GetAbilityName(effect.id) .. '> (' .. effect.id .. ') faded')
 end
 
 function FancyActionBar.UpdateTimerLabel(label, text, color)
@@ -1319,12 +1334,12 @@ function FancyActionBar.UpdateBackgroundVisuals(background, color, index, isTogg
             local wasHidden = bgHidden[index]
             if wasHidden ~= bgHidden[index] then
                 local isHidden = bgHidden[index] and "hidden" or "showing"
-                dbg("[" .. index .. "] " .. isHidden)
+                FancyActionBar.AddSystemMessage("[" .. index .. "] " .. isHidden)
             end
         end
         bgHidden[index] = bgHidden[index]
     else
-        dbg("Index 0 Error!")
+        FancyActionBar.AddSystemMessage("Index 0 Error!")
     end
 end
 
@@ -2610,7 +2625,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
         end
     end
     -- local ts = tostring
-    -- dbg('['..ts(abilityId)..'] '..effectName..' '..sourceType..': '..effectType..' --> '..unitName..endTime-beginTime..' ('..stackCount..')')
+    -- FancyActionBar.AddSystemMessage('['..ts(abilityId)..'] '..effectName..' '..sourceType..': '..effectType..' --> '..unitName..endTime-beginTime..' ('..stackCount..')')
 end
 
 function FancyActionBar.SetExternalBuffTracking() -- buffs gained from others
@@ -3031,7 +3046,7 @@ local configureFillAnimationsAndFrames = function (style)
     local halfUltFlipCardSize = ultFlipCardSize / 2
     -- Check if controls are retrieved successfully
     if not leftFill or not rightFill or not leftFillC or not rightFillC or not gpFrame or not gpFrameC then
-        -- dbg("One or more controls are nil");
+        -- FancyActionBar.AddSystemMessage("One or more controls are nil");
         return
     end
     local currentHotbarCategory = GetActiveHotbarCategory()
@@ -3756,7 +3771,7 @@ function FancyActionBar.PostEffectUpdate(name, id, change, duration, stacks, whe
     if (stacks ~= nil and stacks ~= 0) then
         stack = " (x" .. stacks .. ")."
     end
-    dbg("[<<2>> (<<3>>)] <<1>>: <<4>><<5>>", type, name, id, strformat("%0.1fs", duration), stack)
+    FancyActionBar.AddSystemMessage("[<<2>> (<<3>>)] <<1>>: <<4>><<5>>", type, name, id, strformat("%0.1fs", duration), stack)
 end
 
 function FancyActionBar.PostEffectFade(name, id, tag)
@@ -3770,7 +3785,7 @@ function FancyActionBar.PostEffectFade(name, id, tag)
     if FancyActionBar.activeCasts[id].cast > 0 then
         delay = strformat(" (%0.3fs).", FancyActionBar.activeCasts[id].fade - FancyActionBar.activeCasts[id].cast)
     end
-    dbg("[<<1>> (<<2>>)] faded after <<3>><<4>>", name, id, uptime, delay)
+    FancyActionBar.AddSystemMessage("[<<1>> (<<2>>)] faded after <<3>><<4>>", name, id, uptime, delay)
     FancyActionBar.activeCasts[id] = nil
 end
 
@@ -3816,12 +3831,12 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
     if not SV.debugVerbose then
         if change == EFFECT_RESULT_FADED
         then
-            dbg("[" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName)
+            FancyActionBar.AddSystemMessage("[" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName)
         else
-            dbg("[" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName .. dur .. s)
+            FancyActionBar.AddSystemMessage("[" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName .. dur .. s)
         end
     else
-        dbg(eName .. " (" .. ts(aId) .. ")" .. "\nchange: " .. types[change] .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || tag: " .. ts(tag) .. " || unit: " .. ts(uName) .. " || unitId: " .. ts(unitId) .. " || buffType: " .. bType .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
+        FancyActionBar.AddSystemMessage(eName .. " (" .. ts(aId) .. ")" .. "\nchange: " .. types[change] .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || tag: " .. ts(tag) .. " || unit: " .. ts(uName) .. " || unitId: " .. ts(unitId) .. " || buffType: " .. bType .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
     end
 end
 
@@ -4262,7 +4277,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
     FancyActionBar.UpdateSlottedSkillsDecriptions()
     FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
 
-    -- dbg('Slot ' .. tostring(slotNum) .. ' changed')
+    -- FancyActionBar.AddSystemMessage('Slot ' .. tostring(slotNum) .. ' changed')
 end
 
 -- Button (usable) state changed.
@@ -4437,7 +4452,7 @@ local function OnAbilityUsed(_, n)
                     FancyActionBar.activeCasts[E.id].cast = t
                 end
                 local D = E.toggled == true and "0" or tostring((GetAbilityDuration(i) or 0) / 1000)
-                dbg("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id)
+                FancyActionBar.AddSystemMessage("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id)
                 -- return
             end
         end
@@ -4445,14 +4460,14 @@ local function OnAbilityUsed(_, n)
         if effect and FancyActionBar.toggled[effect.id] then
             local o = not FancyActionBar.toggles[effect.id]
             local O = o == true and "On" or "Off"
-            dbg("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
+            FancyActionBar.AddSystemMessage("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
         end
 
         if effect then
             if effect.id ~= id then
                 local e = FancyActionBar.effects[i]
                 if e then
-                    dbg("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000)
+                    FancyActionBar.AddSystemMessage("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and 0 or (GetAbilityDuration(e.id) or 0) / 1000)
                     if SV.showCastDuration then
                         wasBlockActive = IsBlockActive()
                         local isChanneled, castDuration = GetAbilityCastInfo(id, nil, "player") --[[(e.id == e.stackId and e.id or id);]]
@@ -4470,7 +4485,7 @@ local function OnAbilityUsed(_, n)
                 end
             else
                 if effect.duration and not effect.custom then
-                    dbg("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
+                    FancyActionBar.AddSystemMessage("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
                 elseif FancyActionBar.specialEffects[id] then
                     local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id])
                     if not specialEffect.onAbilityUsed then
@@ -4489,7 +4504,7 @@ local function OnAbilityUsed(_, n)
                         FancyActionBar.stacks[specialEffect.stackId[1] or specialEffect.id] = specialEffect.stacks
                         FancyActionBar.HandleStackUpdate(effect.id)
                     end
-                    dbg("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
+                    FancyActionBar.AddSystemMessage("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or 0) / 1000)
                 end
                 if SV.showCastDuration then
                     wasBlockActive = IsBlockActive()
@@ -4507,9 +4522,9 @@ local function OnAbilityUsed(_, n)
                 end
             end
         elseif FancyActionBar.effects[i] then
-            dbg("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (GetAbilityDuration(FancyActionBar.effects[i].id) or 0) / 1000)
+            FancyActionBar.AddSystemMessage("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (GetAbilityDuration(FancyActionBar.effects[i].id) or 0) / 1000)
         else
-            dbg("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id))
+            FancyActionBar.AddSystemMessage("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id))
         end
     end
 end
@@ -4801,7 +4816,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 if (abilityId == 46327 and FancyActionBar.effects[46327]) or (FancyActionBar.activeCasts[effect.id].begin < (t - 0.7)) then
                     FancyActionBar.activeCasts[effect.id].fade = t
 
-                    -- dbg('Fading ' .. effectName .. ': ' .. string.format(t - FancyActionBar.activeCasts[effect.id].begin) .. ' / ' .. tostring(effectType))
+                    -- FancyActionBar.AddSystemMessage('Fading ' .. effectName .. ': ' .. string.format(t - FancyActionBar.activeCasts[effect.id].begin) .. ' / ' .. tostring(effectType))
 
                     effect.endTime = t
                     if effect.passive then
@@ -4899,7 +4914,7 @@ local function OnStackChanged(eventId, changeType, effectSlot, effectName, unitT
     --     changeTypeString = "updated"
     -- end
     -- unitName = zo_strformat("<<1>>", unitName)
-    -- dbg("[" .. abilityId .. "] " .. changeTypeString .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
+    -- FancyActionBar.AddSystemMessage("[" .. abilityId .. "] " .. changeTypeString .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
 end
 
 --- @param eventId integer
@@ -4983,9 +4998,9 @@ local function OnCombatEvent(eventId, result, isError, abilityName, abilityGraph
     -- Debug logging
     if SV.debugAll then
         local ts = tostring
-        dbg("===================")
-        dbg(abilityName .. " (" .. ts(abilityId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hitValue))
-        dbg("===================")
+        FancyActionBar.AddSystemMessage("===================")
+        FancyActionBar.AddSystemMessage(abilityName .. " (" .. ts(abilityId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hitValue))
+        FancyActionBar.AddSystemMessage("===================")
     end
 
     -- Handle special effects
@@ -5004,9 +5019,9 @@ local function OnCombatEvent(eventId, result, isError, abilityName, abilityGraph
             effect.endTime = currentTime + FancyActionBar.needCombatEvent[abilityId].duration
             -- Debug logging for needed combat events
             -- local ts = tostring
-            -- dbg('===================')
-            -- dbg(abilityName..' ('..ts(abilityId)..') || result: '..ts(result)..' || hit: '..ts(hitValue))
-            -- dbg('===================')
+            -- FancyActionBar.AddSystemMessage('===================')
+            -- FancyActionBar.AddSystemMessage(abilityName..' ('..ts(abilityId)..') || result: '..ts(result)..' || hit: '..ts(hitValue))
+            -- FancyActionBar.AddSystemMessage('===================')
             FancyActionBar.UpdateEffect(effect)
             return
         end
@@ -5052,9 +5067,9 @@ local function OnReflect(eventId, result, isError, abilityName, abilityGraphic, 
     -- Debug logging
     if SV.debugAll then
         local ts = tostring
-        dbg("===================")
-        dbg(abilityName .. " (" .. ts(abilityId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hitValue))
-        dbg("===================")
+        FancyActionBar.AddSystemMessage("===================")
+        FancyActionBar.AddSystemMessage(abilityName .. " (" .. ts(abilityId) .. ") || result: " .. ts(result) .. " || hit: " .. ts(hitValue))
+        FancyActionBar.AddSystemMessage("===================")
     end
 
     local specialEffect = FancyActionBar.specialEffects[abilityId]
@@ -5391,7 +5406,7 @@ function FancyActionBar.Initialize()
     -- EM:RegisterForEvent(NAME, EVENT_ABILITY_LIST_CHANGED, FancyActionBar.RegisterClassEffects)
 
     -- ZO_PreHook('ZO_ActionBar_OnActionButtonDown', function(slotNum)
-    --   dbg('ActionButton' .. slotNum .. ' pressed.')
+    --   FancyActionBar.AddSystemMessage('ActionButton' .. slotNum .. ' pressed.')
     --   return false
     -- end)
     if not IsConsoleUI() then

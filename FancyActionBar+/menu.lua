@@ -152,9 +152,6 @@ local presetIgnoreKeys =
     ["hideOnNoTargetList"] = true,
 }
 
-local dbg = function (...) end
-
-
 function FancyActionBar.InMenu()
     return inMenu
 end
@@ -383,7 +380,7 @@ end
 local function SetSkillToBlacklistID(id, blacklistConfigData)
     local isValid = IsValidId(id)
     if not isValid then
-        dbg("|cffffff" .. id .. " is not a valid ID.")
+        FancyActionBar.AddSystemMessage("|cffffff" .. id .. " is not a valid ID.")
         blacklistConfigData.skillToBlacklistID = 0
         blacklistConfigData.skillToBlacklistName = ""
         if not IsConsoleUI() then
@@ -395,7 +392,7 @@ local function SetSkillToBlacklistID(id, blacklistConfigData)
     if tonumber(id) then
         blacklistConfigData.skillToBlacklistID = tonumber(id)
         blacklistConfigData.skillToBlacklistName = GetAbilityName(blacklistConfigData.skillToBlacklistID)
-        dbg("Skill to blacklist updated to: " .. blacklistConfigData.skillToBlacklistName)
+        FancyActionBar.AddSystemMessage("Skill to blacklist updated to: " .. blacklistConfigData.skillToBlacklistName)
         if not IsConsoleUI() then
             WM:GetControlByName(blacklistConfigData.controls.skillToBlacklistTitle).desc:SetText(blacklistConfigData.skillToBlacklistName)
         end
@@ -419,7 +416,7 @@ local function SetSelectedBlacklist(string, blacklist, blacklistConfigData)
         end
         if blacklist[id] then
             blacklistConfigData.selectedBlacklist = id
-            dbg("selected: " .. string)
+            FancyActionBar.AddSystemMessage("selected: " .. string)
         end
     end
 end
@@ -452,7 +449,7 @@ local function BlacklistId(blacklist, blacklistConfigData)
             WM:GetControlByName(blacklistConfigData.controls.blacklistDropdown).dropdown:SetSelectedItem(GetSelectedBlacklist(blacklistConfigData))
         end
     else
-        dbg("Failed to blacklist: " .. blacklistConfigData.skillToBlacklistName)
+        FancyActionBar.AddSystemMessage("Failed to blacklist: " .. blacklistConfigData.skillToBlacklistName)
     end
 end
 
@@ -464,7 +461,7 @@ local function ClearBlacklistId(blacklist, blacklistConfigData)
         blacklistConfigData.blacklistedSkillNames[blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist]] = nil
         blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist] = nil
 
-        -- dbg(selectedBlacklist .. ' clear')
+        -- FancyActionBar.AddSystemMessage(selectedBlacklist .. ' clear')
         blacklistConfigData.selectedBlacklist = 0
 
         ParseBlacklist(blacklist, blacklistConfigData)
@@ -521,7 +518,7 @@ end
 
 local function SetSkillToBlacklistID(id)
   if not IsValidId(id) then
-    dbg('|cffffff' .. id .. ' is not a valid ID.')
+    FancyActionBar.AddSystemMessage('|cffffff' .. id .. ' is not a valid ID.')
     skillToBlacklistID   = 0
     skillToBlacklistName = ''
     WM:GetControlByName('SkillToBlacklistTitle').desc:SetText('')
@@ -531,7 +528,7 @@ local function SetSkillToBlacklistID(id)
   if tonumber(id) then
     skillToBlacklistID   = tonumber(id)
     skillToBlacklistName = GetAbilityName(skillToBlacklistID)
-    dbg('Skill to blacklist updated to: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
+    FancyActionBar.AddSystemMessage('Skill to blacklist updated to: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
     WM:GetControlByName('SkillToBlacklistTitle').desc:SetText(skillToBlacklistName)
   end
 end
@@ -552,7 +549,7 @@ local function SetSelectedBlacklist(string)
     end
     if SV.externalBlackList[id] then
       selectedBlacklist = id
-      dbg('selected ' .. string .. ' (' .. selectedBlacklist .. ')')
+      FancyActionBar.AddSystemMessage('selected ' .. string .. ' (' .. selectedBlacklist .. ')')
     end
   end
 end
@@ -585,7 +582,7 @@ local function BlacklistId()
     WM:GetControlByName('Blacklist_Dropdown').dropdown:SetSelectedItem(GetSelectedBlacklist())
 
   else
-    dbg('failed to blacklist: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
+    FancyActionBar.AddSystemMessage('failed to blacklist: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
   end
 end
 
@@ -862,7 +859,7 @@ local function SetSkillToEditID(id)
     local isValid, isCrafted = IsValidId(id)
     if id == "" or not isValid then
         if id ~= "" then
-            dbg("|cffffff" .. id .. " is not a valid ID.")
+            FancyActionBar.AddSystemMessage("|cffffff" .. id .. " is not a valid ID.")
         end
         skillToEditID = 0
         skillToEditName = ""
@@ -904,14 +901,14 @@ local function SetSkillToEditID(id)
             skillToEditID = extractedAbilityId
             skillToEditName = GetCraftedAbilityDisplayName(craftedId)
         end
-        dbg("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
+        FancyActionBar.AddSystemMessage("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
         if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
         end
     else
         skillToEditID = extractedAbilityId
         skillToEditName = GetAbilityName(tonumber(skillToEditID))
-        dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
+        FancyActionBar.AddSystemMessage("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
         if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditID)
         end
@@ -922,7 +919,7 @@ local function SetEffectToTrackID(id)
     local isValid = IsValidId(id)
     if id == "" or not isValid then
         if id ~= "" then
-            dbg("|cffffff" .. id .. " is not a valid ID.")
+            FancyActionBar.AddSystemMessage("|cffffff" .. id .. " is not a valid ID.")
         end
         effectToTrackID = 0
         effectToTrackName = ""
@@ -956,7 +953,7 @@ local function SetEffectToTrackID(id)
             effectToTrackName = GetAbilityName(effectToTrackID)
         end
 
-        dbg("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")")
+        FancyActionBar.AddSystemMessage("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")")
         if not IsConsoleUI() then
             WM:GetControlByName("EffectToTrackTitle").desc:SetText(effectToTrackName)
         end
@@ -1167,11 +1164,11 @@ local function ValidateSkillChange()
     end
 
     if valid then
-        dbg(FormatSkillUpdateMessage())
+        FancyActionBar.AddSystemMessage(FormatSkillUpdateMessage())
 
         UpdateEffectForAbility(skillEditType, skillToEditID, effectToTrackID)
     else
-        dbg("Failed to update effect")
+        FancyActionBar.AddSystemMessage("Failed to update effect")
     end
 end
 
@@ -1590,7 +1587,7 @@ local function GetUltimateFlipCardSize()
     return c.ultFlipCardSize
 end
 
--- /script local a=ACTION_BAR for i=1,a:GetNumChildren() do local c=a:GetChild(i) local s='' if c.slot ~= nil then s=c.slot.slotNum end  dbg('['..i..']: '..c:GetName()..' / '..s) end
+-- /script local a=ACTION_BAR for i=1,a:GetNumChildren() do local c=a:GetChild(i) local s='' if c.slot ~= nil then s=c.slot.slotNum end  FancyActionBar.AddSystemMessage('['..i..']: '..c:GetName()..' / '..s) end
 local function CheckDeathState()
     if (IsUnitDead("player") and SV.showDeath) then
         ACTION_BAR:SetHidden(false)
@@ -6735,7 +6732,7 @@ function FancyActionBar.UpdateHighlight(index)
             bgControl:SetHidden(true)
             button.status:SetAlpha(0.7)
         end
-        -- dbg('Toggled overlay ' .. index .. ' bg: ' .. state)
+        -- FancyActionBar.AddSystemMessage('Toggled overlay ' .. index .. ' bg: ' .. state)
     end
 end
 
