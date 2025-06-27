@@ -294,6 +294,9 @@ do
     --- @param messageOrFormatter string: The message to be printed.
     --- @param ... string: Variable number of arguments to be formatted into the message.
     local function AddSystemMessage(messageOrFormatter, ...)
+        if not SV.debug then
+            return
+        end
         local formattedMessage
         if select("#", ...) > 0 then
             formattedMessage = strformat(messageOrFormatter or "", ...)
