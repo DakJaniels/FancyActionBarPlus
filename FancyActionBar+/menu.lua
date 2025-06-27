@@ -152,11 +152,7 @@ local presetIgnoreKeys =
     ["hideOnNoTargetList"] = true,
 }
 
---- @param msg string
---- @param ... any
-local function Chat(msg, ...)
-    FancyActionBar.Chat(msg, ...)
-end
+local dbg = function (...) end
 
 
 function FancyActionBar.InMenu()
@@ -387,7 +383,7 @@ end
 local function SetSkillToBlacklistID(id, blacklistConfigData)
     local isValid = IsValidId(id)
     if not isValid then
-        Chat("|cffffff" .. id .. " is not a valid ID.")
+        dbg("|cffffff" .. id .. " is not a valid ID.")
         blacklistConfigData.skillToBlacklistID = 0
         blacklistConfigData.skillToBlacklistName = ""
         if not IsConsoleUI() then
@@ -399,7 +395,7 @@ local function SetSkillToBlacklistID(id, blacklistConfigData)
     if tonumber(id) then
         blacklistConfigData.skillToBlacklistID = tonumber(id)
         blacklistConfigData.skillToBlacklistName = GetAbilityName(blacklistConfigData.skillToBlacklistID)
-        FancyActionBar:dbg("Skill to blacklist updated to: " .. blacklistConfigData.skillToBlacklistName)
+        dbg("Skill to blacklist updated to: " .. blacklistConfigData.skillToBlacklistName)
         if not IsConsoleUI() then
             WM:GetControlByName(blacklistConfigData.controls.skillToBlacklistTitle).desc:SetText(blacklistConfigData.skillToBlacklistName)
         end
@@ -423,7 +419,7 @@ local function SetSelectedBlacklist(string, blacklist, blacklistConfigData)
         end
         if blacklist[id] then
             blacklistConfigData.selectedBlacklist = id
-            FancyActionBar:dbg("selected: " .. string)
+            dbg("selected: " .. string)
         end
     end
 end
@@ -456,7 +452,7 @@ local function BlacklistId(blacklist, blacklistConfigData)
             WM:GetControlByName(blacklistConfigData.controls.blacklistDropdown).dropdown:SetSelectedItem(GetSelectedBlacklist(blacklistConfigData))
         end
     else
-        Chat("Failed to blacklist: " .. blacklistConfigData.skillToBlacklistName)
+        dbg("Failed to blacklist: " .. blacklistConfigData.skillToBlacklistName)
     end
 end
 
@@ -468,7 +464,7 @@ local function ClearBlacklistId(blacklist, blacklistConfigData)
         blacklistConfigData.blacklistedSkillNames[blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist]] = nil
         blacklistConfigData.blacklistedSkillIds[blacklistConfigData.selectedBlacklist] = nil
 
-        -- Chat(selectedBlacklist .. ' clear')
+        -- dbg(selectedBlacklist .. ' clear')
         blacklistConfigData.selectedBlacklist = 0
 
         ParseBlacklist(blacklist, blacklistConfigData)
@@ -525,7 +521,7 @@ end
 
 local function SetSkillToBlacklistID(id)
   if not IsValidId(id) then
-    Chat('|cffffff' .. id .. ' is not a valid ID.')
+    dbg('|cffffff' .. id .. ' is not a valid ID.')
     skillToBlacklistID   = 0
     skillToBlacklistName = ''
     WM:GetControlByName('SkillToBlacklistTitle').desc:SetText('')
@@ -535,7 +531,7 @@ local function SetSkillToBlacklistID(id)
   if tonumber(id) then
     skillToBlacklistID   = tonumber(id)
     skillToBlacklistName = GetAbilityName(skillToBlacklistID)
-    FancyActionBar:dbg('Skill to blacklist updated to: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
+    dbg('Skill to blacklist updated to: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
     WM:GetControlByName('SkillToBlacklistTitle').desc:SetText(skillToBlacklistName)
   end
 end
@@ -556,7 +552,7 @@ local function SetSelectedBlacklist(string)
     end
     if SV.externalBlackList[id] then
       selectedBlacklist = id
-      FancyActionBar:dbg('selected ' .. string .. ' (' .. selectedBlacklist .. ')')
+      dbg('selected ' .. string .. ' (' .. selectedBlacklist .. ')')
     end
   end
 end
@@ -589,7 +585,7 @@ local function BlacklistId()
     WM:GetControlByName('Blacklist_Dropdown').dropdown:SetSelectedItem(GetSelectedBlacklist())
 
   else
-    Chat('failed to blacklist: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
+    dbg('failed to blacklist: ' .. skillToBlacklistName .. ' (' .. skillToBlacklistID .. ')' )
   end
 end
 
@@ -866,7 +862,7 @@ local function SetSkillToEditID(id)
     local isValid, isCrafted = IsValidId(id)
     if id == "" or not isValid then
         if id ~= "" then
-            Chat("|cffffff" .. id .. " is not a valid ID.")
+            dbg("|cffffff" .. id .. " is not a valid ID.")
         end
         skillToEditID = 0
         skillToEditName = ""
@@ -908,14 +904,14 @@ local function SetSkillToEditID(id)
             skillToEditID = extractedAbilityId
             skillToEditName = GetCraftedAbilityDisplayName(craftedId)
         end
-        FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
+        dbg("Skill to edit updated to: " .. skillToEditName .. scriptsStr .. " (" .. skillToEditID .. ")")
         if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditName)
         end
     else
         skillToEditID = extractedAbilityId
         skillToEditName = GetAbilityName(tonumber(skillToEditID))
-        FancyActionBar:dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
+        dbg("Skill to edit updated to: " .. skillToEditName .. " (" .. skillToEditID .. ")")
         if not IsConsoleUI() then
             WM:GetControlByName("SkillToEditTitle").desc:SetText(skillToEditID)
         end
@@ -926,7 +922,7 @@ local function SetEffectToTrackID(id)
     local isValid = IsValidId(id)
     if id == "" or not isValid then
         if id ~= "" then
-            Chat("|cffffff" .. id .. " is not a valid ID.")
+            dbg("|cffffff" .. id .. " is not a valid ID.")
         end
         effectToTrackID = 0
         effectToTrackName = ""
@@ -960,7 +956,7 @@ local function SetEffectToTrackID(id)
             effectToTrackName = GetAbilityName(effectToTrackID)
         end
 
-        FancyActionBar:dbg("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")")
+        dbg("Effect to track updated to: " .. effectToTrackName .. " (" .. effectToTrackID .. ")")
         if not IsConsoleUI() then
             WM:GetControlByName("EffectToTrackTitle").desc:SetText(effectToTrackName)
         end
@@ -1171,11 +1167,11 @@ local function ValidateSkillChange()
     end
 
     if valid then
-        Chat(FormatSkillUpdateMessage())
+        dbg(FormatSkillUpdateMessage())
 
         UpdateEffectForAbility(skillEditType, skillToEditID, effectToTrackID)
     else
-        Chat("Failed to update effect")
+        dbg("Failed to update effect")
     end
 end
 
@@ -1594,7 +1590,7 @@ local function GetUltimateFlipCardSize()
     return c.ultFlipCardSize
 end
 
--- /script local a=ACTION_BAR for i=1,a:GetNumChildren() do local c=a:GetChild(i) local s='' if c.slot ~= nil then s=c.slot.slotNum end  Chat('['..i..']: '..c:GetName()..' / '..s) end
+-- /script local a=ACTION_BAR for i=1,a:GetNumChildren() do local c=a:GetChild(i) local s='' if c.slot ~= nil then s=c.slot.slotNum end  dbg('['..i..']: '..c:GetName()..' / '..s) end
 local function CheckDeathState()
     if (IsUnitDead("player") and SV.showDeath) then
         ACTION_BAR:SetHidden(false)
@@ -2417,7 +2413,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 name = "|cFFFACDUI Customization|r",
                 controls = {}
             })
-        
+
         table.insert(optionsTable[tableIndex].controls,
             {
                 -- ============[	Button Frames	]=======================
@@ -6199,32 +6195,32 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
 
-        table.insert(optionsTable,
-            {
-                -- ===============[  Debugging  ]========================
-                type = "description",
-                title = "[ |cffdf80Debugging|r ]",
-                text = "",
-                width = "full",
-            })
-        tableIndex = tableIndex + 1
+        -- table.insert(optionsTable,
+        --     {
+        --         -- ===============[  Debugging  ]========================
+        --         type = "description",
+        --         title = "[ |cffdf80Debugging|r ]",
+        --         text = "",
+        --         width = "full",
+        --     })
+        -- tableIndex = tableIndex + 1
 
-        table.insert(optionsTable,
-            {
-                type = "checkbox",
-                name = "Debug mode",
-                tooltip = "Display internal events in the chat",
-                default = defaults.debug,
-                getFunc = function ()
-                    return SV.debug
-                end, -- FancyActionBar.IsDebugMode() end,
-                setFunc = function (value)
-                    -- FancyActionBar.SetDebugMode(value or false)
-                    FancyActionBar.SetDebugMode(value or false)
-                    SV.debug = value or false
-                end,
-            })
-        tableIndex = tableIndex + 1
+        -- table.insert(optionsTable,
+        --     {
+        --         type = "checkbox",
+        --         name = "Debug mode",
+        --         tooltip = "Display internal events in the chat",
+        --         default = defaults.debug,
+        --         getFunc = function ()
+        --             return SV.debug
+        --         end, -- FancyActionBar.IsDebugMode() end,
+        --         setFunc = function (value)
+        --             -- FancyActionBar.SetDebugMode(value or false)
+        --             FancyActionBar.SetDebugMode(value or false)
+        --             SV.debug = value or false
+        --         end,
+        --     })
+        -- tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
@@ -6739,7 +6735,7 @@ function FancyActionBar.UpdateHighlight(index)
             bgControl:SetHidden(true)
             button.status:SetAlpha(0.7)
         end
-        -- Chat('Toggled overlay ' .. index .. ' bg: ' .. state)
+        -- dbg('Toggled overlay ' .. index .. ' bg: ' .. state)
     end
 end
 
@@ -7196,7 +7192,7 @@ end
 local frameDimensionsCache = {}
 function FancyActionBar.GetAnchorRelativeToScreen(frame, constants, scale, barYOffset)
     local left, top, right, bottom
-    
+
     -- Check if the frame's dimensions are already in the cache
     if frameDimensionsCache[frame] then
         local cached = frameDimensionsCache[frame]
@@ -7206,9 +7202,10 @@ function FancyActionBar.GetAnchorRelativeToScreen(frame, constants, scale, barYO
         bottom = cached.bottom
     else
         -- If not in cache, get the dimensions and store them
-        left, top     = frame:GetLeft(), frame:GetTop()
-        right, bottom = frame:GetRight(), frame:GetBottom()
-        frameDimensionsCache[frame] = {
+        left, top                   = frame:GetLeft(), frame:GetTop()
+        right, bottom               = frame:GetRight(), frame:GetBottom()
+        frameDimensionsCache[frame] =
+        {
             left = left,
             top = top,
             right = right,
@@ -7216,76 +7213,76 @@ function FancyActionBar.GetAnchorRelativeToScreen(frame, constants, scale, barYO
         }
     end
 
-    local rootW, rootH	= GuiRoot:GetWidth(), GuiRoot:GetHeight()
+    local rootW, rootH = GuiRoot:GetWidth(), GuiRoot:GetHeight()
     local abTop, abHeight = ACTION_BAR:GetTop(), ACTION_BAR:GetHeight()
     local offsetFactor = (bottom - top) + (constants.dimensions / 2) * (IsConsoleUI() and 0.1 or FancyActionBar.useGamepadActionBar and 1.5 or 1)
     local rootDiff = rootH - (abTop + (abHeight / scale) * 2) + (((barYOffset / scale) / 2) + (offsetFactor * scale)) * scale
     local point = 0
-	local x, y
+    local x, y
     -- Calculate the position based on the frame's position relative to GuiRoot
     -- special case for Magicka/Stamina frames to keep 'expansion' alignment (provided by Garkin, via Azurah)
-	if (frame == ZO_PlayerAttributeMagicka) then
-		x		= right - rootW
-		y = ((bottom + top - rootH) / 2) - rootDiff
-		point	= RIGHT
-	elseif (frame == ZO_PlayerAttributeStamina) then
-		x		= left
-		y = ((bottom + top - rootH) / 2) - rootDiff
-		point	= LEFT
-	else
-		x = (left + right) / 2 - rootW / 2
-		y = ((bottom + top - rootH) / 2) - rootDiff
+    if (frame == ZO_PlayerAttributeMagicka) then
+        x     = right - rootW
+        y     = ((bottom + top - rootH) / 2) - rootDiff
+        point = RIGHT
+    elseif (frame == ZO_PlayerAttributeStamina) then
+        x     = left
+        y     = ((bottom + top - rootH) / 2) - rootDiff
+        point = LEFT
+    else
+        x = (left + right) / 2 - rootW / 2
+        y = ((bottom + top - rootH) / 2) - rootDiff
         point = CENTER
-	end
-	return ZO_Anchor:New(point, GuiRoot, point, x, y)
+    end
+    return ZO_Anchor:New(point, GuiRoot, point, x, y)
 end
 
 local healthOrig, synergyOrig
 function FancyActionBar.RepositionElements()
-	if FancyActionBar.wasMoved and not SV.forceReposition then return end
-	if Azurah then return end
+    if FancyActionBar.wasMoved and not SV.forceReposition then return end
+    if Azurah then return end
 
-	local c = FancyActionBar.GetConstants()
-	local scale = FancyActionBar.GetScale()
-	local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
+    local c = FancyActionBar.GetConstants()
+    local scale = FancyActionBar.GetScale()
+    local barYOffset = FancyActionBar.useGamepadActionBar and SV.barYOffsetGP or SV.barYOffsetKB
     if not healthOrig then
         healthOrig = ZO_PlayerAttributeHealth:GetTop()
     end
-    
-	if SV.moveHealthBar then
-		local anchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeHealth, c, scale, barYOffset)
-		ZO_PlayerAttributeHealth:ClearAnchors()
-		anchor:Set(ZO_PlayerAttributeHealth)
 
-		if SV.moveResourceBars then
-			local magAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeMagicka, c, scale, barYOffset)
-			ZO_PlayerAttributeMagicka:ClearAnchors()
-			magAnchor:Set(ZO_PlayerAttributeMagicka)
+    if SV.moveHealthBar then
+        local anchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeHealth, c, scale, barYOffset)
+        ZO_PlayerAttributeHealth:ClearAnchors()
+        anchor:Set(ZO_PlayerAttributeHealth)
 
-			local stamAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeStamina, c, scale, barYOffset)
-			ZO_PlayerAttributeStamina:ClearAnchors()
-			stamAnchor:Set(ZO_PlayerAttributeStamina)
-		end
-	end
+        if SV.moveResourceBars then
+            local magAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeMagicka, c, scale, barYOffset)
+            ZO_PlayerAttributeMagicka:ClearAnchors()
+            magAnchor:Set(ZO_PlayerAttributeMagicka)
 
-	if SV.moveBuffs then
-		ZO_BuffDebuffTopLevelSelfContainer:ClearAnchors()
-		ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, CENTER, 0, -c.dimensions)
-	end
+            local stamAnchor = FancyActionBar.GetAnchorRelativeToScreen(ZO_PlayerAttributeStamina, c, scale, barYOffset)
+            ZO_PlayerAttributeStamina:ClearAnchors()
+            stamAnchor:Set(ZO_PlayerAttributeStamina)
+        end
+    end
 
-	if SV.moveSynergy then
-		local synergyControl = GetControl("ZO_SynergyTopLevel")
-		if synergyControl then
+    if SV.moveBuffs then
+        ZO_BuffDebuffTopLevelSelfContainer:ClearAnchors()
+        ZO_BuffDebuffTopLevelSelfContainer:SetAnchor(CENTER, ZO_PlayerAttributeHealth, CENTER, 0, -c.dimensions)
+    end
+
+    if SV.moveSynergy then
+        local synergyControl = GetControl("ZO_SynergyTopLevel")
+        if synergyControl then
             local _, _, _, _, offsetX, offsetY = synergyControl:GetAnchor(BOTTOM)
-            if not synergyOrig then 
+            if not synergyOrig then
                 synergyOrig = offsetY
             end
             local healthTop = ZO_PlayerAttributeHealth:GetTop()
             local newY = synergyOrig + (healthTop - healthOrig - c.dimensions)
             synergyControl:ClearAnchors()
             synergyControl:SetAnchor(BOTTOM, GuiRoot, BOTTOM, offsetX, newY)
-		end
-	end
+        end
+    end
 end
 
 local function PlayerDeath(oldState, newState)

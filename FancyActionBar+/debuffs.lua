@@ -9,12 +9,6 @@ local SV = ...
 local time = GetGameTimeSeconds
 local activeTargetDebuffs = {}
 
---- @param msg string
---- @param ... any
-local function Chat(msg, ...)
-    FancyActionBar.Chat(msg, ...)
-end
-
 
 local groupUnit =
 {
@@ -31,37 +25,7 @@ local groupUnit =
     ["group11"] = true,
     ["group12"] = true,
 }
----------------------------------
--- Debug
----------------------------------
-local function OnNewTarget()
-    local tag = "reticleover"
 
-    local name = zo_strformat("<<t:1>>", GetUnitName(tag))
-    Chat(name .. " -> " .. GetUnitType(tag) .. " -> " .. GetUnitNameHighlightedByReticle())
-end
-
--- /script zo_callLater(function() Chat(tostring(GetUnitType('reticleover'))) end, 2000)
-local function PostReticleTargetInfo(uName, eName, gain, fade, eSlot, stacks, icon, bType, eType, aType, seType, aId, canClickOff, castByPlayer)
-    -- if aType == 0 then return end -- passives (annoying when bar swapping)
-
-    local ts = tostring
-    local dur, s
-    if (fade ~= nil and gain ~= nil) then
-        dur = string.format(" %0.1f", fade - gain) .. "s"
-    else
-        dur = 0
-    end
-
-    if (stacks and stacks ~= 0)
-    then
-        s = " x" .. ts(stacks) .. "."
-    else
-        s = "."
-    end
-
-    Chat(eName .. " (" .. ts(aId) .. ")" .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || unit: " .. ts(uName) .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
-end
 ---------------------------------
 -- Checking
 ---------------------------------
@@ -549,8 +513,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
             activeTargetDebuffs = { [debuff.id] = { [unitId] = debuff.beginTime } }
             UpdateDebuff(debuff, stackCount, unitId, false)
-        else
-            FancyActionBar:dbg(1, "<<1>> duration <<2>>s ignored.", effectName, string.format(" %0.1f", endTime - t))
         end
     elseif (change == EFFECT_RESULT_FADED) then
         if FancyActionBar.targets[debuff.id] and FancyActionBar.targets[debuff.id].times[unitId] then

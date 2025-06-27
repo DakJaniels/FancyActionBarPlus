@@ -1068,8 +1068,6 @@ function FancyActionBar.IsAbilityTaunt(abilityId)
     return FancyActionBar.tauntSkills[abilityId] ~= nil
 end
 
-
-
 -- Abilities Defined Here will be Processed through the FancyActionBar.HandleSpecial function
 -- The Key for each table is the AbilityId you want to modify through HandleSpecial; the id key is the target Ability
 
@@ -1110,14 +1108,14 @@ FancyActionBar.specialEffects =
     [40465] = { id = 40465, stackId = { 40465 }, stacks = 1, procs = 1, hasProced = 0, isDebuff = false, keepOnTargetChange = true },                                                                         -- Scalding Rune Placed
     [40468] = { id = 40465, stackId = { 40465 }, stacks = 0, procs = 1, hasProced = 1, isDebuff = true, keepOnTargetChange = true, isMultiTarget = true },                                                    -- Scalding Rune DOT
 
-    [28727] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- defensive posture
-    [126604] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                   -- defensive posture
+    [28727] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                     -- defensive posture
+    [126604] = { id = 28727, stackId = { 28727 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- defensive posture
 
-    [38312] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- defensive stance
-    [126608] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                   -- defensive stance
+    [38312] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                     -- defensive stance
+    [126608] = { id = 38312, stackId = { 38312 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- defensive stance
 
-    [38317] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- absorb missile
-    [38324] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                    -- absorb missile
+    [38317] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                     -- absorb missile
+    [38324] = { id = 38317, stackId = { 38317 }, stacks = 1, handler = "reflect", onAbilityUsed = true },                                                                                                     -- absorb missile
 }
 
 -- The values as written to the ability corresponding to the id when the fade event happens, and are keyed based on modifying abiliity id and procs number
@@ -1139,10 +1137,10 @@ FancyActionBar.specialClassEffects =
     -- Dragonknight
     -- [35] = {}, -- Ardent Flame
     [36] =
-    {                                                                                      -- Draconic Power
-        [31841] = { id = 31837, stackId = {31837}, duration = 2.5, onAbilityUsed = true }, -- Inhale
-        [32788] = { id = 32785, stackId = {32785}, duration = 2.5, onAbilityUsed = true }, -- Draw Essence
-        [32796] = { id = 32792, stackId = {32792}, duration = 2.5, onAbilityUsed = true }, -- Deep Breath
+    {                                                                                        -- Draconic Power
+        [31841] = { id = 31837, stackId = { 31837 }, duration = 2.5, onAbilityUsed = true }, -- Inhale
+        [32788] = { id = 32785, stackId = { 32785 }, duration = 2.5, onAbilityUsed = true }, -- Draw Essence
+        [32796] = { id = 32792, stackId = { 32792 }, duration = 2.5, onAbilityUsed = true }, -- Deep Breath
     },
     -- [37] = {}, -- Earthen Heart
 
@@ -1151,22 +1149,22 @@ FancyActionBar.specialClassEffects =
     {                                                                                        -- Dark Magic
         [46331] = { id = 46331, stackId = { 46331 }, stacks = 2, procs = 1, hasProced = 0 }, -- Crystal Weapon
 
-        [24828] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (Parent Ability)
-        [24830] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (1st Mine)
-        [24832] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (2nd Mine)
-        [24833] = { id = 24828, stackId = { 24828 }, handler = "device" }, -- Daedric Mines (3rd Mine)
+        [24828] = { id = 24828, stackId = { 24828 }, handler = "device" },                   -- Daedric Mines (Parent Ability)
+        [24830] = { id = 24828, stackId = { 24828 }, handler = "device" },                   -- Daedric Mines (1st Mine)
+        [24832] = { id = 24828, stackId = { 24828 }, handler = "device" },                   -- Daedric Mines (2nd Mine)
+        [24833] = { id = 24828, stackId = { 24828 }, handler = "device" },                   -- Daedric Mines (3rd Mine)
 
-        [24842] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (Parent Ability)
-        [24844] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (1st Mine)
-        [24846] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (2nd Mine)
-        [24847] = { id = 24842, stackId = { 24842 }, handler = "device" }, -- Daedric Tomb (3rd Mine)
+        [24842] = { id = 24842, stackId = { 24842 }, handler = "device" },                   -- Daedric Tomb (Parent Ability)
+        [24844] = { id = 24842, stackId = { 24842 }, handler = "device" },                   -- Daedric Tomb (1st Mine)
+        [24846] = { id = 24842, stackId = { 24842 }, handler = "device" },                   -- Daedric Tomb (2nd Mine)
+        [24847] = { id = 24842, stackId = { 24842 }, handler = "device" },                   -- Daedric Tomb (3rd Mine)
 
-        [24834] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (Parent Ability)
-        [25157] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (1st Ward)
-        [25158] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (2nd Ward)
-        [25159] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (3rd Ward)
-        [25160] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (4th Ward)
-        [25162] = { id = 24834, stackId = { 24834 }, handler = "device" }, -- Daedric Refuge (5th Ward)
+        [24834] = { id = 24834, stackId = { 24834 }, handler = "device" },                   -- Daedric Refuge (Parent Ability)
+        [25157] = { id = 24834, stackId = { 24834 }, handler = "device" },                   -- Daedric Refuge (1st Ward)
+        [25158] = { id = 24834, stackId = { 24834 }, handler = "device" },                   -- Daedric Refuge (2nd Ward)
+        [25159] = { id = 24834, stackId = { 24834 }, handler = "device" },                   -- Daedric Refuge (3rd Ward)
+        [25160] = { id = 24834, stackId = { 24834 }, handler = "device" },                   -- Daedric Refuge (4th Ward)
+        [25162] = { id = 24834, stackId = { 24834 }, handler = "device" },                   -- Daedric Refuge (5th Ward)
     },
     [42] =
     {                                                                                                                                                                           -- Daedric Summoning
@@ -1197,10 +1195,10 @@ FancyActionBar.specialClassEffects =
     },
     -- [128] = {}, -- Green Balance
     [129] =
-    {                                                                                                          -- Winter's Embrace
-        [86135] = { id = 86135, stackId = { 86135 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- Crystallized Shield
-        [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- Crystallized Slab
-        [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, }, -- Shimmering Shield
+    {                                                                                                                                      -- Winter's Embrace
+        [86135] = { id = 86135, stackId = { 86135 }, stacks = 3, handler = "reflect", onAbilityUsed = true, },                             -- Crystallized Shield
+        [86139] = { id = 86139, stackId = { 86139 }, stacks = 3, handler = "reflect", onAbilityUsed = true, },                             -- Crystallized Slab
+        [86143] = { id = 86143, stackId = { 86143 }, stacks = 3, handler = "reflect", onAbilityUsed = true, },                             -- Shimmering Shield
 
         [86175] = { id = 86175, stackId = { 86175 }, duration = GetAbilityDuration(86175) / 1000, handler = "device", allowMulti = true }, -- Frozen Gate
         [86179] = { id = 86179, stackId = { 86179 }, duration = GetAbilityDuration(86179) / 1000, handler = "device", allowMulti = true }, -- Frozen Device
@@ -1210,23 +1208,23 @@ FancyActionBar.specialClassEffects =
     -- Necromancer
     [131] =
     {                                                                                          -- Grave Lord
-        [116445] = {id = 115924, stackId = { 115924 }, duration = 20, onAbilityUsed = true  }, -- Shocking Siphon
-        [118009] = {id = 118008, stackId = { 118008 }, duration = 20, onAbilityUsed = true  }, -- Mystic Siphon
-        [118764] = {id = 118763, stackId = { 118763 }, duration = 20, onAbilityUsed = true  }, -- Detonating Siphon
+        [116445] = { id = 115924, stackId = { 115924 }, duration = 20, onAbilityUsed = true }, -- Shocking Siphon
+        [118009] = { id = 118008, stackId = { 118008 }, duration = 20, onAbilityUsed = true }, -- Mystic Siphon
+        [118764] = { id = 118763, stackId = { 118763 }, duration = 20, onAbilityUsed = true }, -- Detonating Siphon
     },
     -- [132] = {}, -- Bone Tyrant
     [133] =
-    {                                                                                           -- Living Death
-        [116450] = { id = 115926, stackId = { 115926 }, duration = 12, onAbilityUsed = true  }, -- Restoring Tether
-        [118123] = { id = 118122, stackId = { 118122 }, duration = 12, onAbilityUsed = true  }, -- Mortal Coil
-        [118071] = { id = 118070, stackId = { 118070 }, duration = 12, onAbilityUsed = true  }, -- Braided Tether
+    {                                                                                          -- Living Death
+        [116450] = { id = 115926, stackId = { 115926 }, duration = 12, onAbilityUsed = true }, -- Restoring Tether
+        [118123] = { id = 118122, stackId = { 118122 }, duration = 12, onAbilityUsed = true }, -- Mortal Coil
+        [118071] = { id = 118070, stackId = { 118070 }, duration = 12, onAbilityUsed = true }, -- Braided Tether
     },
 
     -- Templar
     -- [22] = {}, --Aedric Spear
     -- [27] = {}, -- Dawn's Wrath
     [28] =
-    {                                                                                                                                        -- Restoring Light
+    {                                                                                                                     -- Restoring Light
         [22265] = { id = 22265, stackId = { 22265 }, duration = GetAbilityDuration(22265) / 1000, onAbilityUsed = true }, -- Cleansing Ritual
         [22259] = { id = 22259, stackId = { 22259 }, duration = GetAbilityDuration(22259) / 1000, onAbilityUsed = true }, -- Ritual of Retribution
         [22262] = { id = 22262, stackId = { 22262 }, duration = GetAbilityDuration(22262) / 1000, onAbilityUsed = true }, -- Extended Ritual
@@ -1912,8 +1910,8 @@ FancyActionBar.skillLineInfo =
     },
 }
 
--- Tables to push new blacklist updates to saved variables on version change 
---[abilityId] = true, -- abilityId is the id of the ability to be blacklisted.
+-- Tables to push new blacklist updates to saved variables on version change
+-- [abilityId] = true, -- abilityId is the id of the ability to be blacklisted.
 FancyActionBar.externalBlacklistUpdates =
 {
 }
