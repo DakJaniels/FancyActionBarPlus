@@ -1304,10 +1304,10 @@ function FancyActionBar.UpdateTimerLabel(label, text, color)
     -- label:SetAlpha(a)
 end
 
-function FancyActionBar.GetHighlightColor(fading, isToggle, isParentTime)
+function FancyActionBar.GetHighlightColor(fading, isToggle, isToggled, isParentTime)
     local color = nil
     if isToggle then
-        if SV.toggledHighlight then
+        if isToggled and SV.toggledHighlight then
             color = SV.toggledColor
         end
     elseif fading or isParentTime then
@@ -1512,16 +1512,15 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
             duration = effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate
             isFading = duration <= SV.showTickStart and SV.showTickExpire or false
         end
-        hasDuration = isToggled
+        hasDuration = isToggled or hasDuration
     else
         -- Determine fading state for non-toggles
         isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
     end
 
-
     -- Format visuals and update controls
     local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
-    local bc = (hasDuration or isFading or isParentTime) and FancyActionBar.GetHighlightColor(isFading, effect.toggled, isParentTime) or nil
+    local bc = (hasDuration or isFading or isParentTime) and FancyActionBar.GetHighlightColor(isFading, effect.toggled, isToggled, isParentTime) or nil
 
     FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
     FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
