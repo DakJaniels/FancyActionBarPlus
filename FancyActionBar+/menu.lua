@@ -3480,7 +3480,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     setFunc = function (value)
                                         SV.ultValueThresholdKB = (value / 100)
                                         if FancyActionBar.style == 1 then
-                                            FancyActionBar.constants.ult.value.threshold = value
+                                            FancyActionBar.constants.ult.value.threshold = (value / 100)
                                         end
                                     end,
                                     width = "half",
@@ -4485,7 +4485,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 setFunc = function (value)
                                     SV.ultValueThresholdGP = (value / 100)
                                     if FancyActionBar.style == 2 then
-                                        FancyActionBar.constants.ult.value.threshold = value
+                                        FancyActionBar.constants.ult.value.threshold = (value / 100)
                                     end
                                 end,
                                 width = "half",
