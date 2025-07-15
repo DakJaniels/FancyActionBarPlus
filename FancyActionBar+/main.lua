@@ -3236,7 +3236,7 @@ end
 --- @param index number
 function FancyActionBar.SetupButtonText(button, style, index)
     local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX)
-    local barYOffset = SV.hideLockedBar and isWeaponSwapLocked and (style.dimensions + style.buttonTextOffsetY) / 3 or
+    local barYOffset = SV.hideLockedBar and SV.repositionActiveBar and isWeaponSwapLocked and (style.dimensions + style.buttonTextOffsetY) / 3 or
         style.buttonTextOffsetY + ((FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2)
     button.buttonText:ClearAnchors()
     button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), barYOffset)
