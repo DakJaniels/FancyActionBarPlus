@@ -6192,32 +6192,32 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
 
-        -- table.insert(optionsTable,
-        --     {
-        --         -- ===============[  Debugging  ]========================
-        --         type = "description",
-        --         title = "[ |cffdf80Debugging|r ]",
-        --         text = "",
-        --         width = "full",
-        --     })
-        -- tableIndex = tableIndex + 1
+        table.insert(optionsTable,
+            {
+                -- ===============[  Debugging  ]========================
+                type = "description",
+                title = "[ |cffdf80Debugging|r ]",
+                text = "",
+                width = "full",
+            })
+        tableIndex = tableIndex + 1
 
-        -- table.insert(optionsTable,
-        --     {
-        --         type = "checkbox",
-        --         name = "Debug mode",
-        --         tooltip = "Display internal events in the chat",
-        --         default = defaults.debug,
-        --         getFunc = function ()
-        --             return SV.debug
-        --         end, -- FancyActionBar.IsDebugMode() end,
-        --         setFunc = function (value)
-        --             -- FancyActionBar.SetDebugMode(value or false)
-        --             FancyActionBar.SetDebugMode(value or false)
-        --             SV.debug = value or false
-        --         end,
-        --     })
-        -- tableIndex = tableIndex + 1
+        table.insert(optionsTable,
+            {
+                type = "checkbox",
+                name = "Debug mode",
+                tooltip = "Display internal events in the chat",
+                default = defaults.debug,
+                getFunc = function ()
+                    return SV.debug
+                end, -- FancyActionBar.IsDebugMode() end,
+                setFunc = function (value)
+                    -- FancyActionBar.SetDebugMode(value or false)
+                    FancyActionBar.SetDebugMode(value or false)
+                    SV.debug = value or false
+                end,
+            })
+        tableIndex = tableIndex + 1
 
         table.insert(optionsTable, { type = "divider" })
         tableIndex = tableIndex + 1
