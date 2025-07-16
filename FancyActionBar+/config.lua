@@ -1304,16 +1304,18 @@ FancyActionBar.needCombatEvent =
     [216940] = { duration = 5, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = false },                                                                                                                    -- Leashing Soul (Potent Soul), Anchorite's Potency
 
     -- Class Specific UltGen Passives that need Combat Events
-    [29474] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },   -- Mountain's Blessing I
-    [45005] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },   -- Mountain's Blessing II
-    [36589] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },   -- Transfer I
-    [45146] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },   -- Transfer II
-    [88512] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },  -- Savage Beast I
-    [88513] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },  -- Savage Beast II
-    [31746] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },   -- Prism I
-    [45217] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },   -- Prism II
-    [185051] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 }, -- Implacable Outcome I
-    [185070] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 }, -- Implacable Outcome II
+    [29474] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Mountain's Blessing I
+    [45005] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Mountain's Blessing II
+    [36589] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },    -- Transfer I
+    [45146] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },    -- Transfer II
+    [88512] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },   -- Savage Beast I
+    [88513] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },   -- Savage Beast II
+    [31746] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },    -- Prism I
+    [45217] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },    -- Prism II
+    [116284] = { duration = 16, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 133 }, -- Corpse Consumption I
+    [116285] = { duration = 16, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 133 }, -- Corpse Consumption II
+    [185051] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 },  -- Implacable Outcome I
+    [185070] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 },  -- Implacable Outcome II
 }
 
 FancyActionBar.traps =
