@@ -1312,8 +1312,8 @@ FancyActionBar.needCombatEvent =
     [88513] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },   -- Savage Beast II
     [31746] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },    -- Prism I
     [45217] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 27 },    -- Prism II
-    [116284] = { duration = 16, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 133 }, -- Corpse Consumption I
-    [116285] = { duration = 16, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 133 }, -- Corpse Consumption II
+    [120611] = { duration = 16, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 133 }, -- Corpse Consumption I
+    [120612] = { duration = 16, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 133 }, -- Corpse Consumption II
     [185051] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 },  -- Implacable Outcome I
     [185070] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 219 },  -- Implacable Outcome II
 }
