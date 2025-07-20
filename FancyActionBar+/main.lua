@@ -3098,6 +3098,10 @@ function FancyActionBar.ToggleFillAnimationsAndFrames(state)
         GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state)
     end
     FancyActionBar.SetUltFrameAlpha()
+    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
+    if ultButton then
+        ultButton:UpdateUltimateMeter()
+    end
 end
 
 function FancyActionBar.SetUltFrameAlpha()
