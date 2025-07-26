@@ -10,11 +10,10 @@ local CV = ...
 local ACTION_BAR = GetControl("ZO_ActionBar1")
 local MIN_INDEX = 3          -- first ability index
 local MAX_INDEX = 7          -- last ability index
-local ULT_INDEX = MAX_INDEX + 1
+local ULT_INDEX = 8         -- MAX_INDEX + 1
+local QS_INDEX = 9         -- ULT_INDEX + 1
 local SLOT_INDEX_OFFSET = 20 -- offset for backbar abilities indices
 local COMPANION_INDEX_OFFSET = 30
-local ULT_SLOT = 8           -- ACTION_BAR_ULTIMATE_SLOT_INDEX + 1
-local QUICK_SLOT = 9         -- ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1
 local COMPANION = HOTBAR_CATEGORY_COMPANION
 local inMenu = false
 local settingsPageCreated = false
@@ -6293,70 +6292,62 @@ function FancyActionBar.UpdateTextures()
 end
 
 function FancyActionBar.HideHotkeys(hide)
-    local alpha = hide == true and 0 or 1
-
+    local alpha = hide and 0 or 1
+    local showStyle = FancyActionBar.style == 1
     local QSB = QuickslotButtonButtonText
 
-    if FancyActionBar.style == 1 then
-        for i = 3, 7 do
-            local b = ZO_ActionBar_GetButton(i)
-            b.buttonText:SetHidden(hide)
-            b.buttonText:SetAlpha(alpha)
-            if hide then
-                ZO_Keybindings_UnregisterLabelForBindingUpdate(b.buttonText)
-            end
-        end
-        QSB:SetHidden(hide)
-        QSB:SetAlpha(alpha)
+    QSB:SetHidden(hide)
+    QSB:SetAlpha(alpha)
+
+    for i = MIN_INDEX, MAX_INDEX do
+        local b = ZO_ActionBar_GetButton(i)
+        b.buttonText:SetHidden(hide)
+        b.buttonText:SetAlpha(alpha)
         if hide then
-            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL).buttonText)
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(b.buttonText)
         end
-        -- ZO_ActionBar_GetButton(QUICK_SLOT).buttonText:SetHidden(hide)
-        -- ZO_ActionBar_GetButton(QUICK_SLOT).buttonText:SetAlpha(alpha)
-        ZO_ActionBar_GetButton(ULT_SLOT).buttonText:SetHidden(hide)
-        ZO_ActionBar_GetButton(ULT_SLOT).buttonText:SetAlpha(alpha)
+    end
+
+    local quickslotBtn = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL).buttonText
+    quickslotBtn:SetHidden(hide)
+    quickslotBtn:SetAlpha(alpha)
+    if hide then
+        ZO_Keybindings_UnregisterLabelForBindingUpdate(quickslotBtn)
+    end
+
+    local ULT_BUTTON = ZO_ActionBar_GetButton(ULT_INDEX).buttonText
+    local ULT_COMPANION_BUTTON = ZO_ActionBar_GetButton(ULT_INDEX, COMPANION).buttonText
+
+    ULT_BUTTON:SetHidden(hide or not showStyle)
+    ULT_COMPANION_BUTTON:SetHidden(hide or not showStyle)
+
+    if showStyle then
+        ULT_BUTTON:SetAlpha(alpha)
+        ULT_COMPANION_BUTTON:SetAlpha(alpha)
         if hide then
-            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(ULT_SLOT).buttonText)
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(ULT_BUTTON)
         end
-        ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(hide)
-        ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetAlpha(alpha)
     else
-        for i = 3, 7 do
-            local b = ZO_ActionBar_GetButton(i)
-            b.buttonText:SetHidden(hide)
-            if hide then
-                ZO_Keybindings_UnregisterLabelForBindingUpdate(b.buttonText)
-            end
+        local doHide = hide or not SV.showHotkeysUltGP
+        if doHide then
+            ZO_Keybindings_UnregisterLabelForBindingUpdate(ULT_BUTTON)
         end
-        QSB:SetHidden(true)
-        if hide then
-            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL).buttonText)
+        local uAlpha = SV.showHotkeysUltGP and 1 or 0
+        if ActionButton8LeftKeybind then
+            ActionButton8LeftKeybind:SetHidden(SV.showHotkeysUltGP and doHide)
+            ActionButton8LeftKeybind:SetAlpha(uAlpha)
         end
-        -- ZO_ActionBar_GetButton(QUICK_SLOT).buttonText:SetHidden(true)
-        ZO_ActionBar_GetButton(ULT_SLOT).buttonText:SetHidden(true)
-        ZO_ActionBar_GetButton(ULT_SLOT, COMPANION).buttonText:SetHidden(true)
-        if hide and not SV.showHotkeysUltGP then
-            ZO_Keybindings_UnregisterLabelForBindingUpdate(ZO_ActionBar_GetButton(ULT_SLOT).buttonText)
+        if ActionButton8RightKeybind then
+            ActionButton8RightKeybind:SetHidden(SV.showHotkeysUltGP and doHide)
+            ActionButton8RightKeybind:SetAlpha(uAlpha)
         end
-        local uAlpha = SV.showHotkeysUltGP == true and 1 or 0
-        if ActionButton8 then
-            if ActionButton8LeftKeybind then
-                ActionButton8LeftKeybind:SetAlpha(uAlpha)
-            end
-            if ActionButton8RightKeybind then
-                ActionButton8RightKeybind:SetAlpha(uAlpha)
-            end
+        if CompanionUltimateButtonLeftKeybind then
+            CompanionUltimateButtonLeftKeybind:SetHidden(SV.showHotkeysUltGP and doHide)
+            CompanionUltimateButtonLeftKeybind:SetAlpha(uAlpha)
         end
-        local c = CompanionUltimateButton
-        if c then
-            local l = CompanionUltimateButtonLeftKeybind
-            local r = CompanionUltimateButtonRightKeybind
-            if l then
-                l:SetAlpha(uAlpha)
-            end
-            if r then
-                r:SetAlpha(uAlpha)
-            end
+        if CompanionUltimateButtonRightKeybind then
+            CompanionUltimateButtonRightKeybind:SetHidden(SV.showHotkeysUltGP and doHide)
+            CompanionUltimateButtonRightKeybind:SetAlpha(uAlpha)
         end
     end
 end
