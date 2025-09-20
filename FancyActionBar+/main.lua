@@ -25,7 +25,7 @@ local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
 local currentWeaponPair = GetHeldWeaponPair()
 local isWeaponSwapLocked = false  -- for tracking weapon swap lock state
 local specialHotbarActive = false -- for tracking if a specialHotbar is active
-
+local rebuildHotbar = nil
 
 local specialHotbar =
 {
@@ -5166,11 +5166,14 @@ local function ActionBarActivated(eventCode, initial)
         -- OnAllHotbarsUpdated()
         FancyActionBar.EffectCheck()
     end
-    zo_callLater(function ()
-        FancyActionBar.OnPlayerActivated()
-        FancyActionBar.ApplyAbilityFxOverrides()
-        FancyActionBar.ApplyActiveHotbarStyle()
-    end, 750)
+    if not rebuildHotbar then
+        rebuildHotbar = zo_callLater(function ()
+            FancyActionBar.OnPlayerActivated()
+            FancyActionBar.ApplyAbilityFxOverrides()
+            FancyActionBar.ApplyActiveHotbarStyle()
+            rebuildHotbar = nil
+        end, 750)
+    end
 end
 
 function FancyActionBar.RegisterClassEffects(newSkillLineId)
