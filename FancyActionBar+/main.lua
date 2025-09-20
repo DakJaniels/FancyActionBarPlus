@@ -1205,11 +1205,21 @@ function FancyActionBar.ScanBuffs()
 end
 
 function FancyActionBar.CheckCachedBuffs(id)
-    local entry = FancyActionBar.scannedBuffs and FancyActionBar.scannedBuffs[id]
-    if entry then
-        return entry.hasEffect, entry.duration, entry.stacks, entry.start, entry.finish
+    local scannedBuffs = FancyActionBar.scannedBuffs or {}
+    local entry = scannedBuffs[id]
+
+    if FancyActionBar.bannerBearer[id] then
+        for k, v in pairs(FancyActionBar.bannerBearer) do
+            if scannedBuffs[k] then
+                entry = scannedBuffs[k]
+                break
+            end
+        end
     end
-    return false, 0, 0, 0, 0
+    if entry then
+        return entry.hasEffect, entry.duration, entry.stacks, entry.start, entry.finish, entry.castByPlayer
+    end
+    return false, 0, 0, 0, 0, false
 end
 
 function FancyActionBar.CheckTargetEndtimes(id) -- check end times for multiTarget abilities.
