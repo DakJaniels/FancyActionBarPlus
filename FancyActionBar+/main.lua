@@ -1207,15 +1207,6 @@ end
 function FancyActionBar.CheckCachedBuffs(id)
     local scannedBuffs = FancyActionBar.scannedBuffs or {}
     local entry = scannedBuffs[id]
-
-    if FancyActionBar.bannerBearer[id] then
-        for k, v in pairs(FancyActionBar.bannerBearer) do
-            if scannedBuffs[k] then
-                entry = scannedBuffs[k]
-                break
-            end
-        end
-    end
     if entry then
         return entry.hasEffect, entry.duration, entry.stacks, entry.start, entry.finish, entry.castByPlayer
     end
@@ -2224,36 +2215,44 @@ function FancyActionBar.EffectCheck()
     for id, effect in pairs(FancyActionBar.effects) do
         local doStackUpdate = false
         if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
-            zo_callLater(function ()
+            zo_callLater(function()
                 FancyActionBar.ReCheckSpecialEffect(effect)
             end, (effect.endTime - checkTime) * 1000)
         else
-            local hasEffect, duration, stacks, beginTime = FancyActionBar.CheckCachedBuffs(effect.id)
-            doStackUpdate = doStackUpdate ~= false and doStackUpdate or stacks ~= 0 and true
+            local hasEffect, duration, stacks, beginTime, finishTime, castByPlayer = FancyActionBar.CheckCachedBuffs(effect.id)
+
+            if FancyActionBar.bannerBearer[id] then
+                for k, v in pairs(FancyActionBar.bannerBearer) do
+                    local bannerEntry = FancyActionBar.scannedBuffs[k]
+                    if bannerEntry and not hasEffect then
+                        hasEffect, duration, stacks, beginTime, finishTime, castByPlayer = bannerEntry.hasEffect, bannerEntry.duration, bannerEntry.stacks, bannerEntry.start, bannerEntry.finish, bannerEntry.castByPlayer
+                    end
+                    if sourceAbilities[k] then
+                        FancyActionBar.toggles[sourceAbilities[k]] = hasEffect
+                        FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or checkTime
+                    end
+                end
+            elseif FancyActionBar.toggled[id] then
+                local toggleAbility = sourceAbilities[id] and sourceAbilities[id] or id
+                FancyActionBar.toggles[toggleAbility] = hasEffect
+            end
+
+            doStackUpdate = (stacks ~= 0)
             if hasEffect then
                 effect.endTime = (duration ~= 0) and (checkTime + duration) or -1
-                if FancyActionBar.bannerBearer[id] then
-                    for k, v in pairs(FancyActionBar.bannerBearer) do
-                        if sourceAbilities[k] then
-                            FancyActionBar.toggles[sourceAbilities[k]] = hasEffect
-                            FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or checkTime
-                        end
-                    end
-                elseif FancyActionBar.toggled[id] then -- update the highlight of toggled abilities.
-                    local toggleAbility = sourceAbilities[id] and sourceAbilities[id] or id
-                    FancyActionBar.toggles[toggleAbility] = hasEffect
-                end
             end
+
             FancyActionBar.stacks[effect.id] = stacks
             if effect.stackId and #effect.stackId > 0 then
                 for i = 1, #effect.stackId do
                     if effect.stackId[i] ~= effect.id then
-                        local hasStackEffect, stackDuration, mappedStacks = FancyActionBar.CheckCachedBuffs(effect.stackId[i])
-                        doStackUpdate = doStackUpdate ~= false and doStackUpdate or mappedStacks ~= 0 and true
+                        local _, _, mappedStacks = FancyActionBar.CheckCachedBuffs(effect.stackId[i])
+                        doStackUpdate = doStackUpdate or (mappedStacks ~= 0)
                         FancyActionBar.stacks[effect.stackId[i]] = mappedStacks
                     end
                 end
             end
+
             if doStackUpdate then
                 FancyActionBar.HandleStackUpdate(effect.id)
             end
