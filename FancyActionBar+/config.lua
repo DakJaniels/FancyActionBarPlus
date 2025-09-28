@@ -1088,7 +1088,7 @@ end
 --- @field handler string | nil The handler function name
 --- @field isMultiTarget boolean | nil Whether this affects multiple targets
 --- @field setTime boolean | nil Whether to track time
---- @field duration integer | nil The duration of the buff in milliseconds
+--- @field duration integer | nil The duration of the buff in seconds
 
 --- @type table<integer, FAB_BuffInfo>
 FancyActionBar.specialEffects =
