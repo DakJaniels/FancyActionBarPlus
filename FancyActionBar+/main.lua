@@ -2227,9 +2227,9 @@ function FancyActionBar.EffectCheck()
                     if bannerEntry and not hasEffect then
                         hasEffect, duration, stacks, beginTime, finishTime, castByPlayer = bannerEntry.hasEffect, bannerEntry.duration, bannerEntry.stacks, bannerEntry.start, bannerEntry.finish, bannerEntry.castByPlayer
                     end
-                    if sourceAbilities[k] then
-                        FancyActionBar.toggles[sourceAbilities[k]] = hasEffect
-                        FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or checkTime
+                    if sourceAbilities[id] then
+                        FancyActionBar.toggles[sourceAbilities[id]] = hasEffect
+                        FancyActionBar.effects[id].beginTime = (beginTime ~= 0) and beginTime or checkTime
                     end
                 end
             elseif FancyActionBar.toggled[id] then
@@ -2258,7 +2258,7 @@ function FancyActionBar.EffectCheck()
             end
         end
     end
-    FancyActionBar.scannedBuffs = {}
+    --FancyActionBar.scannedBuffs = {}
 end
 
 -- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios
