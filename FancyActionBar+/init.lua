@@ -3,7 +3,7 @@
 --- @field style integer # 1 for keyboard, 2 for gamepad
 --- @field updateUI boolean # Flag to determine if UI needs updating
 --- @field constants FancyActionBarConstants
---- @field useGamepadActionBar boolean # Force enable gamepad actionbar style
+--- @field useGamepadActionBar boolean # Gamepad-style action bar is currently active
 FancyActionBar = {}
 FancyActionBar.__index = FancyActionBar
 
@@ -11,6 +11,12 @@ FancyActionBar.__index = FancyActionBar
 local FancyActionBar = FancyActionBar
 
 FancyActionBar.variableVersion = 1
+
+FancyActionBar.GAMEPAD_MODE = {
+    AUTOMATIC = 1, -- follow ESO's gamepad preferred mode
+    GAMEPAD   = 2, -- always use gamepad-style bar
+    KEYBOARD  = 3, -- always use keyboard-style bar
+}
 
 FancyActionBar.defaultCharacter =
 {
@@ -34,7 +40,10 @@ FancyActionBar.defaultSettings =
 
     configChanges = {},
     dynamicAbilityConfig = false,
+    -- old boolean, kept for backward compatibility
     forceGamepadStyle = false,
+    -- new enum-backed mode
+    gamepadMode = FancyActionBar.GAMEPAD_MODE.AUTOMATIC,
 
     externalBuffs = false,
     externalBlackListRun = false,

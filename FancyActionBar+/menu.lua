@@ -315,9 +315,8 @@ local function UpdateAzurahDb()
     if not Azurah then
         return
     end
-    if ((IsInGamepadPreferredMode() and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
-            or FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"]
-            or (FancyActionBar.style == 1 and Azurah.db.uiData.keyboard["ZO_ActionBar1"]))
+    if ((FancyActionBar.useGamepadActionBar and Azurah.db.uiData.gamepad["ZO_ActionBar1"])
+            or not FancyActionBar.useGamepadActionBar and Azurah.db.uiData.keyboard["ZO_ActionBar1"])
     then
         Azurah:RecordUserData("ZO_ActionBar1", TOPLEFT, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y,
             FancyActionBar.GetScale())
@@ -1472,7 +1471,6 @@ local function SaveCurrentLocation()
     if SV.abMove == nil then
         SV.abMove = {}
     end
-    -- if IsInGamepadPreferredMode() then
     if FancyActionBar.style == 2 then
         SV.abMove.gp.prevX = x
         SV.abMove.gp.prevY = y
@@ -1567,11 +1565,16 @@ end
 
 local function SetDefaultAbilityFrame()
     local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN }
-    if SV.hideDefaultFrames or SV.forceGamepadStyle then
+    -- True if FancyActionBar’s bar style doesn't match the base UI mode
+    local modeMismatched = (FancyActionBar.useGamepadActionBar ~= IsInGamepadPreferredMode())
+
+    if SV.hideDefaultFrames or modeMismatched then
+        -- Hide/replace default frames (both fake gamepad and fake keyboard)
         RedirectTexture(f[1], f[3])
         RedirectTexture(f[2], f[4])
         framesHidden = true
     else
+        -- Restore original textures if we previously hid them
         if framesHidden then
             RedirectTexture(f[1], f[1])
             RedirectTexture(f[2], f[2])
@@ -2426,8 +2429,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     tooltip = "Show a frame around buttons on the actionbar.",
                     default = defaults.showFrames,
                     disabled = function ()
-                        return (FancyActionBar.style == 2 or SV.forceGamepadStyle)
-                    end, -- IsInGamepadPreferredMode() end,
+                        return (FancyActionBar.style == 2 or FancyActionBar.useGamepadActionBar)
+                    end,
                     getFunc = function ()
                         return SV.showFrames
                     end,
@@ -2442,7 +2445,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     name = "Frame color",
                     default = ZO_ColorDef:New(unpack(defaults.frameColor)),
                     disabled = function ()
-                        return (FancyActionBar.style == 2 --[[IsInGamepadPreferredMode()]] or (not SV.showFrames))
+                        return (FancyActionBar.style == 2 or (not SV.showFrames))
                     end,
                     getFunc = function ()
                         return unpack(SV.frameColor)
@@ -2482,7 +2485,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 default = defaults.useThinFrames,
                 disabled = function ()
                     return not (FancyActionBar.style == 2)
-                end, -- IsInGamepadPreferredMode() end,
+                end,
                 getFunc = function ()
                     return SV.useThinFrames
                 end,
@@ -2631,18 +2634,32 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 width = "full",
             },
             {
-                type = "checkbox",
-                name = "Force enable gamepad Action Bar style",
-                tooltip =
+                type = "dropdown",
+                name = "Gamepad Action Bar mode",
+                tooltip = "Automatic: follow ESO's gamepad preferred mode.\nGamepad: always use the gamepad-style action bar.\nKeyboard: always use the keyboard-style action bar.\n\n" ..
                 "The gamepad UI enables additional action bar animations and styling, by default this is only available when using a controller, or after enabling Accessibility Mode. This setting force enables these additional UI elements. Adapted with permission from Animated Action Bar by @Geldis1306 and @undcdd.",
-                default = defaults.forceGamepadStyle,
-                getFunc = function ()
-                    return SV.forceGamepadStyle
+                choices = {
+                    "Automatic",
+                    "Gamepad",
+                    "Keyboard",
+                },
+                choicesValues = {
+                    FancyActionBar.GAMEPAD_MODE.AUTOMATIC,
+                    FancyActionBar.GAMEPAD_MODE.GAMEPAD,
+                    FancyActionBar.GAMEPAD_MODE.KEYBOARD,
+                },
+                default = defaults.gamepadMode,
+                getFunc = function()
+                    return SV.gamepadMode
                 end,
-                setFunc = function (value)
-                    SV.forceGamepadStyle = value or false
+                setFunc = function(value)
+                    SV.gamepadMode = value or FancyActionBar.GAMEPAD_MODE.AUTOMATIC
+                    -- Keep the old bool in sync for downgrade-friendliness
+                    SV.forceGamepadStyle = (SV.gamepadMode == FancyActionBar.GAMEPAD_MODE.GAMEPAD)
+
                     FancyActionBar.updateUI = true
-                    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+                    FancyActionBar.RefreshGamepadStyle()
+                    FancyActionBar.SetZOSButtonSizes()
                     local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
                     FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
@@ -2669,7 +2686,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 disabled = function ()
                     return not FancyActionBar.style == 2
-                end, -- IsInGamepadPreferredMode() end,
+                end,
                 width = "full",
             },
             {
@@ -6293,7 +6310,6 @@ end
 function FancyActionBar.HideHotkeys(hide)
     local alpha = hide and 0 or 1
     local isKbStyle = FancyActionBar.style == 1
-    local isFakeGamepadMode = SV.forceGamepadStyle and not IsInGamepadPreferredMode()
 
     for i = MIN_INDEX, MAX_INDEX do
         local b = ZO_ActionBar_GetButton(i)
@@ -6309,7 +6325,7 @@ function FancyActionBar.HideHotkeys(hide)
     local ULT_BUTTON = ZO_ActionBar_GetButton(ULT_INDEX)
     local ULT_COMPANION_BUTTON = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
 
-    if isKbStyle or isFakeGamepadMode then
+    if isKbStyle then
         ULT_BUTTON.buttonText:SetHidden(hide)
         ULT_BUTTON.buttonText:SetAlpha(alpha)
         ULT_COMPANION_BUTTON.buttonText:SetHidden(hide)

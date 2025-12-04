@@ -116,7 +116,7 @@ FancyActionBar.style = nil                   -- Gamepad or Keyboard UI for compa
 FancyActionBar.qsOverlay = nil               -- shortcut for.. reasons..
 
 FancyActionBar.updateUI = false              -- don't change configuration if not needed
-FancyActionBar.useGamepadActionBar = false   -- If the gamepad actionbar style should be force enabled
+FancyActionBar.useGamepadActionBar = false   -- Gamepad-style action bar is currently active
 FancyActionBar.wasMoved = false              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false            -- don't register updates if already registered
 
@@ -670,12 +670,30 @@ function FancyActionBar.GetParentTimeBlacklist()
     return SV.parentTimeBlacklist
 end
 
+-- Pure function: should we *currently* be using gamepad-style action bar?
+--- @return boolean shouldUseGamepadActionBar
+function FancyActionBar.ShouldUseGamepadActionBar()
+    if SV.gamepadMode == FancyActionBar.GAMEPAD_MODE.GAMEPAD then
+        return true
+    elseif SV.gamepadMode == FancyActionBar.GAMEPAD_MODE.KEYBOARD then
+        return false
+    else
+        -- AUTOMATIC: mirror ESO's own preferred mode
+        return IsInGamepadPreferredMode()
+    end
+end
+
+-- Side-effectful helper to set mode used everywhere else
+function FancyActionBar.RefreshGamepadStyle()
+    FancyActionBar.useGamepadActionBar = FancyActionBar.ShouldUseGamepadActionBar()
+end
+
 ---
 --- @return table var
 --- @return table def
 function FancyActionBar:GetMovableVarsForUI()
     local var = FancyActionBar.constants.move
-    local def = (IsInGamepadPreferredMode() or FancyActionBar.useGamepadActionBar) and defaultSettings.abMove.gp or defaultSettings.abMove.kb
+    local def = FancyActionBar.useGamepadActionBar and defaultSettings.abMove.gp or defaultSettings.abMove.kb
     return var, def
 end
 
@@ -2713,7 +2731,7 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
 
     local constants = FancyActionBar.GetConstants()
     local style = (constants and next(constants)) and constants
-        or (IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS)
+        or (FancyActionBar.useGamepadActionBar and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS)
     local anchor = style.anchor
     if FancyActionBar.updateUI then
         anchor:SetFromControlAnchor(ACTION_BAR)
@@ -3038,7 +3056,19 @@ local repositionUltimateSlot = function (style)
     end
 end
 
-local setFlipCardDimensions = function (style)
+-- ZOS does no support controller in "controller off" mode and overwrites styles in gamepad mode
+function FancyActionBar.EnforceIconSize(style)
+    local flipCardSize = style.flipCardSize
+    for i = MIN_INDEX, MAX_INDEX do
+        local control = GetControl("ActionButton"..tostring(i).."FlipCard")
+        if control then
+            control:ClearDimensions()
+            control:SetDimensions(flipCardSize, flipCardSize)
+        end
+    end
+end
+
+function FancyActionBar.SetFlipCardDimensions(style)
     local c8 = GetControl("ActionButton8FlipCard")
     local c9 = GetControl("ActionButton9FlipCard")
     local c38 = GetControl("CompanionUltimateButtonFlipCard")
@@ -3057,6 +3087,7 @@ local setFlipCardDimensions = function (style)
         c38:ClearDimensions()
         c38:SetDimensions(ultFlipCardSize, ultFlipCardSize)
     end
+    FancyActionBar.EnforceIconSize(style)
 end
 
 local hideUltimateNumberIfNeeded = function ()
@@ -3216,7 +3247,7 @@ function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adju
     repositionUltimateSlot(style)
 
     -- Set dimensions for flip cards
-    setFlipCardDimensions(style)
+    FancyActionBar.SetFlipCardDimensions(style)
 
     -- Hide ultimate number if needed
     hideUltimateNumberIfNeeded()
@@ -3728,6 +3759,16 @@ local function FancySetBounceAnimationParameters(self, cooldownTime)
     SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
 end
 
+function FancyActionBar.SetZOSButtonSizes()
+    if FancyActionBar.useGamepadActionBar then
+        ZO_GAMEPAD_ACTION_BUTTON_SIZE = KEYBOARD_CONSTANTS.flipCardSize
+        ZO_GAMEPAD_ULTIMATE_BUTTON_SIZE = KEYBOARD_CONSTANTS.ultFlipCardSize
+    else
+        ZO_GAMEPAD_ACTION_BUTTON_SIZE = GAMEPAD_CONSTANTS.flipCardSize
+        ZO_GAMEPAD_ULTIMATE_BUTTON_SIZE = GAMEPAD_CONSTANTS.ultFlipCardSize
+    end
+end
+
 function FancyActionBar.UpdateStyle()
     local style = {}
     local mode
@@ -3736,11 +3777,11 @@ function FancyActionBar.UpdateStyle()
         mode = FancyActionBar.useGamepadActionBar and 2 or 1
     else
         if ADCUI then
-            if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
-                if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
+            if ADCUI:originalIsInGamepadPreferredMode() or SV.gamepadMode == FancyActionBar.GAMEPAD_MODE.GAMEPAD then
+                if ADCUI:shouldUseGamepadUI() or SV.gamepadMode == FancyActionBar.GAMEPAD_MODE.GAMEPAD then
                     mode = 2
                 else
-                    mode = ADCUI:shouldUseGamepadActionBar() or SV.forceGamepadStyle and 2 or 1
+                    mode = ADCUI:shouldUseGamepadActionBar() or SV.gamepadMode == FancyActionBar.GAMEPAD_MODE.GAMEPAD and 2 or 1
                 end
             else
                 mode = 1
@@ -3752,11 +3793,10 @@ function FancyActionBar.UpdateStyle()
 
     if mode == 1 then
         style = KEYBOARD_CONSTANTS
-        swapSize = 47
     else
         style = GAMEPAD_CONSTANTS
-        swapSize = 67
     end
+    FancyActionBar.SetZOSButtonSizes()
     -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
     FancyActionBar.style = mode
     FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style)
@@ -3765,7 +3805,7 @@ function FancyActionBar.UpdateStyle()
     FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y)
 
     ActionButton.ApplySwapAnimationStyle = ApplySwapAnimationStyle
-    ActionButton.SetBounceAnimationParameters = SV.forceGamepadStyle and FancySetBounceAnimationParameters or origSetBounceAnimationParameters
+    ActionButton.SetBounceAnimationParameters = FancyActionBar.useGamepadActionBar and FancySetBounceAnimationParameters or origSetBounceAnimationParameters
     ZO_ActionBar_GetButton(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1):ApplySwapAnimationStyle()
 end
 
@@ -4500,7 +4540,7 @@ local function OnAbilityUsed(_, n)
         local i = FancyActionBar.GetSlottedEffect(index)
         -- lastButton = index
         local idCheck = FancyActionBar.IdCheck(index, id)
-        if SV.forceGamepadStyle and n ~= ULT_INDEX then
+        if FancyActionBar.useGamepadActionBar and n ~= ULT_INDEX then
             local btn = ZO_ActionBar_GetButton(n)
             if btn then
                 btn:PlayAbilityUsedBounce()
@@ -5278,7 +5318,12 @@ function FancyActionBar.Initialize()
     if SV.abMove.gp == nil then
         SV.abMove.gp = { enable = false, x = 0, y = -75, prevX = 0, prevY = -75 }
     end
-    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+
+    if SV.gamepadMode == nil then
+        -- Upgrade forceGamepadStyle -> gamepadMode preserving existing behavior: "force gamepad" => forced mode, otherwise behave as before (automatic)
+        SV.gamepadMode = SV.forceGamepadStyle and FancyActionBar.GAMEPAD_MODE.GAMEPAD or FancyActionBar.GAMEPAD_MODE.AUTOMATIC
+    end
+    FancyActionBar.RefreshGamepadStyle()
     for i = MIN_INDEX, ULT_INDEX do
         FancyActionBar.SetSlottedEffect(i, 0, 0)
         FancyActionBar.SetSlottedEffect(i + SLOT_INDEX_OFFSET, 0, 0)
@@ -5347,7 +5392,7 @@ function FancyActionBar.Initialize()
     end)
     EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
         FancyActionBar.updateUI = true
-        FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+        FancyActionBar.RefreshGamepadStyle()
         local _, locked = GetActiveWeaponPairInfo()
         FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
         FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
@@ -5431,8 +5476,13 @@ function FancyActionBar.Initialize()
     SecurePostHook(ActionButton, "ApplyStyle", function (self)
         local style = FancyActionBar.GetConstants()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
-        setFlipCardDimensions(style)
+        FancyActionBar.SetFlipCardDimensions(style)
         FancyActionBar.ApplyQuickSlotFont()
+    end)
+
+    SecurePostHook(ActionButton, "UpdateState", function(self)
+        local style = FancyActionBar.GetConstants()
+        FancyActionBar.SetFlipCardDimensions(style)
     end)
 
     ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
@@ -5510,6 +5560,7 @@ local function ValidateBasicSettings(sv, d)
         "tickColor",
         "allowParentTime",
         "forceGamepadStyle",
+        "gamepadMode",
         "useThinFrames",
         "showFrames",
         "frameColor",
@@ -5673,7 +5724,7 @@ local function ValidateGamepadSettings(sv, d)
     sv = SV
     d = d or defaultSettings
 
-    if IsInGamepadPreferredMode() or sv.forceGamepadStyle then
+    if FancyActionBar.useGamepadActionBar then
         -- Migrate old settings
         local oldToNewMappings =
         {
@@ -5736,7 +5787,7 @@ local function ValidateKeyboardSettings(sv, d)
     sv = SV
     d = d or defaultSettings
 
-    if not (IsInGamepadPreferredMode() or sv.forceGamepadStyle) then
+    if not FancyActionBar.useGamepadActionBar then
         -- Migrate old settings
         local oldToNewMappings =
         {

@@ -307,7 +307,7 @@ FancyActionBar.devConfig =
         [2] = 0,
         [3] = 0.3921568692,
     },
-    ["forceGamepadStyle"] = true,
+    ["gamepadMode"] = FancyActionBar.GAMEPAD_MODE.GAMEPAD,
     ["ultFillBarAlpha"] = 1,
     ["fontNameStackKB"] = "Univers 67",
     ["ultValueTypeGP"] = "outline",
