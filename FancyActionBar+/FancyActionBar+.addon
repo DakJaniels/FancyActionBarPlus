@@ -1,9 +1,9 @@
 ## Title: FancyActionBar+
 ## Author: Incanus, dack_janiels, nogetrandom, andy.s
 ## Description: A *fancy* action bar addon for the Elder Scrolls Online.
-## Version: 2.15.3
+## Version: 2.15.4
 ## APIVersion: 101047
-## AddOnVersion: 21503
+## AddOnVersion: 21504
 ## SavedVariables: FancyActionBarSV
 ## PCDependsOn: LibAddonMenu-2.0>=40
 ## ConsoleDependsOn: LibAddonMenu-2.0>=40
