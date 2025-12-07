@@ -258,6 +258,7 @@ local function GetTargetEffects()
                     beginTime = beginTime or 0,
                     endTime = endTime or 0,
                     stacks = stacks or 0,
+                    stackId = { abilityId },
                     name = abilityName,
                     slot = buffSlot,
                     icon = icon,
