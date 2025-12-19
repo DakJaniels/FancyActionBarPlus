@@ -249,16 +249,27 @@ local function GetTargetEffects()
             local abilityName, beginTime, endTime, buffSlot, stacks, icon, _, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo(tag, i)
 
             if castByPlayer or (FancyActionBar.allowExternalStacks[abilityId]) then
-                -- PostReticleTargetInfo(name, abilityName, beginTime, endTime, buffSlot, stacks, icon, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer)
-
                 debuffNum = debuffNum + 1
+
+                local currentStackIds = { abilityId }
+                if FancyActionBar.debuffStackMap then
+                    for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
+                        for j = 1, #targetIds do
+                            if targetIds[j] == abilityId then
+                                table.insert(currentStackIds, stackSourceId)
+                                break
+                            end
+                        end
+                    end
+                end
+
                 local db =
                 {
                     id = abilityId,
                     beginTime = beginTime or 0,
                     endTime = endTime or 0,
                     stacks = stacks or 0,
-                    stackId = { abilityId },
+                    stackId = currentStackIds,
                     name = abilityName,
                     slot = buffSlot,
                     icon = icon,
@@ -327,7 +338,7 @@ local function OnReticleTargetChanged()
     if (DoesUnitExist(tag) and not IsUnitDead(tag)) then
         if not FancyActionBar.IsEnemy(tag) then
             return
-        end -- GetUnitType(tag), GetUnitNameHighlightedByReticle()
+        end
 
         local name = zo_strformat("<<t:1>>", GetUnitName(tag))
         local tId = 0
@@ -341,23 +352,18 @@ local function OnReticleTargetChanged()
                 local effect = FancyActionBar.effects[debuff.id]
                 if effect then
                     for dId, dEffect in pairs(debuff) do
-                        effect[dId] = dEffect
+                        if dId ~= "stackId" then
+                            effect[dId] = dEffect
+                        end
                     end
+                    effect.stackId = effect.stackId or debuff.stackId
                     debuff = effect
                 end
 
-                debuff.stackId = debuff.stackId or { debuff.id }
-                for stackSourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
-                    for t = 1, #targetIds do
-                        if targetIds[t] == debuff.id then
-                            table.insert(debuff.stackId, stackSourceId)
-                            break
-                        end
-                    end
-                end
                 local specialEffect = (FancyActionBar.specialEffects[debuff.id]
                     and ZO_DeepTableCopy(FancyActionBar.specialEffects[debuff.id]))
-                keep[debuff.id] = true -- make sure we're keeping the debuff in case the specialEffect changes the id
+
+                keep[debuff.id] = true 
                 if specialEffect then
                     for sId, sEffect in pairs(specialEffect) do
                         debuff[sId] = sEffect
@@ -365,22 +371,23 @@ local function OnReticleTargetChanged()
                     if specialEffect.setTime then
                         debuff.endTime = debuff.beginTime + specialEffect.duration
                     end
-                    keep[debuff.id] = true -- keep the debuff.id after pushing all the special effect properties
+                    keep[debuff.id] = true
                 else
                     local stackCounts = {}
                     local externalStacks = false
                     if debuff.stackId then
                         for s = 1, #debuff.stackId do
-                            if FancyActionBar.fixedStacks[debuff.stackId[s]] or (FancyActionBar.stackMap[debuff.stackId[s]] and not FancyActionBar.debuffStackMap[debuff.stackId[s]]) then
+                            local sId = debuff.stackId[s]
+                            if FancyActionBar.fixedStacks[sId] or (FancyActionBar.stackMap[sId] and not FancyActionBar.debuffStackMap[sId]) then
                                 externalStacks = true
                                 break
                             else
-                                local stackId = debuff.stackId[s]
-                                local currentStacks = FancyActionBar.stacks[stackId]
+                                local currentStacks = FancyActionBar.stacks[sId] or 0
                                 table.insert(stackCounts, currentStacks)
                             end
                         end
                     end
+
                     if externalStacks then
                         debuff.stacks = false
                     else
@@ -402,10 +409,11 @@ local function OnReticleTargetChanged()
             if debuff.keepOnTargetChange then
                 return
             end
-            if keep[debuff.id] == nil then -- update debuffs that are not active on the target according to settings.
+            if keep[debuff.id] == nil then 
                 if debuff.stackId then
                     for s = 1, #debuff.stackId do
-                        if FancyActionBar.fixedStacks[debuff.stackId[s]] or (FancyActionBar.stackMap[debuff.stackId[s]] and not FancyActionBar.debuffStackMap[debuff.stackId[s]]) then
+                        local sId = debuff.stackId[s]
+                        if FancyActionBar.fixedStacks[sId] or (FancyActionBar.stackMap[sId] and not FancyActionBar.debuffStackMap[sId]) then
                             debuff.stacks = false
                             break
                         end
@@ -416,7 +424,6 @@ local function OnReticleTargetChanged()
                 UpdateDebuff(FancyActionBar.debuffs[id], debuff.stacks ~= false and 0 or debuff.stacks, tId, true)
             end
         end
-        -- OnNewTarget()
     else
         if SV.keepLastTarget == false then
             ClearDebuffsIfNotOnTarget()
