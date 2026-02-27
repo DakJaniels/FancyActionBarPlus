@@ -438,39 +438,12 @@ function FancyActionBar.GetAbilityDuration(abilityId, overrideActiveRank, overri
 end
 
 local GetAbilityDuration = FancyActionBar.GetAbilityDuration
-local function CheckHyperTools()
-    if _G["HyperTools"] then
-        return "HT"
-    elseif _G["HyperTankingTools"] and HTTsavedVars[HTT_variables.currentlySelectedProfile].isStoneFistCustomIconOn then
-        return "HTT"
-    else
-        return ""
-    end
-end
-
---- @param hyper string
---- @return string
-local function GetHyperToolsIcon(hyper)
-    if hyper == "HT" then
-        return "HyperTools/icons/stonefistStomp.dds"
-    elseif hyper == "HTT" then
-        return "HyperTankingTools/icons/stonefistStomp.dds"
-    else
-        return ""
-    end
-end
 
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
     if FancyActionBar.barHighlightDestroFix[abilityId] then
         abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId, WEAPONTYPE_NONE)
     elseif FancyActionBar.styleFix[abilityId] then
         abilityId = FancyActionBar.styleFix[abilityId]
-    end
-    if abilityId == 31816 then
-        local hyper = CheckHyperTools()
-        if hyper ~= "" then
-            return GetHyperToolsIcon(hyper)
-        end
     end
     local skillType, skillLineIndex, skillIndex = GetSpecificSkillAbilityKeysByAbilityId(abilityId)
     local progressionId = GetProgressionSkillProgressionId(skillType, skillLineIndex, skillIndex)
@@ -1338,12 +1311,7 @@ function FancyActionBar.UpdateInactiveBarIcon(slotNum, hotbarCategory) -- for ba
                 GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, weaponType))
         else
             id = GetEffectiveAbilityIdForAbilityOnHotbar(id, hotbarCategory)
-            if id == 31816 then
-                local hyper = CheckHyperTools()
-                icon = hyper ~= "" and GetHyperToolsIcon(hyper) or GetAbilityIcon(id)
-            else
-                icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
-            end
+            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
         end
         btn.icon:SetTexture(shouldHideSlot and "" or icon)
         btn.icon:SetAlpha(shouldHideSlot and 0 or SV.alphaInactive / 100)
