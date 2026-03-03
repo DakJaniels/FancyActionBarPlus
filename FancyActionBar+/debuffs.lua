@@ -274,7 +274,7 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
     -- TODO: If unitUpdating is the final instance then don't return
     local unitUpdating
     if isTarget == false then
-        local targets = FancyActionBar.GetTargets(debuff.id)
+        local targets = FancyActionBar.GetUnit(debuff.id, "targets")
         if targets and targets.times then
             local count = 0
             for debuffUnitId, tdata in pairs(targets.times) do
@@ -438,19 +438,19 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endT
         -- record per-unit times for multi-target debuffs when gained/updated
         local eff = FancyActionBar.effects[debuff.id] or {}
         eff.id = debuff.id
-        eff.targets = eff.targets or { targetCount = 0, maxEndTime = 0, times = {} }
+        eff.targets = eff.targets or { unitCount = 0, maxEndTime = 0, times = {} }
         eff.targets.maxEndTime = zo_max(endTime, eff.targets.maxEndTime)
         eff.isDebuff = true
         FancyActionBar.effects[debuff.id] = eff
         -- Do not record per-unit targets for ground/area effects.
         if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then
-            FancyActionBar.RecordTargetUnit(debuff.id, unitId, beginTime, endTime)
+            FancyActionBar.RecordUnit(debuff.id, unitId, beginTime, endTime, "targets")
         end
         return
     elseif (change == EFFECT_RESULT_FADED) then
-        local targets = FancyActionBar.GetTargets(debuff.id)
+        local targets = FancyActionBar.GetUnit(debuff.id, "targets")
         if targets then
-            local targetCount = FancyActionBar.RemoveTargetUnit(debuff.id, unitId)
+            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, "targets")
             if targetCount >= 1 then
                 return
             end
@@ -525,13 +525,13 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         end
 
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
-            -- Use canonical per-target tracking via FancyActionBar.RecordTargetUnit/GetTargets
+            -- Use canonical per-target tracking via FancyActionBar.RecordUnit/GetUnit
             UpdateDebuff(debuff, stackCount, unitId, false)
         end
     elseif (change == EFFECT_RESULT_FADED) then
-        local td = FancyActionBar.GetTargets(debuff.id)
+        local td = FancyActionBar.GetUnit(debuff.id, "targets")
         if td and td.times and td.times[unitId] then
-            local targetCount = FancyActionBar.RemoveTargetUnit(debuff.id, unitId)
+            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, "targets")
             if targetCount >= 1 then
                 return
             end
