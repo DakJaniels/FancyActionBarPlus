@@ -4050,17 +4050,17 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
         end
 
         FancyActionBar.effects[effect.id] = effect
-                if effect.hasActiveCast then
-                    -- Only set per-effect `begin` when there is no per-target
-                    -- tracking state. Use the inline `beginTime` field and `hasActiveCast`/`castTime`.
-                    if not FancyActionBar.GetTargets(effect.id) then
-                        effect.beginTime = updateTime
-                    end
-                    -- Do not record per-unit targets for ground (area) effects.
-                    if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then
-                        FancyActionBar.RecordTargetUnit(effect.id, unitId, effect.beginTime, effect.endTime or endTime)
-                    end
-                end
+        if effect.hasActiveCast then
+            -- Only set per-effect `begin` when there is no per-target
+            -- tracking state. Use the inline `beginTime` field and `hasActiveCast`/`castTime`.
+            if not FancyActionBar.GetTargets(effect.id) then
+                effect.beginTime = updateTime
+            end
+            -- Do not record per-unit targets for ground (area) effects.
+            if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then
+                FancyActionBar.RecordTargetUnit(effect.id, unitId, effect.beginTime, effect.endTime or endTime)
+            end
+        end
     elseif change == EFFECT_RESULT_FADED then
         FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId)
     end
@@ -5012,6 +5012,32 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
             if (SV.advancedDebuff and effectType == DEBUFF) then
                 return
             end -- is handled by debuff.lua
+        end
+
+        local newStackCount
+        if FancyActionBar.stackableBuff[abilityId] then
+            local stackableBuffId = FancyActionBar.stackableBuff[abilityId]
+            _, _, newStackCount = FancyActionBar.CheckForActiveEffect(stackableBuffId)
+            stackCount = newStackCount
+        elseif FancyActionBar.fixedStacks[abilityId] then
+            stackCount = (change ~= EFFECT_RESULT_FADED) and FancyActionBar.fixedStacks[abilityId] or 0
+        else
+            stackCount = (change ~= EFFECT_RESULT_FADED) and stackCount or 0
+        end
+
+        FancyActionBar.stacks[abilityId] = stackCount
+
+        if FancyActionBar.stackMap[abilityId] then
+            for stackId, stackEffect in pairs(FancyActionBar.effects) do
+                if stackEffect.stackId and #stackEffect.stackId > 0 then
+                    for i = 1, #stackEffect.stackId do
+                        if stackEffect.stackId[i] == abilityId then
+                            FancyActionBar.HandleStackUpdate(stackId)
+                            break
+                        end
+                    end
+                end
+            end
         end
     end
 end
