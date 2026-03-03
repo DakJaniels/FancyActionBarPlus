@@ -1233,11 +1233,11 @@ end
 -- Recompute and prune per-unit target times for an effect.
 function FancyActionBar.RecomputeUnits(id, now, which)
     local effect = FancyActionBar.effects and FancyActionBar.effects[id]
-    local targetData = effect and effect[which]
-    if not targetData or not targetData.times then return nil, 0, 0 end
-    local soonest, maxEnd, activeCount = FancyActionBar.PruneUnits(targetData, now)
+    local unitData = effect and effect[which]
+    if not unitData or not unitData.times then return nil, 0, 0 end
+    local soonest, maxEnd, activeCount = FancyActionBar.PruneUnits(unitData, now)
     if effect then
-        effect[which] = targetData
+        effect[which] = unitData
         FancyActionBar.effects[id] = effect
     end
     return soonest, maxEnd, activeCount
@@ -1248,17 +1248,17 @@ function FancyActionBar.RecordUnit(id, unitId, beginTime, endTime, which)
     unitId = unitId or 0
     local now = time()
     local effect = FancyActionBar.effects[id] or { id = id }
-    local targetData = FancyActionBar.EnsureUnits(effect, which)
+    local unitData = FancyActionBar.EnsureUnits(effect, which)
     local setEnd = endTime or now
     if setEnd <= now then setEnd = now + 0.01 end
-    targetData.times[unitId] = { beginTime = beginTime or now, endTime = setEnd }
-    targetData.maxEndTime = zo_max(targetData.maxEndTime or 0, setEnd)
+    unitData.times[unitId] = { beginTime = beginTime or now, endTime = setEnd }
+    unitData.maxEndTime = zo_max(unitData.maxEndTime or 0, setEnd)
 
     -- Persist canonical storage on the effect.
-    effect[which] = targetData
+    effect[which] = unitData
     FancyActionBar.effects[id] = effect
 
-    local soonest, maxEnd, activeCount = FancyActionBar.PruneUnits(targetData, now)
+    local soonest, maxEnd, activeCount = FancyActionBar.PruneUnits(unitData, now)
     if effect and maxEnd and maxEnd > (effect.endTime or 0) then
         effect.endTime = maxEnd
         FancyActionBar.UpdateEffect(effect)
