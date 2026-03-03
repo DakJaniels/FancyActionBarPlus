@@ -5037,73 +5037,6 @@ local function Update()
     end
 end
 
---- @param eventId integer
---- @param changeType EffectResult
---- @param effectSlot integer
---- @param effectName string
---- @param unitTag string
---- @param beginTime integer
---- @param endTime integer
---- @param stackCount integer
---- @param iconName string
---- @param deprecatedBuffType string
---- @param effectType BuffEffectType
---- @param abilityType AbilityType
---- @param statusEffectType StatusEffectType
---- @param unitName string
---- @param unitId integer
---- @param abilityId integer
---- @param sourceType CombatUnitType
-local function OnStackChanged(eventId, changeType, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, deprecatedBuffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
-    -- Skip if this is a debuff and advanced debuff tracking is enabled
-    if (SV.advancedDebuff and effectType == DEBUFF) then
-        return
-    end
-
-    if FancyActionBar.stackableBuff[abilityId] then
-        abilityId = FancyActionBar.stackableBuff[abilityId]
-        local _, _, newStackCount = FancyActionBar.CheckForActiveEffect(abilityId)
-        stackCount = newStackCount
-    elseif FancyActionBar.fixedStacks[abilityId] then
-        stackCount = changeType ~= EFFECT_RESULT_FADED and FancyActionBar.fixedStacks[abilityId] or 0
-    else
-        stackCount = changeType ~= EFFECT_RESULT_FADED and stackCount or 0
-    end
-    FancyActionBar.stacks[abilityId] = stackCount
-
-    if FancyActionBar.stackMap[abilityId] then
-        for id, effect in pairs(FancyActionBar.effects) do
-            if effect.stackId and #effect.stackId > 0 then
-                for i = 1, #effect.stackId do
-                    if effect.stackId[i] == abilityId then
-                        FancyActionBar.HandleStackUpdate(id)
-                        break
-                    end
-                end
-            end
-        end
-    end
-
-    -- Handle special case for Seething Fury
-    if stackCount == 0 then
-        if abilityId == 122658 and FancyActionBar.effects[122658] then
-            FancyActionBar.effects[122658].endTime = time()
-        end
-    end
-
-    -- Debug output (commented out)
-    -- Determine change type string for debugging
-    -- local changeTypeString = ""
-    -- if changeType == EFFECT_RESULT_FADED then
-    --     changeTypeString = "faded"
-    -- elseif changeType == EFFECT_RESULT_GAINED then
-    --     changeTypeString = "gained"
-    -- elseif changeType == EFFECT_RESULT_UPDATED then
-    --     changeTypeString = "updated"
-    -- end
-    -- unitName = zo_strformat("<<1>>", unitName)
-    -- FancyActionBar.AddSystemMessage("[" .. abilityId .. "] " .. changeTypeString .. " -> tag(" .. unitTag .. ") name(" .. unitName .. ") id(" .. unitId .. ") stacks(" .. stackCount .. ")")
-end
 
 --- @param eventId integer
 --- @param bagId Bag
@@ -5509,19 +5442,6 @@ function FancyActionBar.Initialize()
     EM:RegisterForEvent(NAME, EVENT_COLLECTIBLE_UPDATED, FancyActionBar.SkillStyleCollectibleUpdated)
     EM:RegisterForEvent(NAME, EVENT_EFFECT_CHANGED, OnEffectChanged)
     EM:AddFilterForEvent(NAME, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
-
-    for abilityId, stackAbilities in pairs(FancyActionBar.stackMap) do
-        EM:RegisterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, OnStackChanged)
-        EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, abilityId)
-        EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
-    end
-
-    for abilityId, stackAbilities in pairs(FancyActionBar.stackableBuff) do
-        if not FancyActionBar.stackMap[abilityId] then
-            EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, abilityId)
-            EM:AddFilterForEvent(NAME .. abilityId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
-        end
-    end
 
     FancyActionBar.SetExternalBuffTracking()
 
