@@ -4338,12 +4338,6 @@ function FancyActionBar.RefreshEffects()
                 FancyActionBar.UpdateToggledAbility(toggleAbility, true)
                 return
             end
-            if (abilityId == 61905 or abilityId == 61919 or abilityId == 61927) then
-                if GFC then -- Manually update GrimFocusCounter if enabled
-                    local _
-                    GFC.OnEffectChanged(_, 3, _, GetAbilityName(abilityId), "player", _, _, 0, _, _, _, _, _, _, _, abilityId)
-                end
-            end
 
             local effect = FancyActionBar.effects[abilityId]
             if effect then
