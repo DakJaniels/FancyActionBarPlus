@@ -433,25 +433,29 @@ local function OnReticleTargetChanged()
     end
 end
 
-function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId, abilityType)
+function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, currentTime, beginTime, endTime, unitId, abilityType)
     if (change == EFFECT_RESULT_GAINED) or (change == EFFECT_RESULT_UPDATED) then
         -- record per-unit times for multi-target debuffs when gained/updated
-        local eff = FancyActionBar.effects[debuff.id] or {}
-        eff.id = debuff.id
-        eff.targets = eff.targets or { unitCount = 0, maxEndTime = 0, times = {} }
-        eff.targets.maxEndTime = zo_max(endTime, eff.targets.maxEndTime)
-        eff.isDebuff = true
-        FancyActionBar.effects[debuff.id] = eff
+        local effect = FancyActionBar.effects[debuff.id] or {}
+        effect.id = debuff.id
+        effect.targets = effect.targets or { unitCount = 0, maxEndTime = 0, times = {} }
+        effect.targets.maxEndTime = zo_max(endTime, effect.targets.maxEndTime)
+        effect.isDebuff = true
+        FancyActionBar.effects[debuff.id] = effect
         -- Do not record per-unit targets for ground/area effects.
         if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then
-            FancyActionBar.RecordUnit(debuff.id, unitId, beginTime, endTime, "targets")
+            FancyActionBar.RecordUnit(debuff.id, effect, unitId, currentTime, beginTime, endTime, "targets")
+            FancyActionBar.UpdateEffect(effect)
+            FancyActionBar.HandleTargetUpdate(debuff.id)
         end
         return
     elseif (change == EFFECT_RESULT_FADED) then
         local targets = FancyActionBar.GetUnit(debuff.id, "targets")
         if targets then
-            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, "targets")
+            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, currentTime, "targets")
             if targetCount >= 1 then
+                FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
+                FancyActionBar.HandleTargetUpdate(debuff.id)
                 return
             end
         end
@@ -477,7 +481,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
     if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
         if not SV.multiTargetBlacklist[debuff.id] then
-            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId, abilityType)
+            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitId, abilityType)
         end
         return
     end
@@ -521,7 +525,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         FancyActionBar.effects[debuff.id] = effect
 
         if not SV.multiTargetBlacklist[debuff.id] then
-            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, beginTime, endTime, unitId)
+            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitId)
         end
 
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
@@ -531,8 +535,10 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     elseif (change == EFFECT_RESULT_FADED) then
         local td = FancyActionBar.GetUnit(debuff.id, "targets")
         if td and td.times and td.times[unitId] then
-            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, "targets")
+            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, t, "targets")
             if targetCount >= 1 then
+                FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
+                FancyActionBar.HandleTargetUpdate(debuff.id)
                 return
             end
         end
