@@ -826,6 +826,12 @@ FancyActionBar.debuffStackMap =
         134336,
     },
 
+        -- Fetcher Infection
+    [101904] =
+    {
+        91416,
+    }
+
     -- [134336] = 134336;  -- Stone Giant (stacks on target)
 
 }

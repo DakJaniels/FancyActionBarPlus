@@ -186,21 +186,10 @@ local function ClearTargetEffects()
     for effectId, effect in pairs(FancyActionBar.effects) do
         if effect and effect.isDebuff then
             -- reset stacks and update visuals
-            local stacksTbl = FancyActionBar.stacks
-            local debuffMap = FancyActionBar.debuffStackMap
             local doStackUpdate = false
-            if stacksTbl[effect.id] then
-                stacksTbl[effect.id] = 0
+            if effect.stacks and effect.stacks ~= 0 then
+                FancyActionBar.SetStacks(effect.id, 0, true)
                 doStackUpdate = true
-            end
-            if effect.stackId then
-                for i = 1, #effect.stackId do
-                    local sid = effect.stackId[i]
-                    if debuffMap[sid] and stacksTbl[sid] then
-                        stacksTbl[sid] = 0
-                        doStackUpdate = true
-                    end
-                end
             end
             effect.endTime = time()
             FancyActionBar.UpdateEffect(effect)
@@ -217,22 +206,10 @@ local function ClearDebuffsIfNotOnTarget()
         if effect and effect.isDebuff and not effect.keepOnTargetChange then
             effect.activeOnTarget = false
             effect.endTime = 0
-            effect.stacks = 0
-            local stacksTbl = FancyActionBar.stacks
-            local debuffMap = FancyActionBar.debuffStackMap
             local doStackUpdate = false
-            if stacksTbl[effect.id] then
-                stacksTbl[effect.id] = 0
+            if effect.stacks and effect.stacks ~= 0 then
+                FancyActionBar.SetStacks(effect.id, 0, true)
                 doStackUpdate = true
-            end
-            if effect.stackId then
-                for i = 1, #effect.stackId do
-                    local sid = effect.stackId[i]
-                    if debuffMap[sid] and stacksTbl[sid] then
-                        stacksTbl[sid] = 0
-                        doStackUpdate = true
-                    end
-                end
             end
             FancyActionBar.UpdateEffect(effect)
             if doStackUpdate then
@@ -291,15 +268,11 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
 
     if not debuff then return end
 
-    local stacksTbl = FancyActionBar.stacks
     if debuff.id == 52790 and SV.showOvertauntStacks then
-        stacksTbl[debuff.id] = stacks
+        debuff.stacks = stacks
     else
         if stacks and debuff.stackId then
-            for i = 1, #debuff.stackId do
-                local sid = debuff.stackId[i]
-                stacksTbl[sid] = stacks
-            end
+            debuff.stacks = stacks
         end
     end
 
@@ -313,6 +286,7 @@ local function UpdateDebuff(debuff, stacks, unitId, isTarget)
     effect.isDebuff = true
     effect.hasActiveCast = debuff.hasActiveCast or false
     FancyActionBar.effects[debuff.id] = effect
+    FancyActionBar.SetStacks(effect.id, effect.stacks)
     -- update source->effects reverse map
     if prevStackId ~= effect.stackId then
         RemoveEffectFromSourceMap(effect.id, prevStackId)
@@ -382,7 +356,6 @@ local function OnReticleTargetChanged()
                         local externalStacks = false
                         local fixedStacks = FancyActionBar.fixedStacks
                         local stackMap = FancyActionBar.stackMap
-                        local stacksTbl = FancyActionBar.stacks
                         if effect.stackId then
                             for s = 1, #effect.stackId do
                                 local sId = effect.stackId[s]
@@ -390,7 +363,7 @@ local function OnReticleTargetChanged()
                                     externalStacks = true
                                     break
                                 else
-                                    local currentStacks = stacksTbl[sId] or 0
+                                    local currentStacks = FancyActionBar.GetActiveStacksForId(sId) or 0
                                     tmp_stackCounts[#tmp_stackCounts + 1] = currentStacks
                                 end
                             end
@@ -404,6 +377,8 @@ local function OnReticleTargetChanged()
                         end
                     end
 
+                    -- Centralize stack write after computing final value
+                    FancyActionBar.SetStacks(effect.id, effect.stacks)
                     UpdateDebuff(effect, effect.stacks, tId, true)
                 end
             end
@@ -416,7 +391,7 @@ local function OnReticleTargetChanged()
                     for s = 1, #effect.stackId do
                         local sId = effect.stackId[s]
                         if FancyActionBar.fixedStacks[sId] or (FancyActionBar.stackMap[sId] and not FancyActionBar.debuffStackMap[sId]) then
-                            effect.stacks = false
+                            FancyActionBar.SetStacks(effect.id, false, true)
                             break
                         end
                     end
@@ -433,7 +408,7 @@ local function OnReticleTargetChanged()
     end
 end
 
-function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, currentTime, beginTime, endTime, unitId, abilityType)
+function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, currentTime, beginTime, endTime, unitKey, abilityType)
     if (change == EFFECT_RESULT_GAINED) or (change == EFFECT_RESULT_UPDATED) then
         -- record per-unit times for multi-target debuffs when gained/updated
         local effect = FancyActionBar.effects[debuff.id] or {}
@@ -442,21 +417,25 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, currentTime, be
         effect.targets.maxEndTime = zo_max(endTime, effect.targets.maxEndTime)
         effect.isDebuff = true
         FancyActionBar.effects[debuff.id] = effect
+        FancyActionBar.SetStacks(effect.id, effect.stacks)
         -- Do not record per-unit targets for ground/area effects.
-        if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then
-            FancyActionBar.RecordUnit(debuff.id, effect, unitId, currentTime, beginTime, endTime, "targets")
+        if unitKey and abilityType ~= GROUND_EFFECT then
+            FancyActionBar.RecordUnit(debuff.id, effect, unitKey, currentTime, beginTime, endTime, "targets")
             FancyActionBar.UpdateEffect(effect)
             FancyActionBar.HandleTargetUpdate(debuff.id)
         end
         return
     elseif (change == EFFECT_RESULT_FADED) then
         local targets = FancyActionBar.GetUnit(debuff.id, "targets")
-        if targets then
-            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, currentTime, "targets")
-            if targetCount >= 1 then
-                FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
-                FancyActionBar.HandleTargetUpdate(debuff.id)
-                return
+        if targets and targets.times then
+            if unitKey and targets.times[unitKey] then
+                local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitKey, currentTime, "targets")
+                if targetCount >= 1 then
+                    local soonest, maxEnd, active = FancyActionBar.RecomputeUnits(debuff.id, currentTime, "targets")
+                    FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
+                    FancyActionBar.HandleTargetUpdate(debuff.id)
+                    return
+                end
             end
         end
     end
@@ -481,7 +460,8 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
     if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
         if not SV.multiTargetBlacklist[debuff.id] then
-            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitId, abilityType)
+            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey, abilityType)
         end
         return
     end
@@ -523,9 +503,11 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         for k, v in pairs(debuff) do effect[k] = v end
         effect.isDebuff = true
         FancyActionBar.effects[debuff.id] = effect
+        FancyActionBar.SetStacks(effect.id, effect.stacks)
 
         if not SV.multiTargetBlacklist[debuff.id] then
-            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitId)
+            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey)
         end
 
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
@@ -534,8 +516,12 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         end
     elseif (change == EFFECT_RESULT_FADED) then
         local td = FancyActionBar.GetUnit(debuff.id, "targets")
-        if td and td.times and td.times[unitId] then
-            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitId, t, "targets")
+        local unitKey = unitId
+        if unitTag and AreUnitsEqual("player", unitTag) and effectSlot and effectSlot > 0 then
+            unitKey = effectSlot
+        end
+        if td and td.times and td.times[unitKey] then
+            local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitKey, t, "targets")
             if targetCount >= 1 then
                 FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
                 FancyActionBar.HandleTargetUpdate(debuff.id)
@@ -563,9 +549,12 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
                 if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not ((debuff.stackId[i] == debuff.id) or FancyActionBar.debuffStackMap[debuff.stackId[i]])) then
                     stackCount = false
                     break
-                elseif FancyActionBar.stacks[debuff.stackId[i]] then
-                    stackCount = zo_max(FancyActionBar.stacks[debuff.stackId[i]] - stackCount, 0)
-                    break
+                else
+                    local active = FancyActionBar.GetActiveStacksForId(debuff.stackId[i])
+                    if active and active > 0 then
+                        stackCount = zo_max(active - stackCount, 0)
+                        break
+                    end
                 end
             end
         end
