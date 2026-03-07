@@ -4,54 +4,71 @@ local FancyActionBar = FancyActionBar
 local EM = GetEventManager()
 local WM = GetWindowManager()
 local SM = SCENE_MANAGER
+local GROUND_EFFECT = rawget(_G, "GROUND_EFFECT")
 local NAME = FancyActionBar.GetName()
 local SV = ...
 local time = GetGameTimeSeconds
-local abilityToStackSources = {}
 local registeredDebuffStackEvents = {}
-local sourceToEffects = {}
 
-local function AddEffectToSourceMap(effectId, stackIds)
-    if not stackIds then return end
-    for i = 1, #stackIds do
-        local sid = stackIds[i]
-        if sid then
-            sourceToEffects[sid] = sourceToEffects[sid] or {}
-            sourceToEffects[sid][effectId] = true
-        end
+local function SyncDebuffStackSources(effect, abilityId, preserveStackId)
+    local stackSources, hasExternalStackSources = FancyActionBar.BuildTrackedStackSources(effect.id, abilityId)
+    effect.stackSources = stackSources
+    effect.hasExternalStackSources = hasExternalStackSources
+
+    if not preserveStackId then
+        effect.stackId = stackSources
     end
+
+    return stackSources, hasExternalStackSources
 end
 
-local function RemoveEffectFromSourceMap(effectId, stackIds)
-    if not stackIds then return end
-    for i = 1, #stackIds do
-        local sid = stackIds[i]
-        local tbl = sourceToEffects[sid]
-        if tbl then
-            tbl[effectId] = nil
-            if next(tbl) == nil then sourceToEffects[sid] = nil end
-        end
+local function ResolveDebuffDisplayStacks(effect, fallbackStacks)
+    if not effect then
+        return fallbackStacks or 0
     end
+
+    if effect.hasExternalStackSources then
+        return FancyActionBar.ResolveStacksForEffect(effect, time())
+    end
+
+    if fallbackStacks ~= nil then
+        return fallbackStacks
+    end
+
+    return FancyActionBar.ResolveStacksForEffect(effect, time())
 end
 
-local function BuildAbilityToStackMap()
-    abilityToStackSources = {}
-    if FancyActionBar.debuffStackMap then
-        for sourceId, targetIds in pairs(FancyActionBar.debuffStackMap) do
-            for i = 1, #targetIds do
-                local tid = targetIds[i]
-                abilityToStackSources[tid] = abilityToStackSources[tid] or {}
-                abilityToStackSources[tid][#abilityToStackSources[tid] + 1] = sourceId
-            end
+local function ShouldClearExternalDebuffStacksOnTargetChange(effect)
+    if not effect or not effect.hasExternalStackSources then
+        return true
+    end
+
+    local sourceIds = effect.stackSources or effect.stackId
+    if not sourceIds then
+        return true
+    end
+
+    local stackableBuff = FancyActionBar.stackableBuff
+    local effects = FancyActionBar.effects
+    for i = 1, #sourceIds do
+        local sourceId = sourceIds[i]
+        local trackedSourceId = (stackableBuff and stackableBuff[sourceId]) or sourceId
+        local sourceEffect = effects and effects[trackedSourceId]
+
+        if sourceEffect and not sourceEffect.isDebuff then
+            return false
+        end
+
+        if FancyActionBar.stackMap[trackedSourceId] ~= nil and FancyActionBar.debuffStackMap[trackedSourceId] == nil then
+            return false
         end
     end
+
+    return true
 end
 
-local tmp_stackIds = {}
-local tmp_stackCounts = {}
-
-local function clearTable(t)
-    for i = #t, 1, -1 do t[i] = nil end
+local function HasDebuffStackTargets(abilityId)
+    return FancyActionBar.fixedStacks[abilityId] ~= nil or #FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId) > 0
 end
 
 local groupUnit =
@@ -186,16 +203,11 @@ local function ClearTargetEffects()
     for effectId, effect in pairs(FancyActionBar.effects) do
         if effect and effect.isDebuff then
             -- reset stacks and update visuals
-            local doStackUpdate = false
             if effect.stacks and effect.stacks ~= 0 then
                 FancyActionBar.SetStacks(effect.id, 0, true)
-                doStackUpdate = true
             end
             effect.endTime = time()
             FancyActionBar.UpdateEffect(effect)
-            if doStackUpdate then
-                FancyActionBar.HandleStackUpdate(effect.id)
-            end
         end
     end
 end
@@ -206,15 +218,10 @@ local function ClearDebuffsIfNotOnTarget()
         if effect and effect.isDebuff and not effect.keepOnTargetChange then
             effect.activeOnTarget = false
             effect.endTime = 0
-            local doStackUpdate = false
-            if effect.stacks and effect.stacks ~= 0 then
+            if ShouldClearExternalDebuffStacksOnTargetChange(effect) and effect.stacks and effect.stacks ~= 0 then
                 FancyActionBar.SetStacks(effect.id, 0, true)
-                doStackUpdate = true
             end
             FancyActionBar.UpdateEffect(effect)
-            if doStackUpdate then
-                FancyActionBar.HandleStackUpdate(effect.id)
-            end
         end
     end
 end
@@ -235,8 +242,6 @@ local function ClearDebuffs(keep)
     -- end;
     for id, effect in pairs(FancyActionBar.effects) do
         if effect and effect.isDebuff then
-            -- remove reverse-map entries when unmarking debuff
-            RemoveEffectFromSourceMap(effect.id, effect.stackId)
             effect.isDebuff = nil
             -- also clear debuff-side active-cast marker to avoid stale state
             effect.hasActiveCast = nil
@@ -244,57 +249,34 @@ local function ClearDebuffs(keep)
         end
     end
 end
-
-local numEffects = 0
-
-local function UpdateDebuff(debuff, stacks, unitId, isTarget)
-    -- TODO: If unitUpdating is the final instance then don't return
-    local unitUpdating
-    if isTarget == false then
-        local targets = FancyActionBar.GetUnit(debuff.id, "targets")
-        if targets and targets.times then
-            local count = 0
-            for debuffUnitId, tdata in pairs(targets.times) do
-                count = count + 1
-                if debuff.beginTime == (tdata and tdata.beginTime) then
-                    unitUpdating = debuffUnitId
-                end
-            end
-            if unitId ~= unitUpdating and count > 1 then
-                return
-            end
-        end
-    end
-
+function FancyActionBar.UpdateDebuff(debuff, stacks)
     if not debuff then return end
 
-    if debuff.id == 52790 and SV.showOvertauntStacks then
-        debuff.stacks = stacks
-    else
-        if stacks and debuff.stackId then
-            debuff.stacks = stacks
-        end
-    end
-
     local effect = FancyActionBar.effects[debuff.id] or { id = debuff.id }
-    -- keep track of previous stackId so we can update reverse map
-    local prevStackId = effect.stackId
     for dId, dEffect in pairs(debuff) do
         effect[dId] = dEffect
     end
     effect.id = debuff.id
     effect.isDebuff = true
     effect.hasActiveCast = debuff.hasActiveCast or false
+
+    if FancyActionBar.specialEffects[debuff.id] ~= nil then
+        effect.stackSources = effect.stackId or effect.stackSources or { effect.id }
+        effect.hasExternalStackSources = false
+    else
+        SyncDebuffStackSources(effect, debuff.id, false)
+    end
+
+    local nextStacks = ResolveDebuffDisplayStacks(effect, stacks)
+    if debuff.id == 52790 and SV.showOvertauntStacks then
+        nextStacks = stacks
+    end
+    if nextStacks ~= nil then
+        effect.stacks = nextStacks
+    end
+
     FancyActionBar.effects[debuff.id] = effect
-    FancyActionBar.SetStacks(effect.id, effect.stacks)
-    -- update source->effects reverse map
-    if prevStackId ~= effect.stackId then
-        RemoveEffectFromSourceMap(effect.id, prevStackId)
-        AddEffectToSourceMap(effect.id, effect.stackId)
-    end
-    if stacks and effect.stackId and #effect.stackId ~= 0 then
-        FancyActionBar.HandleStackUpdate(effect.id)
-    end
+    FancyActionBar.SetStacks(effect.id, effect.stacks, effect.hasExternalStackSources)
     FancyActionBar.UpdateEffect(effect)
 end
 
@@ -315,26 +297,11 @@ local function OnReticleTargetChanged()
             for i = 1, nBuffs do
                 local abilityName, beginTime, endTime, buffSlot, stacks, icon, _, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo(tag, i)
                 if castByPlayer or (FancyActionBar.allowExternalStacks[abilityId]) then
-                    clearTable(tmp_stackIds)
-                    tmp_stackIds[1] = abilityId
-                    local sources = abilityToStackSources[abilityId]
-                    if sources then
-                        for j = 1, #sources do
-                            tmp_stackIds[#tmp_stackIds + 1] = sources[j]
-                        end
-                    end
-
                     local effect = FancyActionBar.effects[abilityId] or { id = abilityId }
                     effect.id = abilityId
                     effect.beginTime = beginTime or 0
                     effect.endTime = endTime or 0
                     effect.duration = (effect.endTime or 0) - (effect.beginTime or 0)
-                    effect.stacks = stacks or 0
-                    effect.stackId = effect.stackId or {}
-                    -- copy tmp_stackIds contents into effect.stackId only if empty
-                    if #effect.stackId == 0 then
-                        for s = 1, #tmp_stackIds do effect.stackId[s] = tmp_stackIds[s] end
-                    end
                     effect.name = abilityName
                     effect.hasActiveCast = castByPlayer
                     effect.activeOnTarget = true
@@ -352,34 +319,14 @@ local function OnReticleTargetChanged()
                         end
                         keep[effect.id] = true
                     else
-                        clearTable(tmp_stackCounts)
-                        local externalStacks = false
-                        local fixedStacks = FancyActionBar.fixedStacks
-                        local stackMap = FancyActionBar.stackMap
-                        if effect.stackId then
-                            for s = 1, #effect.stackId do
-                                local sId = effect.stackId[s]
-                                if fixedStacks[sId] or (stackMap[sId] and not FancyActionBar.debuffStackMap[sId]) then
-                                    externalStacks = true
-                                    break
-                                else
-                                    local currentStacks = FancyActionBar.GetActiveStacksForId(sId) or 0
-                                    tmp_stackCounts[#tmp_stackCounts + 1] = currentStacks
-                                end
-                            end
+                        local _, hasExternalStackSources = SyncDebuffStackSources(effect, abilityId, false)
+                        if hasExternalStackSources or HasDebuffStackTargets(abilityId) then
+                            FancyActionBar.UpdateStacksFromEvent(abilityId, stacks, false)
                         end
-                        if externalStacks then
-                            effect.stacks = false
-                        else
-                            tmp_stackCounts[#tmp_stackCounts + 1] = effect.stacks
-                            local maxStacks = FancyActionBar.GetStackValue(tmp_stackCounts)
-                            effect.stacks = maxStacks
-                        end
+                        effect.stacks = ResolveDebuffDisplayStacks(effect, stacks or 0)
                     end
 
-                    -- Centralize stack write after computing final value
-                    FancyActionBar.SetStacks(effect.id, effect.stacks)
-                    UpdateDebuff(effect, effect.stacks, tId, true)
+                    FancyActionBar.UpdateDebuff(effect, effect.stacks)
                 end
             end
         end
@@ -387,18 +334,12 @@ local function OnReticleTargetChanged()
         -- Clear any previously-known debuffs that are no longer on the reticle
         for id, effect in pairs(FancyActionBar.effects) do
             if effect and effect.isDebuff and not effect.keepOnTargetChange and not keep[id] then
-                if effect.stackId then
-                    for s = 1, #effect.stackId do
-                        local sId = effect.stackId[s]
-                        if FancyActionBar.fixedStacks[sId] or (FancyActionBar.stackMap[sId] and not FancyActionBar.debuffStackMap[sId]) then
-                            FancyActionBar.SetStacks(effect.id, false, true)
-                            break
-                        end
-                    end
+                if ShouldClearExternalDebuffStacksOnTargetChange(effect) and (effect.hasExternalStackSources or HasDebuffStackTargets(effect.id)) then
+                    FancyActionBar.UpdateStacksFromEvent(effect.id, nil, true)
                 end
                 effect.activeOnTarget = false
                 effect.endTime = 0
-                UpdateDebuff(effect, effect.stacks ~= false and 0 or effect.stacks, tId, true)
+                FancyActionBar.UpdateDebuff(effect, ResolveDebuffDisplayStacks(effect, 0))
             end
         end
     else
@@ -410,33 +351,23 @@ end
 
 function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, currentTime, beginTime, endTime, unitKey, abilityType)
     if (change == EFFECT_RESULT_GAINED) or (change == EFFECT_RESULT_UPDATED) then
-        -- record per-unit times for multi-target debuffs when gained/updated
-        local effect = FancyActionBar.effects[debuff.id] or {}
+        local effect = FancyActionBar.effects[debuff.id] or { id = debuff.id }
         effect.id = debuff.id
-        effect.targets = effect.targets or { unitCount = 0, maxEndTime = 0, times = {} }
-        effect.targets.maxEndTime = zo_max(endTime, effect.targets.maxEndTime)
+        FancyActionBar.EnsureUnits(effect, "targets")
         effect.isDebuff = true
         FancyActionBar.effects[debuff.id] = effect
-        FancyActionBar.SetStacks(effect.id, effect.stacks)
+
         -- Do not record per-unit targets for ground/area effects.
         if unitKey and abilityType ~= GROUND_EFFECT then
             FancyActionBar.RecordUnit(debuff.id, effect, unitKey, currentTime, beginTime, endTime, "targets")
             FancyActionBar.UpdateEffect(effect)
-            FancyActionBar.HandleTargetUpdate(debuff.id)
         end
         return
     elseif (change == EFFECT_RESULT_FADED) then
         local targets = FancyActionBar.GetUnit(debuff.id, "targets")
-        if targets and targets.times then
-            if unitKey and targets.times[unitKey] then
-                local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitKey, currentTime, "targets")
-                if targetCount >= 1 then
-                    local soonest, maxEnd, active = FancyActionBar.RecomputeUnits(debuff.id, currentTime, "targets")
-                    FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
-                    FancyActionBar.HandleTargetUpdate(debuff.id)
-                    return
-                end
-            end
+        if targets and targets.times and unitKey and targets.times[unitKey] then
+            FancyActionBar.RemoveUnit(debuff.id, unitKey, currentTime, "targets")
+            FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
         end
     end
 end
@@ -460,18 +391,18 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
     if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
         if not SV.multiTargetBlacklist[debuff.id] then
-            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey, abilityType)
+            local unitKey = unitId ~= 0 and unitId or nil
+            FancyActionBar.UpdateMultiTargetDebuffs(FancyActionBar.effects[debuff.id] or debuff, change, t, beginTime, endTime, unitKey, abilityType)
         end
         return
     end
 
-    debuff.stackId = debuff.stackId or { abilityId }
-    local sources = abilityToStackSources[abilityId]
-    if sources then
-        for i = 1, #sources do
-            debuff.stackId[#debuff.stackId + 1] = sources[i]
-        end
+    local hasExternalStackSources = false
+    if specialEffect then
+        debuff.stackSources = debuff.stackId or debuff.stackSources or { abilityId }
+        debuff.hasExternalStackSources = false
+    else
+        _, hasExternalStackSources = SyncDebuffStackSources(debuff, abilityId, false)
     end
 
     if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
@@ -485,13 +416,9 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
             if specialEffect.stacks then
                 stackCount = specialEffect.stacks
             end
-        elseif debuff.stackId then
-            for i = 1, #debuff.stackId do
-                if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not ((debuff.stackId[i] == debuff.id) or FancyActionBar.debuffStackMap[debuff.stackId[i]])) then
-                    stackCount = false
-                    break
-                end
-            end
+        elseif (stackCount and stackCount > 0) or HasDebuffStackTargets(abilityId) then
+            FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
+            stackCount = ResolveDebuffDisplayStacks(debuff, stackCount or 0)
         end
 
         debuff.beginTime = (beginTime and beginTime ~= 0 and beginTime) or t
@@ -506,20 +433,17 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         FancyActionBar.SetStacks(effect.id, effect.stacks)
 
         if not SV.multiTargetBlacklist[debuff.id] then
-            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey)
+            local unitKey = unitId ~= 0 and unitId or nil
+            FancyActionBar.UpdateMultiTargetDebuffs(effect, change, t, beginTime, endTime, unitKey, abilityType)
         end
 
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
             -- Use canonical per-target tracking via FancyActionBar.RecordUnit/GetUnit
-            UpdateDebuff(debuff, stackCount, unitId, false)
+            FancyActionBar.UpdateDebuff(debuff, stackCount)
         end
     elseif (change == EFFECT_RESULT_FADED) then
         local td = FancyActionBar.GetUnit(debuff.id, "targets")
-        local unitKey = unitId
-        if unitTag and AreUnitsEqual("player", unitTag) and effectSlot and effectSlot > 0 then
-            unitKey = effectSlot
-        end
+        local unitKey = unitId ~= 0 and unitId or nil
         if td and td.times and td.times[unitKey] then
             local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitKey, t, "targets")
             if targetCount >= 1 then
@@ -544,24 +468,14 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
                 end
                 stackCount = debuff.stacks or stackCount
             end
-        elseif debuff.stackId then
-            for i = 1, #debuff.stackId do
-                if FancyActionBar.fixedStacks[debuff.stackId[i]] or (FancyActionBar.stackMap[debuff.stackId[i]] and not ((debuff.stackId[i] == debuff.id) or FancyActionBar.debuffStackMap[debuff.stackId[i]])) then
-                    stackCount = false
-                    break
-                else
-                    local active = FancyActionBar.GetActiveStacksForId(debuff.stackId[i])
-                    if active and active > 0 then
-                        stackCount = zo_max(active - stackCount, 0)
-                        break
-                    end
-                end
-            end
+        elseif stackCount ~= nil or HasDebuffStackTargets(abilityId) then
+            FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, true)
+            stackCount = ResolveDebuffDisplayStacks(debuff, stackCount or 0)
         end
         if debuff.instantFade then
             debuff.endTime = 0
         end
-        UpdateDebuff(debuff, stackCount, unitId, false)
+        FancyActionBar.UpdateDebuff(debuff, stackCount)
         -- per-target removal handled via FancyActionBar.RemoveTargetUnit/GetTargets
     end
 end
@@ -571,15 +485,7 @@ local function OnDebuffStacksChanged(_, change, _, _, unitTag, _, _, stackCount,
         return
     end
 
-    local affected = sourceToEffects[abilityId]
-    if not affected then return end
-    local effects = FancyActionBar.effects
-    for eid in pairs(affected) do
-        local eff = effects and effects[eid]
-        if eff then
-            UpdateDebuff(eff, stackCount or 0, unitId, false)
-        end
-    end
+    FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, change == EFFECT_RESULT_FADED)
 end
 
 -- function FancyActionBar.OnDebuffTargetDeath( eventCode, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId )
@@ -597,8 +503,6 @@ local function ClearDebuffsOnCombatEnd()
     if not IsUnitInCombat("player") then
         local effects = FancyActionBar.effects
         local specialEffects = FancyActionBar.specialEffects
-        local fixedStacks = FancyActionBar.fixedStacks
-        local stackMap = FancyActionBar.stackMap
         for id, effect in pairs(effects or {}) do
             if effect and effect.isDebuff then
                 local specialEffect = specialEffects and specialEffects[effect.id]
@@ -609,16 +513,11 @@ local function ClearDebuffsOnCombatEnd()
                     local eff = effects and effects[effect.id]
                     if eff and eff.targets then eff.targets = nil; effects[effect.id] = eff end
                     effect.endTime = 0
-                    if effect.stackId then
-                        for s = 1, #effect.stackId do
-                            local sid = effect.stackId[s]
-                            if fixedStacks[sid] or (stackMap[sid] and not FancyActionBar.debuffStackMap[sid]) then
-                                _, _, stackCount = FancyActionBar.CheckForActiveEffect(sid)
-                                break
-                            end
-                        end
+                    if effect.hasExternalStackSources or HasDebuffStackTargets(effect.id) then
+                        FancyActionBar.UpdateStacksFromEvent(effect.id, nil, true)
                     end
-                    UpdateDebuff(effect, stackCount, 0, nil)
+                    stackCount = 0
+                    FancyActionBar.UpdateDebuff(effect, stackCount)
                 end
             end
         end
@@ -627,7 +526,7 @@ local function ClearDebuffsOnCombatEnd()
     end
 end
 
-function FancyActionBar:UpdateDebuffTracking()
+function FancyActionBar.UpdateDebuffTracking()
     ClearDebuffs()
 
 
@@ -661,12 +560,11 @@ function FancyActionBar:UpdateDebuffTracking()
                 registeredDebuffStackEvents[id] = true
             end
         end
-        BuildAbilityToStackMap()
     end
 end
 
 function FancyActionBar:InitializeDebuffs(name, sv)
     NAME = name
     SV = sv
-    FancyActionBar:UpdateDebuffTracking()
+    FancyActionBar.UpdateDebuffTracking()
 end

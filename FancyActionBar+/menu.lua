@@ -5404,7 +5404,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 end,
                                 setFunc = function (value)
                                     SV.advancedDebuff = value or false
-                                    FancyActionBar:UpdateDebuffTracking()
+                                    FancyActionBar.UpdateDebuffTracking()
                                 end,
                             },
 
