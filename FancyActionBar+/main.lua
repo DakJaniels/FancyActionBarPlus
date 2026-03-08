@@ -547,13 +547,43 @@ local function NormalizeStackSourceId(id)
         return nil
     end
 
+    local mappedSourceId = sourceAbilities and sourceAbilities[id]
+    if mappedSourceId then
+        return mappedSourceId
+    end
+
     local stackableBuff = FancyActionBar.stackableBuff
-    return (stackableBuff and stackableBuff[id]) or id
+    local normalizedId = (stackableBuff and stackableBuff[id]) or id
+    if FancyActionBar.fixedStacks[normalizedId] ~= nil then
+        return normalizedId
+    end
+
+    local configuredSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(id)
+    if #configuredSourceIds == 1 then
+        return configuredSourceIds[1]
+    end
+
+    local effects = FancyActionBar.effects
+    for i = 1, #configuredSourceIds do
+        local sourceId = configuredSourceIds[i]
+        local effect = effects and effects[sourceId]
+        if effect and (effect.slot1 or effect.slot2) then
+            return sourceId
+        end
+    end
+
+    return normalizedId
 end
 
 function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
-    local stackTargetId = NormalizeStackSourceId(abilityId) or abilityId
     local nextStacks
+    local stackTargetId = NormalizeStackSourceId(abilityId) or abilityId
+    local fixedStackValue = FancyActionBar.fixedStacks[stackTargetId]
+
+    if fixedStackValue ~= nil then
+        FancyActionBar.SetStacks(stackTargetId, isFade and 0 or fixedStackValue, true)
+        return
+    end
 
     if stackCount ~= nil then
         nextStacks = stackCount
@@ -565,9 +595,7 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
         return
     end
 
-    if FancyActionBar.fixedStacks[stackTargetId] ~= nil then
-        FancyActionBar.SetStacks(stackTargetId, isFade and 0 or FancyActionBar.fixedStacks[stackTargetId], true)
-    elseif isFade then
+    if isFade then
         FancyActionBar.SetStacks(stackTargetId, 0, true)
     end
 end
@@ -630,7 +658,7 @@ local function UsesExternalStackDisplay(effect)
     return effect and effect.hasExternalStackSources or false
 end
 
--- Centralized stack setter to avoid race conditions and repeated logic.
+-- Centralized stack setting.
 -- If `force` is true, always set the stacks and refresh affected overlays.
 -- If `force` is false, the setter will avoid overwriting a valid stack value
 -- with zero when per-source data is not present.
@@ -1179,7 +1207,7 @@ function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, to
 
     if effectChanged or not FancyActionBar.effects[id] then
         effect.id = id
-        effect.endTime = 0
+        effect.endTime = -1
         effect.custom = custom
         effect.toggled = toggled
         effect.tickRate = tickRate
@@ -1418,7 +1446,7 @@ function FancyActionBar.ScanBuffs()
               buffType, effectType, abilityType, statusEffectType, abilityId,
               canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
         local stackableBuffId = stackableBuff[abilityId]
-        local buffId = stackableBuffId or abilityId
+          local buffId = NormalizeStackSourceId(stackableBuffId or abilityId) or stackableBuffId or abilityId
 
         local entry = buffs[buffId] or { hasEffect = true, duration = -1, stacks = 0, start = 0, finish = 0, id = abilityId, hasActiveCast = castByPlayer }
 
@@ -1443,7 +1471,8 @@ function FancyActionBar.ScanBuffs()
                 end
             end
         else
-            entry.stacks = fixedStacks[abilityId]
+            entry.stacks = fixedStacks[buffId]
+                       or fixedStacks[abilityId]
                        or (specialEffects[abilityId] and specialEffects[abilityId].stacks)
                        or stackCount
                        or entry.stacks
@@ -1541,16 +1570,17 @@ function FancyActionBar.GetUnit(id, which)
     return eff and eff[which]
 end
 
---- Resolve the canonical unit key used for per-unit tracking.
---- For player-targeted effects we prefer the buff/effect slot as the key,
---- otherwise fall back to the numeric `unitId`.
+--- Resolve the canonical unit key used for per-target tracking.
+--- Prefer the runtime `unitId` so target-count bookkeeping remains stable
+--- across reticle changes and effect-slot reuse; only fall back to
+--- `effectSlot` when the event does not provide a usable unit id.
 --- @param unitTag string
 --- @param unitId number
 --- @param effectSlot number
 --- @return number unitKey
 function FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-    local key = unitId
-    if unitTag and AreUnitsEqual("player", unitTag) and effectSlot and effectSlot > 0 then
+    local key = unitId and unitId > 0 and unitId or nil
+    if not key and effectSlot and effectSlot > 0 then
         key = effectSlot
     end
     return key
@@ -1734,7 +1764,9 @@ end
 function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effect, duration, currentTime)
     local timer, color = "", nil
     if duration <= 0 then
-        if (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))) then
+        local hadTimedEffect = effect.beginTime and effect.endTime and effect.endTime >= effect.beginTime
+        local isBlockCancelFade = effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > currentTime
+        if (hadTimedEffect or isBlockCancelFade) and (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))) then
             -- adding or (effect.isDebuff and SV.keepLastTarget == false) is to try to prevent a flicker of 0 on reticleover when a debuff isn't active
             local delayEnd = (effect.endTime + SV.fadeDelay) - currentTime
             if delayEnd > 0 then
@@ -1814,9 +1846,10 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     local fadeDelay = SV.showExpire and SV.fadeDelay or 0
     local hasDuration, duration = true, 0
     local isCastTime, isParentTime, isFading = false, false, false
+    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (effect.castDuration and isChanneling and channeledAbilityUsed == effect.id)
 
     -- Handle cast/channel time overrides
-    if SV.showCastDuration and (effect.castEndTime or effect.castDuration) then
+    if SV.showCastDuration and hasActiveCastWindow then
         isCastTime = true
         local isBlockActive = IsBlockActive()
         local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not isChanneling)
@@ -1824,6 +1857,9 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 
         if blockCancelled or not isChanneling then
             effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
+            if blockCancelled and (not effect.endTime or effect.endTime < currentTime) then
+                effect.endTime = currentTime
+            end
             isChanneling = false
         end
 
@@ -1998,15 +2034,19 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     local currentTime = time()
     local duration, ultEndTime, instantFade
     local isCastTime = false -- Flag to know if we are using cast time
+    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (effect.castDuration and isChanneling and channeledAbilityUsed == effect.id)
 
     -- Check if channeling logic should apply BEFORE standard duration calculation
-    if SV.showCastDuration and (effect.castEndTime or effect.castDuration) then
+    if SV.showCastDuration and hasActiveCastWindow then
         local isBlockActive = IsBlockActive()
         local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not isChanneling)
         wasBlockActive = isBlockActive
 
         if blockCancelled or not isChanneling then
             effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
+            if blockCancelled and (not effect.endTime or effect.endTime < currentTime) then
+                effect.endTime = currentTime
+            end
             if blockCancelled then isChanneling = false end
         end
 
@@ -2079,7 +2119,9 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
             end
         else
             -- Handle fade delay display (only applies if NOT channeling)
-            if not isCastTime and SV.delayFade and not instantFade then
+            local hadTimedEffect = effect.beginTime and ultEndTime and ultEndTime >= effect.beginTime
+            local isBlockCancelFade = effect.castEndTime == 0 and ultEndTime and ultEndTime + SV.fadeDelay > currentTime
+            if (hadTimedEffect or isBlockCancelFade) and not isCastTime and SV.delayFade and not instantFade then
                 local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime
                 if delayEnd > 0 then
                     -- Still in fade delay, show 0 (or ceiling of negative duration)
@@ -2299,14 +2341,6 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         effect.duration = duration and duration > 0 and duration or nil
     end
 
-    if effect.id > 0 and (not effect.hasActiveCast) then
-        effect.hasActiveCast = true
-        effect.castTime = 0
-        if FancyActionBar.effects then
-            FancyActionBar.effects[effect.id] = effect
-        end
-    end
-
     if not SV.advancedDebuff and effect.isDebuff then
         effect.isDebuff = false
     end
@@ -2429,7 +2463,7 @@ function FancyActionBar.EffectCheck()
             end
 
             if hasEffect then
-                effect.endTime = (duration ~= 0) and (checkTime + duration) or -1
+                effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
             end
 
             FancyActionBar.SetStacks(effect.id, stacks)
@@ -2462,7 +2496,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
         else
             FancyActionBar.SetStacks(effect.id, stacks)
         end
-        effect.endTime = (duration ~= 0) and (checkTime + duration) or -1
+        effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
     end
 
     local stackDisplayAbilities = FancyActionBar.GetConfiguredStackSourceEntryIds(effect.id)
@@ -2870,7 +2904,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
             if doFullUpdate then
                 local hasEffect, duration, currentStacks = FancyActionBar.CheckForActiveEffect(abilityId)
                 if hasEffect then
-                    effect.endTime = (duration ~= 0) and (t + duration) or -1
+                    effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (t + duration) or -1)
                     FancyActionBar.UpdateEffect(effect)
                 else
                     effect.endTime = t
@@ -3376,7 +3410,7 @@ function FancyActionBar.SetUltFrameAlpha()
     end
 end
 
-local createOverlays = function (style, QSB)
+local function createOverlays(style, QSB)
     local function setupOverlay(overlay, anchorControl)
         overlay:SetAnchor(TOPLEFT, anchorControl, TOPLEFT, 0, 0)
         overlay:SetAnchor(BOTTOMRIGHT, anchorControl, BOTTOMRIGHT, 0, 0)
@@ -4415,7 +4449,7 @@ function FancyActionBar.RefreshEffects()
     FancyActionBar.toggles = {}
 
     for effect, data in pairs(FancyActionBar.effects) do
-        data.endTime = 0
+        data.endTime = -1
     end
 
     for id, effect in pairs(FancyActionBar.effects) do
@@ -4756,10 +4790,9 @@ local function OnAbilityUsed(_, n)
         end
     end
 
-    if i and (not (FancyActionBar.effects and FancyActionBar.effects[i] and FancyActionBar.effects[i].hasActiveCast)) and not FancyActionBar.ignore[id] and idCheck ~= false then
+    if i and not FancyActionBar.ignore[id] and idCheck ~= false then
         local eff = FancyActionBar.effects and FancyActionBar.effects[i]
         if eff then
-            eff.hasActiveCast = true
             eff.castTime = t
             FancyActionBar.effects[i] = eff
         end
@@ -4817,11 +4850,12 @@ local function OnAbilityUsed(_, n)
         FancyActionBar.AddSystemMessage("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or -1) / 1000)
     elseif FancyActionBar.specialEffects[id] then
         local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id])
+        local duration = (specialEffect.setTime and specialEffect.duration) or effect.duration or -1
         if not specialEffect.onAbilityUsed then return end
         if FancyActionBar.traps[id] and SV.ignoreTrapPlacement then return end
         for k, v in pairs(specialEffect) do effect[k] = v end
         effect.beginTime = t
-        effect.endTime = ((specialEffect.setTime and specialEffect.duration) or effect.duration or -1) + t
+        effect.endTime = duration > 0 and (duration + t) or -1
         FancyActionBar.UpdateEffect(effect)
         if specialEffect.stacks then
             local sid = specialEffect.stackId and (specialEffect.stackId[1] or specialEffect.id) or specialEffect.id
@@ -4878,7 +4912,9 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
         -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
         if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
-            effect.castEndTime = t + remain
+            if not (effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > t) then
+                effect.castEndTime = t + remain
+            end
         else
             if effect.castDuration then
                 effect.castDuration = nil
@@ -5028,7 +5064,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                     end
                 end
             else
-                effect.endTime = 0
+                effect.endTime = -1
             end
             pendingEffectUpdates[effect.id] = true
 
