@@ -579,13 +579,30 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
     local nextStacks
     local configuredSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId)
     local fixedDisplayId = nil
+    local fixedDisplayCount = 0
+    local effects = FancyActionBar.effects
 
     for i = 1, #configuredSourceIds do
         local configuredId = configuredSourceIds[i]
         if FancyActionBar.fixedStacks[configuredId] ~= nil then
-            fixedDisplayId = configuredId
-            break
+            fixedDisplayCount = fixedDisplayCount + 1
+            if configuredId == abilityId then
+                fixedDisplayId = configuredId
+                break
+            end
+            local configuredEffect = effects and effects[configuredId]
+            if configuredEffect and (configuredEffect.slot1 or configuredEffect.slot2) then
+                fixedDisplayId = configuredId
+                break
+            end
+            if not fixedDisplayId then
+                fixedDisplayId = configuredId
+            end
         end
+    end
+
+    if fixedDisplayCount > 1 and FancyActionBar.fixedStacks[abilityId] == nil then
+        return
     end
 
     if fixedDisplayId and FancyActionBar.debuffStackMap[abilityId] ~= nil and fixedDisplayId ~= abilityId and FancyActionBar.fixedStacks[abilityId] == nil then
