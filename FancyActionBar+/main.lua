@@ -577,7 +577,22 @@ end
 
 function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
     local nextStacks
-    local stackTargetId = NormalizeStackSourceId(abilityId) or abilityId
+    local configuredSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId)
+    local fixedDisplayId = nil
+
+    for i = 1, #configuredSourceIds do
+        local configuredId = configuredSourceIds[i]
+        if FancyActionBar.fixedStacks[configuredId] ~= nil then
+            fixedDisplayId = configuredId
+            break
+        end
+    end
+
+    if fixedDisplayId and FancyActionBar.debuffStackMap[abilityId] ~= nil and fixedDisplayId ~= abilityId and FancyActionBar.fixedStacks[abilityId] == nil then
+        return
+    end
+
+    local stackTargetId = fixedDisplayId or NormalizeStackSourceId(abilityId) or abilityId
     local fixedStackValue = FancyActionBar.fixedStacks[stackTargetId]
 
     if fixedStackValue ~= nil then
@@ -739,11 +754,13 @@ function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
     return maxStacks
 end
 
-local function GetDisplayStackSources(effect, sourceAbilityId)
+local function GetDisplayStackSources(effect, sourceAbilityId, currentTime)
     local sourceIds = effect and (effect.stackSources or effect.stackId) or EMPTY_STACK_LIST
     if not sourceAbilityId then
         return sourceIds
     end
+
+    currentTime = currentTime or time()
 
     local configuredSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(sourceAbilityId)
     if #configuredSourceIds == 0 then
@@ -777,7 +794,7 @@ function FancyActionBar.ResolveStacksForSourceAbility(effect, sourceAbilityId, c
         return 0
     end
 
-    local displaySourceIds = GetDisplayStackSources(effect, sourceAbilityId)
+    local displaySourceIds = GetDisplayStackSources(effect, sourceAbilityId, currentTime)
     if displaySourceIds == (effect.stackSources or effect.stackId or EMPTY_STACK_LIST) then
         return FancyActionBar.ResolveStacksForEffect(effect, currentTime)
     end
@@ -1766,10 +1783,11 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
     if duration <= 0 then
         local hadTimedEffect = effect.beginTime and effect.endTime and effect.endTime >= effect.beginTime
         local isBlockCancelFade = effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > currentTime
+        local isWaitingForRefreshedEffect = effect.castTime and effect.endTime and effect.castTime >= effect.endTime
         if (hadTimedEffect or isBlockCancelFade) and (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))) then
             -- adding or (effect.isDebuff and SV.keepLastTarget == false) is to try to prevent a flicker of 0 on reticleover when a debuff isn't active
             local delayEnd = (effect.endTime + SV.fadeDelay) - currentTime
-            if delayEnd > 0 then
+            if delayEnd > 0 and not isWaitingForRefreshedEffect then
                 timer = tostring(zo_max(0, zo_ceil(assert(tonumber(duration)))))
             end
         end
@@ -1911,10 +1929,14 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     end
 
     -- Format visuals and update controls
-    local lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
-    local bc = (hasDuration or isFading or isParentTime) and FancyActionBar.GetHighlightColor(isFading, effect.toggled, isToggled, isParentTime) or nil
+    local lt, lc = "", nil
+    local bc = nil
+    if hasDuration or isToggled or isFading or isParentTime then
+        lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
+        bc = FancyActionBar.GetHighlightColor(isFading, effect.toggled, isToggled, isParentTime)
+    end
 
-    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId)
+    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime)
     FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
     FancyActionBar.UpdateTimerLabel(durationControl, lt, lc)
     FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index)
@@ -1922,7 +1944,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     return hasDuration or isToggled or isFading or isParentTime
 end
 
-function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId)
+function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime)
     if effect.forceExpireStacks and (effect.endTime <= currentTime) then
         stacksControl:SetText("")
         return
@@ -1989,7 +2011,14 @@ function FancyActionBar.UpdateStacks(index) -- stacks label.
         local stacksControl = overlay.stack
         if overlay.effect and overlay.allowStacks then
             local sourceAbilityId = overlay.effect.sourceAbilites and overlay.effect.sourceAbilites[index]
-            FancyActionBar.UpdateStacksControl(overlay.effect, stacksControl, overlay.allowStacks, time(), sourceAbilityId)
+            local sourceEndTime
+            if sourceAbilityId and sourceAbilityId ~= overlay.effect.id then
+                local sourceEffect = FancyActionBar.effects[sourceAbilityId]
+                if sourceEffect then
+                    sourceEndTime = sourceEffect.endTime
+                end
+            end
+            FancyActionBar.UpdateStacksControl(overlay.effect, stacksControl, overlay.allowStacks, time(), sourceAbilityId, sourceEndTime)
         end
     end
 end
