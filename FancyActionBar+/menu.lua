@@ -130,7 +130,6 @@ local parentTimeBlacklistConfigData =
 local debuffToEditID = 0
 local debuffToEditName = ""
 local debuffNames = {}
-local debuffIds = {}
 local selectedDebuff = 0
 
 local selectedPreset = 0
