@@ -1963,7 +1963,14 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 end
 
 function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime)
-    if effect.forceExpireStacks and (effect.endTime <= currentTime) then
+    local stackExpireTime = (sourceEndTime and sourceEndTime > 0) and sourceEndTime or effect.endTime
+    if effect.forceExpireStacks and stackExpireTime and stackExpireTime > 0 and stackExpireTime <= currentTime then
+        local expireStackIds = effect.stackId or { effect.id }
+        for i = 1, #expireStackIds do
+            if expireStackIds[i] and FancyActionBar.effects[expireStackIds[i]] and FancyActionBar.effects[expireStackIds[i]].stacks ~= 0 then
+                FancyActionBar.SetStacks(expireStackIds[i], 0, true)
+            end
+        end
         stacksControl:SetText("")
         return
     end
@@ -4957,24 +4964,40 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
     local previousSlotState = slotStateSpecialEffects[slotIndex]
 
     local specialEffect = FancyActionBar.specialEffects[abilityId]
+    local normalEffectDisabled = abilityConfig[abilityId] == false
 
     if previousSlotState and previousSlotState.effectId then
-        local previousSpecialEffect = FancyActionBar.specialEffects[previousSlotState.effectId]
-        if previousSpecialEffect and previousSpecialEffect.useSlotStateChange and previousSpecialEffect.id ~= abilityId then
+        local previousSpecialKey = previousSlotState.specialKey or previousSlotState.abilityId or previousSlotState.effectId
+        local previousSpecialEffect = FancyActionBar.specialEffects[previousSpecialKey]
+        if previousSpecialEffect and previousSpecialEffect.useSlotStateChange and previousSpecialKey ~= abilityId then
             local previousStackId = previousSpecialEffect.stackId and (previousSpecialEffect.stackId[1] or previousSpecialEffect.id) or previousSpecialEffect.id
             local previousEffect = FancyActionBar.effects[previousSpecialEffect.id]
+            local previousStacks = previousStackId and FancyActionBar.effects[previousStackId] and FancyActionBar.effects[previousStackId].stacks or previousSlotState.stacks or 0
+            local persistPreviousSpecial = previousSlotState.tracksSpecialEffect and previousSpecialEffect.dontFade and previousStacks == 0
+            local hasActivePreviousTimer = previousEffect and previousEffect.endTime and previousEffect.endTime > t
 
-            if previousStackId then
+            if persistPreviousSpecial and hasActivePreviousTimer then
+                local overlay = FancyActionBar.GetOverlay(slotIndex)
+                if overlay then
+                    overlay.effect = previousEffect
+                    overlay.allowStacks = true
+                end
+                FancyActionBar.UpdateOverlay(slotIndex)
+                FancyActionBar.UpdateStacks(slotIndex)
+                return
+            end
+
+            if previousStackId and not persistPreviousSpecial then
                 FancyActionBar.SetStacks(previousStackId, 0, true)
             end
 
-            if previousEffect then
+            if previousEffect and not persistPreviousSpecial then
                 previousEffect.endTime = 0
                 FancyActionBar.UpdateEffect(previousEffect)
             end
         end
 
-        if not (previousSpecialEffect and previousSpecialEffect.useSlotStateChange and previousSpecialEffect.id == abilityId) then
+        if not (previousSpecialEffect and previousSpecialEffect.useSlotStateChange and previousSpecialKey == abilityId) then
             slotStateSpecialEffects[slotIndex] = nil
             previousSlotState = nil
         end
@@ -4985,12 +5008,31 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
 
     if specialEffect and specialEffect.useSlotStateChange then
         local slottedSpecialEffectId, slottedSpecialAbilityId = FancyActionBar.GetSlottedEffect(slotIndex)
+        local tracksSpecialEffect = previousSlotState and previousSlotState.tracksSpecialEffect
+        local removeInstantly = previousSlotState and previousSlotState.removeInstantly
+        if tracksSpecialEffect == nil then
+            tracksSpecialEffect = slottedSpecialEffectId == specialEffect.id
+        end
+        if removeInstantly == nil then
+            removeInstantly = FancyActionBar.removeInstantly[slottedSpecialEffectId] or FancyActionBar.removeInstantly[slottedSpecialAbilityId] or false
+        end
+        local normalEffect = (slottedSpecialAbilityId == abilityId) and FancyActionBar.effects[slottedSpecialEffectId] or FancyActionBar.SlotEffect(slotIndex, abilityId)
         local effect = FancyActionBar.effects[specialEffect.id]
+        local overlay = FancyActionBar.GetOverlay(slotIndex)
         if not effect then
             effect = FancyActionBar.GetEffect(specialEffect.id, nil, specialEffect.stackId, true)
         end
-        if slottedSpecialAbilityId ~= abilityId or slottedSpecialEffectId ~= specialEffect.id then
-            effect = FancyActionBar.SlotEffect(slotIndex, abilityId) or effect
+        local sourceAbility = effect.sourceAbilites or {}
+        sourceAbility[slotIndex] = abilityId
+        effect.sourceAbilites = sourceAbility
+        if overlay then
+            overlay.effect = effect
+            overlay.allowStacks = true
+        end
+        if slotIndex < SLOT_INDEX_OFFSET then
+            effect.slot1 = slotIndex
+        else
+            effect.slot2 = slotIndex
         end
 
         local duration = (GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) or GetAbilityDuration(specialEffect.id) or GetAbilityDuration(abilityId) or -1) / 1000
@@ -5017,19 +5059,20 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
                 currentStacks = specialEffect.stacks or currentStacks
                 FancyActionBar.SetStacks(sid, currentStacks, true)
                 seededAt = t
-            elseif seededAt > 0 and (t - seededAt) < 0.1 then
+            elseif seededAt > 0 and (t - seededAt) < 0.35 then
                 seededAt = 0
             else
                 local nextStacks = zo_max(currentStacks - (specialEffect.procs or 1), 0)
                 FancyActionBar.SetStacks(sid, nextStacks, true)
                 currentStacks = nextStacks
                 seededAt = 0
-                if nextStacks == 0 then
+                if nextStacks == 0 and not (tracksSpecialEffect and specialEffect.dontFade) then
                     effect.endTime = t
                 end
             end
         end
 
+        local keepStacksWithoutNormal = normalEffectDisabled and specialEffect.dontFade and currentStacks > 0
         local specialEnded = false
         if hasActiveSlotState then
             effect.duration = effectiveSlotDuration
@@ -5039,14 +5082,28 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             effect.duration = duration
             effect.beginTime = t
             effect.endTime = t + duration
-        elseif currentStacks > 0 then
-            local fallbackDuration = (specialEffect.setTime and specialEffect.duration) or effect.duration or ((GetAbilityDuration(specialEffect.id) or GetAbilityDuration(abilityId) or -1) / 1000)
-            if fallbackDuration and fallbackDuration > FancyActionBar.durationMin and fallbackDuration < FancyActionBar.durationMax then
-                effect.duration = fallbackDuration
-                effect.beginTime = t
-                effect.endTime = t + fallbackDuration
+        elseif tracksSpecialEffect then
+            if specialEffect.dontFade then
+                -- Keep the existing special timer running until its real end.
+            else
+                if sid then
+                    FancyActionBar.SetStacks(sid, 0, true)
+                end
+                effect.endTime = 0
+                specialEnded = true
             end
+        elseif keepStacksWithoutNormal then
+            effect.duration = nil
+            effect.beginTime = t
+            effect.endTime = -1
+        elseif not removeInstantly then
+            effect.duration = nil
+            effect.beginTime = t
+            effect.endTime = -1
         else
+            if sid then
+                FancyActionBar.SetStacks(sid, 0, true)
+            end
             effect.endTime = 0
             specialEnded = true
         end
@@ -5055,11 +5112,16 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         if not specialEnded then
             FancyActionBar.UpdateOverlay(slotIndex)
             FancyActionBar.UpdateStacks(slotIndex)
-            slotStateSpecialEffects[slotIndex] = { effectId = specialEffect.id, stacks = currentStacks, seededAt = seededAt }
+            slotStateSpecialEffects[slotIndex] = { specialKey = abilityId, effectId = specialEffect.id, stacks = currentStacks, seededAt = seededAt, tracksSpecialEffect = tracksSpecialEffect, removeInstantly = removeInstantly }
             return
         end
 
         slotStateSpecialEffects[slotIndex] = nil
+        if normalEffect and overlay then
+            overlay.effect = normalEffect
+        else
+            FancyActionBar.SlotEffect(slotIndex, abilityId)
+        end
     end
 
     local slottedEffectId, slottedAbilityId = FancyActionBar.GetSlottedEffect(slotIndex)

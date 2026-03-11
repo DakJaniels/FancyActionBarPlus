@@ -257,8 +257,8 @@ FancyActionBar.abilityConfig =
 
     -- Dragonknight
     -- Ardent Flame
-    [23806] = {256798},   -- Lava Whip (Volcanic Whip)
-    [20816] = {262658},    -- Flame Lash (Power Lash)
+    [23806] = {256798 },   -- Lava Whip (Volcanic Whip)
+    [20816] = {262658 },    -- Flame Lash (Power Lash)
     [20805] = { 122658 }, -- show seething fury on the molten whip icon
 
     -- Draconic Power
@@ -673,14 +673,14 @@ FancyActionBar.stackMap =
     [256798] =
     {
         256798, -- volcanic whip
-        23806,  -- lava whip
+--        23806,  -- lava whip
     },
 
     -- Flame Lash
     [20824] =
     {
         20824, -- flame lash
-        20816, -- power lash
+--        20816, -- power lash
     },
 
     -- Seething Fury
@@ -952,8 +952,8 @@ FancyActionBar.specialClassEffects =
     -- Dragonknight
     [35] =                                                                                   -- Ardent Flame
     {
-        [256798] = { id = 256798, stackId = { 256798 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE  }, -- Volcanic Whip
-        [20824] = { id = 20824, stackId = { 20824 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE  }, -- Power Lash
+        [256798] = { id = 256798, stackId = { 256798 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, }, -- Volcanic Whip
+        [20824] = { id = 20824, stackId = { 20824 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, }, -- Power Lash
     },
 
     -- [36] = {}, -- Draconic Power
@@ -1527,8 +1527,8 @@ FancyActionBar.removeInstantly =
     [51392] = true,  -- Streak Fatigue
     [61500] = true,  -- proximity detonation
     [23806] = true,  -- Lava Whip
-    [256798] = true, -- Volcanic Whip
-    [20824] = true,  -- Power Lash
+    --[256798] = true, -- Volcanic Whip
+    --[20824] = true,  -- Power Lash
 }
 
 FancyActionBar.allowedChanneled =
