@@ -5464,7 +5464,13 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
 
                 local validEnd = effect.beginTime and (effect.beginTime < (t - 0.7))
                 if not validEnd then
-                    if unitId and td and td.times[unitId] and td.times[unitId].endTime > t then return end
+                    if unitId and td and td.times then
+                        local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+                        if unitKey then
+                            local times = td.times[unitKey]
+                            if times and times.endTime and times.endTime > t then return end
+                        end
+                    end
                     if isTargetPlayer then
                         local _, _, active = FancyActionBar.RecomputeUnits(effect.id, t, "sources")
                         local wasPlayer = WasEffectCastByPlayer(effect)
