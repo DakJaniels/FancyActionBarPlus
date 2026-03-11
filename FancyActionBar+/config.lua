@@ -680,7 +680,7 @@ FancyActionBar.stackMap =
     [20824] =
     {
         20824, -- flame lash
---        20816, -- power lash
+        20816, -- power lash
     },
 
     -- Seething Fury
