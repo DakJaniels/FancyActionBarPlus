@@ -33,6 +33,12 @@ local specialHotbar =
     [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = true,
 }
 
+local DROP_CALLOUT_VALIDITY_BY_ACTION_TYPE =
+{
+    [ACTION_TYPE_ABILITY] = IsValidAbilityForSlot,
+    [ACTION_TYPE_CRAFTED_ABILITY] = IsValidCraftedAbilityForSlot,
+}
+
 local GAMEPAD_CONSTANTS =
 {
     anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, -25),
@@ -284,6 +290,84 @@ local WEAPONTYPE_NONE = WEAPONTYPE_NONE -- just to make sure the game isn't conf
 local WEAPONTYPE_FIRE_STAFF = WEAPONTYPE_FIRE_STAFF
 local WEAPONTYPE_FROST_STAFF = WEAPONTYPE_FROST_STAFF
 local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
+
+local function GetInactiveHotbarCategory(activeHotbarCategory)
+    if activeHotbarCategory == HOTBAR_CATEGORY_PRIMARY then
+        return HOTBAR_CATEGORY_BACKUP
+    end
+    if activeHotbarCategory == HOTBAR_CATEGORY_BACKUP then
+        return HOTBAR_CATEGORY_PRIMARY
+    end
+    return HOTBAR_CATEGORY_BACKUP
+end
+
+local function HideAllAbilityActionButtonDropCallouts()
+    for i = MIN_INDEX, ULT_INDEX do
+        local button = ZO_ActionBar_GetButton(i)
+        if button and button.slot then
+            local callout = button.slot:GetNamedChild("DropCallout")
+            if callout then
+                callout:SetHidden(true)
+            end
+        end
+    end
+
+    for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
+        local button = FancyActionBar.buttons[i]
+        if button and button.slot then
+            local callout = button.slot:GetNamedChild("DropCallout")
+            if callout then
+                callout:SetHidden(true)
+            end
+        end
+    end
+end
+
+local function ShowAppropriateAbilityActionButtonDropCallouts(actionType, actionValue)
+    local validityFunction = DROP_CALLOUT_VALIDITY_BY_ACTION_TYPE[actionType]
+    if not validityFunction then
+        return
+    end
+
+    HideAllAbilityActionButtonDropCallouts()
+
+    for i = MIN_INDEX, ULT_INDEX do
+        local button = ZO_ActionBar_GetButton(i)
+        if button and button.slot then
+            local callout = button.slot:GetNamedChild("DropCallout")
+            if callout then
+                local isValid = validityFunction(actionValue, i)
+                callout:SetColor(1, isValid and 1 or 0, isValid and 1 or 0, 1)
+                callout:SetHidden(false)
+            end
+        end
+    end
+
+    for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
+        local button = FancyActionBar.buttons[i]
+        if button and button.slot then
+            local callout = button.slot:GetNamedChild("DropCallout")
+            if callout then
+                local isValid = validityFunction(actionValue, i - SLOT_INDEX_OFFSET)
+                callout:SetColor(1, isValid and 1 or 0, isValid and 1 or 0, 1)
+                callout:SetHidden(false)
+            end
+        end
+    end
+end
+
+local function AttemptPlacement(slotNum, hotbarCategory)
+    CallSecureProtected("PlaceInActionBar", unpack({ slotNum, hotbarCategory }))
+end
+
+local function AttemptPickup(slotNum, hotbarCategory)
+    if ZO_ActionBar_AreActionBarsLocked() then
+        return
+    end
+
+    CallSecureProtected("PickupAction", unpack({ slotNum, hotbarCategory }))
+    ClearTooltip(AbilityTooltip)
+end
 --------------------------------------------------------------------------------
 -----------------------------[ 		Utility    ]----------------------------------
 --------------------------------------------------------------------------------
@@ -3652,6 +3736,7 @@ function FancyActionBar.SetupBackbarButton(style, lastButton, index)
     --- @type ActionButton
     local button = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET]
     button:ApplyStyle(style.buttonTemplate)
+    FancyActionBar.SetupBackbarDragDropHandlers(button)
     button.icon:SetDesaturation(SV.desaturationInactive / 100)
     button.icon:SetAlpha(SV.alphaInactive / 100)
 
@@ -4661,13 +4746,76 @@ local function SetAbilityBarTimersEnabled()
     end
 end
 
+function FancyActionBar.SetupBackbarDragDropHandlers(button)
+    local buttonControl = button and button.button
+    if not buttonControl then
+        return
+    end
+
+    local function getActionBarSlotAndCategory()
+        local slotNum = button.slot and button.slot.slotNum or 0
+        return slotNum - SLOT_INDEX_OFFSET, GetInactiveHotbarCategory(GetActiveHotbarCategory())
+    end
+
+    buttonControl:SetHandler("OnReceiveDrag", function ()
+        if GetCursorContentType() == MOUSE_CONTENT_EMPTY then
+            return
+        end
+
+        local slotNum, hotbarCategory = getActionBarSlotAndCategory()
+        AttemptPlacement(slotNum, hotbarCategory)
+    end)
+
+    buttonControl:SetHandler("OnDragStart", function ()
+        if GetCursorContentType() ~= MOUSE_CONTENT_EMPTY or ZO_ActionBar_AreActionBarsLocked() then
+            return false
+        end
+
+        local slotNum, hotbarCategory = getActionBarSlotAndCategory()
+        if not IsSlotUsed(slotNum, hotbarCategory) then
+            return false
+        end
+
+        AttemptPickup(slotNum, hotbarCategory)
+        return true
+    end)
+
+    buttonControl:SetHandler("OnClicked", function (_, mouseButton)
+        if mouseButton ~= MOUSE_BUTTON_INDEX_LEFT or GetCursorContentType() == MOUSE_CONTENT_EMPTY then
+            return
+        end
+
+        local slotNum, hotbarCategory = getActionBarSlotAndCategory()
+        AttemptPlacement(slotNum, hotbarCategory)
+    end)
+
+    buttonControl:SetHandler("OnMouseEnter", function ()
+        if IsInGamepadPreferredMode() then
+            return
+        end
+
+        local slotNum, hotbarCategory = getActionBarSlotAndCategory()
+        if GetSlotType(slotNum, hotbarCategory) == ACTION_TYPE_NOTHING then
+            return
+        end
+
+        InitializeTooltip(AbilityTooltip, buttonControl, BOTTOM, 0, -5, TOP)
+        AbilityTooltip:SetAbilityId(FancyActionBar.GetSlotBoundAbilityId(slotNum, hotbarCategory))
+    end)
+
+    buttonControl:SetHandler("OnMouseExit", function ()
+        ClearTooltip(AbilityTooltip)
+    end)
+end
+
 -- Update actionId for backbar buttons
 function FancyActionBar.UpdateBackbarButtonActionIds()
+    local inactiveHotbarCategory = GetInactiveHotbarCategory(GetActiveHotbarCategory())
     for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
         local button = FancyActionBar.buttons[i]
         if button and button.button then
-            -- Update actionId properly using original slot number without offset
-            button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(i - SLOT_INDEX_OFFSET, HOTBAR_CATEGORY_BACKUP)
+            button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(i - SLOT_INDEX_OFFSET, inactiveHotbarCategory)
+            button.button.hotbarCategory = inactiveHotbarCategory
         end
     end
 end
@@ -4818,6 +4966,7 @@ local function OnAllHotbarsUpdated()
     FancyActionBar.scannedBuffs = {}
     FancyActionBar.ApplyAbilityFxOverrides()
     FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
+    HideAllAbilityActionButtonDropCallouts()
 end
 
 local function OnArmory()
@@ -5784,6 +5933,16 @@ function FancyActionBar.Initialize()
     EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.HandleCompanionUltimate)
     EM:RegisterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnEquippedGearChanged)
     EM:AddFilterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN)
+    EM:RegisterForEvent(NAME .. "CursorPickup", EVENT_CURSOR_PICKUP, function (_, cursorType, actionType, _, actionValue)
+        if cursorType == MOUSE_CONTENT_ACTION and DROP_CALLOUT_VALIDITY_BY_ACTION_TYPE[actionType] then
+            ShowAppropriateAbilityActionButtonDropCallouts(actionType, actionValue)
+        end
+    end)
+    EM:RegisterForEvent(NAME .. "CursorDropped", EVENT_CURSOR_DROPPED, function (_, cursorType)
+        if cursorType == MOUSE_CONTENT_ACTION then
+            HideAllAbilityActionButtonDropCallouts()
+        end
+    end)
 
     ZO_PreHookHandler(ACTION_BAR, "OnHide", function ()
         -- if ZO_ActionBar1:IsHidden() and not wasStopped then
