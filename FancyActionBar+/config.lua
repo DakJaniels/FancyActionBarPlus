@@ -257,9 +257,10 @@ FancyActionBar.abilityConfig =
 
     -- Dragonknight
     -- Ardent Flame
-    [23806] = {256798 },   -- Lava Whip (Volcanic Whip)
-    [20816] = {262658 },    -- Flame Lash (Power Lash)
+    [23806] = { 256798 }, -- Lava Whip (Volcanic Whip)
+    [20816] = { 262658 }, -- Flame Lash (Power Lash)
     [20805] = { 122658 }, -- show seething fury on the molten whip icon
+    [20668] = { 44369 },  -- Searing Claw
 
     -- Draconic Power
     [20917] = { 31102 },  -- Dragonfire Breath
