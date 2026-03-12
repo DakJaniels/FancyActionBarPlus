@@ -1533,7 +1533,8 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
 
     -- If not active via sources, fall back to endTime/passive checks
     if not hasEffect then
-        if finish == -1 or (finish and finish > now) then
+        local hasIndefiniteRuntimeState = (start and start > 0) or wasCastByPlayer or FancyActionBar.toggles[id]
+        if (finish == -1 and hasIndefiniteRuntimeState) or (finish and finish > now) then
             hasEffect = true
             duration = (finish == -1) and -1 or (finish - now)
         end
@@ -2495,7 +2496,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
 
     if not ignore then
-        effect.duration = duration and duration > 0 and duration or nil
+        effect.duration = duration and duration > 0 and duration or -1
     end
 
     if not SV.advancedDebuff and effect.isDebuff then
@@ -2503,12 +2504,13 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
 
     if not effect.isDebuff then
-        local has, dur, stacks = FancyActionBar.CheckForActiveEffect(effect.id)
-
-        if has then
-            effect.endTime = time() + dur
+        local hasActiveEffect, activeDuration, activeStacks = FancyActionBar.CheckForActiveEffect(effectId)
+        if hasActiveEffect then
+            effect.endTime = time() + activeDuration
+        else
+            effect.endTime = -1
         end
-        FancyActionBar.SetStacks(effect.id, stacks)
+        FancyActionBar.SetStacks(effect.id, activeStacks)
     end
 
     local isFrontBar = index < SLOT_INDEX_OFFSET and true or false
@@ -5239,6 +5241,10 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1
 
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
+        local hasValidSlotEffect = duration > 0 and remain > 0
+        if not hasValidSlotEffect then
+            return
+        end
         -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
         if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
             if not (effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > t) then
@@ -5256,10 +5262,9 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
 
             if FancyActionBar.dontFade[effect.id] and remain < FancyActionBar.durationMin then return end
 
-            local hasValidDuration = (effect.duration or -1) > 0 or duration > 0
-            effect.duration = hasValidDuration and duration or nil
+            effect.duration = duration
             effect.beginTime = t - (duration - remain)
-            effect.endTime = hasValidDuration and (t + remain) or -1
+            effect.endTime = t + remain
             FancyActionBar.UpdateEffect(effect)
 
             -- else
