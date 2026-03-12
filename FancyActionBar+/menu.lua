@@ -5142,6 +5142,26 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 width = "half",
                                 reference = "Back_Bar_List",
                             },
+                            {
+                                type = "button",
+                                name = "Print Abilities to Chat",
+                                tooltip = "Print the currently slotted front and back bar ability info to chat.",
+                                func = function ()
+                                    local barInfo =
+                                    {
+                                        { "Front Bar", GetCurrentFrontBarInfo() },
+                                        { "Back Bar", GetCurrentBackBarInfo() },
+                                    }
+
+                                    for _, info in ipairs(barInfo) do
+                                        CHAT_ROUTER:AddSystemMessage(info[1] .. ":")
+                                        for line in string.gmatch(info[2], "[^\r\n]+") do
+                                            CHAT_ROUTER:AddSystemMessage(line)
+                                        end
+                                    end
+                                end,
+                                width = "full",
+                            },
                         },
                     },
 
