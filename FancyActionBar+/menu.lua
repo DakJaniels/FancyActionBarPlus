@@ -130,7 +130,6 @@ local parentTimeBlacklistConfigData =
 local debuffToEditID = 0
 local debuffToEditName = ""
 local debuffNames = {}
-local debuffIds = {}
 local selectedDebuff = 0
 
 local selectedPreset = 0
@@ -1208,8 +1207,9 @@ local function SetHideOnNoTargetForId(hide)
 
     FancyActionBar.constants.hideOnNoTargetList[skillToEditID] = hide
 
-    if FancyActionBar.debuffs[skillToEditID] then
-        FancyActionBar.debuffs[skillToEditID].hideOnNoTarget = hide
+    local e = FancyActionBar.effects[skillToEditID]
+    if e and e.isDebuff then
+        e.hideOnNoTarget = hide
     end
 
     -- if hide
@@ -1238,8 +1238,8 @@ function FancyActionBar.SetHideOnNoTargetGlobalSetting(option)
 
     FancyActionBar.constants.hideOnNoTargetGlobal = option
 
-    for id, effect in pairs(FancyActionBar.debuffs) do
-        if FancyActionBar.constants.hideOnNoTargetList[id] == nil then
+    for id, effect in pairs(FancyActionBar.effects) do
+        if effect and effect.isDebuff and FancyActionBar.constants.hideOnNoTargetList[id] == nil then
             effect.hideOnNoTarget = option
         end
     end
@@ -5403,7 +5403,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 end,
                                 setFunc = function (value)
                                     SV.advancedDebuff = value or false
-                                    FancyActionBar:UpdateDebuffTracking()
+                                    FancyActionBar.UpdateDebuffTracking()
                                 end,
                             },
 

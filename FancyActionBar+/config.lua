@@ -256,31 +256,27 @@ FancyActionBar.abilityConfig =
     [61524] = { 61526 }, -- blinding flare
 
     -- Dragonknight
+    -- Ardent Flame
+    [23806] = {256798 },   -- Lava Whip (Volcanic Whip)
+    [20816] = {262658 },    -- Flame Lash (Power Lash)
     [20805] = { 122658 }, -- show seething fury on the molten whip icon
-    [20657] = { 44363 },  -- searing strike
-    [20668] = { 44369 },  -- venomous claw
-    [20660] = { 44373 },  -- burning embers
-    [20917] = { 31102 },  -- fiery breath
-    [20930] = { 31104 },  -- engulfing flames
-    [20944] = { 31103 },  -- noxious breath
-    [20492] = { 61736 },  -- fiery grip (major expedition)
-    [20496] = { 61736 },  -- unrelenting grip (major expedition)
-    [20499] = { 61737 },  -- empowering chains (empower)
-    [20245] = { 20527 },  -- dark talons
-    [20251] = { 61723 },  -- choking talons (minor maim)
-    [20252] = { 31898 },  -- burning talons
-    [29004] = { 61698 },  -- dragon blood (major fortitude)
-    [32722] = { 61698 },  -- coagulating blood (major fortitude)
-    [32744] = { 61549 },  -- green dragon blood (minor vitality)
-    [32715] = { 61814 },  -- ferocious leap
-    [133027] = { 31816 }, -- track stone giant
+
+    -- Draconic Power
+    [20917] = { 31102 },  -- Dragonfire Breath
+
+    [21007] = { 61736 }, -- Wing Buffet
+    [21014] = { 61736 }, -- Fleetstep Wings
+
+    [20492] = { 38254 }, -- Chains of Flame
+    [20499] = { 61745 }, -- Chains of Devastation
+    [20496] = { 38254 }, -- Chains of Dominance
+
+    -- Earthen Heart
     [32673] = { 61711 },  -- fragmented shield
-    [29043] = { 61665 },  -- molten weapons
-    [31874] = { 61665 },  -- igneous weapons
-    [31888] = { 61665 },  -- molten armaments
-    [29037] = {},         -- petrify
-    [32678] = {},         -- shattering rocks
-    [32685] = {},         -- fossilize
+    [29043] = { 258658 },  -- molten weapons
+    [31874] = { 258666 },  -- igneous weapons
+    [31888] = { 258661 },  -- molten armaments
+    [31816] = { 134340 },  -- Magma Fist
 
     -- Sorcerer
     [43714] = false,       -- crystal shard
@@ -673,8 +669,19 @@ FancyActionBar.stackMap =
         23277, -- Ball of Lightning
     },
 
-    [29032] = { 29032, 133037 }, -- Stone Fist (stacks on self)
-    [31816] = { 31816, 133027 }, -- Stone Giant (stacks on self)
+    -- Volcanic Whip
+    [256798] =
+    {
+        256798, -- volcanic whip
+--        23806,  -- lava whip
+    },
+
+    -- Flame Lash
+    [20824] =
+    {
+        20824, -- flame lash
+        20816, -- power lash
+    },
 
     -- Seething Fury
     [122658] =
@@ -818,13 +825,21 @@ FancyActionBar.debuffStackMap =
         216674, -- goading valult (scribing) (taunt)
         217180, -- goading smash (Scribing?) (taunt)
         219972, -- goading smash (scribing) (taunt)
+        20492,  -- chains of flame
+        20496,  -- chains of dominance
     },
 
-    -- Stone Giant Stagger
-    [134336] =
+    -- Magma Fist
+    [134340] =
     {
-        134336,
+        31816,
     },
+
+        -- Fetcher Infection
+    [101904] =
+    {
+        91416,
+    }
 
     -- [134336] = 134336;  -- Stone Giant (stacks on target)
 
@@ -835,213 +850,13 @@ FancyActionBar.allowExternalStacks =
     [52790] = true, -- taunt counter
 }
 
-FancyActionBar.debuffIds =
-{
-    -- Two Handed
-    [38814] = { 131562 }, -- dizzying swing (off-balance)
-    [38745] = { 38747 },  -- carve bleed
-    [83216] = { 83217 },  -- berserker strike
-    [83229] = { 83230 },  -- onslaught
-    [83238] = { 83239 },  -- berserker rage
-    [83223] = { 83224 },  -- reverse slash
-    [217180] = { 38254 }, -- goading smash (Scribing?) (taunt)
-    [219972] = { 38254 }, -- goading smash (scribing) (taunt)
-
-    -- Shield
-    [28306] = { 38254 },  -- puncture (taunt)
-    [38250] = { 38254 },  -- pierce armor (taunt)
-    [38256] = { 38254 },  -- ransack (taunt)
-    [222966] = { 38254 }, -- goading throw (scribing) (taunt)
-    [28304] = { 61723 },  -- low slash (minor maim)
-    [38268] = { 61723 },  -- deep slash (minor maim)
-    [28719] = { 28720 },  -- shield charge (stun)
-    [38405] = { 38407 },  -- invasion (stun)
-
-    -- Dual Wield
-    [28379] = { 29293 }, -- twin slashes
-    [38839] = { 38841 }, -- rending slashes
-    [38845] = { 38848 }, -- blood craze
-    [83600] = { 85156 }, -- lacerate
-    [85187] = { 85192 }, -- rend
-    [85179] = { 85182 }, -- thrive in chaos
-
-    -- Bow
-    [216674] = { 38254 }, -- goading vault (scribing) (taunt)
-    [28879] = { 113627 }, -- scatter shot (BRP bow)
-    [38672] = { 113627 }, -- magnum shot (BRP bow)
-    [38669] = { 113627 }, -- draining shot (BRP bow)
-    [38705] = { 38707 },  -- bombard (immobilized)
-    [38701] = { 38703 },  -- acid spray
-    [28869] = { 44540 },  -- poison arrow
-    [38645] = { 44545 },  -- venom arrow
-    [38660] = { 44549 },  -- poison injection
-
-    -- Destruction Staff
-    [29073] = { 62648 },  -- flame touch
-    [29089] = { 62722 },  -- shock touch
-    [29078] = { 62692 },  -- frost touch
-    [38985] = { 140334 }, -- flame clench (master destro)
-    [38993] = { 140334 }, -- shock clench (master destro)
-    [38989] = { 38254 },  -- frost clench (taunt)
-    [38944] = { 62682 },  -- flame reach
-    [38978] = { 62745 },  -- shock reach
-    [38970] = { 62712 },  -- frost reach
-    [29173] = { 61743 },  -- Weakness to elements
-    [28794] = { 115003 }, -- fire impulse (BRP destro)
-    [28799] = { 115003 }, -- shock impulse (BRP destro)
-    [28798] = { 115003 }, -- frost impulse (BRP destro)
-    [39145] = { 115003 }, -- fire ring (BRP destro)
-    [39147] = { 115003 }, -- shock ring (BRP destro)
-    [39146] = { 115003 }, -- frost ring (BRP destro)
-    [39162] = { 115003 }, -- flame pulsar (BRP destro)
-    [39167] = { 115003 }, -- shock pulsar (BRP destro)
-    [39163] = { 115003 }, -- frost pulsar (BRP destro)
-
-    -- Restoration Staff
-    [31531] = { 86304 }, -- force siphon
-    [40109] = { 86304 }, -- siphon spirit
-    [40116] = { 86304 }, -- quick siphon
-
-    -- Werewolf
-    [32632] = { 137156 },  -- punce (carnage bleed)
-    [137156] = { 137156 }, -- carnage (bleed)
-    [39105] = { 137184 },  -- brutal pounce (brutal carnage bleed)
-    [137184] = { 137184 }, -- brutal carnage (bleed)
-    [39104] = { 137164 },  -- feral pounce (brutal carnage bleed)
-    [137164] = { 137164 }, -- feral carnage (bleed)
-    [32633] = { 137257 },  -- roar (off-balance)
-    [39113] = { 45834 },   -- ferocious roar (off-balance); 137287 is heavy attack speed buff
-    [39114] = { 61743 },   -- deafening roar major breach; 137312 is off-balance
-    [58855] = { 58856 },   -- infectious claws
-    [58864] = { 58865 },   -- claws of anguish
-    [58879] = { 58880 },   -- claws of life
-
-    -- Soul Magic
-    [26768] = { 126890 }, -- soul trap
-    [40328] = { 126895 }, -- soul splitting trap
-    [40317] = { 126898 }, -- consuming trap
-
-    -- Fighters Guild
-    [40336] = { 38254 }, -- silver leash (taunt)
-    [35750] = { 35756 }, -- trap beast dot
-    [40372] = { 40375 }, -- lightweight beast trap dot
-    [40382] = { 40385 }, -- barbed trap dot
-    [35713] = { 62305 }, -- dawnbreaker
-    [40158] = { 62314 }, -- dawnbreaker of smiting
-
-    -- Mages Guild
-    [28567] = { 126370 }, -- entropy
-    [40452] = { 126371 }, -- structured entropy
-    [40457] = { 126374 }, -- degeneration
-    [40465] = {},         -- scalding rune (dot)
-
-    -- Psijic Order
-    [104059] = { 104078 }, -- borrowed time shield absorb
-
-    -- Undaunted
-    [42060] = { 38254 }, -- inner beast (taunt)
-    [39475] = { 38254 }, -- inner fire (taunt)
-    [42056] = { 38254 }, -- inner rage (taunt)
-
-    -- Alliance War
-    -- Assault
-    [61487] = { 61487 }, -- magicka detonation
-    [61491] = { 61491 }, -- inevitable detonation
-
-    -- Dragonknight
-    [20657] = { 44363 },  -- searing strike
-    [20668] = { 44369 },  -- venomous claw
-    [20660] = { 44373 },  -- burning embers
-    [20917] = { 31102 },  -- fiery breath
-    [20930] = { 31104 },  -- engulfing flames
-    [20944] = { 31103 },  -- noxious breath
-    [20245] = { 20527 },  -- dark talons
-    [20251] = { 61723 },  -- choking talons (minor maim)
-    [20252] = { 31898 },  -- burning talons
-    [133027] = { 31816 }, -- track stone giant
-    -- [31816] = { 133027 }; -- track stagger
-    [29032] = { 29032 },  -- stonefist
-    -- [31816] = { 134336 };  -- track stagger instead
-    -- [133027] = { 134336 }; -- track stagger
-    [29037] = {}, -- pretrify
-    [32678] = {}, -- shattering rocks
-    [32685] = {}, -- fossilize
-
-    -- Sorcerer
-    [28025] = {},        -- encase
-    [28308] = {},        -- shattering prison
-    [28311] = {},        -- restraining prison
-    [24326] = { 24326 }, -- Daedric Curse
-    [24330] = { 24330 }, -- haunting curse
-    [24328] = { 24328 }, -- Daedric Prey
-
-    -- Templar
-    [21726] = { 21728 }, -- sun fire
-    [21732] = { 21734 }, -- reflective light
-    [21729] = { 21731 }, -- vampire's bane
-    [21761] = { 21761 }, -- backlash
-    [21765] = { 21765 }, -- purifying light
-    [21763] = { 21763 }, -- PotL / 61742 (minor breach)
-    [21776] = { 21776 }, -- eclipse
-    [22004] = { 22004 }, -- unstable core
-
-    -- Warden
-    [85999] = { 130140 }, -- cutting dive bleed
-    [86023] = { 101703 }, -- swarm
-    [86027] = { 101904 }, -- fetcher infection
-    [86031] = { 101944 }, -- growing swarm
-
-    -- Nightblade
-    [25484] = { 79717 },   -- ambush (minor vulnerability)
-    [18342] = { 79717 },   -- teleport strike
-    [25493] = { 79717 },   -- lotus fan
-    [33357] = { 33357 },   -- mark target
-    [36967] = { 36967 },   -- reapers mark
-    [36968] = { 36968 },   -- piercing mark
-    [33398] = { 61389 },   -- death stroke
-    [36508] = { 61393 },   -- incap (70 ult)
-    [113105] = { 113107 }, -- incap (120 ult)
-    [36514] = { 61400 },   -- soul harvest
-    [25255] = { 25256 },   -- veiled strike (off-balance)
-    [25260] = { 34733 },   -- surprise attack (off-balance)
-    [25352] = { 147643 },  -- aspect of terror
-    [37470] = { 147643 },  -- mass hysteria
-    [37475] = {},          -- manifestation of terror
-    [33326] = { 33333 },   -- cripple
-    [36943] = { 36947 },   -- debilitate
-    [36957] = { 36960 },   -- crippling grasp
-    [25091] = { 25093 },   -- soul shred
-    [35460] = { 35462 },   -- soul tether
-
-    -- Necromancer
-    [122174] = { 106754 }, -- frozen colossus (major vuln)
-    [122388] = { 106754 }, -- glacial colossus (major vuln)
-    [122391] = { 106754 }, -- pestilent colossus (major vuln)
-    [118226] = { 125750 }, -- ruinous scythe (off-balance)
-    [115177] = { 61723 },  -- grave grasp (minor maim)
-    [118308] = { 61723 },  -- ghostly embrace (minor maim)
-
-    -- Arcanist
-    [185817] = { 185818 }, -- abyssal impact (abyssal ink)
-    [183006] = { 183008 }, -- cephaliarch's flail (abyssal ink)
-    [185823] = { 185825 }, -- tentacular dread (abyssal ink)
-    [185836] = { 185838 }, -- the imperfect ring (the imperfect ring)
-    [185839] = { 185840 }, -- rune of displacement (rune of displacement)
-    [182988] = { 182989 }, -- fulminating rune (Stam)
-    [201296] = { 182989 }, -- fulminating rune (Mag)
-    [183165] = { 38254 },  -- runic jolt (taunt)
-    [183430] = { 187742 }, -- runic sunder (armor steal)
-    [186531] = { 38254 },  -- runic embrace (taunt)
-    [185918] = { 79717 },  -- rune of eldritch horror (minor vuln)
-    [185921] = { 79717 },  -- rune of uncanny adoration (minor vuln)
-    [183267] = { 145975 }, -- rune of the colorless pool (minor brittle)
-}
 
 -- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
 FancyActionBar.tauntSkills =
 {
     [38989] = "Frost Clench",     -- Frost Clench Ice Staff
-    [20496] = "Unrelenting Grip", -- Unrelenting Dragonknight
+    [20492] = "Chains of Flame",  -- Chains of Flame DK
+    [20496] = "Chains of Dominance", -- Chains of Dominance DK
 
     [28306] = "Puncture",         -- Puncture S&B
     [38256] = "Ransack",          -- Ransack S&B
@@ -1135,13 +950,13 @@ FancyActionBar.specialEffectProcs =
 FancyActionBar.specialClassEffects =
 {
     -- Dragonknight
-    -- [35] = {}, -- Ardent Flame
-    [36] =
-    {                                                                                        -- Draconic Power
-        [31841] = { id = 31837, stackId = { 31837 }, duration = 2.5, onAbilityUsed = true }, -- Inhale
-        [32788] = { id = 32785, stackId = { 32785 }, duration = 2.5, onAbilityUsed = true }, -- Draw Essence
-        [32796] = { id = 32792, stackId = { 32792 }, duration = 2.5, onAbilityUsed = true }, -- Deep Breath
+    [35] =                                                                                   -- Ardent Flame
+    {
+        [256798] = { id = 256798, stackId = { 256798 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, }, -- Volcanic Whip
+        [20824] = { id = 20824, stackId = { 20824 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, }, -- Power Lash
     },
+
+    -- [36] = {}, -- Draconic Power
     -- [37] = {}, -- Earthen Heart
 
     -- Sorcerer
@@ -1239,7 +1054,11 @@ FancyActionBar.specialClassEffects =
 FancyActionBar.specialClassEffectProcs =
 {
     -- Dragonknight
-    -- [35] = {}, -- Ardent Flame
+    [35] =
+    { -- Ardent Flame
+        [256798] = { [1] = { id = 256798, procs = 1, hasProced = 0 } }, -- Volcanic Whip
+        [20824] = { [1] = { id = 20824, procs = 1, hasProced = 0 } }, -- Power Lash
+    },
     -- [36] = {}, -- Draconic Power
     -- [37] = {}, -- Earthen Heart
 
@@ -1304,8 +1123,8 @@ FancyActionBar.needCombatEvent =
     [216940] = { duration = 5, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = false },                                                                                                                    -- Leashing Soul (Potent Soul), Anchorite's Potency
 
     -- Class Specific UltGen Passives that need Combat Events
-    [29474] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Mountain's Blessing I
-    [45005] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Mountain's Blessing II
+    [29474] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Blessing at the Peak I
+    [45005] = { duration = 6, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 37 },    -- Blessing at the Peak II
     [36589] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },    -- Transfer I
     [45146] = { duration = 4, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 40 },    -- Transfer II
     [88512] = { duration = 8, result = ACTION_RESULT_POWER_ENERGIZE, skillLine = 127 },   -- Savage Beast I
@@ -1707,7 +1526,9 @@ FancyActionBar.removeInstantly =
     [19125] = true,  -- mages' wrath debuff
     [51392] = true,  -- Streak Fatigue
     [61500] = true,  -- proximity detonation
-    [122658] = true, -- seething fury (molten whip)
+    [23806] = true,  -- Lava Whip
+    --[256798] = true, -- Volcanic Whip
+    --[20824] = true,  -- Power Lash
 }
 
 FancyActionBar.allowedChanneled =
