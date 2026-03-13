@@ -786,6 +786,9 @@ function FancyActionBar.SetStacks(id, stacks, force)
     local eff = effects[id] or FancyActionBar.GetEffect(id, nil, nil, true)
     if not eff then return end
     local currentTime = time()
+    if type(stacks) == "string" and FancyActionBar.fixedStacks[id] == nil then
+        stacks = 0
+    end
     -- normalize nil to 0 only when forced
     if stacks == nil and not force then return end
     -- If not forcing, prefer per-source aggregation when available
@@ -812,6 +815,7 @@ function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
 
     local maxStacks = 0
     local sourceIds = effect.stackSources or effect.stackId or EMPTY_STACK_LIST
+    local fixedStacks = FancyActionBar.fixedStacks
 
     if not effect.hasExternalStackSources then
         local selfStacks = effect.stacks
@@ -833,7 +837,19 @@ function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
         local trackedEffect = effects and effects[trackedId]
         local sourceStacks = 0
 
-        if trackedEffect then
+        if fixedStacks[trackedId] ~= nil then
+            if trackedEffect and trackedEffect.stacks ~= nil then
+                if type(trackedEffect.stacks) == "string" then
+                    sourceStacks = trackedEffect.stacks ~= "" and fixedStacks[trackedId] or 0
+                elseif trackedEffect.stacks > 0 then
+                    sourceStacks = fixedStacks[trackedId]
+                end
+            end
+
+            if sourceStacks ~= 0 then
+                sourceStacks = fixedStacks[trackedId]
+            end
+        elseif trackedEffect then
             if trackedEffect.sources and trackedEffect.sources.times then
                 local _, _, activeCount = FancyActionBar.RecomputeUnits(trackedId, currentTime, "sources")
                 if activeCount and activeCount > 0 then
@@ -904,9 +920,41 @@ function FancyActionBar.ResolveStacksForSourceAbility(effect, sourceAbilityId, c
     return FancyActionBar.ResolveStacksForEffect({
         stackSources = displaySourceIds,
         stackId = displaySourceIds,
-        hasExternalStackSources = effect.hasExternalStackSources,
-        stacks = effect.stacks,
+        hasExternalStackSources = true,
     }, currentTime)
+end
+
+local function ResolveFixedStackDisplayForSourceAbility(effect, sourceAbilityId, currentTime)
+    if not effect then
+        return nil
+    end
+
+    currentTime = currentTime or time()
+
+    local displaySourceIds = GetDisplayStackSources(effect, sourceAbilityId, currentTime)
+    local fixedStacks = FancyActionBar.fixedStacks
+    local stackableBuff = FancyActionBar.stackableBuff
+    local effects = FancyActionBar.effects
+
+    for i = 1, #displaySourceIds do
+        local trackedId = (stackableBuff and stackableBuff[displaySourceIds[i]]) or displaySourceIds[i]
+        local fixedDisplayValue = fixedStacks[trackedId]
+
+        if fixedDisplayValue ~= nil then
+            local trackedEffect = effects and effects[trackedId]
+            if trackedEffect and trackedEffect.stacks ~= nil then
+                if type(trackedEffect.stacks) == "string" then
+                    if trackedEffect.stacks ~= "" then
+                        return fixedDisplayValue
+                    end
+                elseif trackedEffect.stacks > 0 then
+                    return fixedDisplayValue
+                end
+            end
+        end
+    end
+
+    return nil
 end
 
 ---
@@ -1533,7 +1581,7 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
 
     -- If not active via sources, fall back to endTime/passive checks
     if not hasEffect then
-        local hasIndefiniteRuntimeState = (start and start > 0) or wasCastByPlayer or FancyActionBar.toggles[id]
+        local hasIndefiniteRuntimeState = wasCastByPlayer or FancyActionBar.toggles[id] or eff.toggled or eff.passive
         if (finish == -1 and hasIndefiniteRuntimeState) or (finish and finish > now) then
             hasEffect = true
             duration = (finish == -1) and -1 or (finish - now)
@@ -2507,11 +2555,15 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     if not effect.isDebuff then
         local hasActiveEffect, activeDuration, activeStacks = FancyActionBar.CheckForActiveEffect(effectId)
         if hasActiveEffect then
-            effect.endTime = time() + activeDuration
+            effect.endTime = activeDuration == -1 and -1 or (time() + activeDuration)
         else
             effect.endTime = -1
         end
-        FancyActionBar.SetStacks(effect.id, activeStacks)
+        if effect.hasExternalStackSources then
+            FancyActionBar.SetStacks(effect.id, 0, true)
+        else
+            FancyActionBar.SetStacks(effect.id, activeStacks)
+        end
     end
 
     local isFrontBar = index < SLOT_INDEX_OFFSET and true or false
@@ -2626,7 +2678,11 @@ function FancyActionBar.EffectCheck()
                 effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
             end
 
-            FancyActionBar.SetStacks(effect.id, stacks)
+            if effect.hasExternalStackSources then
+                FancyActionBar.SetStacks(effect.id, 0, true)
+            else
+                FancyActionBar.SetStacks(effect.id, stacks)
+            end
         end
     end
 end
