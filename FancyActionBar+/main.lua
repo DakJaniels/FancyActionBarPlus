@@ -1887,7 +1887,8 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
         local hadTimedEffect = effect.beginTime and effect.endTime and effect.endTime >= effect.beginTime
         local isBlockCancelFade = effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > currentTime
         local isWaitingForRefreshedEffect = effect.castTime and effect.endTime and effect.castTime >= effect.endTime
-        if (hadTimedEffect or isBlockCancelFade) and (SV.delayFade and not effect.instantFade or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))) then
+        local canDelayFade = (SV.delayFade and not effect.instantFade) or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))
+        if (fading or hadTimedEffect or isBlockCancelFade) and canDelayFade then
             -- adding or (effect.isDebuff and SV.keepLastTarget == false) is to try to prevent a flicker of 0 on reticleover when a debuff isn't active
             local delayEnd = (effect.endTime + SV.fadeDelay) - currentTime
             if delayEnd > 0 and not isWaitingForRefreshedEffect then
