@@ -101,6 +101,7 @@ FancyActionBar.effects = {}        -- currently slotted abilities
 -- FancyActionBar.targets = {}     -- Per-effect target tracking is now stored in each effect at effects[id].targets.
 -- FancyActionBar.activeCasts = {} -- Per-effect active cast data is now stored in each effect with hasActiveCast, castTime, and beginTime/endTime.
 --- @type table<integer, boolean>
+FancyActionBar.configuredStackSourceEntryIds = {} -- Cache for GetConfiguredStackSourceEntryIds results to avoid repeated computation
 FancyActionBar.toggles = {}        -- works together with effects to update toggled abilities activation
 -- FancyActionBar.debuffs = {}     -- per-effect debuff state is now tracked with FancyActionBar.effects[id].isDebuff.
 FancyActionBar.stashedEffects = {} -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
@@ -556,75 +557,36 @@ end
 
 local EMPTY_STACK_LIST = {}
 
-function FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId)
+-- @param abilityId integer
+-- @param mapType string|nil: "debuff" for debuffStackMap, nil or "regular" for stackMap (default: both)
+function FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId, mapType)
     if not abilityId or abilityId == "" then
         return EMPTY_STACK_LIST
     end
 
+    local cache = FancyActionBar.configuredStackSourceEntryIds
+    if cache[cacheKey] ~= nil then
+        return cache[cacheKey]
+    end
+
     local sourceEntryIds = {}
     local seenSourceEntryIds = {}
+    local maps = {}
 
-    local function addMatches(sourceMap)
-        if not sourceMap then
-            return
-        end
-
-        for sourceEntryId, abilityIds in pairs(sourceMap) do
+    for _, sourceMap in ipairs(maps) do
+        for sourceEntryId, abilityIds in pairs(sourceMap or EMPTY_STACK_LIST) do
             for i = 1, #abilityIds do
                 if abilityIds[i] == abilityId and not seenSourceEntryIds[sourceEntryId] then
                     sourceEntryIds[#sourceEntryIds + 1] = sourceEntryId
                     seenSourceEntryIds[sourceEntryId] = true
-                end
-            end
-        end
-    end
-
-    addMatches(FancyActionBar.stackMap)
-    addMatches(FancyActionBar.debuffStackMap)
-
-    return #sourceEntryIds > 0 and sourceEntryIds or EMPTY_STACK_LIST
-end
-
-function FancyActionBar.BuildTrackedStackSources(effectId, abilityId)
-    local externalSourceIds = {}
-    local intrinsicSourceIds = {}
-    local seenSourceIds = {}
-
-    local function addSource(targetList, sourceId)
-        if sourceId and not seenSourceIds[sourceId] then
-            targetList[#targetList + 1] = sourceId
-            seenSourceIds[sourceId] = true
-        end
-    end
-
-    local function addConfiguredSourcesForAbility(sourceAbilityId, sourceMap)
-        if not sourceMap then
-            return
-        end
-
-        for sourceEntryId, abilityIds in pairs(sourceMap) do
-            for sourceIndex = 1, #abilityIds do
-                if abilityIds[sourceIndex] == sourceAbilityId then
-                    addSource(externalSourceIds, sourceEntryId)
                     break
                 end
             end
         end
     end
 
-    addConfiguredSourcesForAbility(effectId, FancyActionBar.stackMap)
-    addConfiguredSourcesForAbility(effectId, FancyActionBar.debuffStackMap)
-    if abilityId ~= effectId then
-        addConfiguredSourcesForAbility(abilityId, FancyActionBar.debuffStackMap)
-    end
-
-    if #externalSourceIds > 0 then
-        return externalSourceIds, true
-    end
-
-    addSource(intrinsicSourceIds, effectId)
-    addSource(intrinsicSourceIds, abilityId)
-    return intrinsicSourceIds, false
+    cache[cacheKey] = #sourceEntryIds > 0 and sourceEntryIds or EMPTY_STACK_LIST
+    return cache[cacheKey]
 end
 
 local function NormalizeStackSourceId(id)
@@ -2538,8 +2500,39 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         duration = -1
     end
 
-    local hasExternalStacks
-    stackId, hasExternalStacks = FancyActionBar.BuildTrackedStackSources(effectId, abilityId)
+    local hasExternalStacks = false
+    local configuredStackSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId)
+    local effectStackSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(effectId)
+    local seenStackSourceIds = {}
+
+    stackId = {}
+    for sourceIndex = 1, #effectStackSourceIds do
+        local sourceId = effectStackSourceIds[sourceIndex]
+        if sourceId and not seenStackSourceIds[sourceId] then
+            stackId[#stackId + 1] = sourceId
+            seenStackSourceIds[sourceId] = true
+        end
+    end
+
+    if abilityId ~= effectId then
+        local debuffStackMap = FancyActionBar.debuffStackMap
+        for sourceIndex = 1, #configuredStackSourceIds do
+            local sourceId = configuredStackSourceIds[sourceIndex]
+            if debuffStackMap[sourceId] ~= nil and not seenStackSourceIds[sourceId] then
+                stackId[#stackId + 1] = sourceId
+                seenStackSourceIds[sourceId] = true
+            end
+        end
+    end
+
+    if #stackId > 0 then
+        hasExternalStacks = true
+    else
+        stackId = { effectId }
+        if abilityId ~= effectId then
+            stackId[2] = abilityId
+        end
+    end
 
     local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged, hasExternalStacks) -- FancyActionBar.effects[effectId]
 
@@ -2605,7 +2598,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
     -- Assign effect to overlay.
     overlay["effect"] = effect
-    overlay["allowStacks"] = effectId == abilityId or hasExternalStacks or #FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId) > 0 or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.HasDebuffStacks(effectId)
+    overlay["allowStacks"] = effectId == abilityId or hasExternalStacks or #configuredStackSourceIds > 0 or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.HasDebuffStacks(effectId)
 
 
     if FancyActionBar.GetUnit(effect.id, "targets") and (not SV.showTargetCount == false) then
