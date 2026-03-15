@@ -100,8 +100,9 @@ local DEBUFF = BUFF_EFFECT_TYPE_DEBUFF
 FancyActionBar.effects = {}        -- currently slotted abilities
 -- FancyActionBar.targets = {}     -- Per-effect target tracking is now stored in each effect at effects[id].targets.
 -- FancyActionBar.activeCasts = {} -- Per-effect active cast data is now stored in each effect with hasActiveCast, castTime, and beginTime/endTime.
+FancyActionBar.stackSourceConfig = {} -- Cache for GetConfiguredStackSourceEntryIds results to avoid repeated computation
+
 --- @type table<integer, boolean>
-FancyActionBar.configuredStackSourceEntryIds = {} -- Cache for GetConfiguredStackSourceEntryIds results to avoid repeated computation
 FancyActionBar.toggles = {}        -- works together with effects to update toggled abilities activation
 -- FancyActionBar.debuffs = {}     -- per-effect debuff state is now tracked with FancyActionBar.effects[id].isDebuff.
 FancyActionBar.stashedEffects = {} -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
@@ -564,7 +565,8 @@ function FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId, mapType)
         return EMPTY_STACK_LIST
     end
 
-    local cache = FancyActionBar.configuredStackSourceEntryIds
+    local cache = FancyActionBar.stackSourceConfig
+    local cacheKey = mapType and (abilityId .. ":" .. mapType) or abilityId
     if cache[cacheKey] ~= nil then
         return cache[cacheKey]
     end
@@ -572,6 +574,13 @@ function FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId, mapType)
     local sourceEntryIds = {}
     local seenSourceEntryIds = {}
     local maps = {}
+    if mapType == "debuff" then
+        maps = { FancyActionBar.debuffStackMap }
+    elseif mapType == "regular" then
+        maps = { FancyActionBar.stackMap }
+    else
+        maps = { FancyActionBar.stackMap, FancyActionBar.debuffStackMap }
+    end
 
     for _, sourceMap in ipairs(maps) do
         for sourceEntryId, abilityIds in pairs(sourceMap or EMPTY_STACK_LIST) do
