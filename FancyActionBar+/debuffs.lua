@@ -12,8 +12,8 @@ local registeredDebuffStackEvents = {}
 
 local function SyncDebuffStackSources(effect, abilityId)
     -- Use unified stack source logic, debuff mode
-    local effectStackSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(effect.id, "debuff")
-    local abilityStackSourceIds = FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId, "debuff")
+    local effectStackSourceIds = FancyActionBar.GetConfiguredStackSources(effect.id, "debuff")
+    local abilityStackSourceIds = FancyActionBar.GetConfiguredStackSources(abilityId, "debuff")
     local stackSources = {}
     local seenStackSourceIds = {}
 
@@ -98,7 +98,7 @@ local function ShouldClearExternalDebuffStacksOnTargetChange(effect)
 end
 
 local function HasDebuffStackTargets(abilityId)
-    return FancyActionBar.fixedStacks[abilityId] ~= nil or #FancyActionBar.GetConfiguredStackSourceEntryIds(abilityId) > 0
+    return FancyActionBar.fixedStacks[abilityId] ~= nil or #FancyActionBar.GetConfiguredStackSources(abilityId) > 0
 end
 
 local groupUnit =
