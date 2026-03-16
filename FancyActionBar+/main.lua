@@ -2674,8 +2674,28 @@ function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the ef
 end
 
 function FancyActionBar.EffectCheck()
-    local toggles = FancyActionBar.toggles or {}
     local checkTime = time()
+    for id, effect in pairs(FancyActionBar.effects) do
+        if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
+            zo_callLater(function()
+                FancyActionBar.ReCheckSpecialEffect(effect)
+            end, (effect.endTime - checkTime) * 1000)
+        else
+            local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(effect.id)
+            if hasEffect then
+                effect.beginTime = (hasEffect and beginTime ~= 0) and beginTime or checkTime
+                effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
+            end
+
+            if effect.hasExternalStackSources then
+                FancyActionBar.SetStacks(effect.id, 0, true)
+            else
+                FancyActionBar.SetStacks(effect.id, stacks)
+            end
+        end
+    end
+
+    local toggles = FancyActionBar.toggles or {}
     for key, value in pairs(toggles) do
         if key ~= "banner" then
             local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(key)
@@ -2688,18 +2708,6 @@ function FancyActionBar.EffectCheck()
         toggles["banner"][bannerId] = hasEffect and true or false
     end
     FancyActionBar.toggles = toggles
-    for id, effect in pairs(FancyActionBar.effects) do
-        local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(effect.id)
-        if hasEffect then
-            effect.beginTime = (hasEffect and beginTime ~= 0) and beginTime or checkTime
-            effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
-        end
-        if effect.hasExternalStackSources then
-            FancyActionBar.SetStacks(effect.id, 0, true)
-        else
-            FancyActionBar.SetStacks(effect.id, stacks)
-        end
-    end
 end
 
 -- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios
