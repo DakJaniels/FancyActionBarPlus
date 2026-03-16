@@ -6728,7 +6728,8 @@ function FancyActionBar.UpdateHighlight(index)
 
     -- local state
     if button and overlay then
-        if (FancyActionBar.toggles[effect.id] == true or effect.passive == true) then
+        local isToggled = FancyActionBar.bannerBearer[effect.id] and FancyActionBar.toggles["banner"] and FancyActionBar.toggles["banner"][effect.id] or FancyActionBar.toggles[effect.id]
+        if (isToggled == true or effect.passive == true) then
             -- state = 'On'
             if SV.toggledHighlight then
                 button.status:SetAlpha(0)
