@@ -1552,7 +1552,8 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
 
     -- If not active via sources, fall back to endTime/passive checks
     if not hasEffect then
-        local hasIndefiniteRuntimeState = wasCastByPlayer or FancyActionBar.toggles[id] or eff.toggled or eff.passive
+        local isToggled = FancyActionBar.bannerBearer[id] and FancyActionBar.toggles["banner"] and FancyActionBar.toggles["banner"][id] or FancyActionBar.toggles[id]
+        local hasIndefiniteRuntimeState = wasCastByPlayer or isToggled or eff.toggled or eff.passive
         if (finish == -1 and hasIndefiniteRuntimeState) or (finish and finish > now) then
             hasEffect = true
             duration = (finish == -1) and -1 or (finish - now)
@@ -1632,9 +1633,7 @@ function FancyActionBar.CheckCachedBuffs(id)
         entry = scannedBuffs[FancyActionBar.stackableBuff[id]]
     end
     if entry then
-        local eff = FancyActionBar.effects and (FancyActionBar.effects[id] or FancyActionBar.effects[entry.id])
-        local activeCast = (eff and eff.hasActiveCast) or entry.hasActiveCast or false
-        return entry.hasEffect, entry.duration, entry.stacks, entry.start, entry.finish, activeCast
+        return entry.hasEffect, entry.duration, entry.stacks, entry.start, entry.finish, entry.hasActiveCast
     end
     return false, -1, 0, 0, 0, false
 end
@@ -1964,8 +1963,20 @@ function FancyActionBar.UpdateOverlay(index) -- timer label updates.
                     sourceEndTime = sourceEffect.endTime
                 end
             end
+            local isToggled = nil
+            if FancyActionBar.bannerBearer[effect.id] then
+                isToggled = false
+                if FancyActionBar.toggles["banner"] then
+                    for _, v in pairs(FancyActionBar.toggles["banner"]) do
+                        if v then isToggled = true break end
+                    end
+                end
+            else
+                isToggled = FancyActionBar.toggles[effect.id]
+            end
             hasDuration = FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
                     allowStacks, FancyActionBar.toggles[effect.id], sourceEndTime, sourceId)
+                    allowStacks, isToggled, sourceEndTime, sourceId)
         else
             FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
         end
@@ -2377,11 +2388,17 @@ function FancyActionBar.UpdateToggledAbility(id, active) -- toggled effect highl
     local effect = FancyActionBar.effects[id]
     if effect then
         if not FancyActionBar.toggles[effect.id] then
-            FancyActionBar.toggles[effect.id] = false
+        if FancyActionBar.bannerBearer[effect.id] then
+            FancyActionBar.toggles["banner"] = FancyActionBar.toggles["banner"] or {}
+            FancyActionBar.toggles["banner"][effect.id] = active
+        else
+            if not FancyActionBar.toggles[effect.id] then
+                FancyActionBar.toggles[effect.id] = false
+            end
+            FancyActionBar.toggles[effect.id] = active
         end
 
         FancyActionBar.toggles[effect.id] = active
-
         if effect.slot1 then
             FancyActionBar.UpdateHighlight(effect.slot1)
         end
@@ -2661,45 +2678,30 @@ end
 
 function FancyActionBar.EffectCheck()
     FancyActionBar.toggles = {}
+    local toggles = FancyActionBar.toggles or {}
     local checkTime = time()
+            local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(key)
+            toggles[key] = hasEffect and true or false
+        end
+    end
+    toggles["banner"] = toggles["banner"] or {}
+    for bannerId, _ in pairs(FancyActionBar.bannerBearer) do
+        local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(bannerId)
+        toggles["banner"][bannerId] = hasEffect and true or false
+    end
+    FancyActionBar.toggles = toggles
     for id, effect in pairs(FancyActionBar.effects) do
         if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
-            zo_callLater(function()
-                FancyActionBar.ReCheckSpecialEffect(effect)
-            end, (effect.endTime - checkTime) * 1000)
+        if hasEffect then
+            effect.beginTime = (hasEffect and beginTime ~= 0) and beginTime or checkTime
+            effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
+        end
+        if effect.hasExternalStackSources then
+            FancyActionBar.SetStacks(effect.id, 0, true)
         else
             local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(effect.id)
-
-            if FancyActionBar.bannerBearer[id] then
-                local anyFound = false
                 local latestStart = 0
-                for buffId, entry in pairs(FancyActionBar.scannedBuffs) do
-                    if FancyActionBar.bannerBearer[buffId] and entry.hasEffect and entry.hasActiveCast then
-                        anyFound = true
-                        if entry.start and entry.start > latestStart then
-                            latestStart = entry.start
-                        end
-                    end
-                end
-                local toggleId = sourceAbilities[id] or id
-                FancyActionBar.toggles[toggleId] = anyFound
-                if FancyActionBar.effects[id] then
-                    FancyActionBar.effects[id].beginTime = (anyFound and latestStart ~= 0) and latestStart or checkTime
-                end
-            elseif FancyActionBar.toggled[id] then
-                local toggleAbility = sourceAbilities[id] and sourceAbilities[id] or id
-                FancyActionBar.toggles[toggleAbility] = hasEffect
-            end
-
-            if hasEffect then
-                effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
-            end
-
-            if effect.hasExternalStackSources then
-                FancyActionBar.SetStacks(effect.id, 0, true)
-            else
-                FancyActionBar.SetStacks(effect.id, stacks)
-            end
+            FancyActionBar.SetStacks(effect.id, stacks)
         end
     end
 end
@@ -3041,6 +3043,8 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
             if FancyActionBar.toggled[id] then
                 toggled = true
                 FancyActionBar.toggles[id] = false
+                    FancyActionBar.toggles[id] = false
+                end
             end
             if FancyActionBar.removeInstantly[cI] then
                 rI = true
@@ -4688,16 +4692,14 @@ function FancyActionBar.RefreshEffects()
             eff.hasActiveCast = nil
             eff.castTime = nil
         end
-    end
     FancyActionBar.toggles = {}
 
-    for effect, data in pairs(FancyActionBar.effects) do
-        data.endTime = -1
-    end
 
+    FancyActionBar.toggles["banner"] = {}
     for id, effect in pairs(FancyActionBar.effects) do
-        local _, _, currentStacks = FancyActionBar.CheckCachedBuffs(id)
         if effect then
+            effect.castTime = nil
+            local _, _, currentStacks = FancyActionBar.CheckCachedBuffs(id)
             if UsesExternalStackDisplay(effect) then
                 FancyActionBar.SetStacks(id, 0, true)
             else
@@ -4756,20 +4758,21 @@ function FancyActionBar.RefreshEffects()
             if FancyActionBar.fixedStacks[abilityId] ~= nil or #FancyActionBar.GetConfiguredStackSources(abilityId) > 0 then
                 FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
             end
-            local updateToggleEffect = false
             if FancyActionBar.bannerBearer[abilityId] then
                 for k, v in pairs(FancyActionBar.bannerBearer) do
                     if sourceAbilities[k] then
                         FancyActionBar.toggles[sourceAbilities[k]] = true
-                        FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t
                         FancyActionBar.UpdateToggledAbility(abilityId, true)
                         return
+                        if FancyActionBar.effects[sourceAbilities[k]] then
+                            FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t
+                        end
+                        FancyActionBar.UpdateToggledAbility(sourceAbilities[k], true)
                     end
                 end
             elseif FancyActionBar.toggled[abilityId] then -- update the highlight of toggled abilities.
-                local toggleAbility = sourceAbilities[abilityId] and sourceAbilities[abilityId] or abilityId
+            end
                 FancyActionBar.UpdateToggledAbility(toggleAbility, true)
-                return
             end
 
             local effect = FancyActionBar.effects[abilityId]
@@ -4781,7 +4784,6 @@ function FancyActionBar.RefreshEffects()
                             slot = effect.slot1
                         elseif effect.slot2 then
                             slot = effect.slot2
-                        end
                         local eff = FancyActionBar.effects and FancyActionBar.effects[effect.id]
                         if eff then
                             eff.hasActiveCast = true
@@ -5121,7 +5123,8 @@ local function OnAbilityUsed(_, n)
     end
 
     if effect and FancyActionBar.toggled[effect.id] then
-        local O = (not FancyActionBar.toggles[effect.id]) and "On" or "Off"
+        local isToggled = FancyActionBar.bannerBearer[effect.id] and FancyActionBar.toggles["banner"] and FancyActionBar.toggles["banner"][effect.id] or FancyActionBar.toggles[effect.id]
+        local O = (not isToggled) and "On" or "Off"
         FancyActionBar.AddSystemMessage("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
     end
 
@@ -5417,24 +5420,8 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 local mapped = sourceAbilities[k]
                 local eff = mapped and FancyActionBar.effects[mapped]
                 if eff and FancyActionBar.toggles[mapped] and (eff.endTime == -1 or eff.endTime > t) then
-                    anyActive = true
-                    break
-                end
-            end
-            for k in pairs(FancyActionBar.bannerBearer) do
-                local mapped = sourceAbilities[k]
-                if mapped then
-                    FancyActionBar.effects[mapped] = FancyActionBar.effects[mapped] or { id = mapped }
-                    FancyActionBar.effects[mapped].beginTime = (beginTime ~= 0) and beginTime or t
-                    if isTargetPlayer then
-                        if isFade then
-                            FancyActionBar.toggles[mapped] = anyActive
-                        else
-                            FancyActionBar.toggles[mapped] = true
-                        end
-                    end
-                end
-            end
+            FancyActionBar.toggles["banner"] = FancyActionBar.toggles["banner"] or {}
+            FancyActionBar.toggles["banner"][abilityId] = not isFade
         elseif FancyActionBar.toggled[abilityId] then
             effect.beginTime = (beginTime ~= 0) and beginTime or t
             FancyActionBar.toggles[sourceAbilities[abilityId] or abilityId] = not isFade
