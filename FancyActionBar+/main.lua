@@ -2689,7 +2689,7 @@ function FancyActionBar.EffectCheck()
     end
     FancyActionBar.toggles = toggles
     for id, effect in pairs(FancyActionBar.effects) do
-        if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
+        local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(effect.id)
         if hasEffect then
             effect.beginTime = (hasEffect and beginTime ~= 0) and beginTime or checkTime
             effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
