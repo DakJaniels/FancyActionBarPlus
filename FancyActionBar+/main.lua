@@ -2661,15 +2661,19 @@ function FancyActionBar.EffectCheck()
             local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(effect.id)
 
             if FancyActionBar.bannerBearer[id] then
-                for k, v in pairs(FancyActionBar.bannerBearer) do
-                    local bannerEntry = FancyActionBar.scannedBuffs[k]
-                    if bannerEntry and not hasEffect then
-                        hasEffect, duration, stacks, beginTime, finishTime, activeCast = bannerEntry.hasEffect, bannerEntry.duration, bannerEntry.stacks, bannerEntry.start, bannerEntry.finish, bannerEntry.hasActiveCast
+                local found = false
+                local foundEntry = nil
+                for buffId, entry in pairs(FancyActionBar.scannedBuffs) do
+                    if FancyActionBar.bannerBearer[buffId] and entry.hasEffect and entry.hasActiveCast then
+                        found = true
+                        foundEntry = entry
+                        break
                     end
-                    if sourceAbilities[id] then
-                        FancyActionBar.toggles[sourceAbilities[id]] = hasEffect
-                        FancyActionBar.effects[id].beginTime = (beginTime ~= 0) and beginTime or checkTime
-                    end
+                end
+                local toggleId = sourceAbilities[id] or id
+                FancyActionBar.toggles[toggleId] = found
+                if FancyActionBar.effects[id] then
+                    FancyActionBar.effects[id].beginTime = (foundEntry and foundEntry.start ~= 0) and foundEntry.start or checkTime
                 end
             elseif FancyActionBar.toggled[id] then
                 local toggleAbility = sourceAbilities[id] and sourceAbilities[id] or id

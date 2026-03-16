@@ -1242,6 +1242,7 @@ FancyActionBar.toggled =
     [227115] = true, -- Necromancer's Banner
     [227116] = true, -- Arcanist's Banner
     [227120] = true, -- Bannerman
+    [227123] = true, -- Magical Banner (DK?)
     [230293] = true, -- Charging Banner
     [231753] = true, -- Sorcerer's Banner
 }
@@ -1296,6 +1297,7 @@ FancyActionBar.bannerBearer =
     [227115] = true, -- Necromancer's Banner
     [227116] = true, -- Arcanist's Banner
     [227120] = true, -- Bannerman
+    [227123] = true, -- Magical Banner (DK?)
     [230293] = true, -- Charging Banner
     [231753] = true, -- Sorcerer's Banner
 }
