@@ -1541,6 +1541,8 @@ FancyActionBar.allowedChanneled =
     [103652] = true, -- Deep Thoughts
     [103665] = true, -- Introspection
 
+    [20930] = true, -- Engulfing Dragonfire
+
     [26792] = true,  -- Biting Jabs
     [22223] = true,  -- rite of passage
     [22226] = true,  -- practiced incantation
