@@ -1697,13 +1697,15 @@ function FancyActionBar.RecordUnit(id, effect, unitKey, currentTime, beginTime, 
 
     local activeCount, soonest, maxEnd = FancyActionBar.PruneUnits(unitData, currentTime)
     if effect and maxEnd and maxEnd > (effect.endTime or 0) then
-        effect.endTime = maxEnd
+        if which == "targets" or SV.externalBuffs then
+            effect.endTime = maxEnd
+        end
     end
 
     return activeCount, soonest, maxEnd
 end
 
-function FancyActionBar.GetUnit(id, which)
+function FancyActionBar.GetUnits(id, which)
     local eff = FancyActionBar.effects and FancyActionBar.effects[id]
     return eff and eff[which]
 end
@@ -2051,29 +2053,37 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     elseif effect.slotStateEndTime and effect.slotStateEndTime + fadeDelay > currentTime then
         duration = effect.slotStateEndTime - currentTime
         isParentTime = true
-    elseif effect.endTime and effect.endTime + fadeDelay > currentTime then
-        if SV.showSoonestExpire and FancyActionBar.GetUnit(effect.id, "targets") and not (SV.advancedDebuff and effect.isDebuff) then
-            local soonestTarget = FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets")
-            if soonestTarget and soonestTarget > currentTime then
-                duration = soonestTarget - currentTime
-            else
-                duration = effect.endTime - currentTime
-            end
-        else
-            duration = effect.endTime - currentTime
-        end
     else
-        effect.endTime = -1
-        hasDuration = false
+
+        if effect.endTime and (effect.endTime + fadeDelay > currentTime) then
+            duration = effect.endTime - currentTime
+        else
+            effect.endTime = -1
+            hasDuration = false
+        end
+
+        local targets = FancyActionBar.GetUnits(effect.id, "targets")
+        local _, soonest, maxEnd = nil, -1, -1
+        if targets and targets.times and not (SV.advancedDebuff and effect.isDebuff) then
+            soonest, maxEnd = FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets")
+            if maxEnd and maxEnd + fadeDelay > currentTime then
+                duration = SV.showSoonestExpire and (soonest + fadeDelay > currentTime) and (soonest - currentTime) or (maxEnd + fadeDelay > currentTime) and (maxEnd - currentTime)
+                hasDuration = true
+            end
+        elseif SV.externalBuffs and effect.sources and effect.sources.times then
+            soonest, maxEnd = FancyActionBar.RecomputeUnits(effect.id, currentTime, "sources")
+            if maxEnd and maxEnd + fadeDelay > currentTime then
+                duration = SV.showSoonestExpire and (soonest + fadeDelay > currentTime) and (soonest - currentTime) or (maxEnd + fadeDelay > currentTime) and (maxEnd - currentTime)
+                hasDuration = true
+            end
+        end
     end
 
-    -- Check for parent effect duration fallback
     if SV.allowParentTime and not isCastTime and duration <= 0 and sourceEndTime and sourceEndTime > currentTime then
         duration = sourceEndTime - currentTime
         isParentTime = true
     end
 
-    -- Handle toggled effects
     if effect.toggled then
         local tickRate = isToggled and SV.showToggleTicks and effect.tickRate or 0
         if tickRate ~= 0 then
@@ -2082,11 +2092,9 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         end
         hasDuration = isToggled or hasDuration
     else
-        -- Determine fading state for non-toggles
         isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
     end
 
-    -- Format visuals and update controls
     local lt, lc = "", nil
     local bc = nil
     if hasDuration or isToggled or isFading or isParentTime then
@@ -2133,7 +2141,7 @@ function FancyActionBar.ShouldShowTargetCount(effect, activeCount)
 end
 
 function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
-    local targetData = FancyActionBar.GetUnit(effect.id, "targets")
+    local targetData = FancyActionBar.GetUnits(effect.id, "targets")
     if not targetData or not targetData.times then
         targetsControl:SetText("")
         return
@@ -2634,7 +2642,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     overlay["allowStacks"] = effectId == abilityId or hasExternalStacks or #configuredStackSourceIds > 0 or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.HasDebuffStacks(effectId)
 
 
-    if FancyActionBar.GetUnit(effect.id, "targets") and (not SV.showTargetCount == false) then
+    if FancyActionBar.GetUnits(effect.id, "targets") and (not SV.showTargetCount == false) then
         FancyActionBar.UpdateTargets(index)
     end
 
@@ -4498,7 +4506,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
         if sid then FancyActionBar.SetStacks(sid, stackCount) end
     end
 
-    if effect.hasActiveCast and not FancyActionBar.GetUnit(effect.id, "targets") then
+    if effect.hasActiveCast and not FancyActionBar.GetUnits(effect.id, "targets") then
         effect.beginTime = updateTime
     end
 
@@ -4523,7 +4531,7 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
     end
 
     -- Handle multi-target effects
-    if specialEffect.isMultiTarget and FancyActionBar.GetUnit(effect.id, "targets") then
+    if specialEffect.isMultiTarget and FancyActionBar.GetUnits(effect.id, "targets") then
         local targetCount = FancyActionBar.HandleMultiTargetFade(effect.id, unitTag, unitId, effectSlot, updateTime)
         if targetCount >= 1 then
             return
@@ -4553,7 +4561,7 @@ end
 
 -- function to handle multi-target fade
 function FancyActionBar.HandleMultiTargetFade(effectId, unitTag, unitId, effectSlot, currentTime)
-    local targetData = FancyActionBar.GetUnit(effectId, "targets")
+    local targetData = FancyActionBar.GetUnits(effectId, "targets")
     if not targetData then return 0 end
 
     local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
@@ -4740,7 +4748,7 @@ function FancyActionBar.RefreshEffects()
                                     end
                                 end
                             if endTime - t > 0 then
-                                if not FancyActionBar.GetUnit(effect.id, "targets") then
+                                if not FancyActionBar.GetUnits(effect.id, "targets") then
                                     effect.beginTime = beginTime
                                 end
                                 effect.endTime = endTime
@@ -4792,7 +4800,7 @@ function FancyActionBar.RefreshEffects()
                     end
 
                     if effect.hasActiveCast then
-                        if not FancyActionBar.GetUnit(effect.id, "targets") then
+                        if not FancyActionBar.GetUnits(effect.id, "targets") then
                             effect.beginTime = beginTime
                         end
                         effect.endTime = endTime
@@ -5382,218 +5390,196 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     local spec = FancyActionBar.specialEffects[abilityId]
     local useSpecialDebuff = SV.advancedDebuff and spec and spec.isSpecialDebuff
 
-    if spec and spec.useSlotStateChange then
-        return
-    end
-
+    if spec and spec.useSlotStateChange then return end
     if spec and not useSpecialDebuff then
         if FancyActionBar.traps[abilityId] and SV.ignoreTrapPlacement then return end
         FancyActionBar.HandleSpecialEffect(abilityId, change, t, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
         return
     end
 
-    local skipMain = false
     if abilityId == 143808 and isGain then
         if FancyActionBar.effects[46331] and (t - lastCW > 0.5) then
             lastCW = t
             local cwStacks = FancyActionBar.GetActiveStacksForId(46331) or 0
             if cwStacks > 0 then
-                    FancyActionBar.SetStacks(46331, cwStacks - 1, true)
+                FancyActionBar.SetStacks(46331, cwStacks - 1, true)
             end
-            skipMain = true
+            return
         end
     end
 
     local effect = FancyActionBar.GetEffect(abilityId, nil, nil, true)
     if sourceAbilities[abilityId] and not FancyActionBar.effects[abilityId] then FancyActionBar.effects[abilityId] = effect end
 
-    local pendingTargetEffects, pendingStackRecomputes, pendingEffectUpdates = {}, {}, {}
+    if FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and isTargetPlayerOrCompanion then
+        FancyActionBar.toggles["banner"] = FancyActionBar.toggles["banner"] or {}
+        FancyActionBar.toggles["banner"][abilityId] = not isFade
+    elseif FancyActionBar.toggled[abilityId] then
+        effect.beginTime = (beginTime ~= 0) and beginTime or t
+        FancyActionBar.toggles[sourceAbilities[abilityId] or abilityId] = not isFade
+    end
 
-    if not skipMain then
-        if FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and isTargetPlayerOrCompanion then
-            FancyActionBar.toggles["banner"] = FancyActionBar.toggles["banner"] or {}
-            FancyActionBar.toggles["banner"][abilityId] = not isFade
-        elseif FancyActionBar.toggled[abilityId] then
-            effect.beginTime = (beginTime ~= 0) and beginTime or t
-            FancyActionBar.toggles[sourceAbilities[abilityId] or abilityId] = not isFade
+    if (effectType == DEBUFF or useSpecialDebuff) then
+        if FancyActionBar.ShouldTrackAsDebuff(abilityId, unitTag or "") or useSpecialDebuff then
+            effect.isDebuff = true
+            FancyActionBar.effects[abilityId] = effect
+            FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
+            if noget and SV.debuffTable[effect.id] == nil then SV.debuffTable[effect.id] = true end
+            return
+        end
+    end
+
+    if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
+        if abilityType ~= GROUND_EFFECT and not (FancyActionBar.IsLocalPlayerOrEnemy(unitTag) or ZO_Group_IsGroupUnitTag(unitTag) or FancyActionBar.IsPlayerPet(unitTag) or IsGroupCompanionUnitTag(unitTag) or unitTag == "companion") then
+            return
+        end
+    end
+
+    if isGain then
+        local isSelf = GetAbilityTargetDescription(effect.id, nil, unitTag) == "Self"
+        local willRecord = (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and not isSelf
+
+        if effect.hasActiveCast then
+            if not FancyActionBar.GetUnits(effect.id, "targets") then effect.beginTime = beginTime end
+            if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then willRecord = true end
         end
 
-        if (effectType == DEBUFF or useSpecialDebuff) then
-            if FancyActionBar.ShouldTrackAsDebuff(abilityId, unitTag or "") or useSpecialDebuff then
-                effect.isDebuff = true
-                FancyActionBar.effects[abilityId] = effect
-                FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
-                if noget and SV.debuffTable[effect.id] == nil then SV.debuffTable[effect.id] = true end
-                return
-            end
-        end
-
-        if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
-            if abilityType ~= GROUND_EFFECT and not (FancyActionBar.IsLocalPlayerOrEnemy(unitTag) or ZO_Group_IsGroupUnitTag(unitTag) or FancyActionBar.IsPlayerPet(unitTag) or IsGroupCompanionUnitTag(unitTag) or unitTag == "companion") then
-                return
-            end
-        end
-
-        if isGain then
-            local isSelf = GetAbilityTargetDescription(effect.id, nil, unitTag) == "Self"
-            local willRecord = (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and not isSelf
-
-            if effect.hasActiveCast then
-                if not FancyActionBar.GetUnit(effect.id, "targets") then effect.beginTime = beginTime end
-                if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then willRecord = true end
-            end
-
-            if willRecord then
-                local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-                if unitKey and unitKey > 0 then
-                    FancyActionBar.RecordUnit(effect.id, effect, unitKey, t, beginTime, endTime, "targets")
-                    pendingTargetEffects[effect.id] = true
-                end
-            end
-
-            if isTargetPlayer and unitId and unitId > 0 then
-                local sbId = FancyActionBar.stackableBuff[abilityId]
-                if sbId then
-                    FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
-                    pendingStackRecomputes[sbId] = true
-                end
-            end
-
-            if endTime ~= beginTime and effect.passive then FancyActionBar.UpdatePassiveEffect(effect.id, false) end
-
-            if stackCount ~= nil or hasFixedStacks or hasExternalStackTargets then
-                FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
-            end
-
-            if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
-                effect.duration = (beginTime and endTime and (endTime - beginTime) > 0) and (endTime - beginTime) or effect.duration
-                effect.endTime = endTime
-
-                if abilityType == GROUND_EFFECT then
-                    lastAreaTargets[abilityId] = unitId
-                    if abilityId == 117805 then 
-                        effect.endTime = t + 10
-                        FancyActionBar.UpdateEffect(effect)
-                        return 
-                    end
-                end
-            else
-                effect.endTime = -1
-            end
-            pendingEffectUpdates[effect.id] = true
-
-        elseif isFade then
-            if effect.ignoreFadeTime then return end
-
-            local hasActiveTargets = false
-            local td = FancyActionBar.GetUnit(effect.id, "targets")
-            
-            if td and td.times then
-                local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-                if unitKey and td.times[unitKey] then
-                    FancyActionBar.RemoveUnit(effect.id, unitKey, t, "targets")
-                    pendingTargetEffects[effect.id] = true
-                    if isTargetPlayer then
-                        local sbId = FancyActionBar.stackableBuff[abilityId]
-                        if sbId then
-                            FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources")
-                            pendingStackRecomputes[sbId] = true
-                        end
-                    end
-
-                    local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(effect.id, t, "targets")
-                    if activeTargets >= 1 then
-                        if maxEnd and maxEnd > 0 then
-                            effect.endTime = maxEnd
-                            pendingEffectUpdates[effect.id] = true
-                        end
-                        hasActiveTargets = true
-                    end
-                end
-            end
-
-            if FancyActionBar.IsGroupUnit(unitTag) then return end
-            local sbPending = FancyActionBar.stackableBuff[abilityId]
-            if sbPending then
-                FancyActionBar.GetEffect(sbPending, nil, nil, true)
-                pendingStackRecomputes[sbPending] = true
-            end
-
-            if hasActiveTargets then return end
-            if stackCount or hasFixedStacks or hasExternalStackTargets then
-                FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, true)
-            end
-            if effect.instantFade or FancyActionBar.removeInstantly[effect.id] then
-                effect.endTime = endTime
-                FancyActionBar.UpdateEffect(effect)
-                return
-            end
-
-            if effectType == DEBUFF or abilityId == 38791 then return end
-
-            if ((not SV.externalBuffs) or SV.externalBlackList[effect.id]) and effect.dontFade then
-                local _, _, active = FancyActionBar.RecomputeUnits(effect.id, t, "sources")
-                if active > 0 then return end
-            end
-
-            -- Active Cast Persistence
-            if effect.hasActiveCast then
-                if abilityType == GROUND_EFFECT and lastAreaTargets[abilityId] then
-                    if lastAreaTargets[abilityId] ~= unitId then return end
-                    lastAreaTargets[abilityId] = nil
-                end
-
-                local validEnd = effect.beginTime and (effect.beginTime < (t - 0.7))
-                if not validEnd then
-                    if unitId and td and td.times then
-                        local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-                        if unitKey then
-                            local times = td.times[unitKey]
-                            if times and times.endTime and times.endTime > t then return end
-                        end
-                    end
-                    if isTargetPlayer then
-                        local _, _, active = FancyActionBar.RecomputeUnits(effect.id, t, "sources")
-                        local wasPlayer = WasEffectCastByPlayer(effect)
-                        if active > 0 and (wasPlayer or SV.externalBuffs) then return end
-                    end
-                end
-
-                local noTargets = true
-                if td and td.times then
-                    for _, times in pairs(td.times) do
-                        if times.endTime and times.endTime > t then noTargets = false break end
-                    end
-                end
-
-                if noTargets then
+        if willRecord then
+            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+            if unitKey and unitKey > 0 then
+                FancyActionBar.RecordUnit(effect.id, effect, unitKey, t, beginTime, endTime, "targets")
+                local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(effect.id, t, "targets")
+                if activeTargets >= 1 and maxEnd and maxEnd > 0 then
+                    effect.endTime = maxEnd
+                else
                     effect.endTime = t
-                    if effect.passive then FancyActionBar.UpdateToggledAbility(abilityId, false) end
+                end
+                FancyActionBar.HandleTargetUpdate(effect.id)
+            end
+        end
+
+        if isTargetPlayer and unitId and unitId > 0 then
+            local sbId = FancyActionBar.stackableBuff[abilityId]
+            if sbId then
+                FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
+                local _, _, sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
+                FancyActionBar.SetStacks(sbId, sc)
+            end
+        end
+
+        if endTime ~= beginTime and effect.passive then FancyActionBar.UpdatePassiveEffect(effect.id, false) end
+
+        if stackCount ~= nil or hasFixedStacks or hasExternalStackTargets then
+            FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
+        end
+
+        if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
+            effect.duration = (beginTime and endTime and (endTime - beginTime) > 0) and (endTime - beginTime) or effect.duration
+            effect.endTime = endTime
+            if abilityType == GROUND_EFFECT then
+                lastAreaTargets[abilityId] = unitId
+                if abilityId == 117805 then
+                    effect.endTime = t + 10
+                    FancyActionBar.UpdateEffect(effect)
+                    return
+                end
+            end
+        else
+            effect.endTime = -1
+        end
+        FancyActionBar.UpdateEffect(effect)
+
+    elseif isFade then
+        if effect.ignoreFadeTime then return end
+
+        local td = FancyActionBar.GetUnits(effect.id, "targets")
+        local hasActiveTargets = false
+        if td and td.times then
+            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+            if unitKey and td.times[unitKey] then
+                FancyActionBar.RemoveUnit(effect.id, unitKey, t, "targets")
+                local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(effect.id, t, "targets")
+                local rem = FancyActionBar.GetUnits(effect.id, "targets")
+                if activeTargets >= 1 and rem and rem.maxEndTime > 0 then
+                    effect.endTime = rem.maxEndTime
+                else
+                    effect.endTime = t
+                end
+                FancyActionBar.HandleTargetUpdate(effect.id)
+                hasActiveTargets = (activeTargets >= 1)
+                if isTargetPlayer then
+                    local sbId = FancyActionBar.stackableBuff[abilityId]
+                    if sbId then
+                        FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources")
+                        local _, _, sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
+                        FancyActionBar.SetStacks(sbId, sc)
+                    end
                 end
             end
         end
-    end
 
-    for sId in pairs(pendingStackRecomputes) do
-        local _, _, sc = FancyActionBar.RecomputeUnits(sId, t, "sources")
-        FancyActionBar.SetStacks(sId, sc)
-    end
-
-    for eId in pairs(pendingTargetEffects) do
-        local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(eId, t, "targets")
-        local eff = FancyActionBar.effects[eId]
-        local rem = FancyActionBar.GetUnit(eId, "targets")
-        if activeTargets >= 1 and rem and rem.maxEndTime > 0 then
-            if eff then eff.endTime = rem.maxEndTime end
-            pendingEffectUpdates[eId] = true
-        elseif eff then
-            eff.endTime = t
-            pendingEffectUpdates[eId] = true
+        if FancyActionBar.IsGroupUnit(unitTag) then return end
+        local sbPending = FancyActionBar.stackableBuff[abilityId]
+        if sbPending then
+            FancyActionBar.GetEffect(sbPending, nil, nil, true)
+            local _, _, sc = FancyActionBar.RecomputeUnits(sbPending, t, "sources")
+            FancyActionBar.SetStacks(sbPending, sc)
         end
-        FancyActionBar.HandleTargetUpdate(eId)
-    end
 
-    for eId in pairs(pendingEffectUpdates) do FancyActionBar.UpdateEffect(FancyActionBar.effects[eId]) end
+        if hasActiveTargets then return end
+        if stackCount or hasFixedStacks or hasExternalStackTargets then
+            FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, true)
+        end
+        if effect.instantFade or FancyActionBar.removeInstantly[effect.id] then
+            effect.endTime = endTime
+            FancyActionBar.UpdateEffect(effect)
+            return
+        end
+
+        if effectType == DEBUFF or abilityId == 38791 then return end
+
+        if ((not SV.externalBuffs) or SV.externalBlackList[effect.id]) and effect.dontFade then
+            local _, _, active = FancyActionBar.RecomputeUnits(effect.id, t, "sources")
+            if active > 0 then return end
+        end
+
+        -- Active Cast Persistence
+        if effect.hasActiveCast then
+            if abilityType == GROUND_EFFECT and lastAreaTargets[abilityId] then
+                if lastAreaTargets[abilityId] ~= unitId then return end
+                lastAreaTargets[abilityId] = nil
+            end
+
+            local validEnd = effect.beginTime and (effect.beginTime < (t - 0.7))
+            if not validEnd then
+                if unitId and td and td.times then
+                    local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+                    if unitKey then
+                        local times = td.times[unitKey]
+                        if times and times.endTime and times.endTime > t then return end
+                    end
+                end
+                if isTargetPlayer then
+                    local _, _, active = FancyActionBar.RecomputeUnits(effect.id, t, "sources")
+                    local wasPlayer = WasEffectCastByPlayer(effect)
+                    if active > 0 and (wasPlayer or SV.externalBuffs) then return end
+                end
+            end
+
+            local noTargets = true
+            if td and td.times then
+                for _, times in pairs(td.times) do
+                    if times.endTime and times.endTime > t then noTargets = false break end
+                end
+            end
+
+            if noTargets then
+                effect.endTime = t
+                if effect.passive then FancyActionBar.UpdateToggledAbility(abilityId, false) end
+            end
+        end
+        FancyActionBar.UpdateEffect(effect)
+    end
 end
 
 -- Update overlays.

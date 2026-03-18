@@ -394,7 +394,7 @@ function FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, currentTime, be
         end
         return
     elseif (change == EFFECT_RESULT_FADED) then
-        local targets = FancyActionBar.GetUnit(debuff.id, "targets")
+        local targets = FancyActionBar.GetUnits(debuff.id, "targets")
         if targets and targets.times and unitKey and targets.times[unitKey] then
             FancyActionBar.RemoveUnit(debuff.id, unitKey, currentTime, "targets")
             FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
@@ -471,7 +471,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
             FancyActionBar.UpdateDebuff(debuff, stackCount, abilityId)
         end
     elseif (change == EFFECT_RESULT_FADED) then
-        local td = FancyActionBar.GetUnit(debuff.id, "targets")
+        local td = FancyActionBar.GetUnits(debuff.id, "targets")
         local unitKey = unitId ~= 0 and unitId or nil
         if td and td.times and td.times[unitKey] then
             local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitKey, t, "targets")
