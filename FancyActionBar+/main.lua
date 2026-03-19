@@ -10,6 +10,8 @@ local EM = GetEventManager()
 local WM = GetWindowManager()
 local SM = SCENE_MANAGER
 local strformat = string.format
+local tableInsert = table.insert
+local tableRemove = table.remove
 local time = GetGameTimeSeconds
 local MIN_INDEX = 3                          -- first ability index
 local MAX_INDEX = 7                          -- last ability index
@@ -2514,8 +2516,13 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     stackId = {}
     for _, sourceId in ipairs(effectStackSourceIds) do
         if sourceId and not seenStackSourceIds[sourceId] then
-            stackId[#stackId + 1] = sourceId
-            table.insert(stackId, sourceId)
+            tableInsert(stackId, sourceId)
+            seenStackSourceIds[sourceId] = true
+        end
+    end
+    for _, sourceId in ipairs(configuredStackSourceIds) do
+        if sourceId and not seenStackSourceIds[sourceId] then
+            tableInsert(stackId, sourceId)
             seenStackSourceIds[sourceId] = true
         end
     end
@@ -2523,7 +2530,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         local debuffStackMap = FancyActionBar.debuffStackMap
         for _, sourceId in ipairs(configuredStackSourceIds) do
             if debuffStackMap and debuffStackMap[sourceId] ~= nil and not seenStackSourceIds[sourceId] then
-                table.insert(stackId, sourceId)
+                tableInsert(stackId, sourceId)
                 seenStackSourceIds[sourceId] = true
             end
         end
@@ -2531,7 +2538,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     if #stackId == 0 then
         stackId = { effectId }
         if abilityId ~= effectId then
-            table.insert(stackId, abilityId)
+            tableInsert(stackId, abilityId)
         end
     end
     local hasExternalStacks = #stackId > 1 or (#stackId == 1 and stackId[1] ~= effectId)
@@ -4596,7 +4603,7 @@ function FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, begi
         }
 
         if allowMulti then
-            table.insert(instances, instance)
+            tableInsert(instances, instance)
         else
             FancyActionBar.effects[id] = instance
             instances[id] = instance
@@ -4619,7 +4626,7 @@ function FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, begi
                 end
             end
             if removeIndex then
-                table.remove(instances, removeIndex)
+                tableRemove(instances, removeIndex)
             end
         end
 
@@ -5770,14 +5777,14 @@ function FancyActionBar.RegisterClassEffects(newSkillLineId)
         for i = 1, 3 do
             local skillLine = SKILLS_DATA_MANAGER:GetActiveClassSkillLine(i)
             if skillLine and skillLine.id and not registeredSkillLines[skillLine.id] then
-                table.insert(skillLineIds, skillLine.id)
+                tableInsert(skillLineIds, skillLine.id)
             end
         end
     else
         -- Fallback to the skill line info table if data is not ready to to ensure all skill line effects are set up
         for k, v in pairs(FancyActionBar.skillLineInfo) do
             for i, skillLineId in pairs(v) do
-                table.insert(skillLineIds, skillLineId)
+                tableInsert(skillLineIds, skillLineId)
             end
         end
     end
