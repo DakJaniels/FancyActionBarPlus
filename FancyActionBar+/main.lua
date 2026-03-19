@@ -4467,11 +4467,14 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     end
 
     if specialEffect.stacks then
-        local sid = specialEffect.stackId and specialEffect.stackId[1]
-        if sid then FancyActionBar.SetStacks(sid, specialEffect.stacks, true) end
+        effect.stacks = specialEffect.stacks
+        FancyActionBar.SetStacks(effect.id, specialEffect.stacks, true)
     elseif effect.stackId and #effect.stackId > 0 and stackCount then
         local sid = specialEffect.stackId and specialEffect.stackId[1]
-        if sid then FancyActionBar.SetStacks(sid, stackCount) end
+        if sid then
+            effect.stacks = stackCount
+            FancyActionBar.SetStacks(effect.id, stackCount, true)
+        end
     end
 
     if effect.hasActiveCast and not FancyActionBar.GetUnits(effect.id, "targets") then
@@ -5139,7 +5142,13 @@ local function OnAbilityUsed(_, n)
         local duration = (specialEffect.setTime and specialEffect.duration) or effect.duration or -1
         if not specialEffect.onAbilityUsed then return end
         if FancyActionBar.traps[id] and SV.ignoreTrapPlacement then return end
-        for k, v in pairs(specialEffect) do effect[k] = v end
+        for k, v in pairs(specialEffect) do
+            if type(v) == "table" then
+                effect[k] = ZO_DeepTableCopy(v)
+            else
+                effect[k] = v
+            end
+        end
         effect.beginTime = t
         effect.endTime = duration > 0 and (duration + t) or -1
         FancyActionBar.UpdateEffect(effect)
@@ -5231,7 +5240,11 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             if effect.origHasExternalStackSources == nil then
                 effect.origHasExternalStackSources = effect.hasExternalStackSources
             end
-            effect.stackSources = specialEffect.stackId or { stackTargetId }
+            if specialEffect.stackId then
+                effect.stackSources = ZO_DeepTableCopy(specialEffect.stackId)
+            else
+                effect.stackSources = { stackTargetId }
+            end
             effect.hasExternalStackSources = false
             effect.slotStateBeginTime = beginTime
             effect.slotStateEndTime = endTime
@@ -5797,7 +5810,7 @@ function FancyActionBar.RegisterClassEffects(newSkillLineId)
 
         if FancyActionBar.specialClassEffects[skillLineId] then
             for j, x in pairs(FancyActionBar.specialClassEffects[skillLineId]) do
-                FancyActionBar.specialEffects[j] = x
+                FancyActionBar.specialEffects[j] = ZO_DeepTableCopy(x)
                 if x.needCombatEvent then
                     EM:RegisterForEvent(NAME .. j, EVENT_COMBAT_EVENT, OnCombatEvent)
                     EM:AddFilterForEvent(NAME .. j, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, j, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
