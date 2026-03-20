@@ -2562,9 +2562,9 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
             effect.endTime = -1
         end
         if effect.hasExternalStackSources then
-            effect.stackCount = 0
+            effect.stacks = 0
         else
-            effect.stackCount = activeStacks
+            effect.stacks = activeStacks
         end
     end
 
@@ -4682,9 +4682,9 @@ function FancyActionBar.RefreshEffects()
             effect.endTime = -1
             local _, _, currentStacks = FancyActionBar.CheckCachedBuffs(id)
             if UsesExternalStackDisplay(effect) then
-                effect.stackCount = 0
+                effect.stacks = 0
             else
-                effect.stackCount = currentStacks or 0
+                effect.stacks = currentStacks or 0
             end
         end
     end
