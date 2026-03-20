@@ -756,10 +756,10 @@ FancyActionBar.stackMap =
     -- Echoing Vigor
     [61506] =
     {
+        61505, -- Echoing Vigor
         61506, -- Echoing Vigor
         -- 61503, -- Echoing Vigor
         -- 61504, -- Echoing Vigor
-        -- 61505, -- Echoing Vigor
     },
 
     -- Ulfsild's Contingency
