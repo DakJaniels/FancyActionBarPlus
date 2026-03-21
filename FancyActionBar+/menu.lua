@@ -75,6 +75,12 @@ local skillEditValues =
 local changedSkillIds = {}
 local changedSkillStrings = {}
 local selectedChangedSkill = 0
+local configProfileIds = {}
+local configProfileNames = {}
+local newConfigProfileName = ""
+local GetAbilityConfigProfileChoices
+local GetSelectedAbilityConfigProfileName
+local UpdateAbilityConfigProfileControls
 
 local externalBlacklistConfigData =
 {
@@ -144,6 +150,9 @@ local uiPresets =
 local presetIgnoreKeys =
 {
     ["configChanges"] = true,
+    ["configProfiles"] = true,
+    ["selectedConfigProfile"] = true,
+    ["nextConfigProfileId"] = true,
     ["externalBlackList"] = true,
     ["multiTargetBlacklist"] = true,
     ["hideOnNoTargetList"] = true,
@@ -677,6 +686,9 @@ local function GetChangedSkills()
     local default = "== Select a Skill =="
     local changes = FancyActionBar.GetAbilityConfigChanges()
 
+    changedSkillIds = {}
+    changedSkillStrings = {}
+
     table.insert(skills, default)
 
     for id, cfg in pairs(changes) do
@@ -979,6 +991,7 @@ local function ResetUpdateSettings()
     if not IsConsoleUI() then
         WM:GetControlByName("SkillToEditTitle").desc:SetText("")
         WM:GetControlByName("EffectToTrackTitle").desc:SetText("")
+        UpdateAbilityConfigProfileControls()
         WM:GetControlByName("Change_Type_Dropdown"):UpdateChoices(GetSkillChangeOptions())
         WM:GetControlByName("Change_Type_Dropdown").dropdown:SetSelectedItem(GetSkillChangeType())
 
@@ -990,12 +1003,172 @@ local function ResetUpdateSettings()
     end
 end
 
+GetAbilityConfigProfileChoices = function()
+    local choices = {}
+    local profiles = FancyActionBar.GetAbilityConfigProfiles()
+    local sortedProfiles = {}
+
+    configProfileIds = {}
+    configProfileNames = {}
+
+    for profileId, profile in pairs(profiles) do
+        table.insert(sortedProfiles, { id = profileId, name = profile.name })
+    end
+
+    table.sort(sortedProfiles, function(left, right)
+        local leftName = string.lower(left.name)
+        local rightName = string.lower(right.name)
+
+        if leftName == rightName then
+            return left.id < right.id
+        end
+
+        return leftName < rightName
+    end)
+
+    for _, profile in ipairs(sortedProfiles) do
+        configProfileIds[profile.name] = profile.id
+        configProfileNames[profile.id] = profile.name
+        table.insert(choices, profile.name)
+    end
+
+    return choices
+end
+
+GetSelectedAbilityConfigProfileName = function()
+    local profile, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
+
+    if profile == nil then
+        return ""
+    end
+
+    configProfileNames[profileId] = profile.name
+
+    return profile.name
+end
+
+UpdateAbilityConfigProfileControls = function()
+    local selectedProfileName = GetSelectedAbilityConfigProfileName()
+    local profileDropdown = WM:GetControlByName("Ability_Config_Profile_Dropdown")
+    local selectedProfileEditbox = WM:GetControlByName("Selected_Ability_Config_Profile_Editbox")
+    local newProfileEditbox = WM:GetControlByName("New_Ability_Config_Profile_Editbox")
+
+    if profileDropdown then
+        profileDropdown:UpdateChoices(GetAbilityConfigProfileChoices())
+        profileDropdown.dropdown:SetSelectedItem(selectedProfileName)
+    end
+
+    if selectedProfileEditbox then
+        selectedProfileEditbox.editbox:SetText(selectedProfileName)
+    end
+
+    if newProfileEditbox then
+        newProfileEditbox.editbox:SetText(newConfigProfileName)
+    end
+end
+
+local function RefreshSelectedAbilityConfigProfile()
+    local refreshedIds = {}
+
+    FancyActionBar.BuildAbilityConfig()
+
+    for slot = MIN_INDEX, ULT_INDEX do
+        local frontAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_PRIMARY)
+        local backAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_BACKUP)
+
+        if frontAbilityId and frontAbilityId ~= 0 and not refreshedIds[frontAbilityId] then
+            refreshedIds[frontAbilityId] = true
+            FancyActionBar.SlotCurrentAbilityConfiguration(frontAbilityId)
+        end
+
+        if backAbilityId and backAbilityId ~= 0 and not refreshedIds[backAbilityId] then
+            refreshedIds[backAbilityId] = true
+            FancyActionBar.SlotCurrentAbilityConfiguration(backAbilityId)
+        end
+    end
+
+    ResetUpdateSettings()
+end
+
+local function SetSelectedAbilityConfigProfile(profileName)
+    local profileId = configProfileIds[profileName]
+
+    if profileId == nil then
+        return
+    end
+
+    if FancyActionBar.SetSelectedAbilityConfigProfile(profileId) then
+        RefreshSelectedAbilityConfigProfile()
+    end
+end
+
+local function SetSelectedAbilityConfigProfileName(profileName)
+    local _, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
+    local renamed, actualName = FancyActionBar.SetAbilityConfigProfileName(profileId, profileName)
+
+    if renamed then
+        CHAT_ROUTER:AddSystemMessage("Renamed ability config profile to: " .. actualName)
+        UpdateAbilityConfigProfileControls()
+    end
+end
+
+local function GetNewAbilityConfigProfileName()
+    return newConfigProfileName
+end
+
+local function SetNewAbilityConfigProfileName(profileName)
+    newConfigProfileName = profileName or ""
+end
+
+local function IsCreateAbilityConfigProfileDisabled()
+    return (newConfigProfileName:match("^%s*(.-)%s*$") or "") == ""
+end
+
+local function CreateAbilityConfigProfile()
+    local profileId, profileName = FancyActionBar.CreateAbilityConfigProfile(newConfigProfileName)
+
+    if profileId then
+        newConfigProfileName = ""
+        CHAT_ROUTER:AddSystemMessage("Created ability config profile: " .. profileName)
+        RefreshSelectedAbilityConfigProfile()
+    end
+end
+
+local function DuplicateSelectedAbilityConfigProfile()
+    local profile, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
+    local duplicatedProfileId, duplicatedProfileName
+
+    if profile == nil or profileId == nil then
+        return
+    end
+
+    duplicatedProfileId, duplicatedProfileName = FancyActionBar.DuplicateAbilityConfigProfile(profileId)
+    if duplicatedProfileId then
+        CHAT_ROUTER:AddSystemMessage("Duplicated ability config profile to: " .. duplicatedProfileName)
+        RefreshSelectedAbilityConfigProfile()
+    end
+end
+
+local function DeleteSelectedAbilityConfigProfile()
+    local profile, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
+
+    if profile == nil or profileId == nil then
+        return
+    end
+
+    if FancyActionBar.DeleteAbilityConfigProfile(profileId) then
+        CHAT_ROUTER:AddSystemMessage("Deleted ability config profile: " .. profile.name)
+        RefreshSelectedAbilityConfigProfile()
+    end
+end
+
 ---
 --- @param track integer
 --- @param ability integer | string
 --- @param effect integer
 local function UpdateEffectForAbility(track, ability, effect)
     local config, craftedId, scriptKey
+    local customConfig = FancyActionBar.GetAbilityConfigChanges()
     local extractedAbilityId, extractedScriptKey = ability:match("^(%d+)%-(.+)$")
     --- @cast extractedAbilityId integer
     --- @cast extractedScriptKey string
@@ -1020,7 +1193,6 @@ local function UpdateEffectForAbility(track, ability, effect)
             config = false
         end
     elseif track == 1 then -- reset data for skill effect, not working properly?
-        local customConfig = FancyActionBar.GetAbilityConfigChanges()
         config = customConfig[extractedAbilityId]
         if craftedId ~= 0 then
             local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) }
@@ -1044,7 +1216,6 @@ local function UpdateEffectForAbility(track, ability, effect)
             --   config = {}
         end
     elseif track == 2 then -- set new skill effect
-        local customConfig = FancyActionBar.GetAbilityConfigChanges()
         config = customConfig[extractedAbilityId] or {}
         if craftedId ~= 0 then
             local scripts = extractedScriptKey and { extractedScriptKey:match("^(%d+)_(%d*)_(%d*)$") } or { GetCraftedAbilityActiveScriptIds(craftedId) }
@@ -1063,17 +1234,7 @@ local function UpdateEffectForAbility(track, ability, effect)
         end
     end
 
-    if not CV.useAccountWide then
-        if CV.configChanges == nil then
-            CV.configChanges = {}
-        end
-        CV.configChanges[extractedAbilityId] = config
-    else
-        if SV.configChanges == nil then
-            SV.configChanges = {}
-        end
-        SV.configChanges[extractedAbilityId] = config
-    end
+    customConfig[extractedAbilityId] = config
 
     FancyActionBar.BuildAbilityConfig()
     FancyActionBar.SlotCurrentAbilityConfiguration(extractedAbilityId)
@@ -5195,7 +5356,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 tooltip = "Easily find skills that you have made changes to.",
                                 choices = GetChangedSkills(),
                                 getFunc = function ()
-                                    GetSelectedChangedSkill()
+                                    return GetSelectedChangedSkill()
                                 end,
                                 setFunc = function (value)
                                     SetChangedSkillToEdit(value)
@@ -5294,6 +5455,102 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             --   disabled = function() return skillToEditID == 0 or not IsValidId(skillToEditID) end,
                             --   width = 'half'
                             -- }
+
+                            { type = "divider" },
+
+                            {
+                                type = "submenu",
+                                name = "Ability Configuration Profiles",
+                                controls =
+                                {
+
+                                    {
+                                        type = "description",
+                                        title = "",
+                                        text = "Here you can configure various profiles of ability tracking changes that will be applied as a group.",
+                                        width = "full",
+                                    },
+                                    {
+                                        type = "dropdown",
+                                        scrollable = 20,
+                                        name = "Current Profile",
+                                        tooltip = "Select which suite of ability configuration changes is currently active.",
+                                        choices = GetAbilityConfigProfileChoices(),
+                                        getFunc = function ()
+                                            return GetSelectedAbilityConfigProfileName()
+                                        end,
+                                        setFunc = function (value)
+                                            SetSelectedAbilityConfigProfile(value)
+                                        end,
+                                        default = 1,
+                                        reference = "Ability_Config_Profile_Dropdown",
+                                        width = "half",
+                                    },
+
+                                    {
+                                        type = "editbox",
+                                        name = "Selected Profile Name",
+                                        tooltip = "Rename the currently selected ability config profile.",
+                                        getFunc = function ()
+                                            return GetSelectedAbilityConfigProfileName()
+                                        end,
+                                        setFunc = function (value)
+                                            SetSelectedAbilityConfigProfileName(value)
+                                        end,
+                                        reference = "Selected_Ability_Config_Profile_Editbox",
+                                        isMultiline = false,
+                                        isExtraWide = false,
+                                        width = "half",
+                                    },
+
+                                    {
+                                        type = "editbox",
+                                        name = "New Profile Name",
+                                        tooltip = "Create a new profile for ability configuration changes.",
+                                        getFunc = function ()
+                                            return GetNewAbilityConfigProfileName()
+                                        end,
+                                        setFunc = function (value)
+                                            SetNewAbilityConfigProfileName(value)
+                                        end,
+                                        reference = "New_Ability_Config_Profile_Editbox",
+                                        isMultiline = false,
+                                        isExtraWide = false,
+                                        width = "half",
+                                    },
+
+                                    {
+                                        type = "button",
+                                        name = "Create New Profile",
+                                        width = "half",
+                                        func = function ()
+                                            CreateAbilityConfigProfile()
+                                        end,
+                                        disabled = function ()
+                                            return IsCreateAbilityConfigProfileDisabled()
+                                        end,
+                                    },
+
+                                    {
+                                        type = "button",
+                                        name = "Duplicate Selected Profile",
+                                        width = "half",
+                                        func = function ()
+                                            DuplicateSelectedAbilityConfigProfile()
+                                        end,
+                                    },
+
+                                    {
+                                        type = "button",
+                                        name = "Delete Selected Profile",
+                                        width = "half",
+                                        warning = "Deletes the selected ability config profile. If it is the last profile, a blank default profile will be recreated.",
+                                        func = function ()
+                                            DeleteSelectedAbilityConfigProfile()
+                                        end,
+                                    },
+                                },
+                            },
                         },
                     },
                     -- {	type = 'divider'  },

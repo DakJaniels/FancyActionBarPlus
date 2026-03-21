@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.16.0"
+local VERSION = "2.17.0"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -1104,15 +1104,254 @@ function FancyActionBar.GetAbilityConfig()
     return FancyActionBar.abilityConfig
 end
 
+local DEFAULT_ABILITY_CONFIG_PROFILE_NAME = "Default"
+
+local function GetAbilityConfigSavedVars()
+    if CV.useAccountWide then
+        return SV
+    end
+    return CV
+end
+
+local function GetFirstAbilityConfigProfileId(profiles)
+    local firstProfileId = nil
+
+    for profileId in pairs(profiles) do
+        if firstProfileId == nil or profileId < firstProfileId then
+            firstProfileId = profileId
+        end
+    end
+
+    return firstProfileId
+end
+
+local function GetUniqueAbilityConfigProfileName(savedVars, profileName, ignoredProfileId)
+    local trimmedName = type(profileName) == "string" and profileName:match("^%s*(.-)%s*$") or ""
+    local candidateName
+    local suffix = 2
+
+    if trimmedName == "" then
+        trimmedName = DEFAULT_ABILITY_CONFIG_PROFILE_NAME
+    end
+
+    candidateName = trimmedName
+
+    while true do
+        local duplicateFound = false
+
+        for profileId, profile in pairs(savedVars.configProfiles) do
+            if profileId ~= ignoredProfileId and string.lower(profile.name) == string.lower(candidateName) then
+                duplicateFound = true
+                candidateName = string.format("%s (%d)", trimmedName, suffix)
+                suffix = suffix + 1
+                break
+            end
+        end
+
+        if not duplicateFound then
+            break
+        end
+    end
+
+    return candidateName
+end
+
+local function EnsureAbilityConfigProfiles(savedVars)
+    local profiles = savedVars.configProfiles
+    local maxProfileId = 0
+
+    if type(profiles) ~= "table" then
+        profiles = {}
+        savedVars.configProfiles = profiles
+    end
+
+    for profileId, profile in pairs(profiles) do
+        if type(profileId) == "number" and profileId > maxProfileId then
+            maxProfileId = profileId
+        end
+
+        if type(profile) ~= "table" then
+            profiles[profileId] =
+            {
+                name = DEFAULT_ABILITY_CONFIG_PROFILE_NAME .. " " .. tostring(profileId),
+                changes = {},
+            }
+        else
+            if type(profile.name) ~= "string" or profile.name == "" then
+                profile.name = profileId == 1 and DEFAULT_ABILITY_CONFIG_PROFILE_NAME or ("Profile " .. tostring(profileId))
+            end
+            if type(profile.changes) ~= "table" then
+                profile.changes = {}
+            end
+        end
+    end
+
+    if next(profiles) == nil then
+        local legacyChanges = {}
+
+        if type(savedVars.configChanges) == "table" and next(savedVars.configChanges) ~= nil then
+            legacyChanges = ZO_DeepTableCopy(savedVars.configChanges)
+        end
+
+        profiles[1] =
+        {
+            name = DEFAULT_ABILITY_CONFIG_PROFILE_NAME,
+            changes = legacyChanges,
+        }
+        maxProfileId = 1
+    end
+
+    if not savedVars.selectedConfigProfile or not profiles[savedVars.selectedConfigProfile] then
+        savedVars.selectedConfigProfile = GetFirstAbilityConfigProfileId(profiles)
+    end
+
+    maxProfileId = maxProfileId > 0 and maxProfileId or (GetFirstAbilityConfigProfileId(profiles) or 0)
+    savedVars.nextConfigProfileId = math.max(tonumber(savedVars.nextConfigProfileId) or 1, maxProfileId + 1)
+    savedVars.configChanges = {}
+end
+
+function FancyActionBar.GetAbilityConfigProfiles()
+    local savedVars = GetAbilityConfigSavedVars()
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    return savedVars.configProfiles
+end
+
+function FancyActionBar.GetSelectedAbilityConfigProfileId()
+    local savedVars = GetAbilityConfigSavedVars()
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    return savedVars.selectedConfigProfile
+end
+
+function FancyActionBar.GetSelectedAbilityConfigProfile()
+    local savedVars = GetAbilityConfigSavedVars()
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    return savedVars.configProfiles[savedVars.selectedConfigProfile], savedVars.selectedConfigProfile
+end
+
+function FancyActionBar.SetSelectedAbilityConfigProfile(profileId)
+    local savedVars = GetAbilityConfigSavedVars()
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    if savedVars.configProfiles[profileId] == nil then
+        return false
+    end
+
+    savedVars.selectedConfigProfile = profileId
+
+    return true
+end
+
+function FancyActionBar.CreateAbilityConfigProfile(profileName)
+    local savedVars = GetAbilityConfigSavedVars()
+    local candidateName
+    local profileId
+
+    EnsureAbilityConfigProfiles(savedVars)
+    candidateName = GetUniqueAbilityConfigProfileName(savedVars, profileName)
+
+    profileId = tonumber(savedVars.nextConfigProfileId) or 1
+    while savedVars.configProfiles[profileId] ~= nil do
+        profileId = profileId + 1
+    end
+
+    savedVars.configProfiles[profileId] =
+    {
+        name = candidateName,
+        changes = {},
+    }
+    savedVars.selectedConfigProfile = profileId
+    savedVars.nextConfigProfileId = profileId + 1
+
+    return profileId, candidateName
+end
+
+function FancyActionBar.SetAbilityConfigProfileName(profileId, profileName)
+    local savedVars = GetAbilityConfigSavedVars()
+    local profile
+    local candidateName
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    profile = savedVars.configProfiles[profileId]
+    if profile == nil then
+        return false
+    end
+
+    candidateName = GetUniqueAbilityConfigProfileName(savedVars, profileName, profileId)
+    profile.name = candidateName
+
+    return true, candidateName
+end
+
+function FancyActionBar.DuplicateAbilityConfigProfile(profileId)
+    local savedVars = GetAbilityConfigSavedVars()
+    local sourceProfile
+    local newProfileId
+    local newProfileName
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    sourceProfile = savedVars.configProfiles[profileId]
+    if sourceProfile == nil then
+        return false
+    end
+
+    newProfileId, newProfileName = FancyActionBar.CreateAbilityConfigProfile(sourceProfile.name .. " (Copy)")
+    savedVars.configProfiles[newProfileId].changes = ZO_DeepTableCopy(sourceProfile.changes)
+
+    return newProfileId, newProfileName
+end
+
+function FancyActionBar.DeleteAbilityConfigProfile(profileId)
+    local savedVars = GetAbilityConfigSavedVars()
+
+    EnsureAbilityConfigProfiles(savedVars)
+
+    if savedVars.configProfiles[profileId] == nil then
+        return false
+    end
+
+    savedVars.configProfiles[profileId] = nil
+
+    if next(savedVars.configProfiles) == nil then
+        savedVars.configProfiles[1] =
+        {
+            name = DEFAULT_ABILITY_CONFIG_PROFILE_NAME,
+            changes = {},
+        }
+        savedVars.selectedConfigProfile = 1
+        savedVars.nextConfigProfileId = math.max(tonumber(savedVars.nextConfigProfileId) or 1, 2)
+        return true, savedVars.selectedConfigProfile
+    end
+
+    if savedVars.selectedConfigProfile == profileId or savedVars.configProfiles[savedVars.selectedConfigProfile] == nil then
+        savedVars.selectedConfigProfile = GetFirstAbilityConfigProfileId(savedVars.configProfiles)
+    end
+
+    return true, savedVars.selectedConfigProfile
+end
+
 ---
 --- @return table
 function FancyActionBar.GetAbilityConfigChanges()
-    if CV.useAccountWide
-    then
-        return SV.configChanges
-    else
-        return CV.configChanges
+    local profile = FancyActionBar.GetSelectedAbilityConfigProfile()
+
+    if profile == nil then
+        return {}
     end
+
+    if type(profile.changes) ~= "table" then
+        profile.changes = {}
+    end
+
+    return profile.changes
 end
 
 function FancyActionBar.GetHideOnNoTargetGlobalSetting()
@@ -6427,6 +6666,9 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
         end
         CV.dynamicAbilityConfig = true
     end
+
+    EnsureAbilityConfigProfiles(SV)
+    EnsureAbilityConfigProfiles(CV)
 
     -- Main validation flow
     if sv.variablesValidated == false or sv.addonVersion ~= FancyActionBar.GetVersion() then
