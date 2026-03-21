@@ -10,8 +10,8 @@ local CV = ...
 local ACTION_BAR = GetControl("ZO_ActionBar1")
 local MIN_INDEX = 3          -- first ability index
 local MAX_INDEX = 7          -- last ability index
-local ULT_INDEX = 8         -- MAX_INDEX + 1
-local QS_INDEX = 9         -- ULT_INDEX + 1
+local ULT_INDEX = 8          -- MAX_INDEX + 1
+local QS_INDEX = 9           -- ULT_INDEX + 1
 local SLOT_INDEX_OFFSET = 20 -- offset for backbar abilities indices
 local COMPANION_INDEX_OFFSET = 30
 local inMenu = false
@@ -1003,7 +1003,7 @@ local function ResetUpdateSettings()
     end
 end
 
-GetAbilityConfigProfileChoices = function()
+GetAbilityConfigProfileChoices = function ()
     local choices = {}
     local profiles = FancyActionBar.GetAbilityConfigProfiles()
     local sortedProfiles = {}
@@ -1015,7 +1015,7 @@ GetAbilityConfigProfileChoices = function()
         table.insert(sortedProfiles, { id = profileId, name = profile.name })
     end
 
-    table.sort(sortedProfiles, function(left, right)
+    table.sort(sortedProfiles, function (left, right)
         local leftName = string.lower(left.name)
         local rightName = string.lower(right.name)
 
@@ -1035,7 +1035,7 @@ GetAbilityConfigProfileChoices = function()
     return choices
 end
 
-GetSelectedAbilityConfigProfileName = function()
+GetSelectedAbilityConfigProfileName = function ()
     local profile, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
 
     if profile == nil then
@@ -1047,7 +1047,7 @@ GetSelectedAbilityConfigProfileName = function()
     return profile.name
 end
 
-UpdateAbilityConfigProfileControls = function()
+UpdateAbilityConfigProfileControls = function ()
     local selectedProfileName = GetSelectedAbilityConfigProfileName()
     local profileDropdown = WM:GetControlByName("Ability_Config_Profile_Dropdown")
     local selectedProfileEditbox = WM:GetControlByName("Selected_Ability_Config_Profile_Editbox")
@@ -5311,7 +5311,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     local barInfo =
                                     {
                                         { "Front Bar", GetCurrentFrontBarInfo() },
-                                        { "Back Bar", GetCurrentBackBarInfo() },
+                                        { "Back Bar",  GetCurrentBackBarInfo() },
                                     }
 
                                     for _, info in ipairs(barInfo) do

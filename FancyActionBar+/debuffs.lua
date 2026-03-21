@@ -454,7 +454,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         debuff.endTime = endTime
         debuff.duration = endTime - beginTime
 
-        
+
         local effect = FancyActionBar.effects[debuff.id] or { id = debuff.id }
         for k, v in pairs(debuff) do effect[k] = v end
         effect.isDebuff = true
@@ -540,7 +540,10 @@ local function ClearDebuffsOnCombatEnd()
                 else
                     -- Clear per-debuff state and update visuals
                     local eff = effects and effects[effect.id]
-                    if eff and eff.targets then eff.targets = nil; effects[effect.id] = eff end
+                    if eff and eff.targets then
+                        eff.targets = nil
+                        effects[effect.id] = eff
+                    end
                     effect.endTime = 0
                     if effect.hasExternalStackSources or HasDebuffStackTargets(effect.id) then
                         FancyActionBar.UpdateStacksFromEvent(effect.id, nil, true)
