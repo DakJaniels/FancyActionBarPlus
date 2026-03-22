@@ -261,11 +261,8 @@ FancyActionBar.constants =
 -------------------------------------------------------------------------------
 local defaultSettings = FancyActionBar.defaultSettings -- default settings variables...
 local abilityConfig = {}                               -- parsed FancyActionBar.abilityConfig.
-local specialIds = {}                                  -- abilities that needs to be updated individually when fired ( cause too special to be tracked by effect changed events, or if I wanna do something more with them )
 local sourceAbilities = {}                             -- to track which abilities are currently slotting effects
 local slottedIds = {}                                  -- to match skills with their tracked effect
-local effectSlots = {}                                 -- to indentify slots that track the same effect
-local debuffTargets = {}                               -- not used, but might be needed when I get better at writing tracking for debuffs on enemies
 local lastAreaTargets = {}                             -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
 local registeredSkillLines = {}                        -- to track skill lines that have been registered for ability changes
 -------------------------------------------------------------------------------
@@ -5613,7 +5610,7 @@ function FancyActionBar.SyncEffectState()
                 id,
                 COMBAT_UNIT_TYPE_PLAYER
             )
-            FancyActionBar.effects[id] = nil
+--            FancyActionBar.effects[id] = nil -- Hard killing the effect here is causing issues with fallback timers and such not sticking
         end
     end
 end
