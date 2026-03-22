@@ -5579,6 +5579,7 @@ function FancyActionBar.SyncEffectState()
     local numBuffs = GetNumBuffs("player")
     local externalBuffs = SV.externalBuffs
     local stackableBuff = FancyActionBar.stackableBuff
+    local specialEffects = FancyActionBar.specialEffects
 
     for i = 1, numBuffs do
         local unitBuffName, beginTime, endTime, buffSlot, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, abilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
@@ -5607,19 +5608,17 @@ function FancyActionBar.SyncEffectState()
         end
     end
 
-    if FancyActionBar.effects then
-        for id, effect in pairs(FancyActionBar.effects) do
-            if not activeAbility[id] and not effect.isDebuff and not FancyActionBar.specialEffects[effect.id] then
-                OnEffectChanged(
-                    nil, 
-                    EFFECT_RESULT_FADED, 
-                    nil, nil, "player", 
-                    0, 0, 0, nil, nil, nil, nil, nil, nil, nil, 
-                    id, 
-                    COMBAT_UNIT_TYPE_PLAYER
-                )
-                FancyActionBar.effects[id] = nil
-            end
+    for id, effect in pairs(FancyActionBar.effects) do
+        if not activeAbility[id] and not effect.isDebuff and not specialEffects[effect.id] then
+            OnEffectChanged(
+                nil, 
+                EFFECT_RESULT_FADED, 
+                nil, nil, "player", 
+                0, 0, 0, nil, nil, nil, nil, nil, nil, nil, 
+                id, 
+                COMBAT_UNIT_TYPE_PLAYER
+            )
+            FancyActionBar.effects[id] = nil
         end
     end
 end
