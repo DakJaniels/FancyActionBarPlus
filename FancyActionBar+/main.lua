@@ -4209,7 +4209,7 @@ ActionButton["SetShowBindingText"] = FancySetShowBindingText
 
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
-    -- Seems to fix issues with basegame ult glow animation de
+    -- Seems to fix issues with basegame ult glow animation desync
     if self.UpdateCurrentUltimateMax then self:UpdateCurrentUltimateMax() end
 
     if self.GetUltimateCount then
