@@ -1799,26 +1799,26 @@ function FancyActionBar.ScanBuffs()
 
         local entry = buffs[buffId] or { hasEffect = true, duration = -1, stacks = 0, start = 0, finish = 0, id = abilityId, hasActiveCast = castByPlayer }
 
-        entry.start = beginTime > entry.start and beginTime or entry.start
-        entry.finish = endTime > entry.finish and endTime or entry.finish
-        entry.duration = (entry.finish == -1) and -1 or (entry.finish - time())
-        entry.hasActiveCast = entry.hasActiveCast or castByPlayer
+        if stackableBuffId and not fixedStacks[abilityId] and buffSlot then
+            local now = time()
+            local activeCount = FancyActionBar.RecordUnit(stackableBuffId, nil, buffSlot, now, beginTime, endTime, "sources")
+            if activeCount and activeCount > 0 then
+                entry.stacks = activeCount
+            end
+        end
 
         if stackableBuffId and not fixedStacks[abilityId] then
+            if SV.externalBuffs or castByPlayer then
+                entry.start = beginTime > entry.start and beginTime or entry.start
+                entry.finish = endTime > entry.finish and endTime or entry.finish
+                entry.duration = (entry.finish == -1) and -1 or (entry.finish - time())
+                entry.hasActiveCast = entry.hasActiveCast or castByPlayer
+            end
+        else
             entry.start = beginTime > entry.start and beginTime or entry.start
             entry.finish = endTime > entry.finish and endTime or entry.finish
             entry.duration = (entry.finish == -1) and -1 or (entry.finish - time())
             entry.hasActiveCast = entry.hasActiveCast or castByPlayer
-
-            -- Record per-source times onto the canonical entry.
-            if buffSlot then
-                local now = time()
-                local activeCount = FancyActionBar.RecordUnit(stackableBuffId, nil, buffSlot, now, beginTime, endTime, "sources")
-                if activeCount and activeCount > 0 then
-                    entry.stacks = activeCount
-                end
-            end
-        else
             entry.stacks = fixedStacks[buffId]
                 or fixedStacks[abilityId]
                 or (specialEffects[abilityId] and specialEffects[abilityId].stacks)
