@@ -4486,6 +4486,10 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
     local dur, s
     local timestampStr = timestamp and strformat("%0.3f", timestamp) or "nil"
 
+    uName = uName or "nil"
+    unitId = unitId or "nil"
+    eSlot = eSlot or "nil"
+
     if (fade ~= nil and gain ~= nil)
     then
         dur = strformat(" %0.1f", fade - gain) .. "s"
@@ -5605,7 +5609,7 @@ function FancyActionBar.SyncEffectState()
 
     if FancyActionBar.effects then
         for id, effect in pairs(FancyActionBar.effects) do
-            if not activeAbility[id] and not effect.isDebuff then
+            if not activeAbility[id] and not effect.isDebuff and not FancyActionBar.specialEffects[effect.id] then
                 OnEffectChanged(
                     nil, 
                     EFFECT_RESULT_FADED, 
