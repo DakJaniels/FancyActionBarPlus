@@ -1854,18 +1854,13 @@ end
 --- Prefer the runtime `unitId` so target-count bookkeeping remains stable
 --- across reticle changes and effect-slot reuse; only fall back to
 --- `effectSlot` when the event does not provide a usable unit id.
+--- @param which string "sources" or "targets"
 --- @param unitTag string
 --- @param unitId number
 --- @param effectSlot number
 --- @return number unitKey
-function FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-    if unitTag == "player" then return effectSlot end
-
-    local key = unitId and unitId > 0 and unitId or nil
-    if not key and effectSlot and effectSlot > 0 then
-        key = effectSlot
-    end
-    return key
+function FancyActionBar.ResolveUnitKey(which, unitTag, unitId, effectSlot)
+    if which == "sources" and unitTag == "player" then return effectSlot else return unitId end
 end
 
 function FancyActionBar.RemoveUnit(id, unitKey, currentTime, which)
@@ -4611,7 +4606,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
 
         local isActiveCastValid = effect.hasActiveCast and unitId and unitId > 0
         if isMultiTargetValid or isActiveCastValid then
-            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+            local unitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
             FancyActionBar.RecordUnit(effect.id, effect, unitKey, updateTime, effect.beginTime, effect.endTime, "targets")
             FancyActionBar.HandleTargetUpdate(effect.id)
         end
@@ -4660,7 +4655,7 @@ function FancyActionBar.HandleMultiTargetFade(effectId, unitTag, unitId, effectS
     local targetData = FancyActionBar.GetUnits(effectId, "targets")
     if not targetData then return 0 end
 
-    local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+    local unitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
     FancyActionBar.RemoveUnit(effectId, unitKey, currentTime, "targets")
 
     local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(effectId, currentTime, "targets")
@@ -4947,6 +4942,7 @@ local function OnHotbarSlotStateUpdated(_, slot, hotbar)
             local currentTime = time()
             local latencyAdjust = zo_max(GetLatency(), 150) + 200
             local effect = FancyActionBar.effects[channeledAbilityUsed]
+            if not effect then return end
             if effect.castEndTime and (effect.castEndTime > (currentTime + latencyAdjust)) then
                 effect.castEndTime = 0
                 wasBlockActive = isBlockActive
@@ -5370,6 +5366,8 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     local isTargetPlayerOrCompanion = isTargetPlayer or (HasActiveCompanion() and unitTag == "companion")
     local hasExternalStackTargets = #FancyActionBar.GetConfiguredStackSources(abilityId) > 0
     local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] ~= nil
+    local sourceUnitKey = FancyActionBar.ResolveUnitKey("sources", unitTag, unitId, effectSlot)
+    local targetUnitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
 
     if SV.debugAll then
         FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType, t)
@@ -5435,9 +5433,8 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         end
 
         if willRecord then
-            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-            if unitKey and unitKey > 0 then
-                FancyActionBar.RecordUnit(effect.id, effect, unitKey, t, beginTime, endTime, "targets")
+            if targetUnitKey and targetUnitKey > 0 then
+                FancyActionBar.RecordUnit(effect.id, effect, targetUnitKey, t, beginTime, endTime, "targets")
                 local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(effect.id, t, "targets")
                 if activeTargets >= 1 and maxEnd and maxEnd > 0 then
                     effect.endTime = maxEnd
@@ -5451,7 +5448,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         if isTargetPlayer and unitId and unitId > 0 then
             local sbId = FancyActionBar.stackableBuff[abilityId]
             if sbId then
-                FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
+                FancyActionBar.RecordUnit(sbId, nil, sourceUnitKey, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
                 local _, _, sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
                 FancyActionBar.SetStacks(sbId, sc)
             end
@@ -5484,9 +5481,8 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         local td = FancyActionBar.GetUnits(effect.id, "targets")
         local hasActiveTargets = false
         if td and td.times then
-            local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-            if unitKey and td.times[unitKey] then
-                FancyActionBar.RemoveUnit(effect.id, unitKey, t, "targets")
+            if targetUnitKey and td.times[targetUnitKey] then
+                FancyActionBar.RemoveUnit(effect.id, targetUnitKey, t, "targets")
                 local soonest, maxEnd, activeTargets = FancyActionBar.RecomputeUnits(effect.id, t, "targets")
                 local rem = FancyActionBar.GetUnits(effect.id, "targets")
                 if activeTargets >= 1 and rem and rem.maxEndTime > 0 then
@@ -5499,7 +5495,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 if isTargetPlayer then
                     local sbId = FancyActionBar.stackableBuff[abilityId]
                     if sbId then
-                        FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources")
+                        FancyActionBar.RemoveUnit(sbId, sourceUnitKey, t, "sources")
                         local _, _, sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
                         FancyActionBar.SetStacks(sbId, sc)
                     end
@@ -5542,9 +5538,8 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
             local validEnd = effect.beginTime and (effect.beginTime < (t - 0.7))
             if not validEnd then
                 if unitId and td and td.times then
-                    local unitKey = FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
-                    if unitKey then
-                        local times = td.times[unitKey]
+                    if targetUnitKey then
+                        local times = td.times[targetUnitKey]
                         if times and times.endTime and times.endTime > t then return end
                     end
                 end
@@ -5588,21 +5583,21 @@ function FancyActionBar.SyncEffectState()
             activeAbility[abilityId] = true
 
             OnEffectChanged(
-                nil, 
-                EFFECT_RESULT_UPDATED, 
-                buffSlot, 
-                unitBuffName, 
-                "player", 
-                beginTime, 
-                endTime, 
-                stackCount, 
-                iconName, 
-                buffType, 
-                effectType, 
-                abilityType, 
-                statusEffectType, 
-                nil, nil, 
-                abilityId, 
+                nil,
+                EFFECT_RESULT_UPDATED,
+                buffSlot,
+                unitBuffName,
+                "player",
+                beginTime,
+                endTime,
+                stackCount,
+                iconName,
+                buffType,
+                effectType,
+                abilityType,
+                statusEffectType,
+                nil, nil,
+                abilityId,
                 COMBAT_UNIT_TYPE_PLAYER
             )
         end
@@ -5611,11 +5606,11 @@ function FancyActionBar.SyncEffectState()
     for id, effect in pairs(FancyActionBar.effects) do
         if not activeAbility[id] and not effect.isDebuff and not specialEffects[effect.id] then
             OnEffectChanged(
-                nil, 
-                EFFECT_RESULT_FADED, 
-                nil, nil, "player", 
-                0, 0, 0, nil, nil, nil, nil, nil, nil, nil, 
-                id, 
+                nil,
+                EFFECT_RESULT_FADED,
+                nil, nil, "player",
+                0, 0, 0, nil, nil, nil, nil, nil, nil, nil,
+                id,
                 COMBAT_UNIT_TYPE_PLAYER
             )
             FancyActionBar.effects[id] = nil
