@@ -108,7 +108,6 @@ FancyActionBar.stackSourceConfig = {} -- Cache for GetConfiguredStackSources res
 FancyActionBar.toggles = {}        -- works together with effects to update toggled abilities activation
 -- FancyActionBar.debuffs = {}     -- per-effect debuff state is now tracked with FancyActionBar.effects[id].isDebuff.
 FancyActionBar.stashedEffects = {} -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
-FancyActionBar.scannedBuffs = {}   -- Used to track buffs that are currently active on the player
 
 -- Backbar buttons.
 FancyActionBar.buttons = {} -- Contains: abilities duration, number of stacks and debuffed targets, and visual effects.
@@ -1708,13 +1707,7 @@ function FancyActionBar.OnPlayerActivated() -- status update after travel.
     FancyActionBar.HandleCompanionUltimate()
 
     local zone = GetZoneId(GetUnitZoneIndex("player"))
-    FancyActionBar.ScanBuffs()
-    if FancyActionBar.zone ~= zone then
-        FancyActionBar.zone = zone
-        FancyActionBar.RefreshEffects()
-    end
-    FancyActionBar.EffectCheck()
-    FancyActionBar.scannedBuffs = {}
+    FancyActionBar.SyncEffectState()
     FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT))
     FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT))
     FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
@@ -1747,15 +1740,16 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
     local currentStacks = 0
     local wasCastByPlayer = eff.hasActiveCast or false
 
-    -- If per-source unit data exists, use it for accurate counts and times
     if eff.sources and eff.sources.times then
         local _, maxEnd, activeCount = FancyActionBar.RecomputeUnits(eff.id, now, "sources")
         if activeCount and activeCount > 0 then
-            hasEffect = true
-            duration = maxEnd and (maxEnd - now) or -1
-            start = eff.beginTime or start
-            finish = maxEnd or finish
             currentStacks = activeCount
+            if SV.externalBuffs then
+                hasEffect = true
+                duration = maxEnd and (maxEnd - now) or -1
+                start = eff.beginTime or start
+                finish = maxEnd or finish
+            end
         end
     end
 
@@ -1782,68 +1776,6 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
     end
 
     return hasEffect, duration, currentStacks or 0, start or 0, finish or 0, wasCastByPlayer
-end
-
-function FancyActionBar.ScanBuffs()
-    local buffs = {}
-    local GetNumBuffs, GetUnitBuffInfo = GetNumBuffs, GetUnitBuffInfo
-    local stackableBuff, fixedStacks, specialEffects = FancyActionBar.stackableBuff, FancyActionBar.fixedStacks, FancyActionBar.specialEffects
-
-    local numBuffs = GetNumBuffs("player")
-    for i = 1, numBuffs do
-        local name, beginTime, endTime, buffSlot, stackCount, iconFilename,
-        buffType, effectType, abilityType, statusEffectType, abilityId,
-        canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
-        local stackableBuffId = stackableBuff[abilityId]
-        local buffId = NormalizeStackSourceId(stackableBuffId or abilityId) or stackableBuffId or abilityId
-
-        local entry = buffs[buffId] or { hasEffect = true, duration = -1, stacks = 0, start = 0, finish = 0, id = abilityId, hasActiveCast = castByPlayer }
-
-        if stackableBuffId and not fixedStacks[abilityId] and buffSlot then
-            local now = time()
-            local activeCount = FancyActionBar.RecordUnit(stackableBuffId, nil, buffSlot, now, beginTime, endTime, "sources")
-            if activeCount and activeCount > 0 then
-                entry.stacks = activeCount
-            end
-        end
-
-        if stackableBuffId and not fixedStacks[abilityId] then
-            if SV.externalBuffs or castByPlayer then
-                entry.start = beginTime > entry.start and beginTime or entry.start
-                entry.finish = endTime > entry.finish and endTime or entry.finish
-                entry.duration = (entry.finish == -1) and -1 or (entry.finish - time())
-                entry.hasActiveCast = entry.hasActiveCast or castByPlayer
-            end
-        else
-            entry.start = beginTime > entry.start and beginTime or entry.start
-            entry.finish = endTime > entry.finish and endTime or entry.finish
-            entry.duration = (entry.finish == -1) and -1 or (entry.finish - time())
-            entry.hasActiveCast = entry.hasActiveCast or castByPlayer
-            entry.stacks = fixedStacks[buffId]
-                or fixedStacks[abilityId]
-                or (specialEffects[abilityId] and specialEffects[abilityId].stacks)
-                or stackCount
-                or entry.stacks
-        end
-        buffs[buffId] = entry
-    end
-
-    FancyActionBar.scannedBuffs = buffs
-end
-
-function FancyActionBar.CheckCachedBuffs(id)
-    local scannedBuffs = FancyActionBar.scannedBuffs or {}
-    local entry = scannedBuffs[id]
-    -- If there's no direct scanned entry for this id and it's part of a
-    -- stackable mapping, prefer the canonical scanned entry so callers get
-    -- the aggregated stack count instead of a per-ability "1" entry.
-    if not entry and FancyActionBar.stackableBuff[id] then
-        entry = scannedBuffs[FancyActionBar.stackableBuff[id]]
-    end
-    if entry then
-        return entry.hasEffect, entry.duration, entry.stacks, entry.start, entry.finish, entry.hasActiveCast
-    end
-    return false, -1, 0, 0, 0, false
 end
 
 -- Recompute and prune per-unit target times for an effect.
@@ -1927,6 +1859,8 @@ end
 --- @param effectSlot number
 --- @return number unitKey
 function FancyActionBar.ResolveUnitKey(unitTag, unitId, effectSlot)
+    if unitTag == "player" then return effectSlot end
+
     local key = unitId and unitId > 0 and unitId or nil
     if not key and effectSlot and effectSlot > 0 then
         key = effectSlot
@@ -2890,43 +2824,6 @@ function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the ef
     end
 end
 
-function FancyActionBar.EffectCheck()
-    local checkTime = time()
-    for id, effect in pairs(FancyActionBar.effects) do
-        if FancyActionBar.specialEffects[effect.id] and effect.endTime > 0 then
-            zo_callLater(function ()
-                FancyActionBar.ReCheckSpecialEffect(effect)
-            end, (effect.endTime - checkTime) * 1000)
-        else
-            local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(effect.id)
-            if hasEffect then
-                effect.beginTime = (hasEffect and beginTime ~= 0) and beginTime or checkTime
-                effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
-            end
-
-            if effect.hasExternalStackSources then
-                FancyActionBar.SetStacks(effect.id, 0, true)
-            else
-                FancyActionBar.SetStacks(effect.id, stacks)
-            end
-        end
-    end
-
-    local toggles = FancyActionBar.toggles or {}
-    for key, value in pairs(toggles) do
-        if key ~= "banner" then
-            local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(key)
-            toggles[key] = hasEffect and true or false
-        end
-    end
-    toggles["banner"] = toggles["banner"] or {}
-    for bannerId, _ in pairs(FancyActionBar.bannerBearer) do
-        local hasEffect, duration, stacks, beginTime, finishTime, activeCast = FancyActionBar.CheckCachedBuffs(bannerId)
-        toggles["banner"][bannerId] = hasEffect and true or false
-    end
-    FancyActionBar.toggles = toggles
-end
-
 -- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios
 function FancyActionBar.ReCheckSpecialEffect(effect)
     local checkTime = time()
@@ -2970,23 +2867,7 @@ function FancyActionBar.ReCheckSpecialEffect(effect)
             end
         end
     end
-    if FancyActionBar.bannerBearer[effect.id] then
-        local anyFound = false
-        local latestStart = 0
-        for buffId, entry in pairs(FancyActionBar.scannedBuffs or {}) do
-            if FancyActionBar.bannerBearer[buffId] and entry.hasEffect and entry.hasActiveCast then
-                anyFound = true
-                if entry.start and entry.start > latestStart then
-                    latestStart = entry.start
-                end
-            end
-        end
-        local toggleId = sourceAbilities[effect.id] or effect.id
-        FancyActionBar.toggles[toggleId] = anyFound
-        if FancyActionBar.effects[effect.id] then
-            FancyActionBar.effects[effect.id].beginTime = (anyFound and latestStart ~= 0) and latestStart or checkTime
-        end
-    elseif FancyActionBar.toggled[effect.id] then -- update the highlight of toggled abilities.
+    if FancyActionBar.toggled[effect.id] then -- update the highlight of toggled abilities.
         local toggleAbility = sourceAbilities[effect.id] and sourceAbilities[effect.id] or effect.id
         FancyActionBar.toggles[toggleAbility] = hasEffect
     end
@@ -4328,7 +4209,7 @@ ActionButton["SetShowBindingText"] = FancySetShowBindingText
 
 local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
-    -- Seems to fix issues with basegame ult glow animation desync
+    -- Seems to fix issues with basegame ult glow animation de
     if self.UpdateCurrentUltimateMax then self:UpdateCurrentUltimateMax() end
 
     if self.GetUltimateCount then
@@ -4912,117 +4793,6 @@ function FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, begi
     FancyActionBar.UpdateEffect(parentEffect)
 end
 
-function FancyActionBar.RefreshEffects()
-    FancyActionBar.toggles = {}
-    FancyActionBar.toggles["banner"] = {}
-    for id, effect in pairs(FancyActionBar.effects) do
-        if effect then
-            effect.hasActiveCast = nil
-            effect.castTime = nil
-            effect.endTime = -1
-            local _, _, currentStacks = FancyActionBar.CheckCachedBuffs(id)
-            if UsesExternalStackDisplay(effect) then
-                effect.stacks = 0
-            else
-                effect.stacks = currentStacks or 0
-            end
-        end
-    end
-
-    local t = time()
-    for buffIndex, buff in pairs(FancyActionBar.scannedBuffs) do
-        local beginTime = buff.begin
-        local endTime = buff.finish
-        local stackCount = buff.stacks
-        local abilityId = buff.id
-        local activeCast = buff.hasActiveCast
-        if not activeCast then
-            if SV.externalBuffs then --[[and not SV.externalBlackList[abilityId] then]]
-                local effect = FancyActionBar.effects[abilityId]
-                if effect and not SV.externalBlackList[abilityId] then
-                    if beginTime == endTime then
-                        FancyActionBar.UpdatePassiveEffect(effect.id, true)
-                    else
-                        if (not effect.hasActiveCast) then
-                            local slot = nil
-                            if effect.slot1 then
-                                slot = effect.slot1
-                            elseif effect.slot2 then
-                                slot = effect.slot2
-                            end
-                            if FancyActionBar.effects and FancyActionBar.effects[effect.id] then
-                                FancyActionBar.effects[effect.id].hasActiveCast = true
-                                FancyActionBar.effects[effect.id].castTime = 0
-                            else
-                                effect.hasActiveCast = true
-                                effect.castTime = 0
-                            end
-                        end
-                        if endTime - t > 0 then
-                            if not FancyActionBar.GetUnits(effect.id, "targets") then
-                                effect.beginTime = beginTime
-                            end
-                            effect.endTime = endTime
-                            FancyActionBar.UpdateEffect(effect)
-                        end
-                    end
-                end
-            end
-        else
-            do
-                local effect = FancyActionBar.effects and FancyActionBar.effects[abilityId]
-                if effect then
-                    effect.hasActiveCast = true
-                    FancyActionBar.effects[abilityId] = effect
-                end
-            end
-            if FancyActionBar.fixedStacks[abilityId] ~= nil or #FancyActionBar.GetConfiguredStackSources(abilityId) > 0 then
-                FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
-            end
-            if FancyActionBar.bannerBearer[abilityId] then
-                for k, v in pairs(FancyActionBar.bannerBearer) do
-                    if sourceAbilities[k] then
-                        FancyActionBar.toggles["banner"][sourceAbilities[k]] = true
-                        if FancyActionBar.effects[sourceAbilities[k]] then
-                            FancyActionBar.effects[sourceAbilities[k]].beginTime = (beginTime ~= 0) and beginTime or t
-                        end
-                        FancyActionBar.UpdateToggledAbility(sourceAbilities[k], true)
-                    end
-                end
-            end
-            if FancyActionBar.toggled[abilityId] then
-                local toggleAbility = sourceAbilities[abilityId] or abilityId
-                FancyActionBar.UpdateToggledAbility(toggleAbility, true)
-            end
-
-            local effect = FancyActionBar.effects[abilityId]
-            if effect then
-                if endTime - t > 0 then
-                    if not effect.hasActiveCast then
-                        local eff = FancyActionBar.effects and FancyActionBar.effects[effect.id]
-                        if eff then
-                            eff.hasActiveCast = true
-                            eff.castTime = 0
-                            FancyActionBar.effects[effect.id] = eff
-                        else
-                            effect.hasActiveCast = true
-                            effect.castTime = 0
-                        end
-                    end
-
-                    if effect.hasActiveCast then
-                        if not FancyActionBar.GetUnits(effect.id, "targets") then
-                            effect.beginTime = beginTime
-                        end
-                        effect.endTime = endTime
-                        FancyActionBar.UpdateEffect(effect)
-                    end
-                end
-            end
-        end
-    end
-end
-
 -- local groundString    = GetString(SI_ABILITY_TOOLTIP_TARGET_TYPE_GROUND)
 -- local groundAbilities = {}
 -- local LAST_ABILITY    = 0
@@ -5202,14 +4972,12 @@ end
 
 -- Set Bar Settings for hideLockedBar mode and/or apply AbilityFxOverrides
 local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbilityAssignments, activeHotbarCategory)
-    FancyActionBar.ScanBuffs()
     if specialHotbar[activeHotbarCategory] then
         specialHotbarActive = true
         if SV.hideLockedBar == true then
             FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
         end
         FancyActionBar.SlotEffects()
-        FancyActionBar.RefreshEffects()
     elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
         specialHotbarActive = false
         if FancyActionBar.oakensoulEquipped then
@@ -5223,9 +4991,8 @@ local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbili
         end
         FancyActionBar.SwapControls(specialHotbarActive)
         FancyActionBar.SlotEffects()
-        FancyActionBar.RefreshEffects()
     end
-    FancyActionBar.scannedBuffs = {}
+    FancyActionBar.SyncEffectState()
     FancyActionBar.UpdateUltimateCost()
     FancyActionBar.ApplyAbilityFxOverrides()
 end
@@ -5263,9 +5030,7 @@ local function OnAllHotbarsUpdated()
     FancyActionBar.ToggleUltimateValue()
     FancyActionBar.SetUltFrameAlpha()
     FancyActionBar.UpdateSlottedSkillsDecriptions()
-    FancyActionBar.ScanBuffs()
-    FancyActionBar.EffectCheck()
-    FancyActionBar.scannedBuffs = {}
+    FancyActionBar.SyncEffectState()
     FancyActionBar.ApplyAbilityFxOverrides()
     FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
     HideAllAbilityActionButtonDropCallouts()
@@ -5805,6 +5570,56 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     end
 end
 
+function FancyActionBar.SyncEffectState()
+    local activeAbility = {}
+    local numBuffs = GetNumBuffs("player")
+    local externalBuffs = SV.externalBuffs
+    local stackableBuff = FancyActionBar.stackableBuff
+
+    for i = 1, numBuffs do
+        local unitBuffName, beginTime, endTime, buffSlot, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, abilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
+        if castByPlayer or externalBuffs or stackableBuff[abilityId] then
+
+            activeAbility[abilityId] = true
+
+            OnEffectChanged(
+                nil, 
+                EFFECT_RESULT_UPDATED, 
+                buffSlot, 
+                unitBuffName, 
+                "player", 
+                beginTime, 
+                endTime, 
+                stackCount, 
+                iconName, 
+                buffType, 
+                effectType, 
+                abilityType, 
+                statusEffectType, 
+                nil, nil, 
+                abilityId, 
+                COMBAT_UNIT_TYPE_PLAYER
+            )
+        end
+    end
+
+    if FancyActionBar.effects then
+        for id, effect in pairs(FancyActionBar.effects) do
+            if not activeAbility[id] and not effect.isDebuff then
+                OnEffectChanged(
+                    nil, 
+                    EFFECT_RESULT_FADED, 
+                    nil, nil, "player", 
+                    0, 0, 0, nil, nil, nil, nil, nil, nil, nil, 
+                    id, 
+                    COMBAT_UNIT_TYPE_PLAYER
+                )
+                FancyActionBar.effects[id] = nil
+            end
+        end
+    end
+end
+
 -- Update overlays.
 local function Update()
     for i = MIN_INDEX, ULT_INDEX do
@@ -5871,10 +5686,7 @@ local function OnDeath(eventId, unitTag, isDead)
     isChanneling = false
 
     -- Update effects and tracking
-    FancyActionBar.ScanBuffs()
-    FancyActionBar.RefreshEffects()
-    FancyActionBar.EffectCheck()
-    FancyActionBar.scannedBuffs = {}
+    FancyActionBar.SyncEffectState()
     FancyActionBar.UpdateDebuffTracking()
 end
 
@@ -6007,9 +5819,7 @@ end
 local function ActionBarActivated(eventCode, initial)
     if not initial then
         -- OnAllHotbarsUpdated()
-        FancyActionBar.ScanBuffs()
-        FancyActionBar.EffectCheck()
-        FancyActionBar.scannedBuffs = {}
+        FancyActionBar.SyncEffectState()
     end
     if not rebuildHotbar then
         rebuildHotbar = zo_callLater(function ()
