@@ -1872,12 +1872,15 @@ function FancyActionBar.RemoveUnit(id, unitKey, currentTime, which)
             FancyActionBar.effects[id] = effect
         end
     end
+
     local activeCount, soonest, maxEnd = FancyActionBar.PruneUnits(unitData, currentTime)
     if effect then
-        if activeCount > 0 and maxEnd and maxEnd > (effect.endTime or 0) then
-            effect.endTime = maxEnd
-        elseif activeCount == 0 then
-            effect.endTime = currentTime
+        if which == "targets" or SV.externalBuffs then
+            if activeCount > 0 and maxEnd and maxEnd > (effect.endTime or 0) then
+                effect.endTime = maxEnd
+            elseif activeCount == 0 then
+                effect.endTime = currentTime
+            end
         end
         effect[which] = unitData
         FancyActionBar.effects[id] = effect
