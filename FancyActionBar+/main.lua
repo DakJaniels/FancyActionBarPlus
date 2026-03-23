@@ -5608,6 +5608,13 @@ function FancyActionBar.SyncEffectState()
                 id,
                 COMBAT_UNIT_TYPE_PLAYER
             )
+            if effect.isChanneled and not isChanneling then
+                local currentTime = time()
+                channeledAbilityUsed = nil
+                isChanneling = false
+                effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
+                effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
+            end
 --            FancyActionBar.effects[id] = nil -- Hard killing the effect here is causing issues with fallback timers and such not sticking
         end
     end
