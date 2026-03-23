@@ -771,10 +771,6 @@ function FancyActionBar.SetStacks(id, stacks, force)
     if eff.stacks == stacks and not force then return end
     eff.stacks = stacks
     effects[id] = eff
-
-    if id == 122658 and eff.stacks == 0 then -- Seething Fury
-        effects[122658].endTime = currentTime
-    end
 end
 
 function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
