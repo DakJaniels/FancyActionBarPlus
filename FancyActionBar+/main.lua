@@ -3196,7 +3196,6 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
     local t = time()
     local doFullUpdate = true
     local stackableBuff = FancyActionBar.stackableBuff[abilityId]
-
     local didSourceAction = false
     if stackableBuff then
         if (change == EFFECT_RESULT_GAINED or (change == EFFECT_RESULT_UPDATED and buffType ~= BUFF_EFFECT_TYPE_DEBUFF)) then
@@ -5363,7 +5362,6 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     local isTargetPlayerOrCompanion = isTargetPlayer or (HasActiveCompanion() and unitTag == "companion")
     local hasExternalStackTargets = #FancyActionBar.GetConfiguredStackSources(abilityId) > 0
     local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] ~= nil
-    local sourceUnitKey = FancyActionBar.ResolveUnitKey("sources", unitTag, unitId, effectSlot)
     local targetUnitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
 
     if SV.debugAll then
@@ -5442,10 +5440,10 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
             end
         end
 
-        if isTargetPlayer and unitId and unitId > 0 then
+        if isTargetPlayer then
             local sbId = FancyActionBar.stackableBuff[abilityId]
             if sbId then
-                FancyActionBar.RecordUnit(sbId, nil, sourceUnitKey, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
+                FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
                 local _, _, sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
                 FancyActionBar.SetStacks(sbId, sc)
             end
@@ -5489,10 +5487,11 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 end
                 FancyActionBar.HandleTargetUpdate(effect.id)
                 hasActiveTargets = (activeTargets >= 1)
+
                 if isTargetPlayer then
                     local sbId = FancyActionBar.stackableBuff[abilityId]
                     if sbId then
-                        FancyActionBar.RemoveUnit(sbId, sourceUnitKey, t, "sources")
+                        FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources")
                         local _, _, sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
                         FancyActionBar.SetStacks(sbId, sc)
                     end
