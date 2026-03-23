@@ -4476,9 +4476,6 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
     local dur, s
     local timestampStr = timestamp and strformat("%0.3f", timestamp) or "nil"
 
-    uName = uName or "nil"
-    unitId = unitId or "nil"
-    eSlot = eSlot or "nil"
 
     if (fade ~= nil and gain ~= nil)
     then
@@ -4496,12 +4493,12 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
 
     if not SV.debugVerbose then
         if change == EFFECT_RESULT_FADED then
-            FancyActionBar.AddSystemMessage("[" .. timestampStr .. "] [" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName)
+            FancyActionBar.AddSystemMessage("[" .. timestampStr .. "] [" .. ts(aId) .. "] " .. ts(eName) .. ": " .. ts(type) .. " --> " .. ts(uName))
         else
-            FancyActionBar.AddSystemMessage("[" .. timestampStr .. "] [" .. ts(aId) .. "] " .. eName .. ": " .. type .. " --> " .. uName .. dur .. s)
+            FancyActionBar.AddSystemMessage("[" .. timestampStr .. "] [" .. ts(aId) .. "] " .. ts(eName) .. ": " .. ts(type) .. " --> " .. ts(uName) .. ts(dur) .. ts(s))
         end
     else
-        FancyActionBar.AddSystemMessage("[" .. timestampStr .. "] " .. eName .. " (" .. ts(aId) .. ")" .. "\nchange: " .. types[change] .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || tag: " .. ts(tag) .. " || unit: " .. ts(uName) .. " || unitId: " .. ts(unitId) .. " || buffType: " .. bType .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
+        FancyActionBar.AddSystemMessage("[" .. timestampStr .. "] " .. ts(eName) .. " (" .. ts(aId) .. ")" .. "\nchange: " .. types[change] .. " || stacks: " .. ts(stacks) .. " || duration: " .. ts(dur) .. " || slot: " .. ts(eSlot) .. " || tag: " .. ts(tag) .. " || unit: " .. ts(uName) .. " || unitId: " .. ts(unitId) .. " || buffType: " .. ts(bType) .. " || effectType: " .. ts(eType) .. " || abilityType: " .. ts(aType) .. " || statusEffectType: " .. ts(seType) .. "\n===================")
     end
 end
 
