@@ -257,12 +257,13 @@ FancyActionBar.abilityConfig =
 
     -- Dragonknight
     -- Ardent Flame
-    [23806] = {256798 },   -- Lava Whip (Volcanic Whip)
-    [20816] = {262658 },    -- Flame Lash (Power Lash)
+    [23806] = { 256798 }, -- Lava Whip (Volcanic Whip)
+    [20816] = { 262658 }, -- Flame Lash (Power Lash)
     [20805] = { 122658 }, -- show seething fury on the molten whip icon
+    [20668] = { 44369 },  -- Searing Claw
 
     -- Draconic Power
-    [20917] = { 31102 },  -- Dragonfire Breath
+    [20917] = { 31102 }, -- Dragonfire Breath
 
     [21007] = { 61736 }, -- Wing Buffet
     [21014] = { 61736 }, -- Fleetstep Wings
@@ -273,10 +274,10 @@ FancyActionBar.abilityConfig =
 
     -- Earthen Heart
     [32673] = { 61711 },  -- fragmented shield
-    [29043] = { 258658 },  -- molten weapons
-    [31874] = { 258666 },  -- igneous weapons
-    [31888] = { 258661 },  -- molten armaments
-    [31816] = { 134340 },  -- Magma Fist
+    [29043] = { 258658 }, -- molten weapons
+    [31874] = { 258666 }, -- igneous weapons
+    [31888] = { 258661 }, -- molten armaments
+    [31816] = { 134340 }, -- Magma Fist
 
     -- Sorcerer
     [43714] = false,       -- crystal shard
@@ -673,7 +674,7 @@ FancyActionBar.stackMap =
     [256798] =
     {
         256798, -- volcanic whip
---        23806,  -- lava whip
+        --        23806,  -- lava whip
     },
 
     -- Flame Lash
@@ -755,10 +756,10 @@ FancyActionBar.stackMap =
     -- Echoing Vigor
     [61506] =
     {
+        61505, -- Echoing Vigor
         61506, -- Echoing Vigor
         -- 61503, -- Echoing Vigor
         -- 61504, -- Echoing Vigor
-        -- 61505, -- Echoing Vigor
     },
 
     -- Ulfsild's Contingency
@@ -835,7 +836,7 @@ FancyActionBar.debuffStackMap =
         31816,
     },
 
-        -- Fetcher Infection
+    -- Fetcher Infection
     [101904] =
     {
         91416,
@@ -854,28 +855,28 @@ FancyActionBar.allowExternalStacks =
 -- skill list based on this GetSlotBoundId(hotbarSlot; HOTBAR_CATEGORY_PRIMARY)
 FancyActionBar.tauntSkills =
 {
-    [38989] = "Frost Clench",     -- Frost Clench Ice Staff
-    [20492] = "Chains of Flame",  -- Chains of Flame DK
+    [38989] = "Frost Clench",        -- Frost Clench Ice Staff
+    [20492] = "Chains of Flame",     -- Chains of Flame DK
     [20496] = "Chains of Dominance", -- Chains of Dominance DK
 
-    [28306] = "Puncture",         -- Puncture S&B
-    [38256] = "Ransack",          -- Ransack S&B
-    [38250] = "Pierce Armor",     -- Pierce Armor S&B
+    [28306] = "Puncture",            -- Puncture S&B
+    [38256] = "Ransack",             -- Ransack S&B
+    [38250] = "Pierce Armor",        -- Pierce Armor S&B
 
-    [39475] = "Inner Fire",       -- Inner Fire Undaunted
-    [42056] = "Inner Rage",       -- Inner Rage Undaunted
-    [42060] = "Inner Beast",      -- Inner Fire Undaunted
+    [39475] = "Inner Fire",          -- Inner Fire Undaunted
+    [42056] = "Inner Rage",          -- Inner Rage Undaunted
+    [42060] = "Inner Beast",         -- Inner Fire Undaunted
 
-    [183430] = "Runic Sunder",    -- Runic Sunder Arcanist
-    [186531] = "Runic Embrace",   -- Runic Embrace Arcanist
-    [183165] = "Runic Jolt",      -- Runic Jolt Arcanist
+    [183430] = "Runic Sunder",       -- Runic Sunder Arcanist
+    [186531] = "Runic Embrace",      -- Runic Embrace Arcanist
+    [183165] = "Runic Jolt",         -- Runic Jolt Arcanist
 
-    [40336] = "Silver Leash",     -- Silver Leash Fighters Guild
+    [40336] = "Silver Leash",        -- Silver Leash Fighters Guild
 
-    [222966] = "Goading Throw",   -- Shield Throw Grimoire; Taunt focus (Scribing)
-    [217180] = "Goading Smash",   -- Smash Grimoire; Taunt focus (Scribing)?
-    [219972] = "Goading Smash",   -- Smash Grimoire; Taunt focus (Scribing)
-    [216674] = "Goading Vault",   -- Vault Grimoire; Taunt focus (Scribing)
+    [222966] = "Goading Throw",      -- Shield Throw Grimoire; Taunt focus (Scribing)
+    [217180] = "Goading Smash",      -- Smash Grimoire; Taunt focus (Scribing)?
+    [219972] = "Goading Smash",      -- Smash Grimoire; Taunt focus (Scribing)
+    [216674] = "Goading Vault",      -- Vault Grimoire; Taunt focus (Scribing)
 
 }
 
@@ -950,10 +951,10 @@ FancyActionBar.specialEffectProcs =
 FancyActionBar.specialClassEffects =
 {
     -- Dragonknight
-    [35] =                                                                                   -- Ardent Flame
+    [35] =                                                                                                                                                                                            -- Ardent Flame
     {
         [256798] = { id = 256798, stackId = { 256798 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, }, -- Volcanic Whip
-        [20824] = { id = 20824, stackId = { 20824 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, }, -- Power Lash
+        [20824] = { id = 20824, stackId = { 20824 }, stacks = 5, procs = 1, hasProced = 0, useSlotStateChange = true, result = ACTION_RESULT_DAMAGE, dontFade = true, forceExpireStacks = true, },    -- Power Lash
     },
 
     -- [36] = {}, -- Draconic Power
@@ -1055,9 +1056,9 @@ FancyActionBar.specialClassEffectProcs =
 {
     -- Dragonknight
     [35] =
-    { -- Ardent Flame
+    {                                                                   -- Ardent Flame
         [256798] = { [1] = { id = 256798, procs = 1, hasProced = 0 } }, -- Volcanic Whip
-        [20824] = { [1] = { id = 20824, procs = 1, hasProced = 0 } }, -- Power Lash
+        [20824] = { [1] = { id = 20824, procs = 1, hasProced = 0 } },   -- Power Lash
     },
     -- [36] = {}, -- Draconic Power
     -- [37] = {}, -- Earthen Heart
@@ -1156,11 +1157,11 @@ FancyActionBar.toggled =
     -- [39076] = true; -- Werewolf Berserker
 
     -- Vampire
-    [132141] = true, -- Blood Frenzy
+    --[132141] = true, -- Blood Frenzy
     [172418] = true, -- Blood Frenzy (Stacks)
-    [134160] = true, -- Simmering Frenzy
+    --[134160] = true, -- Simmering Frenzy
     [134166] = true, -- Simmering Frenzy (Stacks)
-    [135841] = true, -- Sated Fury
+    --[135841] = true, -- Sated Fury
     [172648] = true, -- Sated Fury (Stacks)
 
     -- Psijic Order
@@ -1241,6 +1242,7 @@ FancyActionBar.toggled =
     [227115] = true, -- Necromancer's Banner
     [227116] = true, -- Arcanist's Banner
     [227120] = true, -- Bannerman
+    [227123] = true, -- Magical Banner (DK?)
     [230293] = true, -- Charging Banner
     [231753] = true, -- Sorcerer's Banner
 }
@@ -1295,6 +1297,7 @@ FancyActionBar.bannerBearer =
     [227115] = true, -- Necromancer's Banner
     [227116] = true, -- Arcanist's Banner
     [227120] = true, -- Bannerman
+    [227123] = true, -- Magical Banner (DK?)
     [230293] = true, -- Charging Banner
     [231753] = true, -- Sorcerer's Banner
 }
@@ -1527,8 +1530,8 @@ FancyActionBar.removeInstantly =
     [51392] = true,  -- Streak Fatigue
     [61500] = true,  -- proximity detonation
     [23806] = true,  -- Lava Whip
-    --[256798] = true, -- Volcanic Whip
-    --[20824] = true,  -- Power Lash
+    -- [256798] = true, -- Volcanic Whip
+    -- [20824] = true,  -- Power Lash
 }
 
 FancyActionBar.allowedChanneled =
@@ -1537,6 +1540,8 @@ FancyActionBar.allowedChanneled =
     [103492] = true, -- Meditate
     [103652] = true, -- Deep Thoughts
     [103665] = true, -- Introspection
+
+    [20930] = true,  -- Engulfing Dragonfire
 
     [26792] = true,  -- Biting Jabs
     [22223] = true,  -- rite of passage

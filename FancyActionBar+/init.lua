@@ -18,6 +18,9 @@ FancyActionBar.defaultCharacter =
     useAccountWide = true,
 
     configChanges = {},
+    configProfiles = {},
+    selectedConfigProfile = 1,
+    nextConfigProfileId = 1,
     dynamicAbilityConfig = false,
 
     hideOnNoTargetGlobal = false,
@@ -33,6 +36,9 @@ FancyActionBar.defaultSettings =
     -- ability tracking
 
     configChanges = {},
+    configProfiles = {},
+    selectedConfigProfile = 1,
+    nextConfigProfileId = 1,
     dynamicAbilityConfig = false,
     forceGamepadStyle = false,
 
