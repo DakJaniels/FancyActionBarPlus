@@ -1157,11 +1157,11 @@ FancyActionBar.toggled =
     -- [39076] = true; -- Werewolf Berserker
 
     -- Vampire
-    [132141] = true, -- Blood Frenzy
+    --[132141] = true, -- Blood Frenzy
     [172418] = true, -- Blood Frenzy (Stacks)
-    [134160] = true, -- Simmering Frenzy
+    --[134160] = true, -- Simmering Frenzy
     [134166] = true, -- Simmering Frenzy (Stacks)
-    [135841] = true, -- Sated Fury
+    --[135841] = true, -- Sated Fury
     [172648] = true, -- Sated Fury (Stacks)
 
     -- Psijic Order

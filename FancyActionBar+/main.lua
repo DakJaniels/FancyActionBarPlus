@@ -5574,35 +5574,35 @@ function FancyActionBar.SyncEffectState()
 
             activeAbility[abilityId] = true
 
-            OnEffectChanged(
-                nil,
-                EFFECT_RESULT_UPDATED,
-                buffSlot,
-                unitBuffName,
-                "player",
-                beginTime,
-                endTime,
-                stackCount,
-                iconName,
-                buffType,
-                effectType,
-                abilityType,
-                statusEffectType,
-                nil, nil,
-                abilityId,
-                COMBAT_UNIT_TYPE_PLAYER
-            )
+            -- OnEffectChanged(
+            --     nil,
+            --     EFFECT_RESULT_UPDATED,
+            --     buffSlot,
+            --     unitBuffName,
+            --     "player",
+            --     beginTime,
+            --     endTime,
+            --     stackCount,
+            --     iconName,
+            --     buffType,
+            --     effectType,
+            --     abilityType,
+            --     statusEffectType,
+            --     nil, nil,
+            --     abilityId,
+            --     COMBAT_UNIT_TYPE_PLAYER
+            -- )
         end
     end
 
     for id, effect in pairs(FancyActionBar.effects) do
-        if not activeAbility[id] and not effect.isDebuff and not specialEffects[effect.id] then
+        if not activeAbility[effect.id] and not effect.isDebuff and not specialEffects[effect.id] then
             OnEffectChanged(
                 nil,
                 EFFECT_RESULT_FADED,
                 nil, nil, "player",
-                0, 0, 0, nil, nil, nil, nil, nil, nil, nil,
-                id,
+                0, 0, effect.stacks or 0, nil, nil, nil, nil, nil, nil, nil,
+                effect.id,
                 COMBAT_UNIT_TYPE_PLAYER
             )
             if effect.isChanneled and not isChanneling then
