@@ -859,5 +859,83 @@
         </Label>
       </Controls>
     </Control>
+                <TopLevelControl name="FAB_EffectWidget_Template"
+                                                                                 virtual="true"
+                                                                                 mouseEnabled="true"
+                                                                                 movable="true"
+                                                                                 clampedToScreen="true"
+                                                                                 hidden="false"
+                                                                                 tier="HIGH">
+                        <Dimensions x="50"
+                                                                        y="50" />
+                        <Controls>
+                                <Texture name="$(parent)BG"
+                                                                 alpha="1"
+                                                                 tier="HIGH"
+                                                                 level="4"
+                                                                 textureFile="EsoUI/Art/ActionBar/ActionSlot_toggledon.dds"
+                                                                 inheritAlpha="false"
+                                                                 hidden="true">
+                                        <AnchorFill />
+                                </Texture>
+                                <Texture name="$(parent)Icon"
+                                                                 textureFile="EsoUI/Art/ActionBar/abilityInset.dds"
+                                                                 tier="HIGH"
+                                                                 level="3">
+                                        <Anchor point="TOPLEFT"
+                                                                        relativeTo="$(parent)"
+                                                                        relativePoint="TOPLEFT"
+                                                                        offsetX="2"
+                                                                        offsetY="2" />
+                                        <Anchor point="BOTTOMRIGHT"
+                                                                        relativeTo="$(parent)"
+                                                                        relativePoint="BOTTOMRIGHT"
+                                                                        offsetX="-2"
+                                                                        offsetY="-2" />
+                                </Texture>
+                                <Label name="$(parent)Duration"
+                                                         font="$(BOLD_FONT)|$(KB_24)|thick-outline"
+                                                         tier="HIGH"
+                                                         level="5"
+                                                         wrapMode="TRUNCATE"
+                                                         inheritAlpha="false"
+                                                         horizontalAlignment="CENTER"
+                                                         verticalAlignment="BOTTOM"
+                                                         text="">
+                                        <Anchor point="BOTTOM"
+                                                                        relativeTo="$(parent)"
+                                                                        relativePoint="BOTTOM"
+                                                                        offsetY="-1" />
+                                </Label>
+                                <Label name="$(parent)Stacks"
+                                                         color="FFCC00"
+                                                         font="$(BOLD_FONT)|$(KB_20)|thick-outline"
+                                                         tier="HIGH"
+                                                         level="5"
+                                                         wrapMode="TRUNCATE"
+                                                         inheritAlpha="false"
+                                                         text="">
+                                        <Anchor point="TOPRIGHT"
+                                                                        relativeTo="$(parent)"
+                                                                        relativePoint="TOPRIGHT"
+                                                                        offsetX="-3"
+                                                                        offsetY="-1" />
+                                </Label>
+                                <Label name="$(parent)Targets"
+                                                         color="FFCC00"
+                                                         font="$(BOLD_FONT)|$(KB_20)|thick-outline"
+                                                         tier="HIGH"
+                                                         level="5"
+                                                         wrapMode="TRUNCATE"
+                                                         inheritAlpha="false"
+                                                         text="">
+                                        <Anchor point="TOPLEFT"
+                                                                        relativeTo="$(parent)"
+                                                                        relativePoint="TOPLEFT"
+                                                                        offsetX="3"
+                                                                        offsetY="-1" />
+                                </Label>
+                        </Controls>
+                </TopLevelControl>
   </Controls>
 </GuiXml>

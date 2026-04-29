@@ -245,7 +245,13 @@ end
 local function ClearDebuffsIfNotOnTarget()
     -- For each tracked effect that is a debuff, clear it unless it should be kept
     for _, effect in pairs(FancyActionBar.effects) do
+        local trackedByWidget = effect and FancyActionBar.IsEffectWidgetTracked(effect.id)
         if effect and effect.isDebuff and not effect.keepOnTargetChange then
+            if trackedByWidget and effect.endTime and effect.endTime > time() then
+                local we = FancyActionBar.widgetEffects[effect.id] or {}
+                we.persistEndTime = zo_max(we.persistEndTime or 0, effect.endTime)
+                FancyActionBar.widgetEffects[effect.id] = we
+            end
             effect.activeOnTarget = false
             effect.endTime = 0
             if ShouldClearExternalDebuffStacksOnTargetChange(effect) and effect.stacks and effect.stacks ~= 0 then
@@ -363,7 +369,13 @@ local function OnReticleTargetChanged()
 
         -- Clear any previously-known debuffs that are no longer on the reticle
         for id, effect in pairs(FancyActionBar.effects) do
+            local trackedByWidget = effect and FancyActionBar.IsEffectWidgetTracked(effect.id)
             if effect and effect.isDebuff and not effect.keepOnTargetChange and not keep[id] then
+                if trackedByWidget and effect.endTime and effect.endTime > time() then
+                    local we = FancyActionBar.widgetEffects[effect.id] or {}
+                    we.persistEndTime = zo_max(we.persistEndTime or 0, effect.endTime)
+                    FancyActionBar.widgetEffects[effect.id] = we
+                end
                 if ShouldClearExternalDebuffStacksOnTargetChange(effect) and (effect.hasExternalStackSources or HasDebuffStackTargets(effect.id)) then
                     FancyActionBar.UpdateStacksFromEvent(effect.id, nil, true)
                 end
@@ -477,7 +489,6 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
             local targetCount = FancyActionBar.RemoveUnit(debuff.id, unitKey, t, "targets")
             if targetCount >= 1 then
                 FancyActionBar.UpdateEffect(FancyActionBar.effects[debuff.id])
-                FancyActionBar.HandleTargetUpdate(debuff.id)
                 return
             end
         end

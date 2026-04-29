@@ -75,6 +75,25 @@ local skillEditValues =
 local changedSkillIds = {}
 local changedSkillStrings = {}
 local selectedChangedSkill = 0
+local effectWidgetAbilityId = 0
+local effectWidgetAbilityName = ""
+local effectWidgetScale = 1
+local effectWidgetActiveAlphaDefault = FancyActionBar.defaultSettings.effectWidgetActiveAlphaDefault
+local effectWidgetInactiveAlphaDefault = FancyActionBar.defaultSettings.effectWidgetInactiveAlphaDefault
+local effectWidgetActiveAlpha = effectWidgetActiveAlphaDefault
+local effectWidgetInactiveAlpha = effectWidgetInactiveAlphaDefault
+local effectWidgetAllowExternal = false
+local effectWidgetExternalOnly = false
+local WIDGET_SETTING_CONTROL_NAMES = {
+    "EffectWidget_AllowExternal_Checkbox",
+    "EffectWidget_ExternalOnly_Checkbox",
+    "EffectWidget_ActiveAlpha_Editbox",
+    "EffectWidget_InactiveAlpha_Editbox",
+}
+local selectedEffectWidget = 0
+local effectWidgetNames = { "== Select a Widget ==" }
+local effectWidgetNameById = {}
+local effectWidgetIdByName = {}
 local configProfileIds = {}
 local configProfileNames = {}
 local newConfigProfileName = ""
@@ -154,6 +173,7 @@ local presetIgnoreKeys =
     ["selectedConfigProfile"] = true,
     ["nextConfigProfileId"] = true,
     ["externalBlackList"] = true,
+    ["effectWidgets"] = true,
     ["multiTargetBlacklist"] = true,
     ["hideOnNoTargetList"] = true,
 }
@@ -979,6 +999,384 @@ local function SetChangedSkillToEdit(string)
     end
 end
 
+local function RefreshEffectWidgetChoices()
+    local widgets = SV.effectWidgets
+    effectWidgetNames = { "== Select a Widget ==" }
+    effectWidgetNameById = {}
+    effectWidgetIdByName = {}
+
+    for abilityId, widget in pairs(widgets) do
+        if widget.enabled ~= false then
+            local label = GetAbilityName(abilityId) .. " (" .. abilityId .. ")"
+            table.insert(effectWidgetNames, label)
+            effectWidgetNameById[abilityId] = label
+            effectWidgetIdByName[label] = abilityId
+        end
+    end
+
+    table.sort(effectWidgetNames, function (left, right)
+        if left == "== Select a Widget ==" then
+            return true
+        end
+        if right == "== Select a Widget ==" then
+            return false
+        end
+        return string.lower(left) < string.lower(right)
+    end)
+
+    if selectedEffectWidget ~= 0 and not effectWidgetNameById[selectedEffectWidget] then
+        selectedEffectWidget = 0
+    end
+end
+
+local function GetEffectWidgetAbilityId()
+    return effectWidgetAbilityId > 0 and tostring(effectWidgetAbilityId) or ""
+end
+
+local function GetEffectWidgetAbilityName()
+    return effectWidgetAbilityName ~= "" and "|cffa31a" .. effectWidgetAbilityName .. "|r" or ""
+end
+
+local function RefreshEffectWidgetSettingControls()
+    for _, controlName in ipairs(WIDGET_SETTING_CONTROL_NAMES) do
+        local control = WM:GetControlByName(controlName)
+        if control and control.UpdateValue then
+            control:UpdateValue()
+        end
+    end
+end
+
+local function RefreshEffectWidgetDropdownSelection(updateChoices)
+    if IsConsoleUI() then
+        return
+    end
+    local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
+    if not widgetDropdown then
+        return
+    end
+    if updateChoices then
+        widgetDropdown:UpdateChoices(effectWidgetNames)
+    end
+    widgetDropdown.dropdown:SetSelectedItem(effectWidgetNameById[selectedEffectWidget] or "== Select a Widget ==")
+end
+
+local function ApplyEffectWidgetState(widget)
+    if not widget then
+        return
+    end
+    effectWidgetScale = tonumber(widget.scale) or 1
+    effectWidgetActiveAlpha = zo_clamp(tonumber(widget.activeAlpha) or effectWidgetActiveAlphaDefault, 0, 1)
+    effectWidgetInactiveAlpha = zo_clamp(tonumber(widget.inactiveAlpha) or effectWidgetInactiveAlphaDefault, 0, 1)
+    effectWidgetAllowExternal = widget.allowExternal == true
+    effectWidgetExternalOnly = widget.externalOnly == true
+end
+
+local function SetEffectWidgetAbilityId(value)
+    if value == "" or not IsValidId(value) then
+        if value ~= "" then
+            CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid ID.")
+        end
+        selectedEffectWidget = 0
+        effectWidgetAbilityId = 0
+        effectWidgetAbilityName = ""
+        effectWidgetAllowExternal = false
+        effectWidgetExternalOnly = false
+        RefreshEffectWidgetDropdownSelection(false)
+        RefreshEffectWidgetSettingControls()
+        return
+    end
+
+    local id = tonumber(value)
+
+    effectWidgetAbilityId = id
+    effectWidgetAbilityName = GetAbilityName(id)
+    local widget = SV.effectWidgets[id]
+    if widget then
+        selectedEffectWidget = id
+        ApplyEffectWidgetState(widget)
+    else
+        selectedEffectWidget = 0
+        effectWidgetAllowExternal = false
+        effectWidgetExternalOnly = false
+    end
+
+    RefreshEffectWidgetDropdownSelection(false)
+    RefreshEffectWidgetSettingControls()
+end
+
+local function GetSelectedEffectWidgetName()
+    return effectWidgetNameById[selectedEffectWidget] or "== Select a Widget =="
+end
+
+local function SetSelectedEffectWidget(value)
+    if not value or value == "" or value == "== Select a Widget ==" then
+        selectedEffectWidget = 0
+    else
+        local abilityId = effectWidgetIdByName[value]
+        if abilityId then
+            selectedEffectWidget = abilityId
+            effectWidgetAbilityId = abilityId
+            effectWidgetAbilityName = GetAbilityName(abilityId)
+            ApplyEffectWidgetState(SV.effectWidgets[abilityId])
+        end
+    end
+    RefreshEffectWidgetSettingControls()
+end
+
+local function GetCurrentEffectWidgetId()
+    if selectedEffectWidget ~= 0 then
+        return selectedEffectWidget
+    end
+    if effectWidgetAbilityId > 0 then
+        return effectWidgetAbilityId
+    end
+    return 0
+end
+
+local function GetCurrentEffectWidget()
+    local abilityId = GetCurrentEffectWidgetId()
+    if abilityId == 0 then
+        return 0, nil
+    end
+    return abilityId, SV.effectWidgets[abilityId]
+end
+
+local function IsEffectWidgetActionDisabled()
+    return GetCurrentEffectWidgetId() == 0
+end
+
+local function GetCurrentEffectWidgetScale()
+    local _, widget = GetCurrentEffectWidget()
+    if widget then
+        return tonumber(widget.scale) or 1
+    end
+    return tonumber(effectWidgetScale) or 1
+end
+
+local function GetCurrentEffectWidgetActiveAlpha()
+    local _, widget = GetCurrentEffectWidget()
+    if widget then
+        local value = tonumber(widget.activeAlpha)
+        if value ~= nil then
+            return zo_clamp(value, 0, 1)
+        end
+    end
+    return zo_clamp(tonumber(effectWidgetActiveAlpha) or effectWidgetActiveAlphaDefault, 0, 1)
+end
+
+local function GetCurrentEffectWidgetInactiveAlpha()
+    local _, widget = GetCurrentEffectWidget()
+    if widget then
+        local value = tonumber(widget.inactiveAlpha)
+        if value ~= nil then
+            return zo_clamp(value, 0, 1)
+        end
+    end
+    return zo_clamp(tonumber(effectWidgetInactiveAlpha) or effectWidgetInactiveAlphaDefault, 0, 1)
+end
+
+local function SetEffectWidgetScaleValue(value)
+    local scale
+    if value == "" then
+        scale = 1
+    else
+        scale = tonumber(value)
+        if scale == nil then
+            CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget scale.")
+            return
+        end
+    end
+
+    effectWidgetScale = scale
+
+    local abilityId, widget = GetCurrentEffectWidget()
+    if abilityId ~= 0 and widget then
+        widget.scale = scale
+        local control = FancyActionBar.effectWidgetControls[abilityId]
+        if control then
+            control:SetScale(scale)
+        end
+    end
+end
+
+local function SetEffectWidgetActiveAlphaValue(value)
+    local alpha
+    if value == "" then
+        alpha = effectWidgetActiveAlphaDefault
+    else
+        alpha = tonumber(value)
+        if alpha == nil then
+            CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget active transparency.")
+            return
+        end
+    end
+
+    alpha = zo_clamp(alpha, 0, 1)
+    effectWidgetActiveAlpha = alpha
+
+    local abilityId, widget = GetCurrentEffectWidget()
+    if abilityId ~= 0 and widget then
+        widget.activeAlpha = alpha
+        local control = FancyActionBar.effectWidgetControls[abilityId]
+        if control then
+            FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
+        end
+    end
+end
+
+local function SetEffectWidgetInactiveAlphaValue(value)
+    local alpha
+    if value == "" then
+        alpha = effectWidgetInactiveAlphaDefault
+    else
+        alpha = tonumber(value)
+        if alpha == nil then
+            CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget inactive transparency.")
+            return
+        end
+    end
+
+    alpha = zo_clamp(alpha, 0, 1)
+    effectWidgetInactiveAlpha = alpha
+
+    local abilityId, widget = GetCurrentEffectWidget()
+    if abilityId ~= 0 and widget then
+        widget.inactiveAlpha = alpha
+        local control = FancyActionBar.effectWidgetControls[abilityId]
+        if control then
+            FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
+        end
+    end
+end
+
+local function AddOrUpdateEffectWidget()
+    local abilityId = GetCurrentEffectWidgetId()
+    if abilityId == 0 then
+        return
+    end
+
+    local existing = SV.effectWidgets[abilityId]
+    local allowExternal = existing and existing.allowExternal == true or effectWidgetAllowExternal == true
+    local externalOnly = existing and existing.externalOnly == true or effectWidgetExternalOnly == true
+    if externalOnly then
+        allowExternal = true
+    end
+    local scale = existing and (tonumber(existing.scale) or 1) or (tonumber(effectWidgetScale) or 1)
+    local activeAlpha = zo_clamp(existing and (tonumber(existing.activeAlpha) or effectWidgetActiveAlphaDefault) or (tonumber(effectWidgetActiveAlpha) or effectWidgetActiveAlphaDefault), 0, 1)
+    local inactiveAlpha = zo_clamp(existing and (tonumber(existing.inactiveAlpha) or effectWidgetInactiveAlphaDefault) or (tonumber(effectWidgetInactiveAlpha) or effectWidgetInactiveAlphaDefault), 0, 1)
+    FancyActionBar.AddEffectWidget(abilityId, allowExternal, scale, activeAlpha, inactiveAlpha)
+    local widget = SV.effectWidgets[abilityId]
+    if widget then
+        widget.externalOnly = externalOnly == true
+        if widget.externalOnly then
+            widget.allowExternal = true
+        end
+        FancyActionBar.SetExternalBuffTracking()
+    end
+    selectedEffectWidget = abilityId
+    effectWidgetAbilityId = abilityId
+    effectWidgetAbilityName = GetAbilityName(abilityId)
+    effectWidgetScale = scale
+    effectWidgetActiveAlpha = activeAlpha
+    effectWidgetInactiveAlpha = inactiveAlpha
+    effectWidgetAllowExternal = allowExternal
+    effectWidgetExternalOnly = externalOnly
+    RefreshEffectWidgetChoices()
+    RefreshEffectWidgetDropdownSelection(true)
+    RefreshEffectWidgetSettingControls()
+end
+
+local function RemoveSelectedEffectWidget()
+    local abilityId = GetCurrentEffectWidgetId()
+    if abilityId == 0 then
+        return
+    end
+
+    FancyActionBar.RemoveEffectWidget(abilityId)
+    if selectedEffectWidget == abilityId then
+        selectedEffectWidget = 0
+    end
+    effectWidgetScale = 1
+    effectWidgetActiveAlpha = effectWidgetActiveAlphaDefault
+    effectWidgetInactiveAlpha = effectWidgetInactiveAlphaDefault
+    effectWidgetAllowExternal = false
+    effectWidgetExternalOnly = false
+    RefreshEffectWidgetChoices()
+    RefreshEffectWidgetDropdownSelection(true)
+    RefreshEffectWidgetSettingControls()
+end
+
+local function GetSelectedEffectWidgetAllowExternal()
+    local _, widget = GetCurrentEffectWidget()
+    if not widget then
+        return effectWidgetAllowExternal == true
+    end
+    return widget.allowExternal == true
+end
+
+local function SetSelectedEffectWidgetAllowExternal(value)
+    effectWidgetAllowExternal = value == true
+    if not effectWidgetAllowExternal then
+        effectWidgetExternalOnly = false
+    end
+
+    local abilityId = GetCurrentEffectWidgetId()
+    if abilityId ~= 0 then
+        local widget = SV.effectWidgets[abilityId]
+        if widget then
+            widget.allowExternal = value == true
+            if not widget.allowExternal then
+                widget.externalOnly = false
+            end
+            FancyActionBar.SetExternalBuffTracking()
+        end
+    end
+    RefreshEffectWidgetSettingControls()
+end
+
+local function GetSelectedEffectWidgetExternalOnly()
+    local _, widget = GetCurrentEffectWidget()
+    if not widget then
+        return effectWidgetExternalOnly == true
+    end
+    return widget.externalOnly == true
+end
+
+local function SetSelectedEffectWidgetExternalOnly(value)
+    effectWidgetExternalOnly = value == true
+    if effectWidgetExternalOnly then
+        effectWidgetAllowExternal = true
+    end
+
+    local abilityId = GetCurrentEffectWidgetId()
+    if abilityId ~= 0 then
+        local widget = SV.effectWidgets[abilityId]
+        if widget then
+            widget.externalOnly = value == true
+            if widget.externalOnly then
+                widget.allowExternal = true
+            end
+            FancyActionBar.SetExternalBuffTracking()
+        end
+    end
+    RefreshEffectWidgetSettingControls()
+end
+
+local function GetEffectWidgetsLocked()
+    return SV.effectWidgetsLocked ~= false
+end
+
+local function SetEffectWidgetsLocked(value)
+    SV.effectWidgetsLocked = not value
+    for _, control in pairs(FancyActionBar.effectWidgetControls) do
+        control:SetMovable(value)
+        control:SetMouseEnabled(value)
+        control:SetClampedToScreen(true)
+    end
+    FancyActionBar.RefreshEffectWidgets()
+    FancyActionBar.UpdateEffectWidgets()
+end
+
 local function ResetUpdateSettings()
     skillToEditID = 0
     skillToEditName = ""
@@ -1071,6 +1469,8 @@ local function RefreshSelectedAbilityConfigProfile()
     local refreshedIds = {}
 
     FancyActionBar.BuildAbilityConfig()
+    FancyActionBar.SetExternalBuffTracking()
+    FancyActionBar.RefreshEffectWidgets()
 
     for slot = MIN_INDEX, ULT_INDEX do
         local frontAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_PRIMARY)
@@ -5553,7 +5953,168 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             },
                         },
                     },
-                    -- {	type = 'divider'  },
+                    -- { type = 'divider' },
+
+                    -- ==============[  Effect Widgets  ]==============
+                    {
+                        type = "submenu",
+                        name = "|cFFFACDEffect Widgets|r",
+                        controls =
+                        {
+                            {
+                                type = "description",
+                                title = "Info",
+                                text = "Effect widgets are floating mini-icons for tracked buffs/debuffs. Add a widget by entering an ability ID, choose whether it can use external buff sources, optionally force it to external-only data, and configure unlock/scale behavior.",
+                                width = "full",
+                            },
+                            {
+                                type = "dropdown",
+                                scrollable = 20,
+                                name = "Widgets",
+                                choices = effectWidgetNames,
+                                getFunc = function ()
+                                    return GetSelectedEffectWidgetName()
+                                end,
+                                setFunc = function (value)
+                                    SetSelectedEffectWidget(value)
+                                end,
+                                default = 1,
+                                reference = "Configured_Widgets_Dropdown",
+                                width = "half",
+                            },
+                            {
+                                type = "editbox",
+                                name = "Widget Ability ID",
+                                tooltip = "Enter an ability ID to create or update a floating effect widget.",
+                                getFunc = function ()
+                                    return GetEffectWidgetAbilityId()
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetAbilityId(value)
+                                end,
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "description",
+                                title = "Selected Ability:",
+                                text = function ()
+                                    return GetEffectWidgetAbilityName()
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Allow External Buff Data",
+                                tooltip = "When enabled, this widget can show effects gained from allies similarly to the external buff tracking system.",
+                                getFunc = function ()
+                                    return GetSelectedEffectWidgetAllowExternal()
+                                end,
+                                setFunc = function (value)
+                                    SetSelectedEffectWidgetAllowExternal(value)
+                                end,
+                                disabled = function ()
+                                    return IsEffectWidgetActionDisabled()
+                                end,
+                                reference = "EffectWidget_AllowExternal_Checkbox",
+                                width = "half",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Only Use External Buff Data",
+                                tooltip = "When enabled, this widget ignores player-sourced effects and only uses external ally-sourced data.",
+                                getFunc = function ()
+                                    return GetSelectedEffectWidgetExternalOnly()
+                                end,
+                                setFunc = function (value)
+                                    SetSelectedEffectWidgetExternalOnly(value)
+                                end,
+                                disabled = function ()
+                                    return IsEffectWidgetActionDisabled() or not GetSelectedEffectWidgetAllowExternal()
+                                end,
+                                reference = "EffectWidget_ExternalOnly_Checkbox",
+                                width = "half",
+                            },
+                            {
+                                type = "editbox",
+                                name = "Widget Scale Factor",
+                                tooltip = "Set a per-widget scale offset. 0 keeps the default size, 0.25 makes it 25% larger, and -0.2 makes it 20% smaller.",
+                                getFunc = function ()
+                                    return tostring(GetCurrentEffectWidgetScale())
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetScaleValue(value)
+                                end,
+                                isMultiline = false,
+                                isExtraWide = false,
+                                width = "half",
+                            },
+                            {
+                                type = "editbox",
+                                name = "Widget Active Transparency",
+                                tooltip = "Set widget transparency for active state. Range 0.0 to 1.0 (default 1.0).",
+                                getFunc = function ()
+                                    return tostring(GetCurrentEffectWidgetActiveAlpha())
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetActiveAlphaValue(value)
+                                end,
+                                isMultiline = false,
+                                isExtraWide = false,
+                                reference = "EffectWidget_ActiveAlpha_Editbox",
+                                width = "half",
+                            },
+                            {
+                                type = "editbox",
+                                name = "Widget Inactive Transparency",
+                                tooltip = "Set widget transparency for inactive state. Range 0.0 to 1.0 (default 0).",
+                                getFunc = function ()
+                                    return tostring(GetCurrentEffectWidgetInactiveAlpha())
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetInactiveAlphaValue(value)
+                                end,
+                                isMultiline = false,
+                                isExtraWide = false,
+                                reference = "EffectWidget_InactiveAlpha_Editbox",
+                                width = "half",
+                            },
+                            {
+                                type = "button",
+                                name = "Create / Update Widget",
+                                width = "half",
+                                func = function ()
+                                    AddOrUpdateEffectWidget()
+                                end,
+                                disabled = function ()
+                                    return IsEffectWidgetActionDisabled()
+                                end,
+                            },
+                            {
+                                type = "button",
+                                name = "Remove Widget",
+                                width = "half",
+                                func = function ()
+                                    RemoveSelectedEffectWidget()
+                                end,
+                                disabled = function ()
+                                    return IsEffectWidgetActionDisabled()
+                                end,
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Unlock Widget Positions",
+                                tooltip = "Unlock all widgets so they can be dragged on screen. Positions are saved in SavedVariables.",
+                                getFunc = function ()
+                                    return not GetEffectWidgetsLocked()
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetsLocked(value)
+                                end,
+                            },
+                        },
+                    },
 
                     -- ==============[  External Buff Tracking  ]==============
                     {
@@ -6520,6 +7081,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FAB_GCD:SetHidden(not SV.gcd.enable)
             inMenu = true
             FancyActionBar.UpdateSlottedSkillsDecriptions()
+            RefreshEffectWidgetChoices()
+            if not IsConsoleUI() then
+                local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
+                if widgetDropdown then
+                    widgetDropdown:UpdateChoices(effectWidgetNames)
+                    widgetDropdown.dropdown:SetSelectedItem(GetSelectedEffectWidgetName())
+                end
+            end
         else
             ACTION_BAR:SetHidden(true)
             FAB_GCD:SetHidden(true)
@@ -6550,6 +7119,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     ParseBlacklist(SV.externalBlackList, externalBlacklistConfigData)
     ParseBlacklist(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
     ParseBlacklist(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+    RefreshEffectWidgetChoices()
 end
 
 -------------------------------------------------------------------------------

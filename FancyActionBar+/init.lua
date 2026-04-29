@@ -45,6 +45,10 @@ FancyActionBar.defaultSettings =
     externalBuffs = false,
     externalBlackListRun = false,
     externalBlackList = {},
+    effectWidgets = {},
+    effectWidgetActiveAlphaDefault = 1,
+    effectWidgetInactiveAlphaDefault = 0,
+    effectWidgetsLocked = true,
 
     multiTargetBlackListRun = false,
     multiTargetBlacklist = {},

@@ -79,5 +79,17 @@
                   inherits="FAB_BG" />
       </Controls>
     </TopLevelControl>
+    <TopLevelControl name="FAB_EffectWidgetsRoot"
+                     hidden="false"
+                     mouseEnabled="false"
+                     tier="HIGH">
+      <Dimensions x="1"
+                  y="1" />
+      <Anchor point="TOPLEFT"
+              relativeTo="GuiRoot"
+              relativePoint="TOPLEFT"
+              offsetX="0"
+              offsetY="0" />
+    </TopLevelControl>
   </Controls>
 </GuiXml>
