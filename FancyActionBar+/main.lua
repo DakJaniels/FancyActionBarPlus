@@ -279,10 +279,16 @@ local debug = false    -- debug mode
 local scale = 100      -- default or custom scale of the action bar to use
 local updateRate = 100 -- overlay update interval
 
--- local lastButton = 0                       -- for repositioning of skill buttons
-local channeledAbilityUsed = nil           -- for tracking channeling abilities
-local isChanneling = false                 -- for tracking channeling abilities
 local wasBlockActive = false               -- for tracking block state
+local channeledAbility = {
+    id = nil,           -- ability id being tracked (pending or active)
+    pending = false,    -- true after OnAbilityUsed when castDuration discovered
+    active = false,     -- true while channel/cast is active
+    castEndTime = nil,  -- cast end time (seconds)
+    castDuration = nil, -- recorded cast duration (seconds)
+    -- startTime = nil,    -- cast start time (seconds)
+}
+
 local activeUlt = { id = 0, endTime = -1 } -- for tracking ultimate duration across barswap
 
 local guardId = 0                          -- sync active id for guard on both bars as active and inactive are different
@@ -1453,10 +1459,6 @@ function FancyActionBar.UpdateHideOnNoTargetForSkill(id, hide)
     end
 end
 
-function FancyActionBar.OnlyUpdateEffectForUsedSkill(id)
-
-end
-
 function FancyActionBar.SlotCurrentAbilityConfiguration(id)
     -- local cfg = abilityConfig[id];
     -- local isToggled, noTarget = false, false;
@@ -1552,6 +1554,46 @@ function FancyActionBar.GetOverlay(index)
     else
         return FancyActionBar.overlays[index]
     end
+end
+
+function FancyActionBar.ChanneledAbilityQueued(effectId, castDuration)
+    channeledAbility.id = effectId
+    channeledAbility.pending = true
+    channeledAbility.active = false
+    channeledAbility.castDuration = castDuration
+    channeledAbility.castEndTime = nil
+    -- channeledAbility.startTime = time()
+end
+
+function FancyActionBar.ChanneledAbilityBegin(effectId, castEndTime)
+    channeledAbility.id = effectId
+    channeledAbility.pending = false
+    channeledAbility.active = true
+    channeledAbility.castEndTime = castEndTime
+    -- channeledAbility.startTime = channeledAbility.startTime or time()
+end
+
+function FancyActionBar.ChanneledAbilityEnd(effectId)
+    if not channeledAbility.id then return end
+    if (not effectId) or (channeledAbility.id == effectId) then
+        channeledAbility.id = nil
+        channeledAbility.pending = false
+        channeledAbility.active = false
+        channeledAbility.castEndTime = nil
+        channeledAbility.castDuration = nil
+        -- channeledAbility.startTime = nil
+    end
+end
+
+function FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
+    currentTime = currentTime or time()
+    if not effect then return false end
+    if effect.castEndTime and effect.castEndTime > currentTime then return true end
+    if channeledAbility.id == effect.id then
+        if channeledAbility.pending then return true end
+        if channeledAbility.active and channeledAbility.castEndTime and channeledAbility.castEndTime > currentTime then return true end
+    end
+    return false
 end
 
 --- Retrieves or creates an effect based on the given parameters.
@@ -2160,7 +2202,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     local fadeDelay = SV.showExpire and SV.fadeDelay or 0
     local hasDuration, duration = true, 0
     local isCastTime, isParentTime, isFading = false, false, false
-    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (isChanneling or channeledAbilityUsed == effect.id)
+    local hasActiveCastWindow = FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
     if effect.slotStateEndTime and effect.slotStateEndTime <= currentTime then
         effect.slotStateEndTime = nil
         effect.slotStateBeginTime = nil
@@ -2187,15 +2229,15 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     if SV.showCastDuration and hasActiveCastWindow then
         isCastTime = true
         local isBlockActive = IsBlockActive()
-        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not isChanneling)
+        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not channeledAbility.active)
         wasBlockActive = isBlockActive
 
-        if blockCancelled or not isChanneling then
+        if blockCancelled or not channeledAbility.active then
             effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
             if blockCancelled and (not effect.endTime or effect.endTime < currentTime) then
                 effect.endTime = currentTime
             end
-            isChanneling = false
+            FancyActionBar.ChanneledAbilityEnd(effect.id)
         end
 
         if effect.castEndTime and effect.castEndTime >= currentTime then
@@ -2207,9 +2249,8 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
             hasDuration = false
         end
 
-        if channeledAbilityUsed and effect.castEndTime and effect.castEndTime >= currentTime then
-            channeledAbilityUsed = nil
-            isChanneling = false
+        if channeledAbility.id == effect.id and effect.castEndTime and effect.castEndTime >= currentTime then
+            FancyActionBar.ChanneledAbilityBegin(effect.id, effect.castEndTime)
         end
     elseif effect.slotStateEndTime and effect.slotStateEndTime + fadeDelay > currentTime then
         duration = effect.slotStateEndTime - currentTime
@@ -2391,20 +2432,20 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     local currentTime = time()
     local duration, ultEndTime, instantFade
     local isCastTime = false -- Flag to know if we are using cast time
-    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (isChanneling and channeledAbilityUsed == effect.id)
+    local hasActiveCastWindow = FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
 
     -- Check if channeling logic should apply BEFORE standard duration calculation
     if SV.showCastDuration and hasActiveCastWindow then
         local isBlockActive = IsBlockActive()
-        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not isChanneling)
+        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not channeledAbility.active)
         wasBlockActive = isBlockActive
 
-        if blockCancelled or not isChanneling then
+        if blockCancelled or not channeledAbility.active then
             effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
             if blockCancelled and (not effect.endTime or effect.endTime < currentTime) then
                 effect.endTime = currentTime
             end
-            if blockCancelled then isChanneling = false end
+            FancyActionBar.ChanneledAbilityEnd(effect.id)
         end
 
         if effect.castEndTime and effect.castEndTime >= currentTime then
@@ -2413,10 +2454,9 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
             isCastTime = true -- Set flag
         end
 
-        -- Reset channeledAbilityUsed if this effect was the one being tracked and cast has ended
-        if channeledAbilityUsed == effect.id and (not effect.castEndTime or effect.castEndTime < currentTime) then
-            channeledAbilityUsed = nil
-            isChanneling = false
+        -- Reset Channeling state if this effect was the one being tracked and cast has ended
+        if channeledAbility.id == effect.id and (not effect.castEndTime or effect.castEndTime < currentTime) then
+            FancyActionBar.ChanneledAbilityEnd(effect.id)
         end
     end
     if not isCastTime then
@@ -5356,26 +5396,27 @@ local function OnHotbarSlotStateUpdated(_, slot, hotbar)
         return
     end
     local isBlockActive = IsBlockActive()
-    local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (isChanneling == false))
+    local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (not channeledAbility.active))
     if blockCancelled then
-        channeledAbilityUsed = nil
-        isChanneling = false
+        FancyActionBar.ChanneledAbilityEnd()
     end
 
     local btn = ZO_ActionBar_GetButton(slot)
     if btn then
         btn:UpdateState()
         -- FancyActionBar.SetActionButtonAbilityFxOverride(n);
-        if channeledAbilityUsed then
+        if channeledAbility.pending and channeledAbility.id then
             local currentTime = time()
             local latencyAdjust = zo_max(GetLatency(), 150) + 200
-            local effect = FancyActionBar.effects[channeledAbilityUsed]
-            if not effect then return end
+            local effect = FancyActionBar.effects[channeledAbility.id]
+            if not effect then
+                FancyActionBar.ChanneledAbilityEnd(channeledAbility.id)
+                return
+            end
             if effect.castEndTime and (effect.castEndTime > (currentTime + latencyAdjust)) then
                 effect.castEndTime = 0
                 wasBlockActive = isBlockActive
-                -- channeledAbilityUsed = nil
-                -- isChanneling = false
+                FancyActionBar.ChanneledAbilityEnd(channeledAbility.id)
                 return
             end
             local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397)
@@ -5392,8 +5433,7 @@ local function OnHotbarSlotStateUpdated(_, slot, hotbar)
             local adjust = adjustFatecarver and (stacks * .338) or 0
             effect.castEndTime = effect.castDuration and (effect.castDuration + adjust + time()) or 0
             wasBlockActive = isBlockActive
-            channeledAbilityUsed = nil
-            isChanneling = true
+            FancyActionBar.ChanneledAbilityBegin(channeledAbility.id, effect.castEndTime)
         end
     end
 end
@@ -5480,8 +5520,7 @@ end
 
 local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
-        channeledAbilityUsed = nil
-        isChanneling = false
+        FancyActionBar.ChanneledAbilityEnd()
         FancyActionBar.SwapControls(isWeaponSwapLocked)
         currentWeaponPair = activeWeaponPair
         FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds after weapon swap
@@ -5586,11 +5625,11 @@ local function OnAbilityUsed(_, n)
         if castDuration then
             effect.castDuration = castDuration
             effect.channeledId = effect.id
-            channeledAbilityUsed = effect.id
+            FancyActionBar.ChanneledAbilityQueued(effect.id, castDuration)
         else
             effect.castDuration = nil
             effect.channeledId = nil
-            channeledAbilityUsed = nil
+            FancyActionBar.ChanneledAbilityEnd()
         end
     end
 end
@@ -5734,14 +5773,14 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
         local hasValidSlotEffect = duration > 0 and remain > 0
         if not hasValidSlotEffect then
-            channeledAbilityUsed = nil
-            isChanneling = false
+            FancyActionBar.ChanneledAbilityEnd()
             return
         end
         -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
         if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
             if not (effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > t) then
                 effect.castEndTime = t + remain
+                FancyActionBar.ChanneledAbilityBegin(effect.id, effect.castEndTime)
             end
         else
             if effect.castDuration then
@@ -5789,7 +5828,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType, t)
     end
 
-    if isChanneling and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then isChanneling = false end
+    if channeledAbility.active and abilityId == 29721 and change == EFFECT_RESULT_UPDATED then FancyActionBar.ChanneledAbilityEnd() end
 
     local spec = FancyActionBar.specialEffects[abilityId]
     local useSpecialDebuff = SV.advancedDebuff and spec and spec.isSpecialDebuff
@@ -6021,9 +6060,8 @@ function FancyActionBar.SyncEffectState()
                     COMBAT_UNIT_TYPE_PLAYER
                 )
             end
-            if effect.isChanneled and not isChanneling then
-                channeledAbilityUsed = nil
-                isChanneling = false
+            if effect.isChanneled and not channeledAbility.active then
+                FancyActionBar.ChanneledAbilityEnd(effect.id)
                 effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
                 effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
             end
@@ -6095,8 +6133,7 @@ local function OnDeath(eventId, unitTag, isDead)
     end
 
     -- Reset channeling states
-    channeledAbilityUsed = nil
-    isChanneling = false
+    FancyActionBar.ChanneledAbilityEnd()
 
     -- Update effects and tracking
     FancyActionBar.SyncEffectState()
@@ -6406,7 +6443,7 @@ function FancyActionBar.Initialize()
     EM:RegisterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, OnDeath)
     EM:AddFilterForEvent(NAME .. "Death", EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG, "player")
     EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function ()
-        isChanneling = false
+        FancyActionBar.ChanneledAbilityEnd()
     end)
     EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
         FancyActionBar.updateUI = true
