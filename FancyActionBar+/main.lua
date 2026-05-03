@@ -2160,8 +2160,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     local fadeDelay = SV.showExpire and SV.fadeDelay or 0
     local hasDuration, duration = true, 0
     local isCastTime, isParentTime, isFading = false, false, false
-    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (effect.castDuration and isChanneling and channeledAbilityUsed == effect.id)
-
+    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (isChanneling or channeledAbilityUsed == effect.id)
     if effect.slotStateEndTime and effect.slotStateEndTime <= currentTime then
         effect.slotStateEndTime = nil
         effect.slotStateBeginTime = nil
@@ -2210,6 +2209,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
 
         if channeledAbilityUsed and effect.castEndTime and effect.castEndTime >= currentTime then
             channeledAbilityUsed = nil
+            isChanneling = false
         end
     elseif effect.slotStateEndTime and effect.slotStateEndTime + fadeDelay > currentTime then
         duration = effect.slotStateEndTime - currentTime
@@ -2391,7 +2391,7 @@ function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
     local currentTime = time()
     local duration, ultEndTime, instantFade
     local isCastTime = false -- Flag to know if we are using cast time
-    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (effect.castDuration and isChanneling and channeledAbilityUsed == effect.id)
+    local hasActiveCastWindow = (effect.castEndTime and effect.castEndTime > currentTime) or (isChanneling and channeledAbilityUsed == effect.id)
 
     -- Check if channeling logic should apply BEFORE standard duration calculation
     if SV.showCastDuration and hasActiveCastWindow then
@@ -5374,8 +5374,8 @@ local function OnHotbarSlotStateUpdated(_, slot, hotbar)
             if effect.castEndTime and (effect.castEndTime > (currentTime + latencyAdjust)) then
                 effect.castEndTime = 0
                 wasBlockActive = isBlockActive
-                channeledAbilityUsed = nil
-                isChanneling = false
+                -- channeledAbilityUsed = nil
+                -- isChanneling = false
                 return
             end
             local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397)
@@ -5550,20 +5550,6 @@ local function OnAbilityUsed(_, n)
         local e = FancyActionBar.effects[i]
         if e then
             FancyActionBar.AddSystemMessage("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and -1 or (GetAbilityDuration(e.id) or -1) / 1000)
-            if SV.showCastDuration then
-                wasBlockActive = IsBlockActive()
-                local _, castDuration = GetAbilityCastInfo(id, nil, "player")
-                castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil
-                if castDuration then
-                    e.castDuration = castDuration
-                    e.channeledId = id
-                    channeledAbilityUsed = e.id
-                else
-                    e.castDuration = nil
-                    e.channeledId = nil
-                    channeledAbilityUsed = nil
-                end
-            end
         end
         return
     end
@@ -5748,6 +5734,8 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
         local hasValidSlotEffect = duration > 0 and remain > 0
         if not hasValidSlotEffect then
+            channeledAbilityUsed = nil
+            isChanneling = false
             return
         end
         -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
