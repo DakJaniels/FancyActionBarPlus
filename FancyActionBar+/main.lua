@@ -3728,8 +3728,18 @@ function FancyActionBar.SaveEffectWidgetPosition(abilityId)
         return
     end
 
-    widget.x = control:GetLeft()
-    widget.y = control:GetTop()
+    local cx, cy = control:GetCenter()
+    widget.x = cx
+    widget.y = cy
+    -- If the settings menu is open, update the sliders so they show the new values
+    local sliderX = WM:GetControlByName("EffectWidget_X_Slider")
+    if sliderX and sliderX.UpdateValue then
+        sliderX:UpdateValue()
+    end
+    local sliderY = WM:GetControlByName("EffectWidget_Y_Slider")
+    if sliderY and sliderY.UpdateValue then
+        sliderY:UpdateValue()
+    end
 end
 
 local function EnsureEffectWidgetPositionDefaults(abilityId, widget)
@@ -3746,8 +3756,18 @@ local function EnsureEffectWidgetPositionDefaults(abilityId, widget)
     local rowIndex = (widgetCount % 6)
     local columnIndex = zo_floor(widgetCount / 6)
 
-    widget.x = (actionBarLeft or 0) + (rowIndex * 55)
-    widget.y = (actionBarTop or 0) - 60 - (columnIndex * 55)
+    -- Compute defaults as center coordinates. Account for any saved scale if present.
+    local control = FancyActionBar.effectWidgetControls[abilityId]
+    local baseW, baseH = 50, 50
+    if control then
+        baseW = control:GetWidth() or baseW
+        baseH = control:GetHeight() or baseH
+    end
+    local widgetScale = tonumber(widget and widget.scale) or 1
+    local topLeftX = (actionBarLeft or 0) + (rowIndex * 55)
+    local topLeftY = (actionBarTop or 0) - 60 - (columnIndex * 55)
+    widget.x = topLeftX + (baseW * widgetScale) / 2
+    widget.y = topLeftY + (baseH * widgetScale) / 2
 end
 
 local function CreateEffectWidgetControl(abilityId, widget)
@@ -3770,7 +3790,7 @@ local function CreateEffectWidgetControl(abilityId, widget)
     local x = widget and widget.x or 0
     local y = widget and widget.y or 0
     control:ClearAnchors()
-    control:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
+    control:SetAnchor(CENTER, GuiRoot, TOPLEFT, x, y, control:GetResizeToFitConstrains())
     control:SetScale(tonumber(widget and widget.scale) or 1)
     local locked = SV.effectWidgetsLocked ~= false
     control:SetMovable(not locked)

@@ -89,6 +89,8 @@ local WIDGET_SETTING_CONTROL_NAMES = {
     "EffectWidget_ExternalOnly_Checkbox",
     "EffectWidget_ActiveAlpha_Editbox",
     "EffectWidget_InactiveAlpha_Editbox",
+    "EffectWidget_X_Slider",
+    "EffectWidget_Y_Slider",
 }
 local selectedEffectWidget = 0
 local effectWidgetNames = { "== Select a Widget ==" }
@@ -1246,6 +1248,60 @@ local function SetEffectWidgetInactiveAlphaValue(value)
         if control then
             FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
         end
+    end
+end
+
+local function GetCurrentEffectWidgetX()
+    local _, widget = GetCurrentEffectWidget()
+    if widget and widget.x ~= nil then
+        return tonumber(widget.x)
+    end
+    return 0
+end
+
+local function GetCurrentEffectWidgetY()
+    local _, widget = GetCurrentEffectWidget()
+    if widget and widget.y ~= nil then
+        return tonumber(widget.y)
+    end
+    return 0
+end
+
+local function SetEffectWidgetXValue(value)
+    local x = tonumber(value)
+    if x == nil then
+        CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget X position.")
+        return
+    end
+    local abilityId, widget = GetCurrentEffectWidget()
+    if abilityId == 0 or not widget then return end
+    widget.x = x
+    local control = FancyActionBar.effectWidgetControls[abilityId]
+    if control then
+        local y = tonumber(widget.y) or 0
+        control:ClearAnchors()
+        control:SetAnchor(CENTER, GuiRoot, TOPLEFT, x, y, control:GetResizeToFitConstrains())
+        FancyActionBar.SaveEffectWidgetPosition(abilityId)
+        FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
+    end
+end
+
+local function SetEffectWidgetYValue(value)
+    local y = tonumber(value)
+    if y == nil then
+        CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget Y position.")
+        return
+    end
+    local abilityId, widget = GetCurrentEffectWidget()
+    if abilityId == 0 or not widget then return end
+    widget.y = y
+    local control = FancyActionBar.effectWidgetControls[abilityId]
+    if control then
+        local x = tonumber(widget.x) or 0
+        control:ClearAnchors()
+        control:SetAnchor(CENTER, GuiRoot, TOPLEFT, x, y, control:GetResizeToFitConstrains())
+        FancyActionBar.SaveEffectWidgetPosition(abilityId)
+        FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
     end
 end
 
@@ -6078,6 +6134,46 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 isMultiline = false,
                                 isExtraWide = false,
                                 reference = "EffectWidget_InactiveAlpha_Editbox",
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Horizontal (X) Position",
+                                tooltip = "Set widget horizontal (X) position relative to top-left of the screen (pixels).",
+                                min = 0,
+                                max = zo_floor(GuiRoot:GetWidth()),
+                                step = 1,
+                                default = 0,
+                                getFunc = function ()
+                                    return GetCurrentEffectWidgetX()
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetXValue(value)
+                                end,
+                                disabled = function ()
+                                    return IsEffectWidgetActionDisabled() or not GetEffectWidgetsLocked()
+                                end,
+                                reference = "EffectWidget_X_Slider",
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Vertical (Y) Position",
+                                tooltip = "Set widget vertical (Y) position relative to top-left of the screen (pixels).",
+                                min = 0,
+                                max = zo_floor(GuiRoot:GetHeight()),
+                                step = 1,
+                                default = 0,
+                                getFunc = function ()
+                                    return GetCurrentEffectWidgetY()
+                                end,
+                                setFunc = function (value)
+                                    SetEffectWidgetYValue(value)
+                                end,
+                                disabled = function ()
+                                    return IsEffectWidgetActionDisabled() or not GetEffectWidgetsLocked()
+                                end,
+                                reference = "EffectWidget_Y_Slider",
                                 width = "half",
                             },
                             {
