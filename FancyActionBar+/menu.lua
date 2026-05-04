@@ -1040,6 +1040,9 @@ local function GetEffectWidgetAbilityName()
 end
 
 local function RefreshEffectWidgetSettingControls()
+    if IsConsoleUI() then
+        return
+    end
     for _, controlName in ipairs(WIDGET_SETTING_CONTROL_NAMES) do
         local control = WM:GetControlByName(controlName)
         if control and control.UpdateValue then
@@ -1049,17 +1052,14 @@ local function RefreshEffectWidgetSettingControls()
 end
 
 local function RefreshEffectWidgetDropdownSelection(updateChoices)
-    if IsConsoleUI() then
-        return
+    
+    if not IsConsoleUI() then
+        local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
+        if updateChoices then
+            widgetDropdown:UpdateChoices(effectWidgetNames)
+        end
+        widgetDropdown.dropdown:SetSelectedItem(effectWidgetNameById[selectedEffectWidget] or "== Select a Widget ==")
     end
-    local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
-    if not widgetDropdown then
-        return
-    end
-    if updateChoices then
-        widgetDropdown:UpdateChoices(effectWidgetNames)
-    end
-    widgetDropdown.dropdown:SetSelectedItem(effectWidgetNameById[selectedEffectWidget] or "== Select a Widget ==")
 end
 
 local function ApplyEffectWidgetState(widget)
@@ -1502,6 +1502,9 @@ GetSelectedAbilityConfigProfileName = function ()
 end
 
 UpdateAbilityConfigProfileControls = function ()
+    if IsConsoleUI() then
+        return
+    end
     local selectedProfileName = GetSelectedAbilityConfigProfileName()
     local profileDropdown = WM:GetControlByName("Ability_Config_Profile_Dropdown")
     local selectedProfileEditbox = WM:GetControlByName("Selected_Ability_Config_Profile_Editbox")
@@ -3200,6 +3203,24 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.showArrow = value or false
+                    FancyActionBar.UpdateWeaponSwapControlVisibility()
+                    FancyActionBar.AdjustQuickSlotSpacing()
+                    FancyActionBar.AdjustUltimateSpacing()
+                end,
+                width = "half",
+            },
+            {
+                type = "checkbox",
+                name = "Use default weapon swap control",
+                tooltip = "Use the ZOS's default WeaponSwap control instead of the custom FAB arrow.",
+                default = defaults.useDefaultWeaponSwap,
+                getFunc = function ()
+                    return SV.useDefaultWeaponSwap
+                end,
+                setFunc = function (value)
+                    SV.useDefaultWeaponSwap = value or false
+                    FancyActionBar.UpdateWeaponSwapControlVisibility()
+                    FancyActionBar.SwapControls()
                     FancyActionBar.AdjustQuickSlotSpacing()
                     FancyActionBar.AdjustUltimateSpacing()
                 end,
@@ -3210,14 +3231,36 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 name = "Arrow color",
                 default = ZO_ColorDef:New(unpack(defaults.arrowColor)),
                 disabled = function ()
-                    return not SV.showArrow
+                    return SV.useDefaultWeaponSwap or not SV.showArrow
                 end,
                 getFunc = function ()
                     return unpack(SV.arrowColor)
                 end,
                 setFunc = function (r, g, b, a)
                     SV.arrowColor = { r, g, b, a }
-                    FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
+                    if (not SV.useDefaultWeaponSwap) and FAB_ActionBarArrow then
+                        FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "checkbox",
+                name = "Center default weapon swap",
+                tooltip = "On: ZOS weapon swap control will be centered between the bars. Off: Align the default WeaponSwap control to the active bar.",
+                default = defaults.centerDefaultWeaponSwap,
+                disabled = function ()
+                    return not SV.useDefaultWeaponSwap
+                end,
+                getFunc = function ()
+                    return SV.centerDefaultWeaponSwap
+                end,
+                setFunc = function (value)
+                    SV.centerDefaultWeaponSwap = value or false
+                    FancyActionBar.UpdateWeaponSwapControlVisibility()
+                    FancyActionBar.SwapControls()
+                    FancyActionBar.AdjustQuickSlotSpacing()
+                    FancyActionBar.AdjustUltimateSpacing()
                 end,
                 width = "half",
             },
@@ -6151,7 +6194,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SetEffectWidgetXValue(value)
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled() or not GetEffectWidgetsLocked()
+                                    return IsEffectWidgetActionDisabled() or GetEffectWidgetsLocked()
                                 end,
                                 reference = "EffectWidget_X_Slider",
                                 width = "half",
@@ -6171,7 +6214,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SetEffectWidgetYValue(value)
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled() or not GetEffectWidgetsLocked()
+                                    return IsEffectWidgetActionDisabled() or GetEffectWidgetsLocked()
                                 end,
                                 reference = "EffectWidget_Y_Slider",
                                 width = "half",

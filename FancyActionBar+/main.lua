@@ -1758,7 +1758,7 @@ function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceCh
     local hideBar = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP
     FancyActionBar.ToggleInactiveBar(hideBar, doLock)
     FancyActionBar.AdjustQuickSlotSpacing(doLock)
-    FAB_ActionBarArrow:SetHidden(not SV.showArrow or doLock)
+    FancyActionBar.UpdateWeaponSwapControlVisibility(doLock)
     FancyActionBar.ApplyAlphaInactive(isWeaponSwapLocked and 0 or SV.alphaInactive or defaultSettings.alphaInactive)
 end
 
@@ -3465,12 +3465,14 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock)
         anchorPoint = LEFT
         relPoint = LEFT
         anchorX = xOffset
-        FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
+        if (not SV.useDefaultWeaponSwap) and FAB_ActionBarArrow then
+            FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
+        end
     end
 
     QSB:ClearAnchors()
     QSB:SetAnchor(anchorPoint, anchorControl, relPoint, anchorX, anchorOffsetY, QSB:GetResizeToFitConstrains())
-    FAB_ActionBarArrow:SetHidden(lock or not SV.showArrow)
+    FancyActionBar.UpdateWeaponSwapControlVisibility(lock)
 end
 
 function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button according to variables
@@ -4329,8 +4331,37 @@ function FancyActionBar.SetupActionBar(style)
 
     weaponSwapControl:ClearAnchors()
     weaponSwapControl:SetAnchor(LEFT, FAB_ActionBarFakeQS, RIGHT, 0, 0)
-    weaponSwapControl:SetAlpha(0)
-    weaponSwapControl:SetMouseEnabled(false)
+    if SV.useDefaultWeaponSwap then
+        weaponSwapControl:SetAlpha(1)
+        weaponSwapControl:SetMouseEnabled(true)
+    else
+        weaponSwapControl:SetAlpha(0)
+        weaponSwapControl:SetMouseEnabled(false)
+    end
+end
+
+--- Update visibility/state for our swap arrow or default swap control
+--- @param lock boolean|nil optional, current lock state (defaults to current isWeaponSwapLocked)
+function FancyActionBar.UpdateWeaponSwapControlVisibility(lock)
+    lock = lock or isWeaponSwapLocked
+    local useDefault = SV.useDefaultWeaponSwap
+    local shouldShowDefault = useDefault and (not lock) and SV.showArrow
+
+    if weaponSwapControl then
+        weaponSwapControl:SetAlpha(shouldShowDefault and 1 or 0)
+        weaponSwapControl:SetMouseEnabled(shouldShowDefault)
+    end
+
+    if useDefault then
+        if FAB_ActionBarArrow then FAB_ActionBarArrow:SetHidden(true) end
+    else
+        if FAB_ActionBarArrow then
+            FAB_ActionBarArrow:SetHidden(lock or not SV.showArrow)
+            if SV.arrowColor then
+                FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
+            end
+        end
+    end
 end
 
 function FancyActionBar.ApplyActiveHotbarStyle()
@@ -4499,6 +4530,28 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
 
     FancyActionBar.UpdateActiveBarIcons(activeBar)
     FancyActionBar.UpdateInactiveBarIcons(inactiveBar)
+    -- Update default weapon swap TransformOffsetY so it follows the active bar when enabled.
+    if weaponSwapControl and weaponSwapControl.SetTransformOffsetY then
+        if (not SV.useDefaultWeaponSwap) or SV.centerDefaultWeaponSwap then
+            weaponSwapControl:SetTransformOffsetY(0)
+        else
+            local anchorButton = ZO_ActionBar_GetButton(MIN_INDEX)
+            local anchorControl = (anchorButton and anchorButton.slot) or _G["ActionButton3"] or ACTION_BAR
+            local ax, ay = 0, 0
+            if anchorControl and anchorControl.GetCenter then
+                ax, ay = anchorControl:GetCenter()
+            end
+            local sx, sy = 0, 0
+            if weaponSwapControl and weaponSwapControl.GetCenter then
+                sx, sy = weaponSwapControl:GetCenter()
+            end
+            if ay and sy then
+                weaponSwapControl:SetTransformOffsetY(ay - sy)
+            else
+                weaponSwapControl:SetTransformOffsetY(0)
+            end
+        end
+    end
 end
 
 function FancyActionBar.ClearAnchors()

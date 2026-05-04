@@ -260,6 +260,10 @@ FancyActionBar.defaultSettings =
     hideDefaultFrames = false,
     -- arrow and quick slot display style
     showArrow = true,
+    -- Use the default ZO ActionBar weapon swap control instead of the custom FAB arrow
+    useDefaultWeaponSwap = false,
+    -- The default control is centered between the bars because of our bar offsets, set false to do our custom repositioning of this swap control
+    centerDefaultWeaponSwap = true,
     arrowColor = { 0, 1, 0, 1 },
     moveQS = true,
     -- enemy markers
