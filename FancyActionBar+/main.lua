@@ -6123,12 +6123,12 @@ function FancyActionBar.SyncEffectState()
 
     for id, effect in pairs(FancyActionBar.effects) do
         if not activeAbility[effect.id] and not effect.isDebuff and not specialEffects[effect.id] then
-            if (effect.endTime and effect.endTime > currentTime) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
+            if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks > 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
                 OnEffectChanged(
                     nil,
                     EFFECT_RESULT_FADED,
                     nil, nil, "player",
-                    0, 0, effect.stacks or 0, nil, nil, nil, nil, nil, nil, nil,
+                    effect.beginTime or -1, effect.endTime or -1, effect.stacks, nil, nil, nil, nil, nil, nil, nil,
                     effect.id,
                     COMBAT_UNIT_TYPE_PLAYER
                 )
