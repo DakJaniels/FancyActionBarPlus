@@ -100,9 +100,9 @@ FancyActionBar.defaultSettings =
     barXOffsetGP = 0,
     barYOffsetGP = 0,
     moveHealthBar = true,
-    moveResourceBars = IsConsoleUI(),
-    moveBuffs = IsConsoleUI(),
-    moveSynergy = IsConsoleUI(),
+    moveResourceBars = ZO_IsConsoleOrGameCoreUI(),
+    moveBuffs = ZO_IsConsoleOrGameCoreUI(),
+    moveSynergy = ZO_IsConsoleOrGameCoreUI(),
     forceReposition = false,
     forceAzurahMover = false,
 

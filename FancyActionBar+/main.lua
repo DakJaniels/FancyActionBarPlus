@@ -4143,7 +4143,7 @@ end
 
 local hideUltimateNumberIfNeeded = function ()
     local hideUltNumber = FancyActionBar.constants.ult.value.show
-    if hideUltNumber and not IsConsoleUI() then
+    if hideUltNumber and not ZO_IsConsoleOrGameCoreUI() then
         SetSetting(SETTING_TYPE_UI, UI_SETTING_ULTIMATE_NUMBER, "false")
     end
 end
@@ -6541,7 +6541,7 @@ function FancyActionBar.Initialize()
     end)
 
     EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
-        if not IsConsoleUI() then
+        if not ZO_IsConsoleOrGameCoreUI() then
             SetAbilityBarTimersEnabled()
         end
         EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
@@ -6647,7 +6647,7 @@ function FancyActionBar.Initialize()
     --   FancyActionBar.AddSystemMessage('ActionButton' .. slotNum .. ' pressed.')
     --   return false
     -- end)
-    if not IsConsoleUI() then
+    if not ZO_IsConsoleOrGameCoreUI() then
         SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_BACK_ROW, "false")
         SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "false")
     end
