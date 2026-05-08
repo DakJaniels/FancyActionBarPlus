@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.18.1"
+local VERSION = "2.18.2"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -6123,7 +6123,7 @@ function FancyActionBar.SyncEffectState()
 
     for id, effect in pairs(FancyActionBar.effects) do
         if not activeAbility[effect.id] and not effect.isDebuff and not specialEffects[effect.id] then
-            if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks > 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
+            if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks ~= 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
                 OnEffectChanged(
                     nil,
                     EFFECT_RESULT_FADED,
