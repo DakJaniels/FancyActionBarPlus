@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.18.2"
+local VERSION = "2.18.3"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -569,67 +569,47 @@ local EMPTY_STACK_LIST = {}
 -- @param abilityId integer
 -- @param mapType string|nil: "debuff" for debuffStackMap, nil or "regular" for stackMap (default: both)
 function FancyActionBar.GetConfiguredStackSources(abilityId, mapType)
+    local _
     if not abilityId or abilityId == "" then
         return EMPTY_STACK_LIST
     end
 
     local cache = FancyActionBar.stackSourceConfig
     local cacheKey = mapType and (abilityId .. ":" .. mapType) or abilityId
-    if cache[cacheKey] ~= nil then
+    if cache[cacheKey] then
         return cache[cacheKey]
     end
-
-    local sourceEntryIds = {}
-    local seenSourceEntryIds = {}
-    
     local stackMap = FancyActionBar.stackMap or {}
     local debuffStackMap = FancyActionBar.debuffStackMap or {}
-    
-    local maps = mapType == "debuff" and { debuffStackMap }
-              or mapType == "regular" and { stackMap }
-              or { stackMap, debuffStackMap }
 
-    -- O(1) key check first
-    local isConfigured = stackMap[abilityId] ~= nil or debuffStackMap[abilityId] ~= nil
-
-    for _, sourceMap in ipairs(maps) do
-        for sourceEntryId, abilityIds in pairs(sourceMap) do
-            for i = 1, #abilityIds do
-                if abilityIds[i] == abilityId then
-                    isConfigured = true
-                    if not seenSourceEntryIds[sourceEntryId] then
-                        sourceEntryIds[#sourceEntryIds + 1] = sourceEntryId
-                        seenSourceEntryIds[sourceEntryId] = true
-                    end
-                    break
+    local function findInStackMap(stackMapTable, key)
+        if not stackMapTable then return nil end
+        if stackMapTable[key] then return stackMapTable[key] end
+        for _, tbl in pairs(stackMapTable) do
+            for i = 1, #tbl do
+                if tbl[i] == key then
+                    return tbl
                 end
             end
         end
+        return nil
     end
 
-    -- If no matches found in configured mapping scope, but we need to fallback
-    if #sourceEntryIds == 0 then
-        -- Only traverse the opposite map if we haven't found it anywhere else yet
-        if not isConfigured and mapType then
-            local otherMap = mapType == "debuff" and stackMap or debuffStackMap
-            for _, abilityIds in pairs(otherMap) do
-                for i = 1, #abilityIds do
-                    if abilityIds[i] == abilityId then
-                        isConfigured = true
-                        break
-                    end
-                end
-                if isConfigured then break end
-            end
-        end
-
-        if not isConfigured then
-            sourceEntryIds[1] = abilityId
-        end
+    local result = nil
+    if mapType == "debuff" then
+        result = findInStackMap(debuffStackMap, abilityId) or findInStackMap(stackMap, abilityId)
+    elseif mapType == "regular" then
+        result = findInStackMap(stackMap, abilityId) or findInStackMap(debuffStackMap, abilityId)
+    else
+        result = findInStackMap(stackMap, abilityId) or findInStackMap(debuffStackMap, abilityId)
     end
 
-    cache[cacheKey] = #sourceEntryIds > 0 and sourceEntryIds or EMPTY_STACK_LIST
-    return cache[cacheKey]
+    if not result then
+        result = { abilityId }
+    end
+
+    cache[cacheKey] = result
+    return result
 end
 
 local function NormalizeStackSourceId(id)
@@ -644,7 +624,7 @@ local function NormalizeStackSourceId(id)
 
     local stackableBuff = FancyActionBar.stackableBuff
     local normalizedId = (stackableBuff and stackableBuff[id]) or id
-    if FancyActionBar.fixedStacks[normalizedId] ~= nil then
+    if FancyActionBar.fixedStacks[normalizedId] then
         return normalizedId
     end
 
@@ -674,7 +654,7 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
 
     for i = 1, #configuredSourceIds do
         local configuredId = configuredSourceIds[i]
-        if FancyActionBar.fixedStacks[configuredId] ~= nil then
+        if FancyActionBar.fixedStacks[configuredId] then
             fixedDisplayCount = fixedDisplayCount + 1
             if configuredId == abilityId then
                 fixedDisplayId = configuredId
@@ -695,30 +675,34 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
         return
     end
 
-    if fixedDisplayId and FancyActionBar.debuffStackMap[abilityId] ~= nil and fixedDisplayId ~= abilityId and FancyActionBar.fixedStacks[abilityId] == nil then
+    if fixedDisplayId and FancyActionBar.debuffStackMap[abilityId] and fixedDisplayId ~= abilityId and not FancyActionBar.fixedStacks[abilityId] then
         return
     end
 
     local stackTargetId = fixedDisplayId or NormalizeStackSourceId(abilityId) or abilityId
     local fixedStackValue = FancyActionBar.fixedStacks[stackTargetId]
 
-    if fixedStackValue ~= nil then
-        FancyActionBar.SetStacks(stackTargetId, isFade and 0 or fixedStackValue, true)
+    if fixedStackValue then
+        local val = isFade and 0 or fixedStackValue
+        FancyActionBar.SetStacks(stackTargetId, val, true)
+        if stackTargetId ~= abilityId then FancyActionBar.SetStacks(abilityId, val, true) end
         return
     end
 
-    if stackCount ~= nil then
+    if stackCount then
         nextStacks = stackCount
         if isFade then
             local currentStacks = FancyActionBar.GetActiveStacksForId(stackTargetId) or 0
             nextStacks = zo_max(currentStacks - stackCount, 0)
         end
         FancyActionBar.SetStacks(stackTargetId, nextStacks, isFade)
+        if stackTargetId ~= abilityId then FancyActionBar.SetStacks(abilityId, nextStacks, isFade) end
         return
     end
 
     if isFade then
         FancyActionBar.SetStacks(stackTargetId, 0, true)
+        if stackTargetId ~= abilityId then FancyActionBar.SetStacks(abilityId, 0, true) end
     end
 end
 
@@ -737,7 +721,7 @@ function FancyActionBar.GetActiveStacksForId(id)
             end
         end
 
-        if effect.stacks ~= nil then
+        if effect.stacks then
             return effect.stacks
         end
     end
@@ -790,6 +774,7 @@ function FancyActionBar.SetStacks(id, stacks, force)
     if not effects then return end
     local eff = effects[id] or FancyActionBar.GetEffect(id, nil, nil, true)
     if not eff then return end
+    
     local currentTime = time()
     if type(stacks) == "string" and FancyActionBar.fixedStacks[id] == nil then
         stacks = 0
@@ -800,13 +785,14 @@ function FancyActionBar.SetStacks(id, stacks, force)
     -- Only aggregate from `sources` for effects configured in `stackableBuff`.
     if not force and eff.sources and eff.sources.times and FancyActionBar.IsStackableBuff(id) then
         local count = FancyActionBar.RecomputeUnits(id, currentTime, "sources")
-        if count ~= nil then
+        if count then
             stacks = count
         end
     end
     if eff.stacks == stacks and not force then return end
     eff.stacks = stacks
     effects[id] = eff
+    
 end
 
 function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
@@ -838,8 +824,8 @@ function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
         local trackedEffect = effects and effects[trackedId]
         local sourceStacks = 0
 
-        if fixedStacks[trackedId] ~= nil then
-            if trackedEffect and trackedEffect.stacks ~= nil then
+        if fixedStacks[trackedId] then
+            if trackedEffect and trackedEffect.stacks then
                 if type(trackedEffect.stacks) == "string" then
                     sourceStacks = trackedEffect.stacks ~= "" and fixedStacks[trackedId] or 0
                 elseif trackedEffect.stacks > 0 then
@@ -855,10 +841,10 @@ function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
                 local activeCount = FancyActionBar.RecomputeUnits(trackedId, currentTime, "sources")
                 if activeCount and activeCount > 0 then
                     sourceStacks = activeCount
-                elseif trackedEffect.stacks ~= nil then
+                elseif trackedEffect.stacks then
                     sourceStacks = trackedEffect.stacks
                 end
-            elseif trackedEffect.stacks ~= nil then
+            elseif trackedEffect.stacks then
                 sourceStacks = trackedEffect.stacks
             end
         end
@@ -879,33 +865,17 @@ local function GetDisplayStackSources(effect, sourceAbilityId, currentTime)
         return sourceIds
     end
 
-    currentTime = currentTime or time()
-
+    -- Prefer configured mapping for the source ability when available; otherwise use effect's sources.
     local configuredSourceIds = FancyActionBar.GetConfiguredStackSources(sourceAbilityId)
-    if #configuredSourceIds == 0 then
-        return sourceIds
-    end
-
-    local mergedSourceIds = {}
-    local seenSourceIds = {}
-
-    for i = 1, #sourceIds do
-        local sourceId = sourceIds[i]
-        if sourceId and not seenSourceIds[sourceId] then
-            mergedSourceIds[#mergedSourceIds + 1] = sourceId
-            seenSourceIds[sourceId] = true
+    if configuredSourceIds and #configuredSourceIds > 0 then
+        -- If the effect already exposes external stackSources, prefer them.
+        if sourceIds and #sourceIds > 0 and effect and effect.hasExternalStackSources then
+            return sourceIds
         end
+        return configuredSourceIds
     end
 
-    for i = 1, #configuredSourceIds do
-        local sourceId = configuredSourceIds[i]
-        if sourceId and not seenSourceIds[sourceId] then
-            mergedSourceIds[#mergedSourceIds + 1] = sourceId
-            seenSourceIds[sourceId] = true
-        end
-    end
-
-    return #mergedSourceIds > 0 and mergedSourceIds or sourceIds
+    return sourceIds
 end
 
 function FancyActionBar.ResolveStacksForSourceAbility(effect, sourceAbilityId, currentTime)
@@ -1218,7 +1188,7 @@ local function EnsureAbilityConfigProfiles(savedVars)
     if next(profiles) == nil then
         local legacyChanges = {}
 
-        if type(savedVars.configChanges) == "table" and next(savedVars.configChanges) ~= nil then
+        if type(savedVars.configChanges) == "table" and next(savedVars.configChanges) then
             legacyChanges = ZO_DeepTableCopy(savedVars.configChanges)
         end
 
@@ -1286,7 +1256,7 @@ function FancyActionBar.CreateAbilityConfigProfile(profileName)
     candidateName = GetUniqueAbilityConfigProfileName(savedVars, profileName)
 
     profileId = tonumber(savedVars.nextConfigProfileId) or 1
-    while savedVars.configProfiles[profileId] ~= nil do
+    while savedVars.configProfiles[profileId] do
         profileId = profileId + 1
     end
 
@@ -1443,7 +1413,7 @@ function FancyActionBar.UpdateHideOnNoTargetForSkill(id, hide)
     local cfg = abilityConfig[id]
     local effectId = 0
 
-    if cfg ~= nil then
+    if cfg then
         if type(cfg) == "table" then
             cfg[5] = hide
             effectId = cfg[1]
@@ -1643,10 +1613,17 @@ function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, to
     end
 
     if stackId then
-        effect.stackSources = stackId
+        if effect.stackSources ~= stackId then
+            effect.stackSources = stackId
+            effect.stackId = stackId
+        end
         effect.hasExternalStackSources = hasExternalStackSources or false
     else
-        effect.stackSources = { id }
+        local cfgSources = FancyActionBar.GetConfiguredStackSources(id)
+        if effect.stackSources ~= cfgSources then
+            effect.stackSources = cfgSources
+            effect.stackId = cfgSources
+        end
         effect.hasExternalStackSources = false
     end
     if effectChanged or config or not FancyActionBar.effects[id] then
@@ -1834,7 +1811,7 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
     if eff.hasExternalStackSources then
         local resolvedStacks = FancyActionBar.ResolveStacksForEffect(eff, now)
         currentStacks = resolvedStacks == false and 0 or resolvedStacks
-    elseif currentStacks == 0 and hasEffect and FancyActionBar.fixedStacks[id] ~= nil then
+    elseif currentStacks == 0 and hasEffect and FancyActionBar.fixedStacks[id] then
         currentStacks = FancyActionBar.fixedStacks[id]
     end
 
@@ -2036,12 +2013,12 @@ end
 
 function FancyActionBar.UpdateTimerLabel(label, text, color)
     label:SetText(text)
-    if color ~= nil then
+    if color then
         label:SetColor(unpack(color))
     end
 
     -- local a = 1
-    -- if alpha ~= nil then a = alpha end
+    -- if alpha then a = alpha end
     --
     -- label:SetAlpha(a)
 end
@@ -2066,7 +2043,7 @@ end
 
 local bgHidden = {}
 function FancyActionBar.UpdateBackgroundVisuals(background, color, index, isToggled)
-    if color ~= nil then
+    if color then
         background:SetHidden(false)
         background:SetColor(color[1], color[2], color[3], color[4])
     else
@@ -2074,7 +2051,7 @@ function FancyActionBar.UpdateBackgroundVisuals(background, color, index, isTogg
     end
 
     if index > 0 then
-        if bgHidden[index] ~= nil then
+        if bgHidden[index] then
             local wasHidden = bgHidden[index]
             if wasHidden ~= bgHidden[index] then
                 local isHidden = bgHidden[index] and "hidden" or "showing"
@@ -2207,19 +2184,19 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         effect.slotStateEndTime = nil
         effect.slotStateBeginTime = nil
         effect.slotStateAbilityId = nil
-        if effect.origDontFade ~= nil then
+        if effect.origDontFade then
             effect.dontFade = effect.origDontFade
             effect.origDontFade = nil
         end
-        if effect.origForceExpireStacks ~= nil then
+        if effect.origForceExpireStacks then
             effect.forceExpireStacks = effect.origForceExpireStacks
             effect.origForceExpireStacks = nil
         end
-        if effect.origStackSources ~= nil then
+        if effect.origStackSources then
             effect.stackSources = effect.origStackSources
             effect.origStackSources = nil
         end
-        if effect.origHasExternalStackSources ~= nil then
+        if effect.origHasExternalStackSources then
             effect.hasExternalStackSources = effect.origHasExternalStackSources
             effect.origHasExternalStackSources = nil
         end
@@ -2669,7 +2646,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         ignore = true
     end
 
-    if cfg ~= nil or FancyActionBar.specialEffects[abilityId] then
+    if cfg or FancyActionBar.specialEffects[abilityId] then
         if ignore then
             effectId = abilityId
             custom = true
@@ -2739,38 +2716,26 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
 
     local configuredStackSourceIds = FancyActionBar.GetConfiguredStackSources(abilityId)
     local effectStackSourceIds = FancyActionBar.GetConfiguredStackSources(effectId)
-    local seenStackSourceIds = {}
-    stackId = {}
-    for _, sourceId in ipairs(effectStackSourceIds) do
-        if sourceId and not seenStackSourceIds[sourceId] then
-            tableInsert(stackId, sourceId)
-            seenStackSourceIds[sourceId] = true
-        end
+    local hasExternalStacks = false
+    local function isExternalList(tbl, baseId)
+        return tbl and (#tbl > 1 or (#tbl == 1 and tbl[1] ~= baseId))
     end
-    for _, sourceId in ipairs(configuredStackSourceIds) do
-        if sourceId and not seenStackSourceIds[sourceId] then
-            tableInsert(stackId, sourceId)
-            seenStackSourceIds[sourceId] = true
-        end
-    end
-    if abilityId ~= effectId then
-        local debuffStackMap = FancyActionBar.debuffStackMap
-        for _, sourceId in ipairs(configuredStackSourceIds) do
-            if debuffStackMap and debuffStackMap[sourceId] ~= nil and not seenStackSourceIds[sourceId] then
-                tableInsert(stackId, sourceId)
-                seenStackSourceIds[sourceId] = true
-            end
-        end
-    end
-    if #stackId == 0 then
-        stackId = { effectId }
-        if abilityId ~= effectId then
-            tableInsert(stackId, abilityId)
-        end
-    end
-    local hasExternalStacks = #stackId > 1 or (#stackId == 1 and stackId[1] ~= effectId)
 
-    local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged, hasExternalStacks) -- FancyActionBar.effects[effectId]
+    if isExternalList(effectStackSourceIds, effectId) then
+        stackId = effectStackSourceIds
+        hasExternalStacks = true
+    elseif isExternalList(configuredStackSourceIds, effectId) then
+        stackId = configuredStackSourceIds
+        hasExternalStacks = true
+    elseif effectStackSourceIds and #effectStackSourceIds > 0 then
+        stackId = effectStackSourceIds
+    elseif configuredStackSourceIds and #configuredStackSourceIds > 0 then
+        stackId = configuredStackSourceIds
+    else
+        stackId = FancyActionBar.GetConfiguredStackSources(effectId)
+    end
+
+    local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged, hasExternalStacks)
 
 
     if not ignore then
@@ -2788,9 +2753,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         else
             effect.endTime = -1
         end
-        if effect.hasExternalStackSources then
-            effect.stacks = 0
-        else
+        if not effect.hasExternalStackSources then
             effect.stacks = activeStacks
         end
     end
@@ -3745,7 +3708,7 @@ function FancyActionBar.SaveEffectWidgetPosition(abilityId)
 end
 
 local function EnsureEffectWidgetPositionDefaults(abilityId, widget)
-    if widget.x ~= nil and widget.y ~= nil then
+    if widget.x and widget.y then
         return
     end
 
@@ -4757,7 +4720,7 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
 
     if self.GetUltimateCount then
         local actual = self:GetUltimateCount()
-        if actual ~= nil then ultimateCount = actual end
+        if actual then ultimateCount = actual end
     end
 
     local isSlotUsed = IsSlotUsed(ULT_INDEX, self.slot.hotbarCategory)
@@ -4950,7 +4913,7 @@ function FancyActionBar.IdCheck(index, id)
     end
 
 
-    if slottedIds[index] ~= nil and slottedIds[index].ability ~= slottedIds[index].effect then
+    if slottedIds[index] and slottedIds[index].ability ~= slottedIds[index].effect then
         if FancyActionBar.toggled[id] then
             return true
         end
@@ -4977,7 +4940,7 @@ function FancyActionBar.PostEffectUpdate(name, id, change, duration, stacks, whe
         type = "Updated"
     end
     local stack = "."
-    if (stacks ~= nil and stacks ~= 0) then
+    if (stacks and stacks ~= 0) then
         stack = " (x" .. stacks .. ")."
     end
     FancyActionBar.AddSystemMessage("[<<2>> (<<3>>)] <<1>>: <<4>><<5>>", type, name, id, strformat("%0.1fs", duration), stack)
@@ -5030,7 +4993,7 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
     local timestampStr = timestamp and strformat("%0.3f", timestamp) or "nil"
 
 
-    if (fade ~= nil and gain ~= nil)
+    if (fade and gain)
     then
         dur = strformat(" %0.1f", fade - gain) .. "s"
     else
@@ -5056,7 +5019,7 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
 end
 
 function FancyActionBar.UnitCheck(unitTag, unitId)
-    if unitId ~= nil then
+    if unitId then
         if (not AreUnitsEqual("player", unitTag)) then
             return true
         end
@@ -5074,7 +5037,7 @@ function FancyActionBar.ShouldTrackAsDebuff(id, tag)
     if id == 38791 then
         return false
     end -- ZoS seem to think that Stampede is a debuff and not a ground effect :S
-    if tag ~= nil then
+    if tag then
         if AreUnitsEqual("player", tag) or FancyActionBar.IsGroupUnit(tag) then
             return false
         end
@@ -5756,28 +5719,28 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             effect.beginTime = beginTime
             effect.endTime = endTime
         else
-            if effect.origDontFade == nil then
+            if not effect.origDontFade then
                 effect.origDontFade = effect.dontFade
             end
-            if effect.origForceExpireStacks == nil then
+            if not effect.origForceExpireStacks then
                 effect.origForceExpireStacks = effect.forceExpireStacks
             end
-            if specialEffect.dontFade ~= nil then
+            if specialEffect.dontFade then
                 effect.dontFade = specialEffect.dontFade
             end
-            if specialEffect.forceExpireStacks ~= nil then
+            if specialEffect.forceExpireStacks then
                 effect.forceExpireStacks = specialEffect.forceExpireStacks
             end
-            if effect.origStackSources == nil then
+            if not effect.origStackSources then
                 effect.origStackSources = effect.stackSources
             end
-            if effect.origHasExternalStackSources == nil then
+            if not effect.origHasExternalStackSources then
                 effect.origHasExternalStackSources = effect.hasExternalStackSources
             end
-            if specialEffect.stackId then
-                effect.stackSources = ZO_DeepTableCopy(specialEffect.stackId)
-            else
-                effect.stackSources = { stackTargetId }
+            local newSources = specialEffect.stackId and ZO_DeepTableCopy(specialEffect.stackId) or FancyActionBar.GetConfiguredStackSources(stackTargetId)
+            if effect.stackSources ~= newSources then
+                effect.stackSources = newSources
+                effect.stackId = newSources
             end
             effect.hasExternalStackSources = false
             effect.slotStateBeginTime = beginTime
@@ -5785,7 +5748,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             effect.slotStateAbilityId = abilityId
         end
 
-        if nextStacks ~= nil then
+        if nextStacks then
             FancyActionBar.SetStacks(stackTargetId, nextStacks, true)
         end
 
@@ -5808,11 +5771,11 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         local stackTargetId = slotStateEffect.stackTargetId or slotStateEffect.specialEffectId or slotStateEffect.effectId
         if effect then
             FancyActionBar.SetStacks(stackTargetId, 0, true)
-            if effect.origStackSources ~= nil then
+            if effect.origStackSources then
                 effect.stackSources = effect.origStackSources
                 effect.origStackSources = nil
             end
-            if effect.origHasExternalStackSources ~= nil then
+            if effect.origHasExternalStackSources then
                 effect.hasExternalStackSources = effect.origHasExternalStackSources
                 effect.origHasExternalStackSources = nil
             end
@@ -5896,7 +5859,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     local isTargetPlayer = AreUnitsEqual("player", unitTag)
     local isTargetPlayerOrCompanion = isTargetPlayer or (HasActiveCompanion() and unitTag == "companion")
     local hasExternalStackTargets = #FancyActionBar.GetConfiguredStackSources(abilityId) > 0
-    local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] ~= nil
+    local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] and true or false
     local targetUnitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
 
     if SV.debugAll then
@@ -5992,7 +5955,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
 
         if endTime ~= beginTime and effect.passive then FancyActionBar.UpdatePassiveEffect(effect.id, false) end
 
-        if stackCount ~= nil or hasFixedStacks or hasExternalStackTargets then
+        if stackCount or hasFixedStacks or hasExternalStackTargets then
             FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
         end
 
@@ -6977,13 +6940,13 @@ local function ValidateScalingSettings(sv, d)
     end
 
     -- Migrate old scaling settings
-    if SV.scaleEnable ~= nil then
+    if SV.scaleEnable then
         sv.abScaling.kb.enable = sv.scaleEnable
         sv.abScaling.gp.enable = sv.scaleEnable
         sv.scaleEnable = nil
     end
 
-    if sv.abScale ~= nil then
+    if sv.abScale then
         sv.abScaling.kb.scale = sv.abScale
         sv.abScaling.gp.scale = sv.abScale
         sv.abScale = nil

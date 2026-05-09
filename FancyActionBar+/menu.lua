@@ -1159,7 +1159,7 @@ local function GetCurrentEffectWidgetActiveAlpha()
     local _, widget = GetCurrentEffectWidget()
     if widget then
         local value = tonumber(widget.activeAlpha)
-        if value ~= nil then
+        if value then
             return zo_clamp(value, 0, 1)
         end
     end
@@ -1170,7 +1170,7 @@ local function GetCurrentEffectWidgetInactiveAlpha()
     local _, widget = GetCurrentEffectWidget()
     if widget then
         local value = tonumber(widget.inactiveAlpha)
-        if value ~= nil then
+        if value then
             return zo_clamp(value, 0, 1)
         end
     end
@@ -1253,7 +1253,7 @@ end
 
 local function GetCurrentEffectWidgetX()
     local _, widget = GetCurrentEffectWidget()
-    if widget and widget.x ~= nil then
+    if widget and widget.x then
         return tonumber(widget.x)
     end
     return 0
@@ -1261,7 +1261,7 @@ end
 
 local function GetCurrentEffectWidgetY()
     local _, widget = GetCurrentEffectWidget()
-    if widget and widget.y ~= nil then
+    if widget and widget.y then
         return tonumber(widget.y)
     end
     return 0
