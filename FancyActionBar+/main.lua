@@ -5215,7 +5215,9 @@ function FancyActionBar.UpdateEffectProcs(effect, specialEffect, change, stackCo
 
     -- Update effect values from proc
     for key, value in pairs(procValues) do
-        effect[key] = value
+        if key ~= "id" then
+            effect[key] = value
+        end
     end
 
     -- Handle stacks

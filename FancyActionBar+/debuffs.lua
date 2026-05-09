@@ -333,36 +333,24 @@ local function OnReticleTargetChanged()
             for i = 1, nBuffs do
                 local abilityName, beginTime, endTime, buffSlot, stacks, icon, _, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo(tag, i)
                 if castByPlayer or (FancyActionBar.allowExternalStacks[abilityId]) then
-                    local effect = FancyActionBar.effects[abilityId] or { id = abilityId }
-                    effect.id = abilityId
-                    effect.beginTime = beginTime or 0
-                    effect.endTime = endTime or 0
-                    effect.duration = (effect.endTime or 0) - (effect.beginTime or 0)
-                    effect.name = abilityName
-                    effect.hasActiveCast = castByPlayer
-                    effect.activeOnTarget = true
-                    effect.isDebuff = true
-                    FancyActionBar.effects[effect.id] = effect
-                    keep[effect.id] = true
-
-                    local specialEffect = (FancyActionBar.specialEffects[effect.id] and ZO_DeepTableCopy(FancyActionBar.specialEffects[effect.id]))
-                    if specialEffect then
-                        for sId, sEffect in pairs(specialEffect) do
-                            effect[sId] = sEffect
-                        end
-                        if specialEffect.setTime then
-                            effect.endTime = effect.beginTime + specialEffect.duration
-                        end
-                        keep[effect.id] = true
-                    else
-                        SyncDebuffStackSources(effect, abilityId)
-                        if effect.hasExternalStackSources or HasDebuffStackTargets(abilityId) then
-                            FancyActionBar.UpdateStacksFromEvent(abilityId, stacks, false)
-                        end
-                        effect.stacks = ResolveDebuffDisplayStacks(effect, stacks or 0)
+                    local specialEffect = (FancyActionBar.specialEffects[abilityId] and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]))
+                    local debuff = {
+                        id = (specialEffect and specialEffect.id) or abilityId,
+                        beginTime = beginTime or 0,
+                        endTime = endTime or 0,
+                        duration = (endTime or 0) - (beginTime or 0),
+                        name = abilityName,
+                        hasActiveCast = castByPlayer,
+                        activeOnTarget = true,
+                    }
+                    if specialEffect and specialEffect.setTime then
+                        debuff.endTime = debuff.beginTime + specialEffect.duration
                     end
 
-                    FancyActionBar.UpdateDebuff(effect, effect.stacks, abilityId)
+                    keep[debuff.id] = true
+
+                    local stackCount = (specialEffect and specialEffect.stacks) or stacks or 0
+                    FancyActionBar.UpdateDebuff(debuff, stackCount, abilityId)
                 end
             end
         end
@@ -448,8 +436,10 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
     if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
         if specialEffect then
-            for sId, effect in pairs(specialEffect) do
-                debuff[sId] = effect
+            for sId, sEffect in pairs(specialEffect) do
+                if sId ~= "id" then
+                    debuff[sId] = sEffect
+                end
             end
             if specialEffect.setTime then
                 endTime = t + specialEffect.duration
@@ -500,12 +490,17 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         if specialEffect then
             if (debuff.hasProced and (debuff.hasProced ~= specialEffect.hasProced)) then
                 return -- we don't need to worry about this effect anymore because it has already proced
-            elseif FancyActionBar.specialEffectProcs[abilityId] then
-                local procUpdates = FancyActionBar.specialEffectProcs[abilityId]
-                local procValues = procUpdates[debuff.procs or specialEffect.procs]
-                for i, x in pairs(procValues) do
-                    debuff[i] = x
+            end
+            local procUpdates = FancyActionBar.specialEffectProcs[abilityId] or FancyActionBar.specialEffectProcs[debuff.id]
+            if procUpdates then
+                local effectObj = FancyActionBar.effects[debuff.id] or debuff
+                local success = FancyActionBar.UpdateEffectProcs(effectObj, specialEffect, EFFECT_RESULT_FADED, stackCount)
+                if not success then
+                    effectObj.endTime = endTime
+                    FancyActionBar.UpdateDebuff(effectObj, stackCount, abilityId)
+                    return
                 end
+                debuff = FancyActionBar.effects[effectObj.id] or effectObj
                 stackCount = debuff.stacks or stackCount
             end
         elseif stackCount ~= nil or HasDebuffStackTargets(abilityId) then
