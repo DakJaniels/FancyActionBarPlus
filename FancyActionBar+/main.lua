@@ -5082,8 +5082,15 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
         return
     end
 
+    local duration = 0
     effect.beginTime = updateTime
-    effect.endTime = (specialEffect.setTime and (specialEffect.duration + updateTime)) or endTime
+    if specialEffect.altDuration and not SV.useSplitShalksTimers then
+        duration = specialEffect.altDuration
+    else
+        duration = specialEffect.duration
+    end
+
+    effect.endTime = (specialEffect.setTime and (duration + updateTime)) or endTime
 
     for k, v in pairs(specialEffect) do
         effect[k] = v
@@ -6669,6 +6676,7 @@ local function ValidateBasicSettings(sv, d)
         "showCastDuration",
         "showToggleTicks",
         "ignoreTrapPlacement",
+        "useSplitShalksTimers",
         "showSoonestExpire",
         "ignoreUngroupedAliies",
         "hideLockedBar",

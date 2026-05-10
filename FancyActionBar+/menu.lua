@@ -6797,6 +6797,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             },
                             {
                                 type = "checkbox",
+                                name = "Use Split Shalks Timers",
+                                tooltip = "Track proc timer for each shalks hit separately.",
+                                default = true,
+                                getFunc = function ()
+                                    return SV.useSplitShalksTimers
+                                end,
+                                setFunc = function (value)
+                                    SV.useSplitShalksTimers = value or false
+                                end,
+                            },
+                            {
+                                type = "checkbox",
                                 name = "Show Timer For Soonest Expiring Target",
                                 tooltip = "By default an ability timer will show the duration for the last cast of the ability, with this option enabled it will show the duration for the soonest expiring target instead.",
                                 default = defaults.showSoonestExpire,

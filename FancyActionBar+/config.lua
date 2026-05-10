@@ -1002,11 +1002,11 @@ FancyActionBar.specialClassEffects =
     -- Warden
     [127] =
     {                                                                                                                       -- Animal Companions
-        [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
+        [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
         [178020] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Scorch, second proc
-        [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
+        [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, altDuration = 6, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
         [146919] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 1, procs = 1, hasProced = 1 }, -- Sub Assault, second proc
-        [86015] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Deep Fissure, first proc
+        [86015] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 },  -- Deep Fissure, first proc
         [178028] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Deep Fissure, second proc
     },
     -- [128] = {}, -- Green Balance

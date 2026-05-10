@@ -74,6 +74,7 @@ FancyActionBar.defaultSettings =
     showTargetCount = true,
     showSingleTargetInstance = false,
     ignoreTrapPlacement = false,
+    useSplitShalksTimers = true,
     showSoonestExpire = false,
     ignoreUngroupedAliies = false,
 
