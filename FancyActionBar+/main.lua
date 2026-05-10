@@ -5597,7 +5597,7 @@ local function OnAbilityUsed(_, n)
         end
     end
 
-    if idCheck == false then
+    if not idCheck then
         local E = FancyActionBar.effects[i]
         if E then
             if E.hasActiveCast then
