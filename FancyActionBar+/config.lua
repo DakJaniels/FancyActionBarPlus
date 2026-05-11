@@ -650,9 +650,9 @@ FancyActionBar.stackMap =
         38861,  -- steel tornado
     },
 
-    [122585] = { 61902 }, -- Grim Focus
-    [122586] = { 61919 }, -- Merciless Resolve
-    [122587] = { 61927 }, -- Relentless Focus
+    [122585] = { 122585, 61902 }, -- Grim Focus
+    [122586] = { 122586, 61919 }, -- Merciless Resolve
+    [122587] = { 122587, 61927 }, -- Relentless Focus
 
     -- Bound Armaments
     [203447] =
@@ -693,7 +693,7 @@ FancyActionBar.stackMap =
 
     [117638] = { 117638, 117637, 123718, 123719 }, -- Ricochet Skull
     [117625] = { 117625, 117624, 123699, 123704 }, -- venom skull
-    [125749] = { 125750 },                         -- ruinous scythe
+    [125749] = { 125749, 125750 },                         -- ruinous scythe
 
     -- Crux
     [184220] =
@@ -781,6 +781,7 @@ FancyActionBar.stackMap =
     -- Fetcher Infection
     [91416] =
     {
+        91416,
         86027,
         101904,
     },

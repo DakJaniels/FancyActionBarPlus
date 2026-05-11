@@ -6084,9 +6084,9 @@ function FancyActionBar.SyncEffectState()
 
     for i = 1, numBuffs do
         local unitBuffName, beginTime, endTime, buffSlot, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, abilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
-        if castByPlayer or externalBuffs or stackableBuff[abilityId] then
-            activeAbility[abilityId] = true
-        end
+
+        activeAbility[abilityId] = (castByPlayer or externalBuffs or stackableBuff[abilityId]) ~= nil and stackCount
+        FancyActionBar.GetEffect(abilityId, nil, nil, true)
         if FancyActionBar.bannerBearer[abilityId] and (castByPlayer or externalBuffs) then
             bannerActive = true
         end
@@ -6110,7 +6110,10 @@ function FancyActionBar.SyncEffectState()
                 effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
                 effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
             end
---            FancyActionBar.effects[id] = nil -- Hard killing the effect here is causing issues with fallback timers and such not sticking
+        else
+            if not FancyActionBar.IsStackableBuff(effect.id) and not specialEffects[effect.id] then
+                effect.stacks = FancyActionBar.fixedStacks[effect.id] or activeAbility[effect.id]
+            end
         end
     end
 end
