@@ -6084,35 +6084,39 @@ function FancyActionBar.SyncEffectState()
 
     for i = 1, numBuffs do
         local unitBuffName, beginTime, endTime, buffSlot, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, abilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
-
-        activeAbility[abilityId] = (castByPlayer or externalBuffs or stackableBuff[abilityId]) ~= nil and stackCount
-        FancyActionBar.GetEffect(abilityId, nil, nil, true)
-        if FancyActionBar.bannerBearer[abilityId] and (castByPlayer or externalBuffs) then
-            bannerActive = true
+        local isValid = (castByPlayer or externalBuffs or stackableBuff[abilityId]) ~= nil
+        activeAbility[abilityId] = isValid and stackCount
+        if isValid then
+            FancyActionBar.GetEffect(abilityId, nil, nil, true)
+            if FancyActionBar.bannerBearer[abilityId] then
+                bannerActive = true
+            end
         end
     end
     FancyActionBar.toggles["banner"] = bannerActive
 
     for id, effect in pairs(FancyActionBar.effects) do
-        if not activeAbility[effect.id] and not effect.isDebuff and not specialEffects[effect.id] then
-            if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks ~= 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
-                OnEffectChanged(
-                    nil,
-                    EFFECT_RESULT_FADED,
-                    nil, nil, "player",
-                    effect.beginTime or -1, effect.endTime or -1, effect.stacks, nil, nil, nil, nil, nil, nil, nil,
-                    effect.id,
-                    COMBAT_UNIT_TYPE_PLAYER
-                )
-            end
-            if effect.isChanneled and not channeledAbility.active then
-                FancyActionBar.ChanneledAbilityEnd(effect.id)
-                effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
-                effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
-            end
-        else
-            if not FancyActionBar.IsStackableBuff(effect.id) and not specialEffects[effect.id] then
-                effect.stacks = FancyActionBar.fixedStacks[effect.id] or activeAbility[effect.id]
+        if not effect.isDebuff and not specialEffects[effect.id] then
+            if not activeAbility[effect.id] then
+                if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks ~= 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
+                    OnEffectChanged(
+                        nil,
+                        EFFECT_RESULT_FADED,
+                        nil, nil, "player",
+                        effect.beginTime or -1, effect.endTime or -1, effect.stacks, nil, nil, nil, nil, nil, nil, nil,
+                        effect.id,
+                        COMBAT_UNIT_TYPE_PLAYER
+                    )
+                end
+                if effect.isChanneled and not channeledAbility.active then
+                    FancyActionBar.ChanneledAbilityEnd(effect.id)
+                    effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
+                    effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
+                end
+            else
+                if not FancyActionBar.IsStackableBuff(effect.id) then
+                    effect.stacks = FancyActionBar.fixedStacks[effect.id] or activeAbility[effect.id]
+                end
             end
         end
     end
