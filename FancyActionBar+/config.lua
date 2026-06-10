@@ -164,16 +164,19 @@ FancyActionBar.abilityConfig =
     [32632] = { 137156 }, -- punce (carnage bleed)
     [39105] = { 137184 }, -- brutal pounce (brutal carnage bleed)
     [39104] = { 137164 }, -- feral pounce (brutal carnage bleed)
-    [58317] = { 61745 },  -- hircine's rage (major berserk)
+    [58317] = { 137206 },  -- hircine's rage
     [58325] = { 61704 },  -- hircine's fortitude (minor fortitude)
     [32633] = { 137257 }, -- roar (off-balance)
     [39113] = { 45834 },  -- ferocious roar (off-balance); 137287 is heavy attack speed buff
-    [39114] = { 61743 },  -- deafening roar major breach; 137312 is off-balance
-    [58855] = { 58856 },  -- infectious claws
-    [58864] = { 58865 },  -- claws of anguish
-    [58879] = { 58880 },  -- claws of life
+    [39114] = { 137312 }, -- deafening roar (off-balance)
+    [58742] = { 61743 },  -- Rip and Tear (Off-Balance)
+    [58855] = { 58856 },  -- rending claws
+    -- [58864] = { 58865 },  -- claws of anguish
+    [58879] = { 58880 },  -- Bloodclaws
     [39075] = { 32455 },  -- pack leader
     [39076] = { 32455 },  -- werewolf berserker
+    [58405] = { 267744 }, -- Gnash (Blood Hunger)
+    [58798] = { 267744 }, -- Bloody Gnash (Blood Hunger)
 
     -- Vampire
     [32986] = { 106208 },  -- mist form
@@ -786,6 +789,17 @@ FancyActionBar.stackMap =
         101904,
     },
 
+    -- Blood Hunger
+    [267744] =
+    {
+        267744,
+        58405, -- Gnash
+        58742, -- Rip and Tear
+        58864, -- Claw Fury
+        58798, -- Bloody Gnash
+
+    },
+
     -- Brutal Pounce (Carnage Bleed)
     [137189] =
     {
@@ -793,6 +807,7 @@ FancyActionBar.stackMap =
         137184,
         39105
     },
+    
 }
 
 FancyActionBar.fixedStacks =
@@ -1533,6 +1548,7 @@ FancyActionBar.removeInstantly =
     [23806] = true,  -- Lava Whip
     -- [256798] = true, -- Volcanic Whip
     -- [20824] = true,  -- Power Lash
+    [267744] = true, -- Gnash (Blood Hunger)
 }
 
 FancyActionBar.allowedChanneled =
@@ -1564,6 +1580,8 @@ FancyActionBar.allowedChanneled =
     [198330] = true, -- cascading fortune
     [186200] = true, -- curative surge
     [198537] = true, -- curative surge
+
+    [58864] = true, -- Claw Fury
 }
 
 FancyActionBar.soloTarget =
