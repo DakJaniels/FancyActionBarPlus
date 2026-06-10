@@ -6102,8 +6102,13 @@ function FancyActionBar.SyncEffectState()
 
     for id, effect in pairs(FancyActionBar.effects) do
         if not effect.isDebuff and not specialEffects[effect.id] then
-            if not activeAbility[effect.id] and not (effect.dontFade and effect.endTime > currentTime) then
-                if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks ~= 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
+            local buffStacks = activeAbility[effect.id]
+            if buffStacks ~= nil then
+                if not FancyActionBar.IsStackableBuff(effect.id) then
+                    effect.stacks = FancyActionBar.fixedStacks[effect.id] or buffStacks
+                end
+            elseif not (effect.dontFade and effect.endTime > currentTime) then
+                if effect.toggled or effect.passive then
                     OnEffectChanged(
                         nil,
                         EFFECT_RESULT_FADED,
@@ -6117,10 +6122,6 @@ function FancyActionBar.SyncEffectState()
                     FancyActionBar.ChanneledAbilityEnd(effect.id)
                     effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
                     effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
-                end
-            else
-                if not FancyActionBar.IsStackableBuff(effect.id) then
-                    effect.stacks = FancyActionBar.fixedStacks[effect.id] or activeAbility[effect.id]
                 end
             end
         end
