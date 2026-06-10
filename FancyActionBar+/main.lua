@@ -1926,7 +1926,7 @@ function FancyActionBar.RemoveUnit(id, unitKey, currentTime, which)
         if which == "targets" or SV.externalBuffs then
             if activeCount > 0 and maxEnd and maxEnd > (effect.endTime or 0) then
                 effect.endTime = maxEnd
-            elseif activeCount == 0 then
+            elseif activeCount == 0 and not effect.dontFade then
                 effect.endTime = currentTime
             end
         end
@@ -3279,14 +3279,18 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
                 end
             elseif (change == EFFECT_RESULT_FADED) then
                 if doFullUpdate then
-                    local hasEffect, duration, currentStacks = FancyActionBar.CheckForActiveEffect(abilityId)
-                    if hasEffect then
-                        effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (t + duration) or -1)
+                    if effect.dontFade and effect.endTime > t then
                         FancyActionBar.UpdateEffect(effect)
                     else
-                        effect.endTime = t
-                        if beginTime == endTime then
-                            FancyActionBar.UpdatePassiveEffect(abilityId, false)
+                        local hasEffect, duration, currentStacks = FancyActionBar.CheckForActiveEffect(abilityId)
+                        if hasEffect then
+                            effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (t + duration) or -1)
+                            FancyActionBar.UpdateEffect(effect)
+                        else
+                            effect.endTime = t
+                            if beginTime == endTime then
+                                FancyActionBar.UpdatePassiveEffect(abilityId, false)
+                            end
                         end
                     end
                 end
@@ -5983,6 +5987,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         FancyActionBar.UpdateEffect(effect)
     elseif isFade then
         if effect.ignoreFadeTime then return end
+        if effect.dontFade and effect.endTime > t then return end
 
         local td = FancyActionBar.GetUnits(effect.id, "targets")
         local hasActiveTargets = false
@@ -6097,7 +6102,7 @@ function FancyActionBar.SyncEffectState()
 
     for id, effect in pairs(FancyActionBar.effects) do
         if not effect.isDebuff and not specialEffects[effect.id] then
-            if not activeAbility[effect.id] then
+            if not activeAbility[effect.id] and not (effect.dontFade and effect.endTime > currentTime) then
                 if (effect.endTime and effect.endTime > currentTime) or (effect.stacks and effect.stacks ~= 0) or effect.toggled or effect.passive then -- Need to check that effect.toggled or effect.passive skills aren't flashing on barswap when inactive
                     OnEffectChanged(
                         nil,
