@@ -164,16 +164,19 @@ FancyActionBar.abilityConfig =
     [32632] = { 137156 }, -- punce (carnage bleed)
     [39105] = { 137184 }, -- brutal pounce (brutal carnage bleed)
     [39104] = { 137164 }, -- feral pounce (brutal carnage bleed)
-    [58317] = { 61745 },  -- hircine's rage (major berserk)
+    [58317] = { 137206 },  -- hircine's rage
     [58325] = { 61704 },  -- hircine's fortitude (minor fortitude)
     [32633] = { 137257 }, -- roar (off-balance)
     [39113] = { 45834 },  -- ferocious roar (off-balance); 137287 is heavy attack speed buff
-    [39114] = { 61743 },  -- deafening roar major breach; 137312 is off-balance
-    [58855] = { 58856 },  -- infectious claws
-    [58864] = { 58865 },  -- claws of anguish
-    [58879] = { 58880 },  -- claws of life
+    [39114] = { 137312 }, -- deafening roar (off-balance)
+    [58742] = { 61743 },  -- Rip and Tear (Off-Balance)
+    [58855] = { 58856 },  -- rending claws
+    -- [58864] = { 58865 },  -- claws of anguish
+    [58879] = { 58880 },  -- Bloodclaws
     [39075] = { 32455 },  -- pack leader
     [39076] = { 32455 },  -- werewolf berserker
+    [58405] = { 267744 }, -- Gnash (Blood Hunger)
+    [58798] = { 267744 }, -- Bloody Gnash (Blood Hunger)
 
     -- Vampire
     [32986] = { 106208 },  -- mist form
@@ -650,9 +653,9 @@ FancyActionBar.stackMap =
         38861,  -- steel tornado
     },
 
-    [122585] = { 61902 }, -- Grim Focus
-    [122586] = { 61919 }, -- Merciless Resolve
-    [122587] = { 61927 }, -- Relentless Focus
+    [122585] = { 122585, 61902 }, -- Grim Focus
+    [122586] = { 122586, 61919 }, -- Merciless Resolve
+    [122587] = { 122587, 61927 }, -- Relentless Focus
 
     -- Bound Armaments
     [203447] =
@@ -693,7 +696,7 @@ FancyActionBar.stackMap =
 
     [117638] = { 117638, 117637, 123718, 123719 }, -- Ricochet Skull
     [117625] = { 117625, 117624, 123699, 123704 }, -- venom skull
-    [125749] = { 125750 },                         -- ruinous scythe
+    [125749] = { 125749, 125750 },                         -- ruinous scythe
 
     -- Crux
     [184220] =
@@ -781,8 +784,20 @@ FancyActionBar.stackMap =
     -- Fetcher Infection
     [91416] =
     {
+        91416,
         86027,
         101904,
+    },
+
+    -- Blood Hunger
+    [267744] =
+    {
+        267744,
+        58405, -- Gnash
+        58742, -- Rip and Tear
+        58864, -- Claw Fury
+        58798, -- Bloody Gnash
+
     },
 
     -- Brutal Pounce (Carnage Bleed)
@@ -792,6 +807,7 @@ FancyActionBar.stackMap =
         137184,
         39105
     },
+    
 }
 
 FancyActionBar.fixedStacks =
@@ -1002,11 +1018,11 @@ FancyActionBar.specialClassEffects =
     -- Warden
     [127] =
     {                                                                                                                       -- Animal Companions
-        [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
+        [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
         [178020] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Scorch, second proc
-        [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
+        [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, altDuration = 6, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
         [146919] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 1, procs = 1, hasProced = 1 }, -- Sub Assault, second proc
-        [86015] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 3, stacks = 2, procs = 1, hasProced = 0 },  -- Deep Fissure, first proc
+        [86015] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 },  -- Deep Fissure, first proc
         [178028] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Deep Fissure, second proc
     },
     -- [128] = {}, -- Green Balance
@@ -1532,6 +1548,7 @@ FancyActionBar.removeInstantly =
     [23806] = true,  -- Lava Whip
     -- [256798] = true, -- Volcanic Whip
     -- [20824] = true,  -- Power Lash
+    [267744] = true, -- Gnash (Blood Hunger)
 }
 
 FancyActionBar.allowedChanneled =
@@ -1563,6 +1580,8 @@ FancyActionBar.allowedChanneled =
     [198330] = true, -- cascading fortune
     [186200] = true, -- curative surge
     [198537] = true, -- curative surge
+
+    [58864] = true, -- Claw Fury
 }
 
 FancyActionBar.soloTarget =
