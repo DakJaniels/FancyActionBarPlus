@@ -3316,6 +3316,25 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             {
                 type = "checkbox",
+                name = "Ability use bounce animation (keyboard)",
+                tooltip =
+                "Play a press-and-release bounce animation on action bar buttons. The button shrinks while held and springs back on release, matching the gamepad bounce timing adapted for the keyboard action bar.",
+                default = defaults.keyboardBounceAnimation,
+                disabled = function ()
+                    return FancyActionBar.style == 2 or SV.forceGamepadStyle
+                end,
+                getFunc = function ()
+                    return SV.keyboardBounceAnimation
+                end,
+                setFunc = function (value)
+                    SV.keyboardBounceAnimation = value or false
+                    FancyActionBar.UpdateStyle()
+                    FancyActionBar.RefreshBounceAnimations()
+                end,
+                width = "full",
+            },
+            {
+                type = "checkbox",
                 name = "Show gamepad ultimate hotkeys",
                 tooltip = "Show the LB RB labels for gamepad UI.",
                 default = defaults.showHotkeysUltGP,

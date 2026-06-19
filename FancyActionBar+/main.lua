@@ -4288,6 +4288,7 @@ function FancyActionBar.ApplyStyle()
 
     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
     FancyActionBar:ApplySettings()
+    FancyActionBar.RefreshBounceAnimations()
 end
 
 --- Setup the action bar with the given style.
@@ -4343,6 +4344,7 @@ function FancyActionBar.ApplyActiveHotbarStyle()
     if ult and ult.hasAction then
         ult:UpdateUltimateMeter()
     end
+    FancyActionBar.RefreshBounceAnimations()
 end
 
 --- Setup the buttons with the given style.
@@ -4813,9 +4815,14 @@ end
 
 ActionButton["SetUltimateMeter"] = FancySetUltimateMeter
 
+local SHRINK_SCALE = 0.9
+local ICON_SHRINK_SCALE = 0.8
+local GROW_SCALE = 1.1
+local FRAME_RESET_TIME_MS = 167
+local ICON_RESET_TIME_MS = 100
+
 local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
     local style = FancyActionBar.GetConstants()
-    local GROW_SCALE = 1.1
     local shrink = timeline:GetAnimation(1)
     local grow = timeline:GetAnimation(2)
     local reset = timeline:GetAnimation(3)
@@ -4832,15 +4839,191 @@ local function SetAnimationParameters(timeline, control, shrinkScale, resetTime,
     reset:SetDuration(resetTime)
 end
 
+local PRESS_BOUNCE_VIRTUAL = "FAB_ActionSlotPressAnimation"
+local RELEASE_BOUNCE_VIRTUAL = "FAB_ActionSlotReleaseAnimation"
+local pressBounceByButton = {}
+
+local function IsKeyboardPressBounceEnabled()
+    return SV.keyboardBounceAnimation and not SV.forceGamepadStyle and not IsInGamepadPreferredMode()
+end
+
+local function IsAbilitySlot(slot)
+    return slot >= MIN_INDEX and slot <= MAX_INDEX
+end
+
+local function GetBounceControls(button)
+    return button.slot:GetNamedChild("FlipCard"), button.slot:GetNamedChild("Icon")
+end
+
+local function GetBounceSize(_button)
+    return FancyActionBar.GetConstants().flipCardSize
+end
+
+local function SetBounceControlSize(flipCard, icon, size)
+    flipCard:SetDimensions(size, size)
+    icon:SetDimensions(size, size)
+end
+
+local function StopPressBounceData(data)
+    data.framePress:Stop()
+    data.iconPress:Stop()
+    data.frameRelease:Stop()
+    data.iconRelease:Stop()
+end
+
+local function ApplyPressBounceParams(timeline, size, shrinkScale)
+    local shrink = timeline:GetAnimation(1)
+    shrink:SetStartAndEndWidth(size, size * shrinkScale)
+    shrink:SetStartAndEndHeight(size, size * shrinkScale)
+end
+
+local function ApplyReleaseBounceParams(timeline, size, shrinkScale, resetTime)
+    local grow = timeline:GetAnimation(1)
+    local reset = timeline:GetAnimation(2)
+    grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
+    grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
+    reset:SetStartAndEndWidth(size * GROW_SCALE, size)
+    reset:SetStartAndEndHeight(size * GROW_SCALE, size)
+    reset:SetDuration(resetTime)
+end
+
+local function InvalidatePressBounceData(button)
+    local data = pressBounceByButton[button]
+    if not data then
+        return
+    end
+    StopPressBounceData(data)
+    SetBounceControlSize(data.flipCard, data.icon, GetBounceSize(button))
+    pressBounceByButton[button] = nil
+end
+
+local function UpdatePressBounceParameters(button, data)
+    data = data or pressBounceByButton[button]
+    if not data then
+        return
+    end
+    local size = GetBounceSize(button)
+    ApplyPressBounceParams(data.framePress, size, SHRINK_SCALE)
+    ApplyPressBounceParams(data.iconPress, size, ICON_SHRINK_SCALE)
+    ApplyReleaseBounceParams(data.frameRelease, size, SHRINK_SCALE, FRAME_RESET_TIME_MS)
+    ApplyReleaseBounceParams(data.iconRelease, size, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS)
+end
+
+local function EnsurePressBounceData(button)
+    local flipCard, icon = GetBounceControls(button)
+    local data = pressBounceByButton[button]
+    if data and (data.flipCard ~= flipCard or data.icon ~= icon) then
+        InvalidatePressBounceData(button)
+        data = nil
+    end
+    if not data then
+        data =
+        {
+            flipCard = flipCard,
+            icon = icon,
+            framePress = ANIMATION_MANAGER:CreateTimelineFromVirtual(PRESS_BOUNCE_VIRTUAL, flipCard),
+            iconPress = ANIMATION_MANAGER:CreateTimelineFromVirtual(PRESS_BOUNCE_VIRTUAL, icon),
+            frameRelease = ANIMATION_MANAGER:CreateTimelineFromVirtual(RELEASE_BOUNCE_VIRTUAL, flipCard),
+            iconRelease = ANIMATION_MANAGER:CreateTimelineFromVirtual(RELEASE_BOUNCE_VIRTUAL, icon),
+        }
+        pressBounceByButton[button] = data
+        UpdatePressBounceParameters(button, data)
+    end
+    return data
+end
+
+function FancyActionBar.ClearPressBounceAnimations()
+    for button, _ in pairs(pressBounceByButton) do
+        InvalidatePressBounceData(button)
+    end
+end
+
+local function PlayPressBounce(button)
+    if not IsKeyboardPressBounceEnabled() or not IsAbilitySlot(button:GetSlot()) then
+        return
+    end
+    local data = EnsurePressBounceData(button)
+    local size = GetBounceSize(button)
+    StopPressBounceData(data)
+    SetBounceControlSize(data.flipCard, data.icon, size)
+    UpdatePressBounceParameters(button, data)
+    data.framePress:PlayFromStart()
+    data.iconPress:PlayFromStart()
+end
+
+local function PlayReleaseBounce(button)
+    if not IsKeyboardPressBounceEnabled() or not IsAbilitySlot(button:GetSlot()) then
+        return
+    end
+    local data = pressBounceByButton[button]
+    if not data then
+        return
+    end
+    data.frameRelease:Stop()
+    data.iconRelease:Stop()
+    UpdatePressBounceParameters(button, data)
+    if data.framePress:IsPlaying() then
+        data.framePress:PlayInstantlyToEnd(true)
+        data.iconPress:PlayInstantlyToEnd(true)
+    end
+    data.frameRelease:PlayFromStart()
+    data.iconRelease:PlayFromStart()
+end
+
+local function OnActionButtonDown(slotNum, hotbarCategory)
+    if not IsKeyboardPressBounceEnabled() or not IsAbilitySlot(slotNum) then
+        return
+    end
+    local button = ZO_ActionBar_GetButton(slotNum, hotbarCategory)
+    if button then
+        PlayPressBounce(button)
+    end
+end
+
+local function OnActionButtonUp(slotNum, hotbarCategory)
+    if not IsKeyboardPressBounceEnabled() or not IsAbilitySlot(slotNum) then
+        return
+    end
+    local button = ZO_ActionBar_GetButton(slotNum, hotbarCategory)
+    if button then
+        PlayReleaseBounce(button)
+    end
+end
+
 local origSetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"]
 local function FancySetBounceAnimationParameters(self, cooldownTime)
-    local SHRINK_SCALE = 0.9
-    local ICON_SHRINK_SCALE = 0.8
-    local FRAME_RESET_TIME_MS = 167
-    local ICON_RESET_TIME_MS = 100
     local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
     SetAnimationParameters(self.bounceAnimation, self.flipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
     SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
+end
+
+function FancyActionBar.RefreshBounceAnimations()
+    if IsKeyboardPressBounceEnabled() then
+        for i = MIN_INDEX, MAX_INDEX do
+            local button = ZO_ActionBar_GetButton(i)
+            EnsurePressBounceData(button)
+            UpdatePressBounceParameters(button)
+        end
+        return
+    end
+
+    FancyActionBar.ClearPressBounceAnimations()
+
+    if not SV.forceGamepadStyle and FancyActionBar.style ~= 2 then
+        return
+    end
+
+    for i = MIN_INDEX, MAX_INDEX do
+        local button = ZO_ActionBar_GetButton(i)
+        button:SetupBounceAnimation()
+        button:SetBounceAnimationParameters()
+    end
+
+    for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
+        local button = FancyActionBar.buttons[i]
+        button:SetupBounceAnimation()
+        button:SetBounceAnimationParameters()
+    end
 end
 
 function FancyActionBar.UpdateStyle()
@@ -5592,7 +5775,7 @@ local function OnAbilityUsed(_, n)
     local i, a = FancyActionBar.GetSlottedEffect(index)
     local idCheck = FancyActionBar.IdCheck(index, id)
 
-    if SV.forceGamepadStyle and n ~= ULT_INDEX then
+    if n ~= ULT_INDEX and SV.forceGamepadStyle then
         local btn = ZO_ActionBar_GetButton(n)
         if btn then
             btn:PlayAbilityUsedBounce()
@@ -6588,7 +6771,11 @@ function FancyActionBar.Initialize()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
         setFlipCardDimensions(style)
         FancyActionBar.ApplyQuickSlotFont()
+        InvalidatePressBounceData(self)
     end)
+
+    ZO_PostHook("ZO_ActionBar_OnActionButtonDown", OnActionButtonDown)
+    ZO_PostHook("ZO_ActionBar_OnActionButtonUp", OnActionButtonUp)
 
     ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
         if CompanionUltimateButton and (SV.hideCompanionUlt or (not ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION).hasAction or not DoesUnitExist("companion") or not HasActiveCompanion())) then
@@ -6666,6 +6853,7 @@ local function ValidateBasicSettings(sv, d)
         "tickColor",
         "allowParentTime",
         "forceGamepadStyle",
+        "keyboardBounceAnimation",
         "useThinFrames",
         "showFrames",
         "frameColor",

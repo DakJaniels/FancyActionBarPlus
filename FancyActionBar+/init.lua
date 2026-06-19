@@ -41,6 +41,7 @@ FancyActionBar.defaultSettings =
     nextConfigProfileId = 1,
     dynamicAbilityConfig = false,
     forceGamepadStyle = false,
+    keyboardBounceAnimation = false,
 
     externalBuffs = false,
     externalBlackListRun = false,
