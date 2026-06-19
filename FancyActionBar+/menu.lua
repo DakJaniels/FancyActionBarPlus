@@ -3316,7 +3316,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             },
             {
                 type = "checkbox",
-                name = "Ability use bounce animation (keyboard)",
+                name = "Use Ability Keypress Animation (Keyboard)",
                 tooltip =
                 "Play a press-and-release bounce animation on action bar buttons. The button shrinks while held and springs back on release, matching the gamepad bounce timing adapted for the keyboard action bar.",
                 default = defaults.keyboardBounceAnimation,
