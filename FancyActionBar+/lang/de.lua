@@ -15,6 +15,7 @@ local strings =
     FANCYAB_SUBMENU_TARGETKB_DESC = "Tastatur-UI Zielzähler-Anzeigeeinstellungen",
 
     -- Categories
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Vorderleisten-Sichtbarkeit|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Rückleisten-Sichtbarkeit|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Tastenkürzel-Text|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Schaltflächen-Rahmen|r ]",
@@ -32,9 +33,28 @@ local strings =
     FANCYAB_ALPHA_NAME = "Inaktive Leisten-Transparenz",
     FANCYAB_ALPHA_TT = "Höherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Aktive Leisten-Transparenz anwenden",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Ermöglicht das Überschreiben der Transparenz der aktiven Leiste. Hinweis: Dies steht in Konflikt damit, wie das Basisspiel anzeigt, dass zielgerichtete Fähigkeiten wirksam eingesetzt werden können.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Aktive Leisten-Entsättigung anwenden",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Ermöglicht das Überschreiben der Sättigung/Graustufe der aktiven Leiste. Hinweis: Dies steht in Konflikt damit, wie das Basisspiel anzeigt, dass zielgerichtete Fähigkeiten wirksam eingesetzt werden können.",
+
+    FANCYAB_ALPHA_ACTIVE_NAME = "Aktive Leisten-Transparenz",
+    FANCYAB_ALPHA_ACTIVE_TT = "Höherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
+
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Inaktive Leisten-Entsättigung",
     FANCYAB_DESAT_TT = "Höherer Wert = grauer.\nNiedriger Wert = farbiger.",
+
+    FANCYAB_DESAT_ACTIVE_NAME = "Aktive Leisten-Entsättigung",
+    FANCYAB_DESAT_ACTIVE_TT = "Höherer Wert = grauer.\nNiedriger Wert = farbiger.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Aktive Leiste: Rahmen-Transparenz",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Aktive Leiste: Schaltflächen-Hintergrund-Transparenz",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Inaktive Leiste: Rahmen-Transparenz",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Inaktive Leiste: Schaltflächen-Hintergrund-Transparenz",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Deckkraft des Hintergrunds hinter dem Fähigkeitensymbol.\nHöherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Deckkraft des Schaltflächen-Rahmens.\nGilt nur, wenn Benutzerdefinierte Rahmen aktiviert ist.\nHöherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
 
     -- Hotkey settings
     FANCYAB_HOTKEY_NAME = "Tastenkürzel anzeigen",

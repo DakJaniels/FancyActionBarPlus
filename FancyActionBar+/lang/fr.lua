@@ -15,6 +15,7 @@ local strings =
     FANCYAB_SUBMENU_TARGETKB_DESC = "Paramètres d'affichage du compteur de cibles pour l'interface clavier",
 
     -- Categories
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Visibilité de la barre avant|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Visibilité de la barre arrière|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Texte des raccourcis|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Cadres des boutons|r ]",
@@ -32,9 +33,28 @@ local strings =
     FANCYAB_ALPHA_NAME = "Transparence de la barre inactive",
     FANCYAB_ALPHA_TT = "Valeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Appliquer la transparence de la barre active",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Permet de remplacer la transparence de la barre active. Notez que cela entre en conflit avec la façon dont le jeu de base indique que les capacités ciblées peuvent être lancées.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Appliquer la désaturation de la barre active",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Permet de remplacer la saturation/niveau de gris de la barre active. Notez que cela entre en conflit avec la façon dont le jeu de base indique que les capacités ciblées peuvent être lancées.",
+
+    FANCYAB_ALPHA_ACTIVE_NAME = "Transparence de la barre active",
+    FANCYAB_ALPHA_ACTIVE_TT = "Valeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
+
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Désaturation de la barre inactive",
     FANCYAB_DESAT_TT = "Valeur plus élevée = plus gris.\nValeur plus basse = plus de couleurs.",
+
+    FANCYAB_DESAT_ACTIVE_NAME = "Désaturation de la barre active",
+    FANCYAB_DESAT_ACTIVE_TT = "Valeur plus élevée = plus gris.\nValeur plus basse = plus de couleurs.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparence du cadre (barre active)",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparence de l'arrière-plan du bouton (barre active)",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Transparence du cadre (barre inactive)",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Transparence de l'arrière-plan du bouton (barre inactive)",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Opacité de l'arrière-plan derrière l'icône de la capacité.\nValeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Opacité du cadre du bouton.\nS'applique uniquement lorsque Cadres personnalisés est activé.\nValeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
 
     -- Hotkey settings
     FANCYAB_HOTKEY_NAME = "Afficher les raccourcis",

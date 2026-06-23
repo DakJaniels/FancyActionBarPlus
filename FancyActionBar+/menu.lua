@@ -2953,17 +2953,121 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         width = "half",
                     },
 
-                    -- ============[	Backbar Visuals	]=====================
+                    -- ============[	Active Bar Visuals	]====================
                     {
                         type = "description",
-                        title = "[ |cffdf80Back Bar Visibility|r ]",
+                        title = FancyActionBar.strings.catFBVisual,
+                        text = "",
+                        width = "full",
+                    },
+                    {
+                        type = "checkbox",
+                        name = FancyActionBar.strings.applyActiveBarAlphaName,
+                        tooltip = FancyActionBar.strings.applyActiveBarAlphaTT,
+                        default = defaults.applyActiveBarAlpha,
+                        getFunc = function ()
+                            return SV.applyActiveBarAlpha
+                        end,
+                        setFunc = function (value)
+                            local wasEnabled = SV.applyActiveBarAlpha
+                            SV.applyActiveBarAlpha = value or false
+                            if wasEnabled and not SV.applyActiveBarAlpha then
+                                FancyActionBar.ResetActiveBarVisualOverrides()
+                            elseif SV.applyActiveBarAlpha then
+                                FancyActionBar.RefreshBarAppearance("active", "overrides")
+                            end
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = FancyActionBar.strings.alphaActiveName,
+                        tooltip = FancyActionBar.strings.alphaActiveTT,
+                        default = defaults.alphaActive,
+                        disabled = function ()
+                            return not SV.applyActiveBarAlpha
+                        end,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.alphaActive
+                        end,
+                        setFunc = function (value)
+                            SV.alphaActive = value
+                            FancyActionBar.RefreshBarAppearance("active", "overrides")
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = FancyActionBar.strings.applyActiveBarDesaturationName,
+                        tooltip = FancyActionBar.strings.applyActiveBarDesaturationTT,
+                        default = defaults.applyActiveBarDesaturation,
+                        getFunc = function ()
+                            return SV.applyActiveBarDesaturation
+                        end,
+                        setFunc = function (value)
+                            local wasEnabled = SV.applyActiveBarDesaturation
+                            SV.applyActiveBarDesaturation = value or false
+                            if wasEnabled and not SV.applyActiveBarDesaturation then
+                                FancyActionBar.ResetActiveBarVisualOverrides()
+                            elseif SV.applyActiveBarDesaturation then
+                                FancyActionBar.RefreshBarAppearance("active", "overrides")
+                            end
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = FancyActionBar.strings.desatActiveName,
+                        tooltip = FancyActionBar.strings.desatActiveTT,
+                        default = defaults.desaturationActive,
+                        disabled = function ()
+                            return not SV.applyActiveBarDesaturation
+                        end,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.desaturationActive
+                        end,
+                        setFunc = function (value)
+                            SV.desaturationActive = value
+                            FancyActionBar.RefreshBarAppearance("active", "overrides")
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = FancyActionBar.strings.overlayBgActiveName,
+                        tooltip = FancyActionBar.strings.buttonBackdropAlphaTT,
+                        default = defaults.overlayBgAlphaActive,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.overlayBgAlphaActive
+                        end,
+                        setFunc = function (value)
+                            SV.overlayBgAlphaActive = value
+                            FancyActionBar.RefreshBarAppearance("active", "frameBackdrop")
+                        end,
+                        width = "half",
+                    },
+                    { type = "description", text = "", width = "full" },
+
+                    -- ============[	Inactive Bar Visuals	]=====================
+                    {
+                        type = "description",
+                        title = FancyActionBar.strings.catBBVisual,
                         text = "",
                         width = "full",
                     },
                     {
                         type = "slider",
-                        name = "Inactive bar alpha",
-                        tooltip = "Higher value = more solid.\nLower value = more see through.",
+                        name = FancyActionBar.strings.alphaName,
+                        tooltip = FancyActionBar.strings.alphaTT,
                         default = defaults.alphaInactive,
                         min = 0,
                         max = 100,
@@ -2973,14 +3077,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.alphaInactive = value
-                            FancyActionBar.ApplyAlphaInactive(value)
+                            FancyActionBar.RefreshBarAppearance("inactive", "iconStyle")
                         end,
                         width = "half",
                     },
                     {
                         type = "slider",
-                        name = "Inactive bar desaturation",
-                        tooltip = "Higher value = more grey.\nLower value = more colors.",
+                        name = FancyActionBar.strings.desatName,
+                        tooltip = FancyActionBar.strings.desatTT,
                         default = defaults.desaturationInactive,
                         min = 0,
                         max = 100,
@@ -2989,13 +3093,29 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             return SV.desaturationInactive
                         end,
                         setFunc = function (value)
-                            FancyActionBar.ApplyDesaturationInactiveInactive(value)
+                            SV.desaturationInactive = value
+                            FancyActionBar.RefreshBarAppearance("inactive", "iconStyle")
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = FancyActionBar.strings.overlayBgInactiveName,
+                        tooltip = FancyActionBar.strings.buttonBackdropAlphaTT,
+                        default = defaults.overlayBgAlphaInactive,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.overlayBgAlphaInactive
+                        end,
+                        setFunc = function (value)
+                            SV.overlayBgAlphaInactive = value
+                            FancyActionBar.RefreshBarAppearance("inactive", "frameBackdrop")
                         end,
                         width = "half",
                     },
                     { type = "description", text = "", width = "full" },
-
-                    -- ============[	Keybinds On / Off	]===================
                     {
                         type = "description",
                         title = "[ |cffdf80Hotkey Text|r ]",
@@ -3070,6 +3190,46 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     setFunc = function (r, g, b, a)
                         SV.frameColor = { r, g, b, a }
                         FancyActionBar.SetFrameColor()
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "slider",
+                    name = FancyActionBar.strings.overlayFrameActiveName,
+                    tooltip = FancyActionBar.strings.frameBorderAlphaTT,
+                    default = defaults.overlayFrameAlphaActive,
+                    disabled = function ()
+                        return (FancyActionBar.style == 2 or SV.forceGamepadStyle or not SV.showFrames)
+                    end,
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    getFunc = function ()
+                        return SV.overlayFrameAlphaActive
+                    end,
+                    setFunc = function (value)
+                        SV.overlayFrameAlphaActive = value
+                        FancyActionBar.RefreshBarAppearance("active", "frameBackdrop")
+                    end,
+                    width = "half",
+                },
+                {
+                    type = "slider",
+                    name = FancyActionBar.strings.overlayFrameInactiveName,
+                    tooltip = FancyActionBar.strings.frameBorderAlphaTT,
+                    default = defaults.overlayFrameAlphaInactive,
+                    disabled = function ()
+                        return (FancyActionBar.style == 2 or SV.forceGamepadStyle or not SV.showFrames)
+                    end,
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    getFunc = function ()
+                        return SV.overlayFrameAlphaInactive
+                    end,
+                    setFunc = function (value)
+                        SV.overlayFrameAlphaInactive = value
+                        FancyActionBar.RefreshBarAppearance("inactive", "frameBackdrop")
                     end,
                     width = "half",
                 },
@@ -3406,6 +3566,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.hideInactiveSlots = value or false
+                    FancyActionBar.RefreshBarVisuals("inactive", "icon")
                 end,
                 width = "full"
             },
@@ -3419,8 +3580,14 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     return SV.applyActionBarSkillStyles
                 end,
                 setFunc = function (value)
+                    local wasEnabled = SV.applyActionBarSkillStyles
                     SV.applyActionBarSkillStyles = value or false
-                    FancyActionBar.ApplyAbilityFxOverrides(true)
+                    if wasEnabled and not SV.applyActionBarSkillStyles then
+                        FancyActionBar.ResetActiveBarSkillStyles()
+                        FancyActionBar.RefreshBarAppearance("inactive", "icon")
+                    elseif SV.applyActionBarSkillStyles then
+                        FancyActionBar.RefreshBarAppearance(nil, "slotIcons")
+                    end
                 end,
                 width = "full",
             },
@@ -7458,6 +7625,7 @@ function FancyActionBar.ConfigureFrames()
         ToggleFrameType()
     end
     FancyActionBar.SetUltFrameAlpha()
+    FancyActionBar.RefreshBarAppearance(nil, "frameBackdrop")
 end
 
 function FancyActionBar.SetFrameColor()
@@ -7483,25 +7651,6 @@ function FancyActionBar.SetFrameColor()
       e:SetColor(unpack(SV.frameColor));
     end; ]]
     end
-end
-
-function FancyActionBar.ApplyAlphaInactive(alpha)
-    local alphaInactive = (alpha / 100)
-    for i = MIN_INDEX, MAX_INDEX do
-        local button = ZO_ActionBar_GetButton(i)
-        button = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET]
-        button.icon:SetAlpha(alphaInactive)
-    end
-end
-
-function FancyActionBar.ApplyDesaturationInactiveInactive(desaturation)
-    local desaturationInactive = (desaturation / 100)
-    for i = MIN_INDEX, MAX_INDEX do
-        local button = ZO_ActionBar_GetButton(i)
-        button = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET]
-        button.icon:SetDesaturation(desaturationInactive)
-    end
-    SV.desaturationInactive = desaturation
 end
 
 function FancyActionBar.ApplyTimerFont()

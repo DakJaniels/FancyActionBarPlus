@@ -16,6 +16,7 @@ local strings =
     FANCYAB_SUBMENU_TARGETKB_DESC = "キーボードUIのターゲットカウンター表示設定",
 
     -- Categories
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80フロントバーの表示|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80バックバーの表示|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80ホットキーテキスト|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80ボタンフレーム|r ]",
@@ -33,9 +34,28 @@ local strings =
     FANCYAB_ALPHA_NAME = "非アクティブバーの透明度",
     FANCYAB_ALPHA_TT = "高い値 = より不透明。\n低い値 = より透明。",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "アクティブバーの透明度を適用",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "アクティブバーの透明度の上書きを許可します。ターゲット指定スキルが使用可能であることをベースゲームが示す方法と競合することに注意してください。",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "アクティブバーの彩度を適用",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "アクティブバーの彩度/グレースケールの上書きを許可します。ターゲット指定スキルが使用可能であることをベースゲームが示す方法と競合することに注意してください。",
+
+    FANCYAB_ALPHA_ACTIVE_NAME = "アクティブバーの透明度",
+    FANCYAB_ALPHA_ACTIVE_TT = "高い値 = より不透明。\n低い値 = より透明。",
+
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "非アクティブバーの彩度",
     FANCYAB_DESAT_TT = "高い値 = よりグレー。\n低い値 = より色鮮やか。",
+
+    FANCYAB_DESAT_ACTIVE_NAME = "アクティブバーの彩度",
+    FANCYAB_DESAT_ACTIVE_TT = "高い値 = よりグレー。\n低い値 = より色鮮やか。",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "アクティブバー フレームの透明度",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "アクティブバー ボタン背景の透明度",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "非アクティブバー フレームの透明度",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "非アクティブバー ボタン背景の透明度",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "スキルアイコン背面の背景の不透明度。\n高い値 = より不透明。\n低い値 = より透明。",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "ボタンフレームの不透明度。\nカスタムフレーム表示が有効な場合のみ適用されます。\n高い値 = より不透明。\n低い値 = より透明。",
 
     -- Hotkey settings
     FANCYAB_HOTKEY_NAME = "ホットキーを表示",

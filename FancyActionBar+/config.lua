@@ -1343,8 +1343,6 @@ FancyActionBar.guard =
 {
     -- to help identify and update overlays as the slotted id changes depending on link state.
     link = 81420,
-    slot1 = nil,
-    slot2 = nil,
     ids =
     {
         [61511] = true, -- guard
@@ -1549,6 +1547,8 @@ FancyActionBar.removeInstantly =
     -- [256798] = true, -- Volcanic Whip
     -- [20824] = true,  -- Power Lash
     [267744] = true, -- Gnash (Blood Hunger)
+    [85840] = true,  -- Budding Seeds (Main)
+    [85922] = true,  -- Budding Seeds (Proc)
 }
 
 FancyActionBar.allowedChanneled =

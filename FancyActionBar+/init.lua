@@ -108,9 +108,18 @@ FancyActionBar.defaultSettings =
     forceReposition = false,
     forceAzurahMover = false,
 
-    -- back bar visibility
+    -- inactive bar visibility
     alphaInactive = 20,
     desaturationInactive = 50,
+    overlayFrameAlphaInactive = 100,
+    overlayBgAlphaInactive = 100,
+    -- active bar visibility
+    applyActiveBarAlpha = false,
+    applyActiveBarDesaturation = false,
+    alphaActive = 100,
+    desaturationActive = 0,
+    overlayFrameAlphaActive = 100,
+    overlayBgAlphaActive = 100,
     -- timer display settings
     delayFade = true,
     fadeDelay = 2,
@@ -323,6 +332,7 @@ FancyActionBar.strings =
 
     -- submenu category titles
     catBBVisual = GetString(FANCYAB_CAT_BBVISUAL),
+    catFBVisual = GetString(FANCYAB_CAT_FBVISUAL),
     catHotkey = GetString(FANCYAB_CAT_HOTKEY),
     catFrames = GetString(FANCYAB_CAT_FRAMES),
     catHighlight = GetString(FANCYAB_CAT_HIGHLIGHT),
@@ -336,13 +346,27 @@ FancyActionBar.strings =
     catMarkerDesc = GetString(FANCYAB_CAT_MARKER_DESC),
 
     -- settings names and tooltips
-    -- back bar alpha
+    -- inactive bar
     alphaName = GetString(FANCYAB_ALPHA_NAME),
     alphaTT = GetString(FANCYAB_ALPHA_TT),
-
-    -- backbar desaturation
     desatName = GetString(FANCYAB_DESAT_NAME),
     desatTT = GetString(FANCYAB_DESAT_TT),
+
+    -- active bar
+    applyActiveBarAlphaName = GetString(FANCYAB_APPLY_ACTIVE_ALPHA_NAME),
+    applyActiveBarAlphaTT = GetString(FANCYAB_APPLY_ACTIVE_ALPHA_TT),
+    applyActiveBarDesaturationName = GetString(FANCYAB_APPLY_ACTIVE_DESAT_NAME),
+    applyActiveBarDesaturationTT = GetString(FANCYAB_APPLY_ACTIVE_DESAT_TT),
+    alphaActiveName = GetString(FANCYAB_ALPHA_ACTIVE_NAME),
+    alphaActiveTT = GetString(FANCYAB_ALPHA_ACTIVE_TT),
+    desatActiveName = GetString(FANCYAB_DESAT_ACTIVE_NAME),
+    desatActiveTT = GetString(FANCYAB_DESAT_ACTIVE_TT),
+    overlayFrameActiveName = GetString(FANCYAB_OVERLAY_FRAME_ACTIVE_NAME),
+    overlayBgActiveName = GetString(FANCYAB_OVERLAY_BG_ACTIVE_NAME),
+    overlayFrameInactiveName = GetString(FANCYAB_OVERLAY_FRAME_INACTIVE_NAME),
+    overlayBgInactiveName = GetString(FANCYAB_OVERLAY_BG_INACTIVE_NAME),
+    buttonBackdropAlphaTT = GetString(FANCYAB_BUTTON_BACKDROP_ALPHA_TT),
+    frameBorderAlphaTT = GetString(FANCYAB_FRAME_BORDER_ALPHA_TT),
 
     -- keybinds
     hotkeyName = GetString(FANCYAB_HOTKEY_NAME),

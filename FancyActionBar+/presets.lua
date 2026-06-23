@@ -277,6 +277,9 @@ FancyActionBar.devConfig =
     ["addonVersion"] = "2.9.0",
     ["barYOffsetGP"] = 2,
     ["alphaInactive"] = 33,
+    ["applyActiveBarAlpha"] = false,
+    ["applyActiveBarDesaturation"] = false,
+    ["alphaActive"] = 100,
     ["toggledHighlight"] = true,
     ["showHighlight"] = true,
     ["durationMax"] = 120,
@@ -314,6 +317,7 @@ FancyActionBar.devConfig =
     ["advancedDebuff"] = true,
     ["qsSizeKB"] = 24,
     ["desaturationInactive"] = 50,
+    ["desaturationActive"] = 0,
     ["qsTimerEnableGP"] = true,
     ["hideInactiveSlots"] = false,
 }

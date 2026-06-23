@@ -453,17 +453,13 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         debuff.beginTime = (beginTime and beginTime ~= 0 and beginTime) or t
         debuff.endTime = endTime
         debuff.duration = endTime - beginTime
-
-
-        local effect = FancyActionBar.effects[debuff.id] or { id = debuff.id }
-        for k, v in pairs(debuff) do effect[k] = v end
-        effect.isDebuff = true
-        FancyActionBar.effects[debuff.id] = effect
-        FancyActionBar.SetStacks(effect.id, effect.stacks)
+        debuff.isDebuff = true
+        FancyActionBar.effects[debuff.id] = debuff
+        FancyActionBar.SetStacks(debuff.id, debuff.stacks)
 
         if not SV.multiTargetBlacklist[debuff.id] then
             local unitKey = unitId ~= 0 and unitId or nil
-            FancyActionBar.UpdateMultiTargetDebuffs(effect, change, t, beginTime, endTime, unitKey, abilityType)
+            FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey, abilityType)
         end
 
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then

@@ -13,6 +13,7 @@ local strings =
     FANCYAB_SUBMENU_STACKKB_DESC = "Keyboard UI target count display settings",
     FANCYAB_SUBMENU_TARGETKB_DESC = "Keyboard UI target count display settings",
 
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Front Bar Visibility|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Back Bar Visibility|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Hotkey Text|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Button Frames|r ]",
@@ -28,8 +29,27 @@ local strings =
     FANCYAB_ALPHA_NAME = "Inactive bar alpha",
     FANCYAB_ALPHA_TT = "Higher value = more solid.\nLower value = more see through.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Apply active bar alpha",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Allow overriding the active bar transparency. Note that this conflicts with how the basegame indicates that targeted abilities are castable.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Apply active bar desaturation",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Allow overriding the active bar saturation/greyscale. Note that this conflicts with how the basegame indicates that targeted abilities are castable.",
+
+    FANCYAB_ALPHA_ACTIVE_NAME = "Active bar alpha",
+    FANCYAB_ALPHA_ACTIVE_TT = "Higher value = more solid.\nLower value = more see through.",
+
     FANCYAB_DESAT_NAME = "Inactive bar desaturation",
     FANCYAB_DESAT_TT = "Higher value = more grey.\nLower value = more colors.",
+
+    FANCYAB_DESAT_ACTIVE_NAME = "Active bar desaturation",
+    FANCYAB_DESAT_ACTIVE_TT = "Higher value = more grey.\nLower value = more colors.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Active Bar frame alpha",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Active bar button backdrop alpha",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Inactive Bar frame alpha",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Inactive bar button backdrop alpha",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Opacity for the backdrop behind the ability icon.\nHigher value = more solid.\nLower value = more see through.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Opacity for the button frame.\nOnly applies when Custom frames is enabled.\nHigher value = more solid.\nLower value = more see through.",
 
     FANCYAB_HOTKEY_NAME = "Show hotkeys",
     FANCYAB_HOTKEY_TT = "Show hotkeys under the action bar.",
