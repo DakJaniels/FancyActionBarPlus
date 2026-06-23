@@ -1,7 +1,6 @@
 --- @class (partial) FancyActionBar
 --- @field __index FancyActionBar
 --- @field style integer # 1 for keyboard, 2 for gamepad
---- @field updateUI boolean # Flag to determine if UI needs updating
 --- @field constants FancyActionBarConstants
 --- @field useGamepadActionBar boolean # Force enable gamepad actionbar style
 FancyActionBar = {}

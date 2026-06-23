@@ -127,7 +127,6 @@ FancyActionBar.effectWidgetControls = {}
 FancyActionBar.widgetEffects = {}           -- external end-times keyed by abilityId, isolated from main effects table
 FancyActionBar.externalTrackingIds = {}
 
-FancyActionBar.updateUI = false              -- don't change configuration if not needed
 FancyActionBar.useGamepadActionBar = false   -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false            -- don't register updates if already registered
@@ -1075,21 +1074,11 @@ end
 --- @field ult table
 --- @field update table
 
---- Gets the appropriate action bar constants based on current UI mode
---- Updates the constants if needed and returns the style-specific constants
+--- Returns the keyboard/gamepad template constants. Call UpdateStyle() first when mode may have changed.
 --- @return ActionBarConstants constants The keyboard or gamepad constants table
 function FancyActionBar.GetConstants()
-    -- Check if UI update is needed or constants haven't been initialized
-    if FancyActionBar.updateUI or not (FancyActionBar.constants and FancyActionBar.constants.style) then
-        -- Determine style: 2 for gamepad, 1 for keyboard
-        FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1
-
-        -- Select appropriate constants based on style
-        --- @type ActionBarConstants
-        local selectedConstants = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
-
-        -- Update the style constants
-        FancyActionBar.constants.style = selectedConstants
+    if not (FancyActionBar.constants and FancyActionBar.constants.style) then
+        FancyActionBar.UpdateStyle()
     end
 
     return FancyActionBar.constants.style
@@ -1691,6 +1680,10 @@ local function RefreshBarVisualsForBarChange()
     local refreshActive = SV.applyActionBarSkillStyles or SV.applyActiveBarAlpha or SV.applyActiveBarDesaturation
     local scope = refreshActive and "all" or "inactive"
     FancyActionBar.RefreshBarVisuals(scope, refreshActive and APPEAR.all or APPEAR.inactive)
+    for i = MIN_INDEX, MAX_INDEX do
+        FancyActionBar.UpdateOverlay(i)
+        FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET)
+    end
 end
 
 local function OnActiveActionButtonUpdateUsable(self)
@@ -2010,19 +2003,15 @@ function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceCh
     if isLocked == wasLocked then
         return
     end
-    -- if (not isLocked) and (not wasLocked) then return; end;
     local doLock
     if userPreferenceChanged then
         doLock = userPreferenceState and isLocked or false
     else
         doLock = isLocked
     end
-    local currentHotbarCategory = GetActiveHotbarCategory()
     isWeaponSwapLocked = doLock
-    local hideBar = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP
-    FancyActionBar.ToggleInactiveBar(hideBar, doLock)
+    FancyActionBar.SwapControls(doLock)
     FancyActionBar.AdjustQuickSlotSpacing(doLock)
-    FancyActionBar.UpdateWeaponSwapControlVisibility(doLock)
 end
 
 -- ZO_ActionButtons_ToggleShowGlobalCooldown()
@@ -3597,11 +3586,9 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
         style = IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS
     end
     local anchor = style.anchor
-    if FancyActionBar.updateUI then
-        anchor:SetFromControlAnchor(ACTION_BAR)
-        anchor:SetOffsets(nil, style.actionBarOffset)
-        anchor:Set(ACTION_BAR)
-    end
+    anchor:SetFromControlAnchor(ACTION_BAR)
+    anchor:SetOffsets(nil, style.actionBarOffset)
+    anchor:Set(ACTION_BAR)
     anchor:SetFromControlAnchor(ZO_PlayerAttribute)
     anchor:SetOffsets(nil, style.attributesOffset)
     anchor:Set(ZO_PlayerAttribute)
@@ -3787,37 +3774,10 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
     setupCompanionUltimate(showCompanionUlt)
 end
 
---  ---------------------------------
---  UI Prep before initial
---  ---------------------------------
----
---- This is now directly handled in the ui.xml OnInitialized
--- @param control TopLevelWindow
--- function FancyActionBar.OnActionBarInitialized(control) -- backbar control initialized.
---     ULTIMATE_BUTTON_STYLE.parentBar = control
-
---     -- Set active bar as a parent to make inactive bar show/hide automatically.
---     control:SetParent(ACTION_BAR)
-
---     -- Need to adjust it here instead of in ApplyStyle(), otherwise it won't properly work with Azurah.
---     FancyActionBar.AdjustControlsPositions()
-
---     -- Create inactive bar buttons.
---     for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
---         --- @class ActionButton
---         local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, control, "ZO_ActionButton")
---         button:SetShowBindingText(false)
---         button.icon:SetHidden(true)
---         button:SetupBounceAnimation()
---         FancyActionBar.buttons[i] = button
---     end
--- end
-
 ---
 --- @param index integer
 --- @return Control|FAB_ActionButtonOverlay_Gamepad_Template|FAB_ActionButtonOverlay_Keyboard_Template
 function FancyActionBar.CreateOverlay(index) -- create normal skill button overlay.
-    -- local template = ZO_GetPlatformTemplate('FAB_ActionButtonOverlay')
     local template = FancyActionBar.constants.style.overlayTemplate
     --- @type Control
     local overlay = FancyActionBar.overlays[index]
@@ -3884,7 +3844,6 @@ end
 --- @param index integer
 --- @return FAB_QuickSlotOverlay_Gamepad_Template|FAB_QuickSlotOverlay_Keyboard_Template
 function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button overlay.
-    -- local template = ZO_GetPlatformTemplate('FAB_QuickSlotOverlay')
     local template = FancyActionBar.constants.style.qsOverlayTemplate
     local overlay = FancyActionBar.qsOverlay
     if overlay then
@@ -4357,10 +4316,8 @@ local configureFillAnimationsAndFrames = function (style)
     local actionbutton8backdrop = GetControl("ActionButton8Backdrop")
     local companionultimatebuttonbackdrop = GetControl("CompanionUltimateButtonBackdrop")
     local ultFlipCardSize = style.ultFlipCardSize
-    local halfUltFlipCardSize = ultFlipCardSize / 2
     -- Check if controls are retrieved successfully
     if not leftFill or not rightFill or not leftFillC or not rightFillC or not gpFrame or not gpFrameC then
-        -- FancyActionBar.AddSystemMessage("One or more controls are nil");
         return
     end
     local currentHotbarCategory = GetActiveHotbarCategory()
@@ -4389,30 +4346,14 @@ local configureFillAnimationsAndFrames = function (style)
         configureFillAnimation(rightFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
         configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -ultFlipCardSize, ultFlipCardSize)
         configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -ultFlipCardSize, ultFlipCardSize)
+        FancyActionBar.SetUltFrameAlpha()
     else
-        -- Hide fill animations and frames
         hideFillAnimation(leftFill)
         hideFillAnimation(rightFill)
         hideFillAnimation(leftFillC)
         hideFillAnimation(rightFillC)
         gpFrame:SetHidden(true)
         gpFrameC:SetHidden(true)
-    end
-end
-
-function FancyActionBar.ToggleFillAnimationsAndFrames(state)
-    GetControl("ActionButton8Frame"):SetHidden(not state)
-    GetControl("ActionButton8FillAnimationLeft"):SetHidden(not state)
-    GetControl("ActionButton8FillAnimationRight"):SetHidden(not state)
-    if AreCompanionSkillsInitialized() then
-        GetControl("CompanionUltimateButtonFrame"):SetHidden(not state)
-        GetControl("CompanionUltimateButtonFillAnimationLeft"):SetHidden(not state)
-        GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state)
-    end
-    FancyActionBar.SetUltFrameAlpha()
-    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
-    if ultButton then
-        ultButton:UpdateUltimateMeter()
     end
 end
 
@@ -4427,29 +4368,23 @@ function FancyActionBar.SetUltFrameAlpha()
     end
 end
 
-local function createOverlays(style, QSB)
-    local function setupOverlay(overlay, anchorControl)
-        overlay:SetAnchor(TOPLEFT, anchorControl, TOPLEFT, 0, 0)
-        overlay:SetAnchor(BOTTOMRIGHT, anchorControl, BOTTOMRIGHT, 0, 0)
-        overlay.value = overlay:GetNamedChild("Value")
-    end
+local function SetupOverlay(overlay, anchorControl)
+    overlay:SetAnchor(TOPLEFT, anchorControl, TOPLEFT, 0, 0)
+    overlay:SetAnchor(BOTTOMRIGHT, anchorControl, BOTTOMRIGHT, 0, 0)
+    overlay.value = overlay:GetNamedChild("Value")
+end
+
+local function SetupUltAndQuickslotOverlays()
     local actionbutton8 = GetControl("ActionButton8")
     local companionultimatebutton = GetControl("CompanionUltimateButton")
-    -- Front bar ultimate overlay
-    local u1 = FancyActionBar.CreateUltOverlay(ULT_INDEX)
-    setupOverlay(u1, actionbutton8)
+    local QSB = QuickslotButton
 
-    -- Back bar ultimate overlay
-    local u2 = FancyActionBar.CreateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET)
-    setupOverlay(u2, actionbutton8)
+    SetupOverlay(FancyActionBar.CreateUltOverlay(ULT_INDEX), actionbutton8)
+    SetupOverlay(FancyActionBar.CreateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET), actionbutton8)
+    SetupOverlay(FancyActionBar.CreateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET), companionultimatebutton)
 
-    -- Companion ultimate overlay
-    local u3 = FancyActionBar.CreateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET)
-    setupOverlay(u3, companionultimatebutton)
-
-    -- Quickslot overlay
     local QO = FancyActionBar.CreateQuickSlotOverlay(QUICK_SLOT)
-    setupOverlay(QO, QSB)
+    SetupOverlay(QO, QSB)
     QO.timer = QO:GetNamedChild("Duration")
     QO.timer:SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsColorGP or SV.qsColorKB))
 
@@ -4459,44 +4394,36 @@ local function createOverlays(style, QSB)
     end
 end
 
-function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to settings
+--- Lightweight ult/quickslot styling without rebuilding ability overlays.
+function FancyActionBar.ApplyQuickSlotAndUltimateStyle()
     local style = FancyActionBar.GetConstants()
-    local QSB = QuickslotButton
 
-    -- Apply styles to buttons
     applyButtonStyles(style)
 
-    -- Ensure scale is initialized
-    scale = scale or 1
-
-    -- Reposition ultimate slot
     repositionUltimateSlot(style)
-
-    -- Set dimensions for flip cards
     setFlipCardDimensions(style)
-
-    -- Hide ultimate number if needed
     hideUltimateNumberIfNeeded()
-
-    -- Configure fill animations and frames
     configureFillAnimationsAndFrames(style)
-
-    -- Create overlays
-    createOverlays(style, QSB)
 end
 
---- Apply style to action bars depending on keyboard/gamepad mode.
-function FancyActionBar.ApplyStyle()
-    FancyActionBar.UpdateStyle()
+function FancyActionBar.ApplyActiveHotbarStyle()
     local style = FancyActionBar.GetConstants()
+    for i = MIN_INDEX, MAX_INDEX do
+        local button = ZO_ActionBar_GetButton(i)
+        button:ApplyStyle(style.buttonTemplate)
+        FancyActionBar.SetupButtonText(button, style, i)
+        FancyActionBar.SetupButtonStatus(button)
+    end
+    local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
+    if ult and ult.hasAction then
+        ult:UpdateUltimateMeter()
+    end
+end
 
-    FancyActionBar.SetupActionBar(style)
-    FancyActionBar.SetupButtons(style)
-    FancyActionBar.SetupOverlays(style)
-
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-    FancyActionBar:ApplySettings()
-    FancyActionBar.RefreshBounceAnimations()
+function FancyActionBar.OnUIModeChanged()
+    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+    local _, locked = GetActiveWeaponPairInfo()
+    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
 end
 
 --- Setup the action bar with the given style.
@@ -4540,40 +4467,11 @@ function FancyActionBar.UpdateWeaponSwapControlVisibility(lock)
     end
 end
 
-function FancyActionBar.ApplyActiveHotbarStyle()
-    local style = FancyActionBar.GetConstants()
-    for i = MIN_INDEX, MAX_INDEX do
+--- Chain active bar slots 4-7; slot 3 is positioned by SwapControls.
+function FancyActionBar.SetupButtons()
+    for i = MIN_INDEX + 1, MAX_INDEX do
         local button = ZO_ActionBar_GetButton(i)
-        button:ApplyStyle(style.buttonTemplate)
-        FancyActionBar.SetupButtonText(button, style, i)
-        FancyActionBar.SetupButtonStatus(button)
-    end
-    local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
-    if ult and ult.hasAction then
-        ult:UpdateUltimateMeter()
-    end
-    FancyActionBar.RefreshBounceAnimations()
-end
-
---- Setup the buttons with the given style.
---- @param style table
-function FancyActionBar.SetupButtons(style)
-    local lastButton = nil
-
-    for i = MIN_INDEX, MAX_INDEX do
-        local button = ZO_ActionBar_GetButton(i)
-        if lastButton then
-            button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX)
-        elseif i == MIN_INDEX then
-            button.slot:ClearAnchors()
-            button.slot:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4)
-        else
-            button.slot:ClearAnchors()
-            button.slot:SetAnchor(LEFT, ZO_ActionBar_GetButton(i - 1).slot, RIGHT, 0, 0)
-        end
-        lastButton = button
-        FancyActionBar.SetupButtonText(button, style, i)
-        FancyActionBar.SetupButtonStatus(button)
+        button:ApplyAnchor(ZO_ActionBar_GetButton(i - 1).slot, FancyActionBar.constants.abilitySlot.offsetX)
     end
 end
 
@@ -4607,15 +4505,15 @@ function FancyActionBar.SetupOverlays(style)
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.CreateOverlay(i)
 
-        if i == MIN_INDEX then
-            overlay:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4)
-        else
+        if i > MIN_INDEX then
             overlay:SetAnchor(LEFT, FancyActionBar.overlays[i - 1], RIGHT, FancyActionBar.constants.abilitySlot.offsetX, 0)
         end
 
         lastButton = FancyActionBar.SetupBackbarButton(style, lastButton, i)
-        FancyActionBar.SetupBackbarOverlay(style, i)
+        FancyActionBar.SetupBackbarOverlay(i)
     end
+
+    SetupUltAndQuickslotOverlays()
 end
 
 --- Setup the backbar button with the given style.
@@ -4633,24 +4531,19 @@ function FancyActionBar.SetupBackbarButton(style, lastButton, index)
 
     FancyActionBar.SetupButtonStatus(button)
 
-    if index == MIN_INDEX then
-        button.slot:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0)
-    else
+    if index > MIN_INDEX then
         button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX)
     end
 
     return button
 end
 
---- Setup the backbar overlay with the given style.
---- @param style table
+--- Setup the backbar overlay; slot 23 anchor is owned by SwapControls.
 --- @param index number
-function FancyActionBar.SetupBackbarOverlay(style, index)
+function FancyActionBar.SetupBackbarOverlay(index)
     local overlay = FancyActionBar.CreateOverlay(index + SLOT_INDEX_OFFSET)
 
-    if index == MIN_INDEX then
-        overlay:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0)
-    else
+    if index > MIN_INDEX then
         overlay:SetAnchor(LEFT, FancyActionBar.overlays[index + SLOT_INDEX_OFFSET - 1], RIGHT, FancyActionBar.constants.abilitySlot.offsetX, 0)
     end
 end
@@ -4660,8 +4553,7 @@ end
 --- @param inactive userdata
 --- @param firstTop boolean
 --- @param locked boolean
---- @param inactiveHotbarCategory HotBarCategory
-local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotbarCategory)
+local function ApplyBarPosition(active, inactive, firstTop, locked)
     local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2
     local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2
     if locked == true and SV.repositionActiveBar then
@@ -4690,18 +4582,13 @@ local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotb
                 -2 - barYOffset, inactive:GetResizeToFitConstrains())
         end
     end
-    if inactive then
-        FancyActionBar.RefreshBarVisibility("inactive")
-    end
 end
 
-function FancyActionBar.SwapControls(locked, skipIconRefresh) -- refresh action bars positions.
-    local hide, activeBar, inactiveBar
-
+function FancyActionBar.SwapControls(locked, skipIconRefresh, skipLabelRefresh) -- refresh action bars positions.
     FancyActionBar.ClearAnchors()
-    activeBar, inactiveBar, hide = FancyActionBar.DetermineBarAndHide(locked)
+    local hide = FancyActionBar.ApplyBarStackLayout(locked)
 
-    FancyActionBar.SetBarPositions(inactiveBar)
+    FancyActionBar.SetBarPositions(skipLabelRefresh)
     FancyActionBar.RefreshBarVisibility()
     FancyActionBar.ToggleUltimateOverlays(hide)
 
@@ -4715,9 +4602,9 @@ function FancyActionBar.SwapControls(locked, skipIconRefresh) -- refresh action 
         else
             local anchorButton = ZO_ActionBar_GetButton(MIN_INDEX)
             local anchorControl = (anchorButton and anchorButton.slot) or _G["ActionButton3"] or ACTION_BAR
-            local ax, ay = 0, 0
+            local _, ay = 0, 0
             if anchorControl and anchorControl.GetCenter then
-                ax, ay = anchorControl:GetCenter()
+                _, ay = anchorControl:GetCenter()
             end
             local sx, sy = 0, 0
             if weaponSwapControl and weaponSwapControl.GetCenter then
@@ -4747,40 +4634,39 @@ function FancyActionBar.ClearAnchors()
     end
 end
 
-function FancyActionBar.DetermineBarAndHide(locked)
+--- Apply active/inactive bar stack anchors; returns whether inactive ult overlays should hide.
+function FancyActionBar.ApplyBarStackLayout(locked)
     local currentHotbarCategory = GetActiveHotbarCategory()
     if currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         if SV.staticBars then
-            ApplyBarPosition(_G["ActionButton23"], _G["ActionButton3"], SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
-            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(_G["ActionButton23"], _G["ActionButton3"], SV.frontBarTop, locked)
+            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked)
         else
-            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
-            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked)
+            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], SV.activeBarTop, locked)
         end
-        return HOTBAR_CATEGORY_BACKUP, HOTBAR_CATEGORY_PRIMARY, true
+        return true
     else
         if SV.staticBars then
-            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
+            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.frontBarTop, locked)
+            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked)
         else
-            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-            ApplyBarPosition(_G["ActionButtonOverlay3"], _G["ActionButtonOverlay23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
+            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked)
+            ApplyBarPosition(_G["ActionButtonOverlay3"], _G["ActionButtonOverlay23"], SV.activeBarTop, locked)
         end
-        return HOTBAR_CATEGORY_PRIMARY, HOTBAR_CATEGORY_BACKUP, false
+        return false
     end
 end
 
-function FancyActionBar.SetBarPositions(bar)
+function FancyActionBar.SetBarPositions(skipLabelRefresh)
     local style = FancyActionBar.GetConstants()
     for i = MIN_INDEX, MAX_INDEX do
         local btnMain = ZO_ActionBar_GetButton(i)
         btnMain:HandleSlotChanged()
-        FancyActionBar.SetupButtonText(btnMain, style, i)
+        if not skipLabelRefresh then
+            FancyActionBar.SetupButtonText(btnMain, style, i)
+        end
     end
-end
-
-function FancyActionBar.ToggleInactiveBar(bar, hide)
-    FancyActionBar.SwapControls(hide)
 end
 
 function FancyActionBar.ToggleUltimateOverlays(hide)
@@ -4804,14 +4690,20 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
     end
 end
 
-function FancyActionBar.UpdateBarSettings(locked) -- run all UI visual updates when UI mode is changed.
+function FancyActionBar.UpdateBarSettings(locked, skipIconRefresh) -- run all UI visual updates when UI mode is changed.
     FancyActionBar.UpdateStyle()
     FancyActionBar.SetScale()
-    -- FancyActionBar.SetMoved(false)
-    FancyActionBar.ApplyStyle()
-    FancyActionBar.SwapControls(locked)
+    local style = FancyActionBar.GetConstants()
+
+    FancyActionBar.SetupActionBar(style)
+    FancyActionBar.SetupButtons()
+    FancyActionBar.SetupOverlays(style)
+    FancyActionBar.SwapControls(locked, skipIconRefresh, true)
     FancyActionBar:AdjustControlsPositions()
-    FancyActionBar.ApplyPosition()
+    FancyActionBar.ApplyActiveHotbarStyle()
+    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+    FancyActionBar:ApplySettings()
+    FancyActionBar.RefreshBounceAnimations()
 end
 
 function FancyActionBar.SetScale() -- resize and check for other addons with same function
@@ -4838,10 +4730,6 @@ local function ApplySwapAnimationStyle(button)
     local timeline = button.hotbarSwapAnimation
 
     if (timeline) then
-        -- local size = FancyActionBar.style == 2 and 67 or 47
-        -- local size = function() return GetUltimateFlipCardSize() end
-        -- local size, _ = button.flipCard:GetDimensions()
-
         local firstAnimation = timeline:GetFirstAnimation()
         local lastAnimation = timeline:GetLastAnimation()
 
@@ -5180,27 +5068,23 @@ function FancyActionBar.RefreshBounceAnimations()
     end
 end
 
-function FancyActionBar.UpdateStyle()
-    local style = {}
-    local mode
-
-    if FancyActionBar.updateUI then
-        mode = FancyActionBar.useGamepadActionBar and 2 or 1
-    else
-        if ADCUI then
-            if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
-                if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
-                    mode = 2
-                else
-                    mode = ADCUI:shouldUseGamepadActionBar() or SV.forceGamepadStyle and 2 or 1
-                end
-            else
-                mode = 1
+function FancyActionBar.GetUIMode()
+    if ADCUI then
+        if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
+            if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
+                return 2
             end
-        else
-            mode = FancyActionBar.useGamepadActionBar and 2 or 1
+            return ADCUI:shouldUseGamepadActionBar() or SV.forceGamepadStyle and 2 or 1
         end
+        return 1
     end
+
+    return FancyActionBar.useGamepadActionBar and 2 or 1
+end
+
+function FancyActionBar.UpdateStyle()
+    local mode = FancyActionBar.GetUIMode()
+    local style
 
     if mode == 1 then
         style = KEYBOARD_CONSTANTS
@@ -5209,7 +5093,7 @@ function FancyActionBar.UpdateStyle()
         style = GAMEPAD_CONSTANTS
         swapSize = 67
     end
-    -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
+
     FancyActionBar.style = mode
     FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style)
 
@@ -5923,7 +5807,8 @@ end
 local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
         FancyActionBar.ChanneledAbilityEnd()
-        FancyActionBar.SwapControls(isWeaponSwapLocked)
+        -- Layout only. hotbar-updated handler refreshes icons/highlights
+        FancyActionBar.SwapControls(isWeaponSwapLocked, true)
         currentWeaponPair = activeWeaponPair
         FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds after weapon swap
     end
@@ -6720,6 +6605,7 @@ local function OnReflect(eventId, result, isError, abilityName, abilityGraphic, 
     end
 end
 
+-- Lightweight hotbar-only refresh after bar rebuild; full layout uses UpdateBarSettings.
 local function ActionBarActivated(eventCode, initial)
     if not initial then
         -- OnAllHotbarsUpdated()
@@ -6729,6 +6615,7 @@ local function ActionBarActivated(eventCode, initial)
         rebuildHotbar = zo_callLater(function ()
             FancyActionBar.OnPlayerActivated()
             FancyActionBar.ApplyActiveHotbarStyle()
+            FancyActionBar.RefreshBounceAnimations()
             RefreshBarVisualsForBarChange()
             rebuildHotbar = nil
         end, 750)
@@ -6840,8 +6727,6 @@ function FancyActionBar.Initialize()
     FancyActionBar.ValidateVariables()
     FancyActionBar.UpdateStyle()
 
-    FancyActionBar.updateUI = true
-
     FancyActionBar.UpdateTextures()
 
     SLASH_COMMANDS[slashCommand] = FancyActionBar.SlashCommand
@@ -6899,19 +6784,7 @@ function FancyActionBar.Initialize()
     EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function ()
         FancyActionBar.ChanneledAbilityEnd()
     end)
-    EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
-        FancyActionBar.updateUI = true
-        FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
-        local _, locked = GetActiveWeaponPairInfo()
-        FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-        FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-        FancyActionBar.ApplyActiveHotbarStyle()
-        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-        FancyActionBar:ApplySettings()
-        FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
-        FancyActionBar.updateUI = false
-        -- ReloadUI("ingame");
-    end)
+    EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, FancyActionBar.OnUIModeChanged)
 
     EM:RegisterForEvent(NAME, EVENT_WEREWOLF_STATE_CHANGED, function (_, value)
         FancyActionBar.isWerewolf = value
@@ -6926,10 +6799,9 @@ function FancyActionBar.Initialize()
             SetAbilityBarTimersEnabled()
         end
         EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
-        FancyActionBar.ApplyStyle()
         FancyActionBar.InitializeScreenResizeHandler()
         OnAllHotbarsUpdated()
-        FancyActionBar.SwapControls(nil, true)
+        FancyActionBar.UpdateBarSettings(nil, true)
         EM:UnregisterForUpdate(NAME .. "Update")
         EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
         EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED)
@@ -6981,8 +6853,6 @@ function FancyActionBar.Initialize()
     SecurePostHook(ActionButton, "ApplyStyle", function (self)
         local style = FancyActionBar.GetConstants()
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
-        setFlipCardDimensions(style)
-        FancyActionBar.ApplyQuickSlotFont()
         InvalidatePressBounceData(self)
     end)
 
@@ -7044,7 +6914,6 @@ function FancyActionBar.OnAddOnLoaded(event, addonName)
     if addonName == NAME then
         EM:UnregisterForEvent(NAME, EVENT_ADD_ON_LOADED)
         FancyActionBar.Initialize()
-        FancyActionBar.updateUI = false
     end
 end
 

@@ -356,9 +356,6 @@ end
 
 local function SetBarTheme(locked)
     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-    FancyActionBar:ApplySettings()
 end
 
 ----------------------------------------------
@@ -2731,7 +2728,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.quickSlotCustomXOffsetKB = value
                     end
                     FancyActionBar.AdjustQuickSlotSpacing()
-                    -- FancyActionBar.ApplySettings();
                 end,
                 width = "half",
             },
@@ -2752,7 +2748,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.quickSlotCustomYOffsetKB = value
                     end
                     FancyActionBar.AdjustQuickSlotSpacing()
-                    -- FancyActionBar.ApplySettings();
                 end,
                 width = "half",
             },
@@ -2779,7 +2774,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.ultimateSlotCustomXOffsetKB = value
                     end
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2800,7 +2794,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.ultimateSlotCustomYOffsetKB = value
                     end
                     FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2828,9 +2821,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end
                     local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -2852,9 +2842,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end
                     local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar:ApplySettings()
                     if not FancyActionBar.wasMoved then
                         FancyActionBar.ResetMoveActionBar()
                         FancyActionBar.RepositionElements()
@@ -2880,9 +2867,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end
                     local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar:ApplySettings()
                 end,
                 width = "half",
             },
@@ -3363,7 +3347,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.showArrow = value or false
-                    FancyActionBar.UpdateWeaponSwapControlVisibility()
                     FancyActionBar.AdjustQuickSlotSpacing()
                     FancyActionBar.AdjustUltimateSpacing()
                 end,
@@ -3379,7 +3362,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.useDefaultWeaponSwap = value or false
-                    FancyActionBar.UpdateWeaponSwapControlVisibility()
                     FancyActionBar.SwapControls()
                     FancyActionBar.AdjustQuickSlotSpacing()
                     FancyActionBar.AdjustUltimateSpacing()
@@ -3417,7 +3399,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.centerDefaultWeaponSwap = value or false
-                    FancyActionBar.UpdateWeaponSwapControlVisibility()
                     FancyActionBar.SwapControls()
                     FancyActionBar.AdjustQuickSlotSpacing()
                     FancyActionBar.AdjustUltimateSpacing()
@@ -3461,16 +3442,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.forceGamepadStyle = value or false
-                    FancyActionBar.updateUI = true
-                    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
-                    local _, locked = GetActiveWeaponPairInfo()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-                    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-                    FancyActionBar.ApplyActiveHotbarStyle()
-                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-                    FancyActionBar:ApplySettings()
-                    FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
-                    FancyActionBar.updateUI = false
+                    FancyActionBar.OnUIModeChanged()
                 end,
                 width = "full",
             },
@@ -3507,8 +3479,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     FancyActionBar.AdjustUltimateSpacing()
                 end,
                 disabled = function ()
-                    return not FancyActionBar.style == 2
-                end, -- IsInGamepadPreferredMode() end,
+                    return FancyActionBar.style ~= 2
+                end,
                 width = "full",
             },
             {
