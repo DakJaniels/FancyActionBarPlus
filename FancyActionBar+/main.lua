@@ -599,7 +599,7 @@ function FancyActionBar.GetActiveStacksForId(id)
             end
         end
 
-        if effect.stacks then
+        if effect.stacks and not FancyActionBar.IsStackableBuff(trackedId) then
             return effect.stacks
         end
     end
@@ -643,40 +643,37 @@ local function UsesExternalStackDisplay(effect)
 end
 
 -- Centralized stack setting.
--- If `force` is true, always set the stacks and refresh affected overlays.
--- If `force` is false, the setter will avoid overwriting a valid stack value
--- with zero when per-source data is not present.
+-- Stackable buffs always sync from per-source tracking; `effect.stacks` is a cache only.
 function FancyActionBar.SetStacks(id, stacks, force)
     if not id then return end
     local effects = FancyActionBar.effects
     if not effects then return end
     local eff = effects[id] or FancyActionBar.GetEffect(id, nil, nil, true)
     if not eff then return end
-    
+
     local currentTime = time()
-    if type(stacks) == "string" and FancyActionBar.fixedStacks[id] == nil then
-        stacks = 0
-    end
-    -- normalize nil to 0 only when forced
-    if stacks == nil and not force then return end
-    -- If not forcing, prefer per-source aggregation when available
-    -- Only aggregate from `sources` for effects configured in `stackableBuff`.
-    if not force and eff.sources and eff.sources.times and FancyActionBar.IsStackableBuff(id) then
-        local count = FancyActionBar.RecomputeUnits(id, currentTime, "sources")
-        if count then
-            stacks = count
+    if eff.sources and eff.sources.times and FancyActionBar.IsStackableBuff(id) then
+        stacks = FancyActionBar.RecomputeUnits(id, currentTime, "sources") or 0
+    else
+        if type(stacks) == "string" and FancyActionBar.fixedStacks[id] == nil then
+            stacks = 0
         end
+        if stacks == nil and not force then return end
     end
     if eff.stacks == stacks and not force then return end
     eff.stacks = stacks
     effects[id] = eff
-    
+
 end
 
 function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
     if not effect then return 0 end
 
     currentTime = currentTime or time()
+
+    if effect.id and effect.sources and effect.sources.times and FancyActionBar.IsStackableBuff(effect.id) then
+        return FancyActionBar.RecomputeUnits(effect.id, currentTime, "sources") or 0
+    end
 
     local maxStacks = 0
     local sourceIds = effect.stackSources or effect.stackId or EMPTY_STACK_LIST
@@ -719,7 +716,7 @@ function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
                 local activeCount = FancyActionBar.RecomputeUnits(trackedId, currentTime, "sources")
                 if activeCount and activeCount > 0 then
                     sourceStacks = activeCount
-                elseif trackedEffect.stacks then
+                elseif trackedEffect.stacks and not FancyActionBar.IsStackableBuff(trackedId) then
                     sourceStacks = trackedEffect.stacks
                 end
             elseif trackedEffect.stacks then
@@ -1437,6 +1434,27 @@ local function IsInactiveSlotVisibilityHidden(slotNum, hotbarCategory)
         or (SV.hideLockedBar and isWeaponSwapLocked)
 end
 
+local function GetActionButtonUsableForVisuals(button)
+    if button.UpdateUseFailure then
+        button:UpdateUseFailure()
+    end
+    local isShowingCooldown = button.showingCooldown
+    if not button.useFailure and not isShowingCooldown then
+        return true
+    end
+    if button.GetSlot and button.GetHotbarCategory then
+        local slot = button:GetSlot()
+        local hotbar = button:GetHotbarCategory()
+        if not IsInGamepadPreferredMode() and ZO_ActionBar_IsUltimateSlot(slot, hotbar) and button.costFailureOnly then
+            return true
+        end
+        if GetSlotType(slot, hotbar) == ACTION_TYPE_ITEM and GetSlotItemCount(slot, hotbar) <= 0 then
+            return false
+        end
+    end
+    return false
+end
+
 local function ApplyActiveBarIconVisualState(button)
     if not button or not button.icon then return end
     local applyAlpha = SV.applyActiveBarAlpha
@@ -1444,12 +1462,14 @@ local function ApplyActiveBarIconVisualState(button)
     if not applyAlpha and not applyDesat then return end
 
     local icon = button.icon
-    local usable = button.usable ~= nil and button.usable or not button.useFailure
+    local usable = GetActionButtonUsableForVisuals(button)
+    local useDesaturation = button.showingCooldown or button.itemQtyFailure
+
+    if ZO_ActionSlot_SetUnusable then
+        ZO_ActionSlot_SetUnusable(icon, not usable, useDesaturation)
+    end
 
     if applyAlpha then
-        if button.usable ~= nil and ZO_ActionSlot_SetUnusable then
-            ZO_ActionSlot_SetUnusable(icon, not button.usable, button.useDesaturation)
-        end
         local alpha = (SV.alphaActive or defaultSettings.alphaActive) / 100
         if not usable then
             alpha = alpha * ((SV.unusableAlphaMult or defaultSettings.unusableAlphaMult) / 100)
@@ -3565,8 +3585,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
 
     if not allowExternalTracking then
         if didSourceAction then
-            local stackCountLocal, _, _ = FancyActionBar.RecomputeUnits(stackableBuff, t, "sources")
-            FancyActionBar.SetStacks(stackableBuff, stackCountLocal)
+            FancyActionBar.SetStacks(stackableBuff)
         end
         return
     end
@@ -3646,8 +3665,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
         FancyActionBar.widgetEffects[widgetStateId] = we
     end
     if stackableBuff then
-        stackCount, _, _ = FancyActionBar.RecomputeUnits(stackableBuff, t, "sources")
-        FancyActionBar.SetStacks(stackableBuff, stackCount)
+        FancyActionBar.SetStacks(stackableBuff)
     end
 
     -- local ts = tostring
@@ -6243,11 +6261,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         end
         local stackableBuff = FancyActionBar.stackableBuff[abilityId]
         if stackableBuff then
-            stackCount = FancyActionBar.RecomputeUnits(stackableBuff, time(), "sources")
-            local sEff = FancyActionBar.effects and FancyActionBar.effects[stackableBuff]
-            if sEff and sEff.sources and sEff.sources.times then
-                FancyActionBar.SetStacks(stackableBuff, stackCount)
-            end
+            FancyActionBar.SetStacks(stackableBuff)
         end
     end
 end
@@ -6361,8 +6375,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
             local sbId = FancyActionBar.stackableBuff[abilityId]
             if sbId then
                 FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
-                local sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
-                FancyActionBar.SetStacks(sbId, sc)
+                FancyActionBar.SetStacks(sbId)
             end
         end
 
@@ -6388,17 +6401,16 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         end
         FancyActionBar.UpdateEffect(effect)
     elseif isFade then
-        if effect.ignoreFadeTime then return end
-        if effect.dontFade and effect.endTime > t then return end
-
         if isTargetPlayer then
             local sbId = FancyActionBar.stackableBuff[abilityId]
             if sbId then
                 FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources")
-                local sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
-                FancyActionBar.SetStacks(sbId, sc)
+                FancyActionBar.SetStacks(sbId)
             end
         end
+
+        if effect.ignoreFadeTime then return end
+        if effect.dontFade and effect.endTime > t then return end
 
         local td = FancyActionBar.GetUnits(effect.id, "targets")
         local hasActiveTargets = false
@@ -6638,11 +6650,12 @@ function FancyActionBar.SyncEffectState()
 
             local stacks
             if isStackable then
-                stacks = FancyActionBar.RecomputeUnits(effect.id, currentTime, "sources") or 0
+                FancyActionBar.SetStacks(effect.id)
+                stacks = effect.stacks or 0
             else
                 stacks = buffStacks and (FancyActionBar.fixedStacks[effect.id] or buffStacks) or 0
+                FancyActionBar.SetStacks(effect.id, stacks, true)
             end
-            FancyActionBar.SetStacks(effect.id, stacks, true)
 
             if buffStacks ~= nil or (isStackable and stacks > 0) then
             elseif effect.dontFade and effect.endTime and effect.endTime > currentTime then
