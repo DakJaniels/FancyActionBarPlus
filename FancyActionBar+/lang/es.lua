@@ -49,6 +49,15 @@ local strings =
     FANCYAB_DESAT_ACTIVE_NAME = "Desaturación de barra activa",
     FANCYAB_DESAT_ACTIVE_TT = "Valor más alto = más gris.\nValor más bajo = más colores.",
 
+    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Oscurecimiento de habilidades no usables",
+    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Cuánto se oscurecen las habilidades no usables cuando la transparencia de la barra activa está sobrescrita.\n57 coincide con el juego base.",
+
+    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Refuerzo de desaturación (no usable)",
+    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Escala de grises adicional para habilidades no usables cuando la desaturación de la barra activa está sobrescrita.\n50 coincide con el comportamiento anterior.",
+
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Usar desaturación de reutilización del juego base",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Si está activado, las habilidades en reutilización conservan la desaturación del juego base en lugar de la de la barra activa.",
+
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparencia del marco (barra activa)",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparencia del fondo del botón (barra activa)",
     FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Transparencia del marco (barra inactiva)",

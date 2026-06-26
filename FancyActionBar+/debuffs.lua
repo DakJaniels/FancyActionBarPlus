@@ -55,10 +55,6 @@ local function ResolveDebuffDisplayStacks(effect, fallbackStacks)
         return fallbackStacks or 0
     end
 
-    if effect.hasExternalStackSources then
-        return FancyActionBar.ResolveStacksForEffect(effect, time())
-    end
-
     return FancyActionBar.ResolveStacksForEffect(effect, time())
 end
 
@@ -123,24 +119,20 @@ function FancyActionBar.IsAbilityActiveOnCurrentTarget(id)
     local nBuffs = GetNumBuffs("reticleover")
     local data = { endTime = 0, stacks = 0 }
 
-    if nBuffs > 0 then
-        for i = 1, nBuffs do
-            local _, _, endTime, _, stacks, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo("reticleover", i)
-            if abilityId == id and (castByPlayer or stacks > 0) then
-                isActive = true
-                data.endTime = endTime
-                data.stacks = stacks or 0
-                break
-            end
+    for i = 1, nBuffs do
+        local _, _, endTime, _, stacks, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo("reticleover", i)
+        if abilityId == id and (castByPlayer or stacks > 0) then
+            isActive = true
+            data.endTime = endTime
+            data.stacks = stacks or 0
+            break
         end
     end
 
-    if isActive
-    then
+    if isActive then
         return true, data
-    else
-        return false
     end
+    return false
 end
 
 -- function FancyActionBar.IsToggled(id)
@@ -151,24 +143,17 @@ function FancyActionBar.IsGroupUnit(tag)
     if tag == nil or tag == "" then
         return false
     end
-    if groupUnit[tag] then
-        return true
-    else
-        return false
-    end
+    return groupUnit[tag] ~= nil
 end
 
-function FancyActionBar.IsPlayer(tag, name)
+function FancyActionBar.IsPlayer(tag)
     if tag == nil or tag == "" then
         return false
     end
-    if AreUnitsEqual("player", tag) then
-        return true
-    end
-    return false
+    return AreUnitsEqual("player", tag)
 end
 
-function FancyActionBar.IsEnemy(tag, id)
+function FancyActionBar.IsEnemy(tag)
     if FancyActionBar.IsGroupUnit(tag) then
         return false
     end
@@ -188,7 +173,7 @@ function FancyActionBar.IsEnemy(tag, id)
     return isEnemy
 end
 
-function FancyActionBar.IsLocalPlayerOrEnemy(tag, name, id)
+function FancyActionBar.IsLocalPlayerOrEnemy(tag)
     if FancyActionBar.IsEnemy(tag) then
         return true
     end
@@ -211,7 +196,7 @@ function FancyActionBar.HasEnemyTarget()
     local tag = "reticleover"
 
     if (DoesUnitExist(tag) and not IsUnitDead(tag)) then
-        if FancyActionBar.IsEnemy(tag, nil) then
+        if FancyActionBar.IsEnemy(tag) then
             return true
         end
     end
@@ -538,11 +523,8 @@ local function ClearDebuffsOnCombatEnd()
                 if (specialEffect and specialEffect.setTime) and (effect.endTime and effect.endTime > t) then
                     keep[id] = true
                 else
-                    -- Clear per-debuff state and update visuals
-                    local eff = effects and effects[effect.id]
-                    if eff and eff.targets then
-                        eff.targets = nil
-                        effects[effect.id] = eff
+                    if effect.targets then
+                        effect.targets = nil
                     end
                     effect.endTime = 0
                     if effect.hasExternalStackSources or HasDebuffStackTargets(effect.id) then

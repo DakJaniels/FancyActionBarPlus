@@ -2,10 +2,9 @@
 local FancyActionBar = FancyActionBar
 local GetAbilityDuration = FancyActionBar.GetAbilityDuration
 
---- @param summonShade integer
 --- @return integer
-local function GetSummonShade(summonShade)
-    summonShade = 38517
+local function GetSummonShade()
+    local summonShade = 38517
     local raceId = GetUnitRaceId("player")
     if raceId == 9 then
         summonShade = 88662 -- khajiit
@@ -15,13 +14,9 @@ local function GetSummonShade(summonShade)
     return summonShade
 end
 
---- @type integer
-local summonShade
-
---- @param shadowImage integer
 --- @return integer
-local function GetShadowImage(shadowImage)
-    shadowImage = 38528
+local function GetShadowImage()
+    local shadowImage = 38528
     local raceId = GetUnitRaceId("player")
     if raceId == 9 then
         shadowImage = 88696 -- khajiit
@@ -31,13 +26,9 @@ local function GetShadowImage(shadowImage)
     return shadowImage
 end
 
---- @type integer
-local shadowImage
-
---- @param darkShade integer
 --- @return integer
-local function GetDarkShade(darkShade)
-    darkShade = 35438
+local function GetDarkShade()
+    local darkShade = 35438
     local raceId = GetUnitRaceId("player")
     if raceId == 9 then
         darkShade = 88677 -- khajiit
@@ -46,9 +37,6 @@ local function GetDarkShade(darkShade)
     end
     return darkShade
 end
-
---- @type integer
-local darkShade
 
 FancyActionBar.abilityConfig =
 {
@@ -393,9 +381,9 @@ FancyActionBar.abilityConfig =
     [25352] = { 147643 },                      -- aspect of terror
     [37470] = { 147643 },                      -- mass hysteria
     [37475] = {},                              -- manifestation of terror
-    [33211] = { GetSummonShade(summonShade) }, -- summon shade
-    [35434] = { GetDarkShade(darkShade) },     -- dark shade
-    [35441] = { GetShadowImage(shadowImage) }, -- shadow image
+    [33211] = { GetSummonShade() }, -- summon shade
+    [35434] = { GetDarkShade() },     -- dark shade
+    [35441] = { GetShadowImage() }, -- shadow image
     [35445] = false,                           -- shadow image proc
     [33291] = { 33292 },                       -- strife heal
     [34838] = { 34841 },                       -- funnel health heal

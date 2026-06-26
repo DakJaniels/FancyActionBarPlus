@@ -1,8 +1,6 @@
 --- @class (partial) FancyActionBar
 --- @field __index FancyActionBar
---- @field style integer # 1 for keyboard, 2 for gamepad
 --- @field constants FancyActionBarConstants
---- @field useGamepadActionBar boolean # Force enable gamepad actionbar style
 FancyActionBar = {}
 FancyActionBar.__index = FancyActionBar
 
@@ -116,7 +114,10 @@ FancyActionBar.defaultSettings =
     applyActiveBarAlpha = false,
     applyActiveBarDesaturation = false,
     alphaActive = 100,
+    unusableAlphaMult = 57,
     desaturationActive = 0,
+    unusableDesatBoost = 50,
+    respectVanillaCooldownDesat = true,
     overlayFrameAlphaActive = 100,
     overlayBgAlphaActive = 100,
     -- timer display settings
@@ -313,7 +314,7 @@ FancyActionBar.defaultSettings =
 }
 FancyActionBar.strings =
 {
-    -- outdated and mostly unused. will make settings more managable eventually.
+    -- outdated and mostly unused. will make settings more manageable eventually.
 
     -- submenu names
     subGeneral = GetString(FANCYAB_SUBMENU_GENERAL),
@@ -360,6 +361,12 @@ FancyActionBar.strings =
     alphaActiveTT = GetString(FANCYAB_ALPHA_ACTIVE_TT),
     desatActiveName = GetString(FANCYAB_DESAT_ACTIVE_NAME),
     desatActiveTT = GetString(FANCYAB_DESAT_ACTIVE_TT),
+    unusableAlphaMultName = GetString(FANCYAB_UNUSABLE_ALPHA_MULT_NAME),
+    unusableAlphaMultTT = GetString(FANCYAB_UNUSABLE_ALPHA_MULT_TT),
+    unusableDesatBoostName = GetString(FANCYAB_UNUSABLE_DESAT_BOOST_NAME),
+    unusableDesatBoostTT = GetString(FANCYAB_UNUSABLE_DESAT_BOOST_TT),
+    respectVanillaCooldownDesatName = GetString(FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME),
+    respectVanillaCooldownDesatTT = GetString(FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT),
     overlayFrameActiveName = GetString(FANCYAB_OVERLAY_FRAME_ACTIVE_NAME),
     overlayBgActiveName = GetString(FANCYAB_OVERLAY_BG_ACTIVE_NAME),
     overlayFrameInactiveName = GetString(FANCYAB_OVERLAY_FRAME_INACTIVE_NAME),
@@ -450,214 +457,123 @@ FancyActionBar.strings =
     disclaimer = GetString(FANCYAB_DISCLAIMER),
 }
 
---- Returns a table with the configuration for the given mode and style
+-- UI mode: 1 = keyboard, 2 = gamepad.
+-- SV stores persisted settings with per-mode keys (SvKey, e.g. fontNameKB).
+-- constants is the runtime snapshot for the active mode; menu setFuncs write SV
+-- always and patch constants when constants.mode matches the panel being edited.
+local modeSuffix = { [1] = "KB", [2] = "GP" }
+local modeScaleKey = { [1] = "kb", [2] = "gp" }
+
+function FancyActionBar.SvKey(base, mode)
+    return base .. modeSuffix[mode]
+end
+
+function FancyActionBar.CurrentMode()
+    local c = FancyActionBar.constants
+    if c then
+        return c.mode
+    end
+    return FancyActionBar.GetUIMode()
+end
+
+local layoutFields =
+{
+    abilitySlotOffsetX = function (c) return c.abilitySlot.offsetX end,
+    quickSlotCustomXOffset = function (c) return c.layout.quickSlot.x end,
+    quickSlotCustomYOffset = function (c) return c.layout.quickSlot.y end,
+    ultimateSlotCustomXOffset = function (c) return c.layout.ultimate.x end,
+    ultimateSlotCustomYOffset = function (c) return c.layout.ultimate.y end,
+    barXOffset = function (c) return c.layout.bar.x end,
+    barYOffset = function (c) return c.layout.bar.y end,
+}
+
+function FancyActionBar.GetLayoutValue(base)
+    local c = FancyActionBar.constants
+    local reader = c and layoutFields[base]
+    if reader then
+        return reader(c)
+    end
+    return SV[FancyActionBar.SvKey(base, FancyActionBar.CurrentMode())]
+end
+
+function FancyActionBar.SetLayoutValue(base, value)
+    SV[FancyActionBar.SvKey(base, FancyActionBar.CurrentMode())] = value
+    FancyActionBar.RefreshLayoutConstants()
+end
+
+local function mapSection(sv, mode, fields)
+    local section = {}
+    for key, base in pairs(fields) do
+        section[key] = sv[FancyActionBar.SvKey(base, mode)]
+    end
+    return section
+end
+
+local durationFields = { font = "fontName", size = "fontSize", outline = "fontType", y = "timeY", color = "timeColor" }
+local stackFields = { font = "fontNameStack", size = "fontSizeStack", outline = "fontTypeStack", x = "stackX", y = "stackY", color = "stackColor" }
+local targetFields = { font = "fontNameTarget", size = "fontSizeTarget", outline = "fontTypeTarget", x = "targetX", y = "targetY", color = "targetColor" }
+local ultDurationFields = { show = "ultShow", font = "ultName", size = "ultSize", outline = "ultType", x = "ultX", y = "ultY", color = "ultColor" }
+local ultValueFields =
+{
+    show = "ultValueEnable", mode = "ultValueMode", font = "ultValueName", size = "ultValueSize", outline = "ultValueType",
+    x = "ultValueX", y = "ultValueY", color = "ultValueColor", threshold = "ultValueThreshold",
+    usableThresholdColor = "ultUsableThresholdColor", usableColor = "ultUsableValueColor", maxColor = "ultMaxValueColor",
+}
+local ultCompanionFields = { show = "ultValueEnableCompanion", mode = "ultValueModeCompanion", x = "ultValueCompanionX", y = "ultValueCompanionY" }
+local qsFields =
+{
+    show = "qsTimerEnable", font = "qsName", size = "qsSize", outline = "qsType", x = "qsX", y = "qsY", color = "qsColor",
+    stackFont = "qsStackName", stackSize = "qsStackSize", stackOutline = "qsStackType", stackColor = "qsStackColor",
+}
+
+--- User layout offsets for the active UI mode.
+--- @param vars table
+--- @param mode integer
+--- @return table
+function FancyActionBar.BuildLayout(vars, mode)
+    local barX = vars[FancyActionBar.SvKey("barXOffset", mode)] or 0
+    local barY = vars[FancyActionBar.SvKey("barYOffset", mode)] or 0
+    return
+    {
+        quickSlot = { x = vars[FancyActionBar.SvKey("quickSlotCustomXOffset", mode)] or 0, y = vars[FancyActionBar.SvKey("quickSlotCustomYOffset", mode)] or 0 },
+        ultimate = { x = vars[FancyActionBar.SvKey("ultimateSlotCustomXOffset", mode)] or 0, y = vars[FancyActionBar.SvKey("ultimateSlotCustomYOffset", mode)] or 0 },
+        bar = { x = barX, y = barY, halfX = barX / 2, halfY = barY / 2 },
+    }
+end
+
+--- Returns runtime constants for the given mode and style template.
 --- @param mode number 1 for keyboard, 2 for gamepad
 --- @param vars table the saved variables
 --- @param style table the style table
 --- @return table
-function FancyActionBar:UpdateContants(mode, vars, style)
-    local SV = vars
-    local c = {}
-
-    if mode == 1 then
-        local kb =
+function FancyActionBar.UpdateConstants(mode, vars, style)
+    local scaleKey = modeScaleKey[mode]
+    local c =
+    {
+        mode = mode,
+        isGamepad = mode == 2,
+        duration = mapSection(vars, mode, durationFields),
+        stacks = mapSection(vars, mode, stackFields),
+        targets = mapSection(vars, mode, targetFields),
+        ult =
         {
-            duration =
-            {
-                font = SV.fontNameKB,
-                size = SV.fontSizeKB,
-                outline = SV.fontTypeKB,
-                y = SV.timeYKB,
-                color = SV.timeColorKB,
-            },
-            stacks =
-            {
-                font = SV.fontNameStackKB,
-                size = SV.fontSizeStackKB,
-                outline = SV.fontTypeStackKB,
-                x = SV.stackXKB,
-                y = SV.stackYKB,
-                color = SV.stackColorKB,
-            },
-            targets =
-            {
-                font = SV.fontNameTargetKB,
-                size = SV.fontSizeTargetKB,
-                outline = SV.fontTypeTargetKB,
-                x = SV.targetXKB,
-                y = SV.targetYKB,
-                color = SV.targetColorKB,
-            },
-            ult =
-            {
-                duration =
-                {
-                    show = SV.ultShowKB,
-                    font = SV.ultNameKB,
-                    size = SV.ultSizeKB,
-                    outline = SV.ultTypeKB,
-                    x = SV.ultXKB,
-                    y = SV.ultYKB,
-                    color = SV.ultColorKB,
-                },
-                value =
-                {
-                    show = SV.ultValueEnableKB,
-                    mode = SV.ultValueModeKB,
-                    font = SV.ultValueNameKB,
-                    size = SV.ultValueSizeKB,
-                    outline = SV.ultValueTypeKB,
-                    x = SV.ultValueXKB,
-                    y = SV.ultValueYKB,
-                    color = SV.ultValueColorKB,
-                    threshold = SV.ultValueThresholdKB,
-                    usableThresholdColor = SV.ultUsableThresholdColorKB,
-                    usableColor = SV.ultUsableValueColorKB,
-                    maxColor = SV.ultMaxValueColorKB,
-                },
-                companion =
-                {
-                    show = SV.ultValueEnableCompanionKB,
-                    mode = SV.ultValueModeCompanionKB,
-                    x = SV.ultValueCompanionXKB,
-                    y = SV.ultValueCompanionYKB,
-                },
-            },
-            qs =
-            {
-                show = SV.qsTimerEnableKB,
-                font = SV.qsNameKB,
-                size = SV.qsSizeKB,
-                outline = SV.qsTypeKB,
-                x = SV.qsXKB,
-                y = SV.qsYKB,
-                color = SV.qsColorKB,
-                stackFont = SV.qsStackNameKB,
-                stackSize = SV.qsStackSizeKB,
-                stackOutline = SV.qsStackTypeKB,
-                stackColor = SV.qsStackColorKB,
-            },
-            abScale =
-            {
-                enable = SV.abScaling.kb.enable,
-                scale = SV.abScaling.kb.scale,
-            },
-            move =
-            {
-                enable = SV.abMove.kb.enable,
-                x = SV.abMove.kb.x,
-                y = SV.abMove.kb.y,
-            },
-            abilitySlot =
-            {
-                offsetX = SV.abilitySlotOffsetXKB,
-            },
-            style = {},
-        }
-        c = kb
-    else
-        local gp =
-        {
-            duration =
-            {
-                font = SV.fontNameGP,
-                size = SV.fontSizeGP,
-                outline = SV.fontTypeGP,
-                y = SV.timeYGP,
-                color = SV.timeColorGP,
-            },
-            stacks =
-            {
-                font = SV.fontNameStackGP,
-                size = SV.fontSizeStackGP,
-                outline = SV.fontTypeStackGP,
-                x = SV.stackXGP,
-                y = SV.stackYGP,
-                color = SV.stackColorGP,
-            },
-            targets =
-            {
-                font = SV.fontNameTargetGP,
-                size = SV.fontSizeTargetGP,
-                outline = SV.fontTypeTargetGP,
-                x = SV.targetXGP,
-                y = SV.targetYGP,
-                color = SV.targetColorGP,
-            },
-            ult =
-            {
-                duration =
-                {
-                    show = SV.ultShowGP,
-                    font = SV.ultNameGP,
-                    size = SV.ultSizeGP,
-                    outline = SV.ultTypeGP,
-                    x = SV.ultXGP,
-                    y = SV.ultYGP,
-                    color = SV.ultColorGP,
-                },
-                value =
-                {
-                    show = SV.ultValueEnableGP,
-                    mode = SV.ultValueModeGP,
-                    font = SV.ultValueNameGP,
-                    size = SV.ultValueSizeGP,
-                    outline = SV.ultValueTypeGP,
-                    x = SV.ultValueXGP,
-                    y = SV.ultValueYGP,
-                    color = SV.ultValueColorGP,
-                    threshold = SV.ultValueThresholdGP,
-                    usableThresholdColor = SV.ultUsableThresholdColorGP,
-                    usableColor = SV.ultUsableValueColorGP,
-                    maxColor = SV.ultMaxValueColorGP,
-                },
-                companion =
-                {
-                    show = SV.ultValueEnableCompanionGP,
-                    mode = SV.ultValueModeCompanionGP,
-                    x = SV.ultValueCompanionXGP,
-                    y = SV.ultValueCompanionYGP,
-                },
-            },
-            qs =
-            {
-                show = SV.qsTimerEnableGP,
-                font = SV.qsNameGP,
-                size = SV.qsSizeGP,
-                outline = SV.qsTypeGP,
-                x = SV.qsXGP,
-                y = SV.qsYGP,
-                color = SV.qsColorGP,
-                stackFont = SV.qsStackNameGP,
-                stackSize = SV.qsStackSizeGP,
-                stackOutline = SV.qsStackTypeGP,
-                stackColor = SV.qsStackColorGP,
-            },
-            abScale =
-            {
-                enable = SV.abScaling.gp.enable,
-                scale = SV.abScaling.gp.scale,
-            },
-            move =
-            {
-                enable = SV.abMove.gp.enable,
-                x = SV.abMove.gp.x,
-                y = SV.abMove.gp.y,
-            },
-            abilitySlot =
-            {
-                offsetX = SV.abilitySlotOffsetXGP,
-            },
-            style = {},
-        }
-        c = gp
-    end
+            duration = mapSection(vars, mode, ultDurationFields),
+            value = mapSection(vars, mode, ultValueFields),
+            companion = mapSection(vars, mode, ultCompanionFields),
+        },
+        qs = mapSection(vars, mode, qsFields),
+        abScale = { enable = vars.abScaling[scaleKey].enable, scale = vars.abScaling[scaleKey].scale },
+        move = { enable = vars.abMove[scaleKey].enable, x = vars.abMove[scaleKey].x, y = vars.abMove[scaleKey].y },
+        abilitySlot = { offsetX = vars[FancyActionBar.SvKey("abilitySlotOffsetX", mode)] },
+        layout = FancyActionBar.BuildLayout(vars, mode),
+        scaled = {},
+        style = style,
+    }
 
     c.hideOnNoTargetGlobal = FancyActionBar.GetHideOnNoTargetGlobalSetting()
     c.hideOnNoTargetList = FancyActionBar.GetHideOnNoTargetList()
     c.noTargetFade = FancyActionBar.GetNoTargetFade()
     c.noTargetAlpha = FancyActionBar.GetNoTargetAlpha()
     c.update = FancyActionBar.RefreshUpdateConfiguration()
-    c.style = style
     return c
 end

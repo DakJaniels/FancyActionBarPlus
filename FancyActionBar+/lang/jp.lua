@@ -50,6 +50,15 @@ local strings =
     FANCYAB_DESAT_ACTIVE_NAME = "アクティブバーの彩度",
     FANCYAB_DESAT_ACTIVE_TT = "高い値 = よりグレー。\n低い値 = より色鮮やか。",
 
+    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "使用不可スキルの暗さ",
+    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "アクティブバーの透明度上書き時に、使用不可スキルをどれだけ暗くするか。\n57はベースゲームの既定値です。",
+
+    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "使用不可時の追加グレー",
+    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "アクティブバーの彩度上書き時に、使用不可スキルへ追加するグレースケール。\n50は以前の既定動作です。",
+
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "ベースゲームのクールダウン彩度を使用",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "有効時、クールダウン中のスキルはアクティブバーの上書きではなくベースゲームの彩度を維持します。",
+
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "アクティブバー フレームの透明度",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "アクティブバー ボタン背景の透明度",
     FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "非アクティブバー フレームの透明度",

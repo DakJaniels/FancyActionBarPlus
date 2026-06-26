@@ -3,3 +3,5 @@
 test.lua
 ui_Definitions.lua
 cspell.json
+*.zip
+ESOUIDocumentation*.txt

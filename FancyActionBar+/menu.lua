@@ -355,7 +355,7 @@ local function UpdateAzurahDb()
 end
 
 local function SetBarTheme(locked)
-    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { full = true })
 end
 
 ----------------------------------------------
@@ -2773,7 +2773,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.ultimateSlotCustomXOffsetKB = value
                     end
-                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.RefreshUltimateSlots()
                 end,
                 width = "half",
             },
@@ -2793,7 +2793,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.ultimateSlotCustomYOffsetKB = value
                     end
-                    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
+                    FancyActionBar.RefreshUltimateSlots()
                 end,
                 width = "half",
             },
@@ -2900,7 +2900,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.staticBars = value or false
-                            FancyActionBar.UpdateBarSettings()
+                            local _, locked = GetActiveWeaponPairInfo()
+                            SetBarTheme(locked)
                         end,
                         width = "half",
                     },
@@ -2958,7 +2959,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             if wasEnabled and not SV.applyActiveBarAlpha then
                                 FancyActionBar.ResetActiveBarVisualOverrides()
                             elseif SV.applyActiveBarAlpha then
-                                FancyActionBar.RefreshBarAppearance("active", "overrides")
+                                FancyActionBar.RefreshBarAppearance("activeOverrides")
                             end
                         end,
                         width = "half",
@@ -2979,7 +2980,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.alphaActive = value
-                            FancyActionBar.RefreshBarAppearance("active", "overrides")
+                            FancyActionBar.RefreshBarAppearance("activeOverrides")
                         end,
                         width = "half",
                     },
@@ -2997,7 +2998,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             if wasEnabled and not SV.applyActiveBarDesaturation then
                                 FancyActionBar.ResetActiveBarVisualOverrides()
                             elseif SV.applyActiveBarDesaturation then
-                                FancyActionBar.RefreshBarAppearance("active", "overrides")
+                                FancyActionBar.RefreshBarAppearance("activeOverrides")
                             end
                         end,
                         width = "half",
@@ -3018,7 +3019,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.desaturationActive = value
-                            FancyActionBar.RefreshBarAppearance("active", "overrides")
+                            FancyActionBar.RefreshBarAppearance("activeOverrides")
                         end,
                         width = "half",
                     },
@@ -3035,7 +3036,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.overlayBgAlphaActive = value
-                            FancyActionBar.RefreshBarAppearance("active", "frameBackdrop")
+                            FancyActionBar.RefreshBarAppearance("activeFrameBackdrop")
                         end,
                         width = "half",
                     },
@@ -3061,7 +3062,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.alphaInactive = value
-                            FancyActionBar.RefreshBarAppearance("inactive", "iconStyle")
+                            FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
                         end,
                         width = "half",
                     },
@@ -3078,7 +3079,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.desaturationInactive = value
-                            FancyActionBar.RefreshBarAppearance("inactive", "iconStyle")
+                            FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
                         end,
                         width = "half",
                     },
@@ -3095,7 +3096,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.overlayBgAlphaInactive = value
-                            FancyActionBar.RefreshBarAppearance("inactive", "frameBackdrop")
+                            FancyActionBar.RefreshBarAppearance("inactiveFrameBackdrop")
                         end,
                         width = "half",
                     },
@@ -3193,7 +3194,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.overlayFrameAlphaActive = value
-                        FancyActionBar.RefreshBarAppearance("active", "frameBackdrop")
+                        FancyActionBar.RefreshBarAppearance("activeFrameBackdrop")
                     end,
                     width = "half",
                 },
@@ -3213,7 +3214,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.overlayFrameAlphaInactive = value
-                        FancyActionBar.RefreshBarAppearance("inactive", "frameBackdrop")
+                        FancyActionBar.RefreshBarAppearance("inactiveFrameBackdrop")
                     end,
                     width = "half",
                 },
@@ -3347,8 +3348,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.showArrow = value or false
-                    FancyActionBar.AdjustQuickSlotSpacing()
-                    FancyActionBar.AdjustUltimateSpacing()
+                    FancyActionBar.RefreshAdjacentSlots()
                 end,
                 width = "half",
             },
@@ -3362,9 +3362,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.useDefaultWeaponSwap = value or false
-                    FancyActionBar.SwapControls()
-                    FancyActionBar.AdjustQuickSlotSpacing()
-                    FancyActionBar.AdjustUltimateSpacing()
+                    FancyActionBar.UpdateBarSettings(nil, { quickslot = true })
                 end,
                 width = "half",
             },
@@ -3399,9 +3397,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.centerDefaultWeaponSwap = value or false
-                    FancyActionBar.SwapControls()
-                    FancyActionBar.AdjustQuickSlotSpacing()
-                    FancyActionBar.AdjustUltimateSpacing()
+                    FancyActionBar.UpdateBarSettings(nil, { quickslot = true })
                 end,
                 width = "half",
             },
@@ -3418,8 +3414,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.moveQS = value or false
-                    FancyActionBar.AdjustQuickSlotSpacing()
-                    FancyActionBar.AdjustUltimateSpacing()
+                    FancyActionBar.RefreshAdjacentSlots()
                 end,
                 width = "half",
             },
@@ -3476,7 +3471,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 setFunc = function (value)
                     SV.showHotkeysUltGP = value or false
                     FancyActionBar.HideHotkeys(not SV.showHotkeys)
-                    FancyActionBar.AdjustUltimateSpacing()
+                    FancyActionBar.RefreshUltimateSlots()
                 end,
                 disabled = function ()
                     return FancyActionBar.style ~= 2
@@ -3538,7 +3533,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.hideInactiveSlots = value or false
-                    FancyActionBar.RefreshBarVisuals("inactive", "icon")
+                    FancyActionBar.RefreshBarAppearance("inactiveVisibility")
                 end,
                 width = "full"
             },
@@ -3556,9 +3551,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     SV.applyActionBarSkillStyles = value or false
                     if wasEnabled and not SV.applyActionBarSkillStyles then
                         FancyActionBar.ResetActiveBarSkillStyles()
-                        FancyActionBar.RefreshBarAppearance("inactive", "icon")
+                        FancyActionBar.RefreshBarAppearance("inactiveVisibility")
                     elseif SV.applyActionBarSkillStyles then
-                        FancyActionBar.RefreshBarAppearance(nil, "slotIcons")
+                        FancyActionBar.RefreshBarAppearance("slotIcons")
                     end
                 end,
                 width = "full",
@@ -7522,6 +7517,9 @@ function FancyActionBar.SetMarker(value)
 end
 
 function FancyActionBar.ConfigureFrames()
+    if not FancyActionBar.style then
+        FancyActionBar.UpdateStyle()
+    end
     -- ZO_CenterScreenAnnouncementLine.smallCombinedIconFrame
     -- ZO_CenterScreenAnnouncementLine.iconControlFrame
 
@@ -7597,7 +7595,7 @@ function FancyActionBar.ConfigureFrames()
         ToggleFrameType()
     end
     FancyActionBar.SetUltFrameAlpha()
-    FancyActionBar.RefreshBarAppearance(nil, "frameBackdrop")
+    FancyActionBar.RefreshBarAppearance("frameBackdrop")
 end
 
 function FancyActionBar.SetFrameColor()

@@ -50,6 +50,15 @@ local strings =
     FANCYAB_DESAT_ACTIVE_NAME = "Обесцвечивание активной панели",
     FANCYAB_DESAT_ACTIVE_TT = "Большее значение = более серый.\nМеньшее значение = более цветной.",
 
+    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Затемнение недоступных способностей",
+    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Насколько затемняются недоступные способности при переопределении прозрачности активной панели.\n57 соответствует игре по умолчанию.",
+
+    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Доп. обесцвечивание (недоступно)",
+    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Дополнительная серая составляющая для недоступных способностей при переопределении насыщенности активной панели.\n50 соответствует прежнему поведению.",
+
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Обесцвечивание перезарядки как в игре",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Если включено, способности на перезарядке сохраняют обесцвечивание игры вместо переопределения активной панели.",
+
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Прозрачность рамки (активная панель)",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Прозрачность фона кнопки (активная панель)",
     FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Прозрачность рамки (неактивная панель)",

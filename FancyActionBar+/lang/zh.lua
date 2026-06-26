@@ -44,6 +44,15 @@ local strings =
     FANCYAB_DESAT_ACTIVE_NAME = "当前技能栏饱和度",
     FANCYAB_DESAT_ACTIVE_TT = "数值越高 = 越灰暗。\n数值越低 = 越鲜艳。",
 
+    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "不可用技能变暗",
+    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "启用当前技能栏透明度覆盖时，不可用技能的变暗程度。\n57 与原版游戏默认一致。",
+
+    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "不可用技能额外去饱和",
+    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "启用当前技能栏饱和度覆盖时，为不可用技能额外增加的灰度。\n50 与先前默认行为一致。",
+
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "使用原版冷却去饱和",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "启用后，冷却中的技能保留原版去饱和效果，而不是当前技能栏饱和度覆盖。",
+
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "当前栏边框透明度",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "当前栏按钮背景透明度",
     FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "非当前栏边框透明度",

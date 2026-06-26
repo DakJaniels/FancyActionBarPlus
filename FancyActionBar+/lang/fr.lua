@@ -49,6 +49,15 @@ local strings =
     FANCYAB_DESAT_ACTIVE_NAME = "Désaturation de la barre active",
     FANCYAB_DESAT_ACTIVE_TT = "Valeur plus élevée = plus gris.\nValeur plus basse = plus de couleurs.",
 
+    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Assombrissement des capacités inutilisables",
+    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Intensité de l'assombrissement des capacités inutilisables lorsque la transparence de la barre active est remplacée.\n57 correspond au jeu de base.",
+
+    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Boost de désaturation (inutilisable)",
+    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Niveau de gris supplémentaire pour les capacités inutilisables lorsque la désaturation de la barre active est remplacée.\n50 correspond au comportement précédent.",
+
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Utiliser la désaturation de recharge du jeu de base",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Si activé, les capacités en recharge conservent la désaturation du jeu de base au lieu de celle de la barre active.",
+
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparence du cadre (barre active)",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparence de l'arrière-plan du bouton (barre active)",
     FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Transparence du cadre (barre inactive)",

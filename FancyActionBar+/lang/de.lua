@@ -49,6 +49,15 @@ local strings =
     FANCYAB_DESAT_ACTIVE_NAME = "Aktive Leisten-Entsättigung",
     FANCYAB_DESAT_ACTIVE_TT = "Höherer Wert = grauer.\nNiedriger Wert = farbiger.",
 
+    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Abdunkelung nicht nutzbarer Fähigkeiten",
+    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Wie stark nicht nutzbare Fähigkeiten abgedunkelt werden, wenn die aktive Leisten-Transparenz überschrieben wird.\n57 entspricht dem Standard des Basisspiels.",
+
+    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Zusätzliche Entsättigung bei nicht nutzbaren Fähigkeiten",
+    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Zusätzliche Graustufe für nicht nutzbare Fähigkeiten, wenn die aktive Leisten-Entsättigung überschrieben wird.\n50 entspricht dem bisherigen Standardverhalten.",
+
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Basisspiel-Entsättigung bei Abklingzeit verwenden",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Wenn aktiviert, behalten Fähigkeiten in der Abklingzeit die Entsättigung des Basisspiels statt der aktiven Leisten-Entsättigung.",
+
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Aktive Leiste: Rahmen-Transparenz",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Aktive Leiste: Schaltflächen-Hintergrund-Transparenz",
     FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Inaktive Leiste: Rahmen-Transparenz",
