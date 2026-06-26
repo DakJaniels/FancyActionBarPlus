@@ -1438,33 +1438,34 @@ local function IsInactiveSlotVisibilityHidden(slotNum, hotbarCategory)
 end
 
 local function ApplyActiveBarIconVisualState(button)
-    if not button or not button.icon then
-        return
-    end
+    if not button or not button.icon then return end
+    local applyAlpha = SV.applyActiveBarAlpha
+    local applyDesat = SV.applyActiveBarDesaturation
+    if not applyAlpha and not applyDesat then return end
+
     local icon = button.icon
-    if button.usable ~= nil and ZO_ActionSlot_SetUnusable then
-        ZO_ActionSlot_SetUnusable(icon, not button.usable, button.useDesaturation)
-    end
-    local usable = button.usable
-    if usable == nil then
-        usable = not button.useFailure
-    end
-    if SV.applyActiveBarAlpha then
-        local alpha = (SV.alphaActive or defaultSettings.alphaActive) / 100
-        if usable then
-            icon:SetAlpha(alpha)
-        else
-            local unusableMult = (SV.unusableAlphaMult or defaultSettings.unusableAlphaMult) / 100
-            icon:SetAlpha(alpha * unusableMult)
+    local usable = button.usable ~= nil and button.usable or not button.useFailure
+
+    if applyAlpha then
+        if button.usable ~= nil and ZO_ActionSlot_SetUnusable then
+            ZO_ActionSlot_SetUnusable(icon, not button.usable, button.useDesaturation)
         end
-    else
-        icon:SetAlpha(1)
-    end
-    if SV.applyActiveBarDesaturation and not (SV.respectVanillaCooldownDesat and button.showingCooldown) then
-        local desat = (SV.desaturationActive or defaultSettings.desaturationActive) / 100
+        local alpha = (SV.alphaActive or defaultSettings.alphaActive) / 100
         if not usable then
-            local boost = (SV.unusableDesatBoost or defaultSettings.unusableDesatBoost) / 100
-            desat = zo_clamp(desat + boost, 0, 1)
+            alpha = alpha * ((SV.unusableAlphaMult or defaultSettings.unusableAlphaMult) / 100)
+        end
+        icon:SetAlpha(alpha)
+    end
+
+    if applyDesat then
+        local desat
+        if SV.respectVanillaCooldownDesat and (button.showingCooldown or button.itemQtyFailure) then
+            desat = 1
+        else
+            desat = (SV.desaturationActive or defaultSettings.desaturationActive) / 100
+            if not usable then
+                desat = zo_clamp(desat + (SV.unusableDesatBoost or defaultSettings.unusableDesatBoost) / 100, 0, 1)
+            end
         end
         icon:SetDesaturation(desat)
     end
@@ -1742,7 +1743,7 @@ local function GetActiveBarButtonContext(self)
     return slot, hotbar
 end
 
-local function OnActiveActionButtonUpdateUsable(self)
+local function OnActiveActionButtonVisualUpdate(self)
     if not GetActiveBarButtonContext(self) then
         return
     end
@@ -5217,7 +5218,8 @@ local function InstallActionButtonHooks()
         InvalidatePressBounceData(self)
     end)
 
-    SecurePostHook(ActionButton, "UpdateUsable", OnActiveActionButtonUpdateUsable)
+    SecurePostHook(ActionButton, "UpdateUsable", OnActiveActionButtonVisualUpdate)
+    SecurePostHook(ActionButton, "UpdateCooldown", OnActiveActionButtonVisualUpdate)
     SecurePostHook(ActionButton, "HandleSlotChanged", OnActiveActionButtonSlotChanged)
 
     ZO_PostHook("ZO_ActionBar_OnActionButtonDown", function (slotNum, hotbarCategory)

@@ -50,7 +50,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Unusable desaturation boost",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Extra greyscale applied to unusable abilities when active bar desaturation override is enabled.\n50 matches the previous default behavior.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Use base game cooldown desaturation",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Use base game desaturation",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "When enabled, abilities on cooldown keep the base game desaturation instead of the active bar desaturation override.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Active Bar frame alpha",

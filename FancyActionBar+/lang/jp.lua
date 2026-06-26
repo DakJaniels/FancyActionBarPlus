@@ -56,7 +56,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "使用不可時の追加グレー",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "アクティブバーの彩度上書き時に、使用不可スキルへ追加するグレースケール。\n50は以前の既定動作です。",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "ベースゲームのクールダウン彩度を使用",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "ベースゲームの彩度を使用",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "有効時、クールダウン中のスキルはアクティブバーの上書きではなくベースゲームの彩度を維持します。",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "アクティブバー フレームの透明度",

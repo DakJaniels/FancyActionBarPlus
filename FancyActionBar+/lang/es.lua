@@ -55,7 +55,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Refuerzo de desaturación (no usable)",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Escala de grises adicional para habilidades no usables cuando la desaturación de la barra activa está sobrescrita.\n50 coincide con el comportamiento anterior.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Usar desaturación de reutilización del juego base",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Usar desaturación del juego base",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Si está activado, las habilidades en reutilización conservan la desaturación del juego base en lugar de la de la barra activa.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparencia del marco (barra activa)",

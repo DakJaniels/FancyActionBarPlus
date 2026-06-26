@@ -2962,7 +2962,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 FancyActionBar.RefreshBarAppearance("activeOverrides")
                             end
                         end,
-                        width = "half",
+                        width = "full",
                     },
                     {
                         type = "slider",
@@ -2985,6 +2985,26 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         width = "half",
                     },
                     {
+                        type = "slider",
+                        name = FancyActionBar.strings.unusableAlphaMultName,
+                        tooltip = FancyActionBar.strings.unusableAlphaMultTT,
+                        default = defaults.unusableAlphaMult,
+                        disabled = function ()
+                            return not SV.applyActiveBarAlpha
+                        end,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.unusableAlphaMult
+                        end,
+                        setFunc = function (value)
+                            SV.unusableAlphaMult = value
+                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                        end,
+                        width = "half",
+                    },
+                    {
                         type = "checkbox",
                         name = FancyActionBar.strings.applyActiveBarDesaturationName,
                         tooltip = FancyActionBar.strings.applyActiveBarDesaturationTT,
@@ -3001,7 +3021,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 FancyActionBar.RefreshBarAppearance("activeOverrides")
                             end
                         end,
-                        width = "half",
+                        width = "full",
                     },
                     {
                         type = "slider",
@@ -3022,6 +3042,43 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             FancyActionBar.RefreshBarAppearance("activeOverrides")
                         end,
                         width = "half",
+                    },
+                    {
+                        type = "slider",
+                        name = FancyActionBar.strings.unusableDesatBoostName,
+                        tooltip = FancyActionBar.strings.unusableDesatBoostTT,
+                        default = defaults.unusableDesatBoost,
+                        disabled = function ()
+                            return not SV.applyActiveBarDesaturation
+                        end,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        getFunc = function ()
+                            return SV.unusableDesatBoost
+                        end,
+                        setFunc = function (value)
+                            SV.unusableDesatBoost = value
+                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "checkbox",
+                        name = FancyActionBar.strings.respectVanillaCooldownDesatName,
+                        tooltip = FancyActionBar.strings.respectVanillaCooldownDesatTT,
+                        default = defaults.respectVanillaCooldownDesat,
+                        disabled = function ()
+                            return not SV.applyActiveBarDesaturation
+                        end,
+                        getFunc = function ()
+                            return SV.respectVanillaCooldownDesat
+                        end,
+                        setFunc = function (value)
+                            SV.respectVanillaCooldownDesat = value or false
+                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                        end,
+                        width = "full",
                     },
                     {
                         type = "slider",

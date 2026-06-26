@@ -56,7 +56,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Доп. обесцвечивание (недоступно)",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Дополнительная серая составляющая для недоступных способностей при переопределении насыщенности активной панели.\n50 соответствует прежнему поведению.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Обесцвечивание перезарядки как в игре",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Обесцвечивание как в игре",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Если включено, способности на перезарядке сохраняют обесцвечивание игры вместо переопределения активной панели.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Прозрачность рамки (активная панель)",

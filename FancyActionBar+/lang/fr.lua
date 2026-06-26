@@ -55,7 +55,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Boost de désaturation (inutilisable)",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Niveau de gris supplémentaire pour les capacités inutilisables lorsque la désaturation de la barre active est remplacée.\n50 correspond au comportement précédent.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Utiliser la désaturation de recharge du jeu de base",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Utiliser la désaturation du jeu de base",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Si activé, les capacités en recharge conservent la désaturation du jeu de base au lieu de celle de la barre active.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparence du cadre (barre active)",

@@ -50,7 +50,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "不可用技能额外去饱和",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "启用当前技能栏饱和度覆盖时，为不可用技能额外增加的灰度。\n50 与先前默认行为一致。",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "使用原版冷却去饱和",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "使用原版去饱和",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "启用后，冷却中的技能保留原版去饱和效果，而不是当前技能栏饱和度覆盖。",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "当前栏边框透明度",

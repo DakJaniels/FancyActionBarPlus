@@ -55,7 +55,7 @@ local strings =
     FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Zusätzliche Entsättigung bei nicht nutzbaren Fähigkeiten",
     FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Zusätzliche Graustufe für nicht nutzbare Fähigkeiten, wenn die aktive Leisten-Entsättigung überschrieben wird.\n50 entspricht dem bisherigen Standardverhalten.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Basisspiel-Entsättigung bei Abklingzeit verwenden",
+    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Basisspiel-Entsättigung verwenden",
     FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Wenn aktiviert, behalten Fähigkeiten in der Abklingzeit die Entsättigung des Basisspiels statt der aktiven Leisten-Entsättigung.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Aktive Leiste: Rahmen-Transparenz",
