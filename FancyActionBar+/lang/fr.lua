@@ -39,24 +39,31 @@ local strings =
     FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Appliquer la désaturation de la barre active",
     FANCYAB_APPLY_ACTIVE_DESAT_TT = "Permet de remplacer la saturation/niveau de gris de la barre active. Notez que cela entre en conflit avec la façon dont le jeu de base indique que les capacités ciblées peuvent être lancées.",
 
-    FANCYAB_ALPHA_ACTIVE_NAME = "Transparence de la barre active",
-    FANCYAB_ALPHA_ACTIVE_TT = "Valeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
+    FANCYAB_ALPHA_USABLE_NAME = "Transparence des capacités utilisables",
+    FANCYAB_ALPHA_USABLE_TT = "Opacité de l'icône lorsque la capacité peut être utilisée.\n100 correspond au jeu de base.",
 
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Désaturation de la barre inactive",
     FANCYAB_DESAT_TT = "Valeur plus élevée = plus gris.\nValeur plus basse = plus de couleurs.",
 
-    FANCYAB_DESAT_ACTIVE_NAME = "Désaturation de la barre active",
-    FANCYAB_DESAT_ACTIVE_TT = "Valeur plus élevée = plus gris.\nValeur plus basse = plus de couleurs.",
+    FANCYAB_TINT_INACTIVE_NAME = "Teinte de la barre inactive",
+    FANCYAB_TINT_INACTIVE_TT = "Teinte de couleur des icônes de la barre inactive (arrière).\nLe blanc conserve la teinte d'origine.",
 
-    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Assombrissement des capacités inutilisables",
-    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Intensité de l'assombrissement des capacités inutilisables lorsque la transparence de la barre active est remplacée.\n57 correspond au jeu de base.",
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Transparence des capacités inutilisables",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Opacité de l'icône lorsque la capacité ne peut pas être utilisée.\n57 correspond au jeu de base.",
 
-    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Boost de désaturation (inutilisable)",
-    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Niveau de gris supplémentaire pour les capacités inutilisables lorsque la désaturation de la barre active est remplacée.\n50 correspond au comportement précédent.",
+    FANCYAB_DESAT_USABLE_NAME = "Désaturation des capacités utilisables",
+    FANCYAB_DESAT_USABLE_TT = "Niveau de gris lorsque la capacité peut être utilisée.\n0 correspond au jeu de base.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Utiliser la désaturation du jeu de base",
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Si activé, les capacités en recharge conservent la désaturation du jeu de base au lieu de celle de la barre active.",
+    FANCYAB_DESAT_UNUSABLE_NAME = "Désaturation des capacités inutilisables",
+    FANCYAB_DESAT_UNUSABLE_TT = "Niveau de gris lorsque la capacité ne peut pas être utilisée.\n100 correspond au jeu de base pour la recharge.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Appliquer la teinte d'icône de la barre active",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Permet de remplacer la teinte de couleur de l'icône. Le jeu de base utilise un gris foncé (pas la désaturation) pour de nombreuses capacités inutilisables.",
+    FANCYAB_TINT_USABLE_NAME = "Teinte des capacités utilisables",
+    FANCYAB_TINT_USABLE_TT = "Couleur de l'icône lorsque la capacité peut être utilisée.\nLe blanc correspond au jeu de base.",
+    FANCYAB_TINT_UNUSABLE_NAME = "Teinte des capacités inutilisables",
+    FANCYAB_TINT_UNUSABLE_TT = "Couleur de l'icône lorsque la capacité ne peut pas être utilisée.\nLe gris foncé (30 %) correspond au jeu de base pour les échecs de coût.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparence du cadre (barre active)",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparence de l'arrière-plan du bouton (barre active)",

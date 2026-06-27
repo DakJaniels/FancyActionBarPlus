@@ -35,23 +35,32 @@ local strings =
     FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Apply active bar desaturation",
     FANCYAB_APPLY_ACTIVE_DESAT_TT = "Allow overriding the active bar saturation/greyscale. Note that this conflicts with how the basegame indicates that targeted abilities are castable.",
 
-    FANCYAB_ALPHA_ACTIVE_NAME = "Active bar alpha",
-    FANCYAB_ALPHA_ACTIVE_TT = "Higher value = more solid.\nLower value = more see through.",
+    FANCYAB_ALPHA_USABLE_NAME = "Usable ability alpha",
+    FANCYAB_ALPHA_USABLE_TT = "Icon opacity while the slotted ability can be used.\n100 matches the base game default.",
+
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Unusable ability alpha",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Icon opacity while the slotted ability cannot be used.\n57 matches the base game default.",
 
     FANCYAB_DESAT_NAME = "Inactive bar desaturation",
     FANCYAB_DESAT_TT = "Higher value = more grey.\nLower value = more colors.",
 
-    FANCYAB_DESAT_ACTIVE_NAME = "Active bar desaturation",
-    FANCYAB_DESAT_ACTIVE_TT = "Higher value = more grey.\nLower value = more colors.",
+    FANCYAB_TINT_INACTIVE_NAME = "Inactive bar tint",
+    FANCYAB_TINT_INACTIVE_TT = "Icon color tint for the inactive (back) bar.\nWhite leaves hue unchanged.",
 
-    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Unusable ability dimming",
-    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "How much to dim unusable abilities when active bar alpha override is enabled.\n57 matches the base game default.",
+    FANCYAB_DESAT_USABLE_NAME = "Usable ability desaturation",
+    FANCYAB_DESAT_USABLE_TT = "Greyscale while the slotted ability can be used.\n0 matches the base game default.",
 
-    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Unusable desaturation boost",
-    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Extra greyscale applied to unusable abilities when active bar desaturation override is enabled.\n50 matches the previous default behavior.",
+    FANCYAB_DESAT_UNUSABLE_NAME = "Unusable ability desaturation",
+    FANCYAB_DESAT_UNUSABLE_TT = "Greyscale while the slotted ability cannot be used.\n100 matches the base game default for cooldown greyscale.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Use base game desaturation",
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "When enabled, abilities on cooldown keep the base game desaturation instead of the active bar desaturation override.",
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Apply active bar icon tint",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Allow overriding the active bar icon color tint. The base game uses a dark grey tint (not desaturation) for many unusable abilities.",
+
+    FANCYAB_TINT_USABLE_NAME = "Usable ability tint",
+    FANCYAB_TINT_USABLE_TT = "Icon color while the slotted ability can be used.\nWhite matches the base game default.",
+
+    FANCYAB_TINT_UNUSABLE_NAME = "Unusable ability tint",
+    FANCYAB_TINT_UNUSABLE_TT = "Icon color while the slotted ability cannot be used.\nDark grey (30%) matches the base game disabled tint for cost failures.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Active Bar frame alpha",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Active bar button backdrop alpha",

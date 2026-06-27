@@ -39,24 +39,31 @@ local strings =
     FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Aktive Leisten-Entsättigung anwenden",
     FANCYAB_APPLY_ACTIVE_DESAT_TT = "Ermöglicht das Überschreiben der Sättigung/Graustufe der aktiven Leiste. Hinweis: Dies steht in Konflikt damit, wie das Basisspiel anzeigt, dass zielgerichtete Fähigkeiten wirksam eingesetzt werden können.",
 
-    FANCYAB_ALPHA_ACTIVE_NAME = "Aktive Leisten-Transparenz",
-    FANCYAB_ALPHA_ACTIVE_TT = "Höherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
+    FANCYAB_ALPHA_USABLE_NAME = "Transparenz nutzbarer Fähigkeiten",
+    FANCYAB_ALPHA_USABLE_TT = "Symboldeckkraft, wenn die Fähigkeit genutzt werden kann.\n100 entspricht dem Basisspiel-Standard.",
 
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Inaktive Leisten-Entsättigung",
     FANCYAB_DESAT_TT = "Höherer Wert = grauer.\nNiedriger Wert = farbiger.",
 
-    FANCYAB_DESAT_ACTIVE_NAME = "Aktive Leisten-Entsättigung",
-    FANCYAB_DESAT_ACTIVE_TT = "Höherer Wert = grauer.\nNiedriger Wert = farbiger.",
+    FANCYAB_TINT_INACTIVE_NAME = "Inaktive Leisten-Farbe",
+    FANCYAB_TINT_INACTIVE_TT = "Icon-Farbtönung für die inaktive (Hinter-)Leiste.\nWeiß lässt den Farbton unverändert.",
 
-    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Abdunkelung nicht nutzbarer Fähigkeiten",
-    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Wie stark nicht nutzbare Fähigkeiten abgedunkelt werden, wenn die aktive Leisten-Transparenz überschrieben wird.\n57 entspricht dem Standard des Basisspiels.",
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Transparenz nicht nutzbarer Fähigkeiten",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Symboldeckkraft, wenn die Fähigkeit nicht genutzt werden kann.\n57 entspricht dem Basisspiel-Standard.",
 
-    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Zusätzliche Entsättigung bei nicht nutzbaren Fähigkeiten",
-    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Zusätzliche Graustufe für nicht nutzbare Fähigkeiten, wenn die aktive Leisten-Entsättigung überschrieben wird.\n50 entspricht dem bisherigen Standardverhalten.",
+    FANCYAB_DESAT_USABLE_NAME = "Entsättigung nutzbarer Fähigkeiten",
+    FANCYAB_DESAT_USABLE_TT = "Graustufe, wenn die Fähigkeit genutzt werden kann.\n0 entspricht dem Basisspiel-Standard.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Basisspiel-Entsättigung verwenden",
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Wenn aktiviert, behalten Fähigkeiten in der Abklingzeit die Entsättigung des Basisspiels statt der aktiven Leisten-Entsättigung.",
+    FANCYAB_DESAT_UNUSABLE_NAME = "Entsättigung nicht nutzbarer Fähigkeiten",
+    FANCYAB_DESAT_UNUSABLE_TT = "Graustufe, wenn die Fähigkeit nicht genutzt werden kann.\n100 entspricht dem Basisspiel-Standard für Abklingzeit.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Aktive Leisten-Icon-Farbe anwenden",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Ermöglicht das Überschreiben der Icon-Farbtönung. Das Basisspiel nutzt für viele nicht nutzbare Fähigkeiten ein dunkles Grau (keine Entsättigung).",
+    FANCYAB_TINT_USABLE_NAME = "Farbe nutzbarer Fähigkeiten",
+    FANCYAB_TINT_USABLE_TT = "Icon-Farbe, wenn die Fähigkeit genutzt werden kann.\nWeiß entspricht dem Basisspiel-Standard.",
+    FANCYAB_TINT_UNUSABLE_NAME = "Farbe nicht nutzbarer Fähigkeiten",
+    FANCYAB_TINT_UNUSABLE_TT = "Icon-Farbe, wenn die Fähigkeit nicht genutzt werden kann.\nDunkelgrau (30 %) entspricht dem Basisspiel-Standard für Ressourcenmangel.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Aktive Leiste: Rahmen-Transparenz",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Aktive Leiste: Schaltflächen-Hintergrund-Transparenz",

@@ -39,24 +39,31 @@ local strings =
     FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Aplicar desaturación de la barra activa",
     FANCYAB_APPLY_ACTIVE_DESAT_TT = "Permite anular la saturación/escala de grises de la barra activa. Ten en cuenta que esto entra en conflicto con la forma en que el juego base indica que las habilidades dirigidas se pueden lanzar.",
 
-    FANCYAB_ALPHA_ACTIVE_NAME = "Transparencia de barra activa",
-    FANCYAB_ALPHA_ACTIVE_TT = "Valor más alto = más sólido.\nValor más bajo = más transparente.",
+    FANCYAB_ALPHA_USABLE_NAME = "Transparencia de habilidades usables",
+    FANCYAB_ALPHA_USABLE_TT = "Opacidad del icono cuando la habilidad se puede usar.\n100 coincide con el juego base.",
 
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Desaturación de barra inactiva",
     FANCYAB_DESAT_TT = "Valor más alto = más gris.\nValor más bajo = más colores.",
 
-    FANCYAB_DESAT_ACTIVE_NAME = "Desaturación de barra activa",
-    FANCYAB_DESAT_ACTIVE_TT = "Valor más alto = más gris.\nValor más bajo = más colores.",
+    FANCYAB_TINT_INACTIVE_NAME = "Tinte de barra inactiva",
+    FANCYAB_TINT_INACTIVE_TT = "Tinte de color del icono de la barra inactiva (trasera).\nEl blanco deja el tono sin cambios.",
 
-    FANCYAB_UNUSABLE_ALPHA_MULT_NAME = "Oscurecimiento de habilidades no usables",
-    FANCYAB_UNUSABLE_ALPHA_MULT_TT = "Cuánto se oscurecen las habilidades no usables cuando la transparencia de la barra activa está sobrescrita.\n57 coincide con el juego base.",
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Transparencia de habilidades no usables",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Opacidad del icono cuando la habilidad no se puede usar.\n57 coincide con el juego base.",
 
-    FANCYAB_UNUSABLE_DESAT_BOOST_NAME = "Refuerzo de desaturación (no usable)",
-    FANCYAB_UNUSABLE_DESAT_BOOST_TT = "Escala de grises adicional para habilidades no usables cuando la desaturación de la barra activa está sobrescrita.\n50 coincide con el comportamiento anterior.",
+    FANCYAB_DESAT_USABLE_NAME = "Desaturación de habilidades usables",
+    FANCYAB_DESAT_USABLE_TT = "Escala de grises cuando la habilidad se puede usar.\n0 coincide con el juego base.",
 
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_NAME = "Usar desaturación del juego base",
-    FANCYAB_RESPECT_VANILLA_COOLDOWN_DESAT_TT = "Si está activado, las habilidades en reutilización conservan la desaturación del juego base en lugar de la de la barra activa.",
+    FANCYAB_DESAT_UNUSABLE_NAME = "Desaturación de habilidades no usables",
+    FANCYAB_DESAT_UNUSABLE_TT = "Escala de grises cuando la habilidad no se puede usar.\n100 coincide con el juego base para reutilización.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Aplicar tinte de icono de barra activa",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Permite reemplazar el tinte de color del icono. El juego base usa un gris oscuro (no desaturación) para muchas habilidades no usables.",
+    FANCYAB_TINT_USABLE_NAME = "Tinte de habilidades usables",
+    FANCYAB_TINT_USABLE_TT = "Color del icono cuando la habilidad se puede usar.\nEl blanco coincide con el juego base.",
+    FANCYAB_TINT_UNUSABLE_NAME = "Tinte de habilidades no usables",
+    FANCYAB_TINT_UNUSABLE_TT = "Color del icono cuando la habilidad no se puede usar.\nEl gris oscuro (30 %) coincide con el juego base para fallos de coste.",
 
     FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparencia del marco (barra activa)",
     FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparencia del fondo del botón (barra activa)",

@@ -2957,18 +2957,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             local wasEnabled = SV.applyActiveBarAlpha
                             SV.applyActiveBarAlpha = value or false
                             if wasEnabled and not SV.applyActiveBarAlpha then
-                                FancyActionBar.ResetActiveBarVisualOverrides()
+                                FancyActionBar.RefreshActiveBarIconVisuals(true)
                             elseif SV.applyActiveBarAlpha then
-                                FancyActionBar.RefreshBarAppearance("activeOverrides")
+                                FancyActionBar.RefreshActiveBarIconVisuals()
                             end
                         end,
                         width = "full",
                     },
                     {
                         type = "slider",
-                        name = FancyActionBar.strings.alphaActiveName,
-                        tooltip = FancyActionBar.strings.alphaActiveTT,
-                        default = defaults.alphaActive,
+                        name = FancyActionBar.strings.alphaUsableName,
+                        tooltip = FancyActionBar.strings.alphaUsableTT,
+                        default = defaults.alphaUsable,
                         disabled = function ()
                             return not SV.applyActiveBarAlpha
                         end,
@@ -2976,19 +2976,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         max = 100,
                         step = 1,
                         getFunc = function ()
-                            return SV.alphaActive
+                            return SV.alphaUsable
                         end,
                         setFunc = function (value)
-                            SV.alphaActive = value
-                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                            SV.alphaUsable = value
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "half",
                     },
                     {
                         type = "slider",
-                        name = FancyActionBar.strings.unusableAlphaMultName,
-                        tooltip = FancyActionBar.strings.unusableAlphaMultTT,
-                        default = defaults.unusableAlphaMult,
+                        name = FancyActionBar.strings.alphaUnusableName,
+                        tooltip = FancyActionBar.strings.alphaUnusableTT,
+                        default = defaults.alphaUnusable,
                         disabled = function ()
                             return not SV.applyActiveBarAlpha
                         end,
@@ -2996,11 +2996,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         max = 100,
                         step = 1,
                         getFunc = function ()
-                            return SV.unusableAlphaMult
+                            return SV.alphaUnusable
                         end,
                         setFunc = function (value)
-                            SV.unusableAlphaMult = value
-                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                            SV.alphaUnusable = value
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "half",
                     },
@@ -3016,18 +3016,18 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             local wasEnabled = SV.applyActiveBarDesaturation
                             SV.applyActiveBarDesaturation = value or false
                             if wasEnabled and not SV.applyActiveBarDesaturation then
-                                FancyActionBar.ResetActiveBarVisualOverrides()
+                                FancyActionBar.RefreshActiveBarIconVisuals(true)
                             elseif SV.applyActiveBarDesaturation then
-                                FancyActionBar.RefreshBarAppearance("activeOverrides")
+                                FancyActionBar.RefreshActiveBarIconVisuals()
                             end
                         end,
                         width = "full",
                     },
                     {
                         type = "slider",
-                        name = FancyActionBar.strings.desatActiveName,
-                        tooltip = FancyActionBar.strings.desatActiveTT,
-                        default = defaults.desaturationActive,
+                        name = FancyActionBar.strings.desatUsableName,
+                        tooltip = FancyActionBar.strings.desatUsableTT,
+                        default = defaults.desatUsable,
                         disabled = function ()
                             return not SV.applyActiveBarDesaturation
                         end,
@@ -3035,19 +3035,19 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         max = 100,
                         step = 1,
                         getFunc = function ()
-                            return SV.desaturationActive
+                            return SV.desatUsable
                         end,
                         setFunc = function (value)
-                            SV.desaturationActive = value
-                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                            SV.desatUsable = value
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "half",
                     },
                     {
                         type = "slider",
-                        name = FancyActionBar.strings.unusableDesatBoostName,
-                        tooltip = FancyActionBar.strings.unusableDesatBoostTT,
-                        default = defaults.unusableDesatBoost,
+                        name = FancyActionBar.strings.desatUnusableName,
+                        tooltip = FancyActionBar.strings.desatUnusableTT,
+                        default = defaults.desatUnusable,
                         disabled = function ()
                             return not SV.applyActiveBarDesaturation
                         end,
@@ -3055,30 +3055,66 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         max = 100,
                         step = 1,
                         getFunc = function ()
-                            return SV.unusableDesatBoost
+                            return SV.desatUnusable
                         end,
                         setFunc = function (value)
-                            SV.unusableDesatBoost = value
-                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                            SV.desatUnusable = value
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "half",
                     },
                     {
                         type = "checkbox",
-                        name = FancyActionBar.strings.respectVanillaCooldownDesatName,
-                        tooltip = FancyActionBar.strings.respectVanillaCooldownDesatTT,
-                        default = defaults.respectVanillaCooldownDesat,
-                        disabled = function ()
-                            return not SV.applyActiveBarDesaturation
-                        end,
+                        name = FancyActionBar.strings.applyActiveBarTintName,
+                        tooltip = FancyActionBar.strings.applyActiveBarTintTT,
+                        default = defaults.applyActiveBarTint,
                         getFunc = function ()
-                            return SV.respectVanillaCooldownDesat
+                            return SV.applyActiveBarTint
                         end,
                         setFunc = function (value)
-                            SV.respectVanillaCooldownDesat = value or false
-                            FancyActionBar.RefreshBarAppearance("activeOverrides")
+                            local wasEnabled = SV.applyActiveBarTint
+                            SV.applyActiveBarTint = value or false
+                            if wasEnabled and not SV.applyActiveBarTint then
+                                FancyActionBar.RefreshActiveBarIconVisuals(true)
+                            elseif SV.applyActiveBarTint then
+                                FancyActionBar.RefreshActiveBarIconVisuals()
+                            end
                         end,
                         width = "full",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = FancyActionBar.strings.tintUsableName,
+                        tooltip = FancyActionBar.strings.tintUsableTT,
+                        default = ZO_ColorDef:New(unpack(defaults.tintUsable)),
+                        disabled = function ()
+                            return not SV.applyActiveBarTint
+                        end,
+                        getFunc = function ()
+                            return unpack(SV.tintUsable)
+                        end,
+                        setFunc = function (r, g, b, a)
+                            SV.tintUsable = { r, g, b, a }
+                            FancyActionBar.RefreshActiveBarIconVisuals()
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = FancyActionBar.strings.tintUnusableName,
+                        tooltip = FancyActionBar.strings.tintUnusableTT,
+                        default = ZO_ColorDef:New(unpack(defaults.tintUnusable)),
+                        disabled = function ()
+                            return not SV.applyActiveBarTint
+                        end,
+                        getFunc = function ()
+                            return unpack(SV.tintUnusable)
+                        end,
+                        setFunc = function (r, g, b, a)
+                            SV.tintUnusable = { r, g, b, a }
+                            FancyActionBar.RefreshActiveBarIconVisuals()
+                        end,
+                        width = "half",
                     },
                     {
                         type = "slider",
@@ -3136,6 +3172,20 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.desaturationInactive = value
+                            FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
+                        end,
+                        width = "half",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = FancyActionBar.strings.tintInactiveName,
+                        tooltip = FancyActionBar.strings.tintInactiveTT,
+                        default = ZO_ColorDef:New(unpack(defaults.tintInactive)),
+                        getFunc = function ()
+                            return unpack(SV.tintInactive)
+                        end,
+                        setFunc = function (r, g, b, a)
+                            SV.tintInactive = { r, g, b, a }
                             FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
                         end,
                         width = "half",
