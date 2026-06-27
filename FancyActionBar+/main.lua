@@ -2591,7 +2591,7 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
     return hasDuration or isToggled or isFading or isParentTime
 end
 
-function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime)
+function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime, index)
     local activeEndTime = (effect.slotStateEndTime and effect.slotStateEndTime > currentTime and effect.slotStateEndTime) or effect.endTime
     if effect.forceExpireStacks and (activeEndTime <= currentTime) then
         stacksControl:SetText("")
@@ -2600,6 +2600,13 @@ function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, 
 
     if not SV.showStackCount then
         stacksControl:SetText("")
+        return
+    end
+
+    if index and index == ULT_INDEX and IsPlayerInWerewolfForm() then
+        local fury = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_WEREWOLF)
+        stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
+        stacksControl:SetText(fury > 0 and fury or "")
         return
     end
 
@@ -2708,9 +2715,10 @@ function FancyActionBar.UpdateUltOverlay(index, updateTime) -- update ultimate l
 
     if not FancyActionBar.constants.ult.duration.show then
         durationControl:SetText("")
-        -- Clear stack/target controls as well if duration is hidden
-        if stacksControl then stacksControl:SetText("") end
         if targetsControl then targetsControl:SetText("") end
+        if stacksControl then
+            FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, time(), nil, nil, index)
+        end
         return
     end
 
@@ -2813,7 +2821,7 @@ function FancyActionBar.UpdateUltOverlay(index, updateTime) -- update ultimate l
         end
     end
 
-    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
+    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, nil, nil, index)
     FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
 
     if index == ULT_INDEX + COMPANION_INDEX_OFFSET then
@@ -3332,8 +3340,8 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
 end
 
 function FancyActionBar.OnUltChanged(eventCode, unitTag, powerIndex, powerType, powerValue, powerMax, powerEffectiveMax)
-    if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE or powerType == COMBAT_MECHANIC_FLAGS_WEREWOLF then
-        local current, _, _ = GetUnitPower("player", powerType)
+    if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE then
+        local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
         FancyActionBar.UpdateUltimateValueLabels(true, current)
     end
 end
@@ -3369,8 +3377,7 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
     cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP))
     costAlt = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, currentHotbarCategory))
 
-    local powerType = IsPlayerInWerewolfForm() and COMBAT_MECHANIC_FLAGS_WEREWOLF or COMBAT_MECHANIC_FLAGS_ULTIMATE
-    local current, _, _ = GetUnitPower("player", powerType)
+    local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
     FancyActionBar.UpdateUltimateValueLabels(true, current)
 end
 
@@ -3380,11 +3387,8 @@ function FancyActionBar.GetUltimateValueColor(current, hotbar)
     local baseColor = constants.color
     local maxColor = constants.maxColor
 
-    -- Determine max value based on form
-    local maxValue = IsPlayerInWerewolfForm() and 1000 or 500
-
     -- Early return for max value case
-    if current == maxValue then return maxColor end
+    if current == 500 then return maxColor end
 
     -- Get ability ID and handle special cases
     local ultAbilityId = FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, hotbar)
@@ -3839,11 +3843,9 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
             local current = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
             FancyActionBar.UpdateUltimateValueLabels(true, current)
             EM:RegisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, FancyActionBar.OnUltChanged)
-            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE,
-                COMBAT_MECHANIC_FLAGS_ULTIMATE)
-            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE,
-                COMBAT_MECHANIC_FLAGS_WEREWOLF)
-            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_UNIT_TAG, "player")
+            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE,
+                REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
+                REGISTER_FILTER_UNIT_TAG, "player")
         end
     end
 
@@ -5215,6 +5217,10 @@ local function InstallActionButtonHooks()
         local style = FancyActionBar.constants.style
         ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
         InvalidatePressBounceData(self)
+        local slot = GetActiveBarButtonContext(self)
+        if slot and slot >= MIN_INDEX and slot <= MAX_INDEX then
+            FancyActionBar.SetupButtonText(self, style, slot)
+        end
     end)
 
     ZO_PreHook(ActionButton, "UpdateState", function (self)
