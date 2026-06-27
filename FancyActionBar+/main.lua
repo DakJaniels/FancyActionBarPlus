@@ -3332,8 +3332,8 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
 end
 
 function FancyActionBar.OnUltChanged(eventCode, unitTag, powerIndex, powerType, powerValue, powerMax, powerEffectiveMax)
-    if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE then
-        local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+    if powerType == COMBAT_MECHANIC_FLAGS_ULTIMATE or powerType == COMBAT_MECHANIC_FLAGS_WEREWOLF then
+        local current, _, _ = GetUnitPower("player", powerType)
         FancyActionBar.UpdateUltimateValueLabels(true, current)
     end
 end
@@ -3369,7 +3369,8 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
     cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP))
     costAlt = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, currentHotbarCategory))
 
-    local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
+    local powerType = IsPlayerInWerewolfForm() and COMBAT_MECHANIC_FLAGS_WEREWOLF or COMBAT_MECHANIC_FLAGS_ULTIMATE
+    local current, _, _ = GetUnitPower("player", powerType)
     FancyActionBar.UpdateUltimateValueLabels(true, current)
 end
 
@@ -3379,8 +3380,11 @@ function FancyActionBar.GetUltimateValueColor(current, hotbar)
     local baseColor = constants.color
     local maxColor = constants.maxColor
 
+    -- Determine max value based on form
+    local maxValue = IsPlayerInWerewolfForm() and 1000 or 500
+
     -- Early return for max value case
-    if current == 500 then return maxColor end
+    if current == maxValue then return maxColor end
 
     -- Get ability ID and handle special cases
     local ultAbilityId = FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, hotbar)
@@ -3834,11 +3838,12 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
         if showValue then
             local current = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
             FancyActionBar.UpdateUltimateValueLabels(true, current)
-
             EM:RegisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, FancyActionBar.OnUltChanged)
-            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE,
-                REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
-                REGISTER_FILTER_UNIT_TAG, "player")
+            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE,
+                COMBAT_MECHANIC_FLAGS_ULTIMATE)
+            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE,
+                COMBAT_MECHANIC_FLAGS_WEREWOLF)
+            EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, REGISTER_FILTER_UNIT_TAG, "player")
         end
     end
 
