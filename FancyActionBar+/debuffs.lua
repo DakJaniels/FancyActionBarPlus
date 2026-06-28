@@ -23,16 +23,16 @@ local function SyncDebuffStackSources(effect, abilityId)
     local chosenSources, hasExternal = nil, false
 
     if effectHasMapping then
-        chosenSources = FancyActionBar.GetConfiguredStackSources(effect.id, "debuff")
+        chosenSources = FancyActionBar.GetEffectStackSources(effect.id, "debuff")
         hasExternal = true
     elseif abilityId and abilityId ~= effect.id and abilityHasMapping then
-        chosenSources = FancyActionBar.GetConfiguredStackSources(abilityId, "debuff")
+        chosenSources = FancyActionBar.GetEffectStackSources(abilityId, "debuff")
         hasExternal = true
     end
 
     if not chosenSources or #chosenSources == 0 then
         -- No configured external sources; use the cached fallback table for this effect id
-        local fallback = FancyActionBar.GetConfiguredStackSources(effect.id, "debuff")
+        local fallback = FancyActionBar.GetEffectStackSources(effect.id, "debuff")
         if effect.stackSources ~= fallback then
             effect.stackSources = fallback
             effect.stackId = fallback
@@ -88,7 +88,7 @@ local function ShouldClearExternalDebuffStacksOnTargetChange(effect)
 end
 
 local function HasDebuffStackTargets(abilityId)
-    return FancyActionBar.fixedStacks[abilityId] or #FancyActionBar.GetConfiguredStackSources(abilityId) > 0
+    return FancyActionBar.fixedStacks[abilityId] or #FancyActionBar.GetEffectStackSources(abilityId) > 0
 end
 
 local groupUnit =
@@ -278,7 +278,7 @@ function FancyActionBar.UpdateDebuff(debuff, stacks, sourceAbilityId)
     effect.hasActiveCast = debuff.hasActiveCast or false
 
     if FancyActionBar.specialEffects[debuff.id] then
-        effect.stackSources = effect.stackSources or effect.stackId or FancyActionBar.GetConfiguredStackSources(effect.id)
+        effect.stackSources = effect.stackSources or effect.stackId or FancyActionBar.GetEffectStackSources(effect.id)
         effect.hasExternalStackSources = false
     else
         SyncDebuffStackSources(effect, sourceAbilityId)
@@ -407,7 +407,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     end
 
     if specialEffect then
-        local newSources = debuff.stackId or debuff.stackSources or FancyActionBar.GetConfiguredStackSources(abilityId)
+        local newSources = debuff.stackId or debuff.stackSources or FancyActionBar.GetEffectStackSources(abilityId)
         if debuff.stackSources ~= newSources then
             debuff.stackSources = newSources
             debuff.stackId = newSources
