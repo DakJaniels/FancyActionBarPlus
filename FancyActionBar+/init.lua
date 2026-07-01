@@ -301,6 +301,11 @@ FancyActionBar.defaultSettings =
         kb = { enable = false, scale = 100 },
         gp = { enable = false, scale = 100 },
     },
+    ultScaling =
+    {
+        kb = { enable = false, scale = 100 },
+        gp = { enable = false, scale = 100 },
+    },
     abMove =
     {                                                                    -- y = -(default + adjusted) anchor offset
         kb = { enable = false, x = 0, y = -22, prevX = 0, prevY = -22 }, -- y =      -( 0 + 22)
@@ -466,6 +471,83 @@ FancyActionBar.strings =
     disclaimer = GetString(FANCYAB_DISCLAIMER),
 }
 
+FancyActionBar.defaultAbilityConfigProfileName = "Default"
+FancyActionBar.emptyStackList = {}
+
+FancyActionBar.specialHotbar =
+{
+    [HOTBAR_CATEGORY_TEMPORARY] = true,
+    [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = true,
+}
+
+FancyActionBar.dropCalloutValidityByActionType =
+{
+    [ACTION_TYPE_ABILITY] = IsValidAbilityForSlot,
+    [ACTION_TYPE_CRAFTED_ABILITY] = IsValidCraftedAbilityForSlot,
+}
+
+FancyActionBar.gamepadConstants =
+{
+    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, -25),
+    dimensions = 64,
+    flipCardSize = 61,
+    ultFlipCardSize = 67,
+    abilitySlotWidth = 64,
+    buttonTextOffsetY = 80,
+    actionBarOffset = -52,
+    attributesOffset = -152,
+    width = 606,
+    anchorOffsetY = -25,
+    ultimateSlotOffsetX = 12, -- 65,
+    ultSize = 70,
+    quickslotOffsetX = 0,
+    bindingTextOnUlt = false,
+    showKeybindBG = false,
+    buttonTemplate = "FAB_ActionButton_Gamepad_Template",
+    ultButtonTemplate = "FAB_UltimateActionButton_Gamepad_Template",
+    overlayTemplate = "FAB_ActionButtonOverlay_Gamepad_Template",
+    ultOverlayTemplate = "FAB_UltimateButtonOverlay_Gamepad_Template",
+    qsOverlayTemplate = "FAB_QuickSlotOverlay_Gamepad_Template",
+    swapAnimationSize = 67,
+    quickSlotAnchor = { base = 2, multiplySlotCount = true },
+    ultimateSpacing = { baseX = 10, baseGap = 10, companionExtraX = 20, ultWidth = 65 },
+}
+
+FancyActionBar.keyboardConstants =
+{
+    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, 0),
+    dimensions = 50,
+    flipCardSize = 47,
+    ultFlipCardSize = 47,
+    abilitySlotWidth = 50,
+    buttonTextOffsetY = 62,
+    actionBarOffset = -22,
+    attributesOffset = -112,
+    width = 483,
+    anchorOffsetY = 0,
+    ultimateSlotOffsetX = 8, -- 12,
+    ultSize = 50,
+    quickslotOffsetX = 0,
+    bindingTextOnUlt = false,
+    showKeybindBG = false,
+    buttonTemplate = "FAB_ActionButton_Keyboard_Template",
+    ultButtonTemplate = "FAB_UltimateActionButton_Keyboard_Template",
+    overlayTemplate = "FAB_ActionButtonOverlay_Keyboard_Template",
+    ultOverlayTemplate = "FAB_UltimateButtonOverlay_Keyboard_Template",
+    qsOverlayTemplate = "FAB_QuickSlotOverlay_Keyboard_Template",
+    swapAnimationSize = 47,
+    quickSlotAnchor = { base = 5, multiplySlotCount = false },
+    ultimateSpacing = { trailing = -2 },
+}
+
+FancyActionBar.ultimateButtonStyle =
+{ -- TODO make back bar ult button to display duration.
+    type = ACTION_BUTTON_TYPE_VISIBLE,
+    template = "ZO_UltimateActionButton",
+    showBinds = false,
+    parentBar = "",
+}
+
 -- UI mode: 1 = keyboard, 2 = gamepad.
 -- SV stores persisted settings with per-mode keys (SvKey, e.g. fontNameKB).
 -- constants is the runtime snapshot for the active mode; menu setFuncs write SV
@@ -483,31 +565,6 @@ function FancyActionBar.CurrentMode()
         return c.mode
     end
     return FancyActionBar.GetUIMode()
-end
-
-local layoutFields =
-{
-    abilitySlotOffsetX = function (c) return c.abilitySlot.offsetX end,
-    quickSlotCustomXOffset = function (c) return c.layout.quickSlot.x end,
-    quickSlotCustomYOffset = function (c) return c.layout.quickSlot.y end,
-    ultimateSlotCustomXOffset = function (c) return c.layout.ultimate.x end,
-    ultimateSlotCustomYOffset = function (c) return c.layout.ultimate.y end,
-    barXOffset = function (c) return c.layout.bar.x end,
-    barYOffset = function (c) return c.layout.bar.y end,
-}
-
-function FancyActionBar.GetLayoutValue(base)
-    local c = FancyActionBar.constants
-    local reader = c and layoutFields[base]
-    if reader then
-        return reader(c)
-    end
-    return SV[FancyActionBar.SvKey(base, FancyActionBar.CurrentMode())]
-end
-
-function FancyActionBar.SetLayoutValue(base, value)
-    SV[FancyActionBar.SvKey(base, FancyActionBar.CurrentMode())] = value
-    FancyActionBar.RefreshLayoutConstants()
 end
 
 local function mapSection(sv, mode, fields)
@@ -557,6 +614,7 @@ end
 --- @return table
 function FancyActionBar.UpdateConstants(mode, vars, style)
     local scaleKey = modeScaleKey[mode]
+    local ultScaling = vars.ultScaling or FancyActionBar.defaultSettings.ultScaling
     local c =
     {
         mode = mode,
@@ -572,6 +630,7 @@ function FancyActionBar.UpdateConstants(mode, vars, style)
         },
         qs = mapSection(vars, mode, qsFields),
         abScale = { enable = vars.abScaling[scaleKey].enable, scale = vars.abScaling[scaleKey].scale },
+        ultScale = { enable = ultScaling[scaleKey].enable, scale = ultScaling[scaleKey].scale },
         move = { enable = vars.abMove[scaleKey].enable, x = vars.abMove[scaleKey].x, y = vars.abMove[scaleKey].y },
         abilitySlot = { offsetX = vars[FancyActionBar.SvKey("abilitySlotOffsetX", mode)] },
         layout = FancyActionBar.BuildLayout(vars, mode),

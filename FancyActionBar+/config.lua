@@ -337,6 +337,7 @@ FancyActionBar.abilityConfig =
     [86041] = { 177289 }, -- deceptive predator
     [86045] = { 177290 }, -- bird of prey
     [85862] = { 61704 },  -- enchanted growth (minor endurance)
+    [85922] = { 85840 },  -- Budding Seeds (Proc)
     [85564] = { 90266 },  -- nature's grasp healing
     [85858] = { 88726 },  -- nature's embrace healing
     [86122] = { 61694 },  -- frost cloak
@@ -837,14 +838,11 @@ FancyActionBar.debuffStackMap =
     -- Magma Fist
     [134340] =
     {
+        134340,
         31816,
     },
 
     -- Fetcher Infection
-    [101904] =
-    {
-        91416,
-    }
 
     -- [134336] = 134336;  -- Stone Giant (stacks on target)
 

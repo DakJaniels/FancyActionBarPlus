@@ -2197,11 +2197,6 @@ local function SetDefaultAbilityFrame()
     end
 end
 
-local function GetUltimateFlipCardSize()
-    local c = FancyActionBar.GetConstants()
-    return c.ultFlipCardSize
-end
-
 -- /script local a=ACTION_BAR for i=1,a:GetNumChildren() do local c=a:GetChild(i) local s='' if c.slot ~= nil then s=c.slot.slotNum end  CHAT_ROUTER:AddSystemMessage('['..i..']: '..c:GetName()..' / '..s) end
 local function CheckDeathState()
     if (IsUnitDead("player") and SV.showDeath) then
@@ -2800,6 +2795,94 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             { type = "divider" },
             {
                 type = "description",
+                title = "[ |cffdf80Adjust Ultimate Slot Size|r ]",
+                width = "full",
+            },
+            {
+                type = "description",
+                title = "[ |cffdf80Keyboard UI|r ]",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Enable Ultimate Resize (Keyboard)",
+                default = defaults.ultScaling.kb.enable,
+                getFunc = function ()
+                    return SV.ultScaling.kb.enable
+                end,
+                setFunc = function (value)
+                    SV.ultScaling.kb.enable = value or false
+                    if FancyActionBar.style == 1 then
+                        FancyActionBar.ApplyUltScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Ultimate Size (Keyboard)",
+                default = defaults.ultScaling.kb.scale,
+                min = 1,
+                max = 500,
+                step = 1,
+                disabled = function ()
+                    return not SV.ultScaling.kb.enable
+                end,
+                getFunc = function ()
+                    return SV.ultScaling.kb.scale
+                end,
+                setFunc = function (value)
+                    SV.ultScaling.kb.scale = value
+                    if FancyActionBar.style == 1 then
+                        FancyActionBar.ApplyUltScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "description",
+                title = "[ |cffdf80Gamepad UI|r ]",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Enable Ultimate Resize (Gamepad)",
+                default = defaults.ultScaling.gp.enable,
+                getFunc = function ()
+                    return SV.ultScaling.gp.enable
+                end,
+                setFunc = function (value)
+                    SV.ultScaling.gp.enable = value or false
+                    if FancyActionBar.style == 2 then
+                        FancyActionBar.ApplyUltScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Ultimate Size (Gamepad)",
+                default = defaults.ultScaling.gp.scale,
+                min = 1,
+                max = 500,
+                step = 1,
+                disabled = function ()
+                    return not SV.ultScaling.gp.enable
+                end,
+                getFunc = function ()
+                    return SV.ultScaling.gp.scale
+                end,
+                setFunc = function (value)
+                    SV.ultScaling.gp.scale = value
+                    if FancyActionBar.style == 2 then
+                        FancyActionBar.ApplyUltScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            { type = "divider" },
+            {
+                type = "description",
                 title = "[ |cffdf80Adjust Bar Spacing and Offset|r ]",
                 width = "full",
             },
@@ -2820,7 +2903,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.barXOffsetKB = value
                     end
                     local _, locked = GetActiveWeaponPairInfo()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.RefreshLayoutConstants()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true })
                 end,
                 width = "half",
             },
@@ -2841,7 +2925,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.barYOffsetKB = value
                     end
                     local _, locked = GetActiveWeaponPairInfo()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.RefreshLayoutConstants()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true })
                     if not FancyActionBar.wasMoved then
                         FancyActionBar.ResetMoveActionBar()
                         FancyActionBar.RepositionElements()
@@ -2866,7 +2951,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abilitySlotOffsetXKB = value
                     end
                     local _, locked = GetActiveWeaponPairInfo()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
+                    FancyActionBar.RefreshLayoutConstants()
+                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true, refreshButtons = true })
                 end,
                 width = "half",
             },
@@ -2954,13 +3040,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             return SV.applyActiveBarAlpha
                         end,
                         setFunc = function (value)
-                            local wasEnabled = SV.applyActiveBarAlpha
                             SV.applyActiveBarAlpha = value or false
-                            if wasEnabled and not SV.applyActiveBarAlpha then
-                                FancyActionBar.RefreshActiveBarIconVisuals(true)
-                            elseif SV.applyActiveBarAlpha then
-                                FancyActionBar.RefreshActiveBarIconVisuals()
-                            end
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "full",
                     },
@@ -3013,13 +3094,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             return SV.applyActiveBarDesaturation
                         end,
                         setFunc = function (value)
-                            local wasEnabled = SV.applyActiveBarDesaturation
                             SV.applyActiveBarDesaturation = value or false
-                            if wasEnabled and not SV.applyActiveBarDesaturation then
-                                FancyActionBar.RefreshActiveBarIconVisuals(true)
-                            elseif SV.applyActiveBarDesaturation then
-                                FancyActionBar.RefreshActiveBarIconVisuals()
-                            end
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "full",
                     },
@@ -3072,13 +3148,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             return SV.applyActiveBarTint
                         end,
                         setFunc = function (value)
-                            local wasEnabled = SV.applyActiveBarTint
                             SV.applyActiveBarTint = value or false
-                            if wasEnabled and not SV.applyActiveBarTint then
-                                FancyActionBar.RefreshActiveBarIconVisuals(true)
-                            elseif SV.applyActiveBarTint then
-                                FancyActionBar.RefreshActiveBarIconVisuals()
-                            end
+                            FancyActionBar.RefreshActiveBarIconVisuals()
                         end,
                         width = "full",
                     },
@@ -3129,7 +3200,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.overlayBgAlphaActive = value
-                            FancyActionBar.RefreshBarAppearance("activeFrameBackdrop")
+                            FancyActionBar.PaintAbilityOverlays()
                         end,
                         width = "half",
                     },
@@ -3155,7 +3226,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.alphaInactive = value
-                            FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
+                            FancyActionBar.PaintAbilityOverlays()
                         end,
                         width = "half",
                     },
@@ -3172,7 +3243,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.desaturationInactive = value
-                            FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
+                            FancyActionBar.PaintAbilityOverlays()
                         end,
                         width = "half",
                     },
@@ -3186,7 +3257,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (r, g, b, a)
                             SV.tintInactive = { r, g, b, a }
-                            FancyActionBar.RefreshBarAppearance("inactiveIconStyle")
+                            FancyActionBar.PaintAbilityOverlays()
                         end,
                         width = "half",
                     },
@@ -3203,7 +3274,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.overlayBgAlphaInactive = value
-                            FancyActionBar.RefreshBarAppearance("inactiveFrameBackdrop")
+                            FancyActionBar.PaintAbilityOverlays()
                         end,
                         width = "half",
                     },
@@ -3301,7 +3372,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.overlayFrameAlphaActive = value
-                        FancyActionBar.RefreshBarAppearance("activeFrameBackdrop")
+                        FancyActionBar.PaintAbilityOverlays()
                     end,
                     width = "half",
                 },
@@ -3321,7 +3392,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         SV.overlayFrameAlphaInactive = value
-                        FancyActionBar.RefreshBarAppearance("inactiveFrameBackdrop")
+                        FancyActionBar.PaintAbilityOverlays()
                     end,
                     width = "half",
                 },
@@ -3382,6 +3453,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.showHighlight = value or false
+                    FancyActionBar.RefreshHighlightConfiguration()
                 end,
                 width = "half",
             },
@@ -3397,6 +3469,37 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (r, g, b, a)
                     SV.highlightColor = { r, g, b, a }
+                    FancyActionBar.RefreshHighlightConfiguration()
+                end,
+                width = "half",
+            },
+            {
+                type = "checkbox",
+                name = "Show ultimate highlight",
+                tooltip = "Active ultimate timers will be highlighted.",
+                default = defaults.showHighlight,
+                getFunc = function ()
+                    return SV.showUltHighlight
+                end,
+                setFunc = function (value)
+                    SV.showUltHighlight = value or false
+                    FancyActionBar.RefreshHighlightConfiguration()
+                end,
+                width = "half",
+            },
+            {
+                type = "colorpicker",
+                name = "Ultimate highlight color",
+                default = ZO_ColorDef:New(unpack(defaults.highlightColor)),
+                disabled = function ()
+                    return not SV.showUltHighlight
+                end,
+                getFunc = function ()
+                    return unpack(SV.ultHighlightColor)
+                end,
+                setFunc = function (r, g, b, a)
+                    SV.ultHighlightColor = { r, g, b, a }
+                    FancyActionBar.RefreshHighlightConfiguration()
                 end,
                 width = "half",
             },
@@ -3406,7 +3509,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             {
                 type = "description",
                 title = "[ |cffdf80Toggled Ability Highlight|r ]",
-                text = "If a toggled ability is activated you can choose to have the highlight display a different color by setting the following option to <On>. Toggled abilities will also be highlighted regardless of the <Show highlight> option if <Toggled highlight> is enabled. If disabled, the highlight will use your settings from above.",
+                text = "If a toggled ability is activated you can choose to have the highlight display a different color by setting the following option to <On>. Toggled abilities will also be highlighted regardless of the <Show highlight> or <Show ultimate highlight> options when the corresponding toggled highlight option is enabled. If disabled, the highlight will use your settings from above.",
                 width = "full",
             },
             {
@@ -3418,6 +3521,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.toggledHighlight = value or false
+                    FancyActionBar.RefreshHighlightConfiguration()
                 end,
                 width = "half",
             },
@@ -3433,6 +3537,37 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (r, g, b, a)
                     SV.toggledColor = { r, g, b, a }
+                    FancyActionBar.RefreshHighlightConfiguration()
+                end,
+                width = "half",
+            },
+            {
+                type = "checkbox",
+                name = "Ultimate toggled highlight",
+                tooltip = "Toggled ultimate abilities will be highlighted regardless of the <Show ultimate highlight> option when enabled.",
+                default = defaults.toggledHighlight,
+                getFunc = function ()
+                    return SV.ultToggledHighlight
+                end,
+                setFunc = function (value)
+                    SV.ultToggledHighlight = value or false
+                    FancyActionBar.RefreshHighlightConfiguration()
+                end,
+                width = "half",
+            },
+            {
+                type = "colorpicker",
+                name = "Ultimate toggled highlight color",
+                default = ZO_ColorDef:New(unpack(defaults.toggledColor)),
+                disabled = function ()
+                    return not SV.ultToggledHighlight
+                end,
+                getFunc = function ()
+                    return unpack(SV.ultToggledColor)
+                end,
+                setFunc = function (r, g, b, a)
+                    SV.ultToggledColor = { r, g, b, a }
+                    FancyActionBar.RefreshHighlightConfiguration()
                 end,
                 width = "half",
             },
@@ -3640,7 +3775,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.hideInactiveSlots = value or false
-                    FancyActionBar.RefreshBarAppearance("inactiveVisibility")
+                    FancyActionBar.PaintAbilityOverlays()
                 end,
                 width = "full"
             },
@@ -3658,9 +3793,11 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     SV.applyActionBarSkillStyles = value or false
                     if wasEnabled and not SV.applyActionBarSkillStyles then
                         FancyActionBar.ResetActiveBarSkillStyles()
-                        FancyActionBar.RefreshBarAppearance("inactiveVisibility")
+                        FancyActionBar.PaintAbilityOverlays()
+                        FancyActionBar.RefreshActiveBarIconVisuals()
                     elseif SV.applyActionBarSkillStyles then
-                        FancyActionBar.RefreshBarAppearance("slotIcons")
+                        FancyActionBar.PaintAbilityOverlays()
+                        FancyActionBar.RefreshActiveBarIconVisuals()
                     end
                 end,
                 width = "full",
@@ -5923,6 +6060,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.highlightExpire = value or false
+                            FancyActionBar.RefreshHighlightConfiguration()
                         end,
                         width = "full",
                     },
@@ -5938,6 +6076,38 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (r, g, b, a)
                             SV.highlightExpireColor = { r, g, b, a }
+                            FancyActionBar.RefreshHighlightConfiguration()
+                        end,
+                        width = "full",
+                    },
+                    { type = "description", title = "[ |cffdf80Ultimate Highlight|r ]", width = "full" },
+                    {
+                        type = "checkbox",
+                        name = "Change expiring ultimate highlight color",
+                        tooltip = "Change highlight color when an ultimate timer is running out.",
+                        default = defaults.highlightExpire,
+                        getFunc = function ()
+                            return SV.ultHighlightExpire
+                        end,
+                        setFunc = function (value)
+                            SV.ultHighlightExpire = value or false
+                            FancyActionBar.RefreshHighlightConfiguration()
+                        end,
+                        width = "full",
+                    },
+                    {
+                        type = "colorpicker",
+                        name = "Select highlight color for expiring ultimates",
+                        default = ZO_ColorDef:New(unpack(defaults.highlightExpireColor)),
+                        disabled = function ()
+                            return not SV.ultHighlightExpire
+                        end,
+                        getFunc = function ()
+                            return unpack(SV.ultHighlightExpireColor)
+                        end,
+                        setFunc = function (r, g, b, a)
+                            SV.ultHighlightExpireColor = { r, g, b, a }
+                            FancyActionBar.RefreshHighlightConfiguration()
                         end,
                         width = "full",
                     },
@@ -7702,7 +7872,7 @@ function FancyActionBar.ConfigureFrames()
         ToggleFrameType()
     end
     FancyActionBar.SetUltFrameAlpha()
-    FancyActionBar.RefreshBarAppearance("frameBackdrop")
+    FancyActionBar.PaintAbilityOverlays()
 end
 
 function FancyActionBar.SetFrameColor()
@@ -7942,40 +8112,6 @@ function FancyActionBar.ApplyQuickSlotFont()
     QSB:GetNamedChild("CountText"):SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsStackColorGP or SV.qsStackColorKB))
 end
 
-function FancyActionBar.UpdateHighlight(index)
-    local button = FancyActionBar.GetActionButton(index)
-    local overlay = FancyActionBar.GetOverlay(index)
-    local effect = overlay.effect
-    local bgControl = overlay.bg
-    local durationControl = overlay.timer
-
-    -- local state
-    if button and overlay then
-        local isToggled = FancyActionBar.bannerBearer[effect.id] and FancyActionBar.toggles["banner"] or FancyActionBar.toggles[effect.id]
-        if (isToggled == true or effect.passive == true) then
-            -- state = 'On'
-            if SV.toggledHighlight then
-                button.status:SetAlpha(0)
-                bgControl:SetColor(unpack(SV.toggledColor))
-                bgControl:SetHidden(false)
-            elseif SV.showHighlight then
-                button.status:SetAlpha(0)
-                bgControl:SetColor(unpack(SV.highlightColor))
-                bgControl:SetHidden(false)
-            else
-                bgControl:SetHidden(true)
-                button.status:SetAlpha(0.7)
-            end
-            durationControl:SetText("")
-        else
-            -- state = 'Off'
-            bgControl:SetHidden(true)
-            button.status:SetAlpha(0.7)
-        end
-        -- CHAT_ROUTER:AddSystemMessage('Toggled overlay ' .. index .. ' bg: ' .. state)
-    end
-end
-
 function FancyActionBar.AdjustUltTimer(sample)
     local timerX = FancyActionBar.constants.ult.duration.x
     local timerY = FancyActionBar.constants.ult.duration.y
@@ -7995,7 +8131,6 @@ function FancyActionBar.AdjustUltTimer(sample)
             local durationControl = overlay:GetNamedChild("Duration")
             durationControl:ClearAnchors()
             durationControl:SetAnchor(CENTER, overlay, CENTER, x, y)
-            local effect = overlay.effect
             if inMenu and sample then
                 DisplayUltimateLabelChanges()
             end
