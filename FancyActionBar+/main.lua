@@ -3458,12 +3458,10 @@ function FancyActionBar:ApplySettings() -- overlay fonts, frames, and timers (la
     self.AdjustTimerY()
 
     self.ApplyStackFont()
-    self.AdjustStackX()
-    self.AdjustStackY()
+    self.ApplyStackPosition()
 
     self.ApplyTargetFont()
-    self.AdjustTargetX()
-    self.AdjustTargetY()
+    self.ApplyTargetPosition()
 
     self.AdjustUltTimer(false)
     self.ApplyUltFont(false)
@@ -3570,6 +3568,17 @@ local function initializeOverlayControls(overlayControl, includeValue)
     end
 end
 
+local overlayTemplatesApplied = {}
+
+local function applyOverlayTemplate(overlay, template)
+    if overlayTemplatesApplied[overlay] == template then
+        return false
+    end
+    WM:ApplyTemplateToControl(overlay, template)
+    overlayTemplatesApplied[overlay] = template
+    return true
+end
+
 ---
 --- @param index integer
 --- @return Control|FAB_ActionButtonOverlay_Gamepad_Template|FAB_ActionButtonOverlay_Keyboard_Template
@@ -3578,11 +3587,14 @@ function FancyActionBar.CreateOverlay(index) -- create normal skill button overl
     --- @type Control
     local overlay = FancyActionBar.overlays[index]
     if overlay then
-        WM:ApplyTemplateToControl(overlay, template)
+        local templateChanged = applyOverlayTemplate(overlay, template)
         overlay:ClearAnchors()
-        overlay.activeEffects = {}
+        if templateChanged then
+            overlay.activeEffects = {}
+        end
     else
         overlay = WM:CreateControlFromVirtual("ActionButtonOverlay", ACTION_BAR, template, index)
+        overlayTemplatesApplied[overlay] = template
         FancyActionBar.overlays[index] = overlay
     end
     initializeOverlayControls(overlay)
@@ -3607,7 +3619,7 @@ function FancyActionBar.CreateUltOverlay(index)
 
     -- Update existing overlay if it exists
     if overlay then
-        WM:ApplyTemplateToControl(overlay, template)
+        applyOverlayTemplate(overlay, template)
         overlay:ClearAnchors()
         initializeOverlayControls(overlay, true)
         return overlay
@@ -3616,6 +3628,7 @@ function FancyActionBar.CreateUltOverlay(index)
     -- Create new overlay
     local parent = getParentButton(index)
     overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index)
+    overlayTemplatesApplied[overlay] = template
 
     initializeOverlayControls(overlay, true)
 
@@ -3632,10 +3645,11 @@ function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button
     local template = FancyActionBar.constants.style.qsOverlayTemplate
     local overlay = FancyActionBar.qsOverlay
     if overlay then
-        WM:ApplyTemplateToControl(overlay, template)
+        applyOverlayTemplate(overlay, template)
         overlay:ClearAnchors()
     else
         overlay = WM:CreateControlFromVirtual("QuickSlotOverlay", ACTION_BAR, template, index)
+        overlayTemplatesApplied[overlay] = template
         FancyActionBar.qsOverlay = overlay
     end
     return overlay
@@ -4535,7 +4549,7 @@ end
 
 function FancyActionBar.RefreshBarPosition(refreshLayout)
     if refreshLayout and not FancyActionBar.IsUnlocked() then
-        ApplyBarLayout(isWeaponSwapLocked, { skipSlots = true })
+        ApplyBarLayout(isWeaponSwapLocked, { layoutOnly = true, skipSlots = true, refreshButtons = true })
     end
     FancyActionBar:AdjustControlsPositions()
     FancyActionBar:ApplyPosition()
@@ -6433,6 +6447,9 @@ local function OnPlayerActivated(_eventId, _initial)
         FancyActionBar.RefreshBarPosition(true)
     end
     OnAllHotbarsUpdated({ skipEffects = firstZone })
+    if SV.forceGamepadStyle then
+        applyActiveBarButtonStyles()
+    end
     FancyActionBar.SyncEffectState()
     FancyActionBar.HandleCompanionUltimate()
     if SV.hideLockedBar then

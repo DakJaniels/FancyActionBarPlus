@@ -307,6 +307,22 @@ local function GetCurrentUltValueFont()
     return c.font, c.size, c.outline
 end
 
+local function sliderOffsetToAnchorY(offset)
+    return offset == 0 and 0 or -offset
+end
+
+local function anchorUltValueControl(overlay, x, offsetY)
+    if not overlay then
+        return
+    end
+    local value = overlay:GetNamedChild("Value")
+    if not value then
+        return
+    end
+    value:ClearAnchors()
+    value:SetAnchor(BOTTOMRIGHT, overlay, BOTTOMRIGHT, x, sliderOffsetToAnchorY(offsetY))
+end
+
 -------------------------------------------------------------------------------
 -----------------------------[   Local Functions   ]---------------------------
 -------------------------------------------------------------------------------
@@ -354,8 +370,20 @@ local function UpdateAzurahDb()
     end
 end
 
-local function SetBarTheme(locked)
-    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { full = true })
+local function RefreshBarLayout(locked)
+    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true, quickslot = true })
+end
+
+local function OnBarScaleChanged(locked)
+    FancyActionBar.SetScale()
+    FancyActionBar.ToggleMover(true)
+    FancyActionBar.ToggleMover(false)
+    RefreshBarLayout(locked)
+    if Azurah then UpdateAzurahDb() end
+    if not FancyActionBar.wasMoved then
+        FancyActionBar.ResetMoveActionBar()
+        FancyActionBar.RepositionElements()
+    end
 end
 
 ----------------------------------------------
@@ -2017,7 +2045,8 @@ local function DisplayUltimateSlotTimer(durationControl, duration, timerColor)
         if overlay then -- Check if overlay is not nil
             local d = overlay:GetNamedChild("Duration")
             if not d then
-                d = FancyActionBar.CreateUltOverlay(i)
+                local ultOverlay = FancyActionBar.CreateUltOverlay(i)
+                d = ultOverlay and ultOverlay:GetNamedChild("Duration")
             end
 
             if d then -- Check if d is not nil
@@ -2357,17 +2386,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.kb.enable = value or false
                         if FancyActionBar.style == 1 then
                             FancyActionBar.constants.abScale.enable = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionElements()
-                            end
+                            local _, locked = GetActiveWeaponPairInfo()
+                            OnBarScaleChanged(locked)
                         end
                     end,
                     width = "half",
@@ -2388,18 +2408,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     setFunc = function (value)
                         SV.abScaling.kb.scale = value
                         if FancyActionBar.style == 1 then
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
                             FancyActionBar.constants.abScale.enable = value
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionElements()
-                            end
+                            local _, locked = GetActiveWeaponPairInfo()
+                            OnBarScaleChanged(locked)
                         end
                     end,
                     width = "half",
@@ -2415,9 +2426,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         return FancyActionBar.style == 1 and FancyActionBar.IsUnlocked()
                     end,
                     setFunc = function (value)
-                        local _, locked = GetActiveWeaponPairInfo()
                         FancyActionBar.ToggleMover(value)
-                        SetBarTheme(locked)
                     end,
                     width = "full",
                 },
@@ -2448,17 +2457,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.enable = value or false
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.enable = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionElements()
-                            end
+                            local _, locked = GetActiveWeaponPairInfo()
+                            OnBarScaleChanged(locked)
                         end
                     end,
                     width = "half",
@@ -2480,17 +2480,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.scale = value
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.scale = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionElements()
-                            end
+                            local _, locked = GetActiveWeaponPairInfo()
+                            OnBarScaleChanged(locked)
                         end
                     end,
                     width = "half",
@@ -2506,9 +2497,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
                     end,
                     setFunc = function (value)
-                        local _, locked = GetActiveWeaponPairInfo()
                         FancyActionBar.ToggleMover(value)
-                        SetBarTheme(locked)
                     end,
                     width = "full",
                 },
@@ -2536,17 +2525,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.enable = value or false
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.enable = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionElements()
-                            end
+                            local _, locked = GetActiveWeaponPairInfo()
+                            OnBarScaleChanged(locked)
                         end
                     end,
                     width = "half",
@@ -2568,17 +2548,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         SV.abScaling.gp.scale = value
                         if FancyActionBar.style == 2 then
                             FancyActionBar.constants.abScale.scale = value
-                            local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-                            FancyActionBar.SetScale()
-                            FancyActionBar.ToggleMover(true)
-                            SetBarTheme(locked)
-                            if Azurah then UpdateAzurahDb() end
-                            FancyActionBar.ToggleMover(false)
-                            SetBarTheme(locked)
-                            if not FancyActionBar.wasMoved then
-                                FancyActionBar.ResetMoveActionBar()
-                                FancyActionBar.RepositionElements()
-                            end
+                            local _, locked = GetActiveWeaponPairInfo()
+                            OnBarScaleChanged(locked)
                         end
                     end,
                     width = "half",
@@ -2600,9 +2571,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     end,
                     setFunc = function (value)
                         ACTION_BAR:SetHidden(false)
-                        local _, locked = GetActiveWeaponPairInfo()
                         FancyActionBar.ToggleMover(value)
-                        SetBarTheme(locked)
                     end,
                     width = "full",
                 },
@@ -2987,7 +2956,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         setFunc = function (value)
                             SV.staticBars = value or false
                             local _, locked = GetActiveWeaponPairInfo()
-                            SetBarTheme(locked)
+                            RefreshBarLayout(locked)
                         end,
                         width = "half",
                     },
@@ -4034,7 +4003,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         SV.stackXKB = value
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.stacks.x = value
-                                            FancyActionBar.AdjustStackX()
+                                            FancyActionBar.ApplyStackPosition()
                                         end
                                     end,
                                     width = "half",
@@ -4054,7 +4023,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         SV.stackYKB = value
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.stacks.y = value
-                                            FancyActionBar.AdjustStackY()
+                                            FancyActionBar.ApplyStackPosition()
                                         end
                                     end,
                                     width = "half",
@@ -4156,7 +4125,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         SV.targetXKB = value
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.targets.x = value
-                                            FancyActionBar.AdjustTargetX()
+                                            FancyActionBar.ApplyTargetPosition()
                                         end
                                     end,
                                     width = "half",
@@ -4176,7 +4145,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         SV.targetYKB = value
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.targets.y = value
-                                            FancyActionBar.AdjustTargetY()
+                                            FancyActionBar.ApplyTargetPosition()
                                         end
                                     end,
                                     width = "half",
@@ -5006,7 +4975,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.fontTypeStackGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.stacks.outline = value
-                                        FancyActionBar.ApplyTimerFont()
+                                        FancyActionBar.ApplyStackFont()
                                     end
                                 end,
                                 width = "half",
@@ -5027,7 +4996,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.stackXGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.stacks.x = value
-                                        FancyActionBar.AdjustStackX()
+                                        FancyActionBar.ApplyStackPosition()
                                     end
                                 end,
                                 width = "half",
@@ -5047,7 +5016,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.stackYGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.stacks.y = value
-                                        FancyActionBar.AdjustStackY()
+                                        FancyActionBar.ApplyStackPosition()
                                     end
                                 end,
                                 width = "half",
@@ -5149,7 +5118,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.targetXGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.targets.x = value
-                                        FancyActionBar.AdjustTargetX()
+                                        FancyActionBar.ApplyTargetPosition()
                                     end
                                 end,
                                 width = "half",
@@ -5169,7 +5138,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.targetYGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.targets.y = value
-                                        FancyActionBar.AdjustTargetY()
+                                        FancyActionBar.ApplyTargetPosition()
                                     end
                                 end,
                                 width = "half",
@@ -7923,16 +7892,7 @@ function FancyActionBar.ApplyTimerFont()
 end
 
 function FancyActionBar.AdjustTimerY()
-    local timerY = FancyActionBar.constants.duration.y
-    local y
-
-    if timerY == 0 then
-        y = 0
-    elseif timerY < 0 then
-        y = timerY + (timerY * -2)
-    elseif timerY > 0 then
-        y = timerY - (timerY * 2)
-    end
+    local y = sliderOffsetToAnchorY(FancyActionBar.constants.duration.y)
 
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.overlays[i]
@@ -7971,32 +7931,11 @@ function FancyActionBar.ApplyStackFont()
     end
 end
 
-function FancyActionBar.AdjustStackX()
+function FancyActionBar.ApplyStackPosition()
     local stackX = FancyActionBar.constants.stacks.x
     local stackY = FancyActionBar.constants.stacks.y
     -- so moving slider in setting will move stack the same direction
     local x = stackX - 40
-
-    for i = MIN_INDEX, ULT_INDEX do
-        local overlay = FancyActionBar.GetOverlay(i)
-        local stack = overlay:GetNamedChild("Stacks")
-
-        stack:ClearAnchors()
-        stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY)
-
-        overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
-        stack = overlay:GetNamedChild("Stacks")
-
-        stack:ClearAnchors()
-        stack:SetAnchor(TOPRIGHT, overlay, TOPRIGHT, x, stackY)
-    end
-end
-
-function FancyActionBar.AdjustStackY()
-    local stackX = FancyActionBar.constants.stacks.x
-    local stackY = FancyActionBar.constants.stacks.y
-    local x = stackX - 40
-    -- so moving slider in setting will move stack the same direction
 
     for i = MIN_INDEX, ULT_INDEX do
         local overlay = FancyActionBar.GetOverlay(i)
@@ -8035,27 +7974,7 @@ function FancyActionBar.ApplyTargetFont()
     end
 end
 
-function FancyActionBar.AdjustTargetX()
-    local targetX = FancyActionBar.constants.targets.x
-    local targetY = FancyActionBar.constants.targets.y
-    -- so moving slider in setting will move target the same direction
-
-    for i = MIN_INDEX, ULT_INDEX do
-        local overlay = FancyActionBar.GetOverlay(i)
-        local target = overlay:GetNamedChild("Targets")
-
-        target:ClearAnchors()
-        target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY)
-
-        overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
-        target = overlay:GetNamedChild("Targets")
-
-        target:ClearAnchors()
-        target:SetAnchor(TOPLEFT, overlay, TOPLEFT, targetX, targetY)
-    end
-end
-
-function FancyActionBar.AdjustTargetY()
+function FancyActionBar.ApplyTargetPosition()
     local targetX = FancyActionBar.constants.targets.x
     local targetY = FancyActionBar.constants.targets.y
     -- so moving slider in setting will move target the same direction
@@ -8076,25 +7995,11 @@ function FancyActionBar.AdjustTargetY()
 end
 
 function FancyActionBar:AdjustQuickSlotTimer()
-    local constants = self.constants
-    local qs = constants.qs
-    local timerX = qs.x
-    local timerY = qs.y
-    local x = timerX
-    local y
-
-    if timerY == 0 then
-        y = 0
-    elseif timerY < 0 then
-        y = timerY + (timerY * -2)
-    elseif timerY > 0 then
-        y = timerY - (timerY * 2)
-    end
-
+    local qs = self.constants.qs
     local qsOverlay = self.qsOverlay
     local d = qsOverlay:GetNamedChild("Duration")
     d:ClearAnchors()
-    d:SetAnchor(CENTER, qsOverlay, CENTER, x, y)
+    d:SetAnchor(CENTER, qsOverlay, CENTER, qs.x, sliderOffsetToAnchorY(qs.y))
 end
 
 function FancyActionBar.ApplyQuickSlotFont()
@@ -8113,20 +8018,11 @@ function FancyActionBar.ApplyQuickSlotFont()
 end
 
 function FancyActionBar.AdjustUltTimer(sample)
-    local timerX = FancyActionBar.constants.ult.duration.x
-    local timerY = FancyActionBar.constants.ult.duration.y
-    local x = timerX -- - 20
-    local y
-    if timerY == 0 then
-        y = 0
-    elseif timerY < 0 then
-        y = timerY + (timerY * -2)
-    elseif timerY > 0 then
-        y = timerY - (timerY * 2)
-    end
+    local duration = FancyActionBar.constants.ult.duration
+    local x = duration.x
+    local y = sliderOffsetToAnchorY(duration.y)
 
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
-        overlay = FancyActionBar.ultOverlays[i]
         if overlay then
             local durationControl = overlay:GetNamedChild("Duration")
             durationControl:ClearAnchors()
@@ -8146,7 +8042,6 @@ function FancyActionBar.ApplyUltFont(sample)
     end
 
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
-        overlay = FancyActionBar.ultOverlays[i]
         if overlay then
             overlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
         end
@@ -8158,47 +8053,17 @@ function FancyActionBar.ApplyUltFont(sample)
 end
 
 function FancyActionBar.AdjustUltValue()
-    local timerX = FancyActionBar.constants.ult.value.x
-    local timerY = FancyActionBar.constants.ult.value.y
-    local x = timerX -- - 20
-    local y
-    if timerY == 0 then
-        y = 0
-    elseif timerY < 0 then
-        y = timerY + (timerY * -2)
-    elseif timerY > 0 then
-        y = timerY - (timerY * 2)
-    end
-
+    local valueCfg = FancyActionBar.constants.ult.value
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
-        overlay = FancyActionBar.ultOverlays[i]
         if overlay and i < 30 then
-            local value = overlay:GetNamedChild("Value")
-            value:ClearAnchors()
-            value:SetAnchor(BOTTOMRIGHT, overlay, BOTTOMRIGHT, x, y)
+            anchorUltValueControl(overlay, valueCfg.x, valueCfg.y)
         end
     end
 end
 
 function FancyActionBar.AdjustCompanionUltValue()
-    local timerX = FancyActionBar.constants.ult.companion.x
-    local timerY = FancyActionBar.constants.ult.companion.y
-    local x = timerX -- - 20
-    local y
-    if timerY == 0 then
-        y = 0
-    elseif timerY < 0 then
-        y = timerY + (timerY * -2)
-    elseif timerY > 0 then
-        y = timerY - (timerY * 2)
-    end
-
-    local overlay = FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET]
-    if overlay then
-        local value = overlay:GetNamedChild("Value")
-        value:ClearAnchors()
-        value:SetAnchor(BOTTOMRIGHT, overlay, BOTTOMRIGHT, x, y)
-    end
+    local companionCfg = FancyActionBar.constants.ult.companion
+    anchorUltValueControl(FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET], companionCfg.x, companionCfg.y)
 end
 
 function FancyActionBar.ApplyUltValueFont()
@@ -8209,7 +8074,6 @@ function FancyActionBar.ApplyUltValueFont()
     end
 
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
-        overlay = FancyActionBar.ultOverlays[i]
         if overlay then
             local l = overlay:GetNamedChild("Value")
             l:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
@@ -8221,8 +8085,8 @@ function FancyActionBar.ApplyUltValueColor()
     local color = FancyActionBar.constants.ult.value.color
 
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
-        if FancyActionBar.ultOverlays[i] then
-            FancyActionBar.ultOverlays[i]:GetNamedChild("Value"):SetColor(unpack(color))
+        if overlay then
+            overlay:GetNamedChild("Value"):SetColor(unpack(color))
         end
     end
 end
@@ -8241,16 +8105,6 @@ function FancyActionBar.UpdateUltValueMode()
         current, max, effectiveMax = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
         FancyActionBar.UpdateUltimateValueLabels(false, current)
     end
-end
-
-function FancyActionBar.EnableGDC()
-    SV.gcd.enable = true
-    FancyActionBar.ToggleGCD()
-end
-
-function FancyActionBar.DisableGCD()
-    SV.gcd.enable = false
-    FancyActionBar.ToggleGCD()
 end
 
 local function OnCombatEnter()
@@ -8307,6 +8161,13 @@ function FancyActionBar.UpdateGCDSize()
 end
 
 function FancyActionBar.SetupGCD()
+    if FAB_GCD.frame then
+        FancyActionBar.UpdateGCDSize()
+        FAB_GCD:ClearAnchors()
+        FAB_GCD:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, SV.gcd.x, SV.gcd.y, FAB_GCD:GetResizeToFitConstrains())
+        return
+    end
+
     FAB_GCD:SetClampedToScreen(true)
     FAB_GCD:SetHidden(true)
     FAB_GCD:SetDimensions(SV.gcd.sizeX, SV.gcd.sizeY)
@@ -8532,8 +8393,6 @@ function FancyActionBar.SaveMoverPosition()
     ACTION_BAR:ClearAnchors()
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
     FancyActionBar.SetMoved(true)
-    local activeWeaponPair, locked = GetActiveWeaponPairInfo()
-    SetBarTheme(locked)
 end
 
 function FancyActionBar.ConsoleMoveActionBarViaMover(x, y, movedX, movedY)
