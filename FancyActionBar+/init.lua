@@ -306,6 +306,11 @@ FancyActionBar.defaultSettings =
         kb = { enable = false, scale = 100 },
         gp = { enable = false, scale = 100 },
     },
+    qsScaling =
+    {
+        kb = { enable = false, scale = 100 },
+        gp = { enable = false, scale = 100 },
+    },
     abMove =
     {                                                                    -- y = -(default + adjusted) anchor offset
         kb = { enable = false, x = 0, y = -22, prevX = 0, prevY = -22 }, -- y =      -( 0 + 22)
@@ -615,6 +620,7 @@ end
 function FancyActionBar.UpdateConstants(mode, vars, style)
     local scaleKey = modeScaleKey[mode]
     local ultScaling = vars.ultScaling or FancyActionBar.defaultSettings.ultScaling
+    local qsScaling = vars.qsScaling or FancyActionBar.defaultSettings.qsScaling
     local c =
     {
         mode = mode,
@@ -631,6 +637,7 @@ function FancyActionBar.UpdateConstants(mode, vars, style)
         qs = mapSection(vars, mode, qsFields),
         abScale = { enable = vars.abScaling[scaleKey].enable, scale = vars.abScaling[scaleKey].scale },
         ultScale = { enable = ultScaling[scaleKey].enable, scale = ultScaling[scaleKey].scale },
+        qsScale = { enable = qsScaling[scaleKey].enable, scale = qsScaling[scaleKey].scale },
         move = { enable = vars.abMove[scaleKey].enable, x = vars.abMove[scaleKey].x, y = vars.abMove[scaleKey].y },
         abilitySlot = { offsetX = vars[FancyActionBar.SvKey("abilitySlotOffsetX", mode)] },
         layout = FancyActionBar.BuildLayout(vars, mode),

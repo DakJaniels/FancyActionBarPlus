@@ -159,14 +159,29 @@ local debuffToEditName = ""
 local debuffNames = {}
 local selectedDebuff = 0
 
-local selectedPreset = 0
-local uiPresets =
+local selectedPresetName = "None"
+local selectedUserUIPresetId = nil
+local newUIPresetName = ""
+local renameUIPresetName = ""
+local saveUIPresetIncludeAbilityConfig = false
+local saveUIPresetIncludeExternalBlacklist = false
+local saveUIPresetIncludeMultiTargetBlacklist = false
+local saveUIPresetIncludeParentTimeBlacklist = false
+local saveUIPresetIncludeEffectWidgets = false
+local applyUIPresetIncludeAbilityData = false
+
+local builtInUIPresets =
 {
     [1] = { "None", {} },
     [2] = { "Default UI", FancyActionBar.defaultSettings },
     [3] = { "Dev's Preferred UI", FancyActionBar.devConfig },
     [4] = { "ADR-like UI", FancyActionBar.adrConfig },
 }
+
+local builtInUIPresetNames = {}
+for _, preset in ipairs(builtInUIPresets) do
+    builtInUIPresetNames[preset[1]] = true
+end
 
 local presetIgnoreKeys =
 {
@@ -175,10 +190,108 @@ local presetIgnoreKeys =
     ["selectedConfigProfile"] = true,
     ["nextConfigProfileId"] = true,
     ["externalBlackList"] = true,
+    ["externalBlackListRun"] = true,
     ["effectWidgets"] = true,
     ["multiTargetBlacklist"] = true,
-    ["hideOnNoTargetList"] = true,
+    ["multiTargetBlackListRun"] = true,
+    ["parentTimeBlacklist"] = true,
+    ["parentTimeBlackListRun"] = true,
 }
+
+local presetAlwaysIgnoreKeys =
+{
+    ["userUIPresets"] = true,
+    ["nextUIPresetId"] = true,
+    ["variablesValidated"] = true,
+    ["addonVersion"] = true,
+    ["version"] = true,
+}
+
+local presetOptionalIncludeGroups =
+{
+    abilityConfig =
+    {
+        configChanges = true,
+        configProfiles = true,
+        selectedConfigProfile = true,
+        nextConfigProfileId = true,
+        dynamicAbilityConfig = true,
+    },
+    externalBlackList =
+    {
+        externalBlackList = true,
+        externalBlackListRun = true,
+    },
+    multiTargetBlacklist =
+    {
+        multiTargetBlacklist = true,
+        multiTargetBlackListRun = true,
+    },
+    parentTimeBlacklist =
+    {
+        parentTimeBlacklist = true,
+        parentTimeBlackListRun = true,
+    },
+    effectWidgets =
+    {
+        effectWidgets = true,
+        effectWidgetActiveAlphaDefault = true,
+        effectWidgetInactiveAlphaDefault = true,
+        effectWidgetsLocked = true,
+    },
+}
+
+local presetOptionalKeys = {}
+for _, groupKeys in pairs(presetOptionalIncludeGroups) do
+    for key in pairs(groupKeys) do
+        presetOptionalKeys[key] = true
+    end
+end
+
+local function CopyPresetValue(value)
+    if type(value) == "table" then
+        return ZO_DeepTableCopy(value)
+    end
+
+    return value
+end
+
+local function InferPresetIncludes(settings)
+    local includes = {}
+
+    if type(settings) ~= "table" then
+        return includes
+    end
+
+    for groupName, groupKeys in pairs(presetOptionalIncludeGroups) do
+        for key in pairs(groupKeys) do
+            if settings[key] ~= nil then
+                includes[groupName] = true
+                break
+            end
+        end
+    end
+
+    return includes
+end
+
+local function PresetHasStoredAbilityData(settings, includes)
+    if type(settings) ~= "table" or type(includes) ~= "table" then
+        return false
+    end
+
+    for groupName, groupKeys in pairs(presetOptionalIncludeGroups) do
+        if includes[groupName] then
+            for key in pairs(groupKeys) do
+                if settings[key] ~= nil then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
 
 function FancyActionBar.InMenu()
     return inMenu
@@ -206,32 +319,442 @@ function FancyActionBar.GetFonts()
     return fonts
 end
 
+local function EnsureUserUIPresets()
+    FancyActionBar.EnsureUserUIPresetsStored(SV)
+
+    for presetId, preset in pairs(SV.userUIPresets) do
+        if type(preset) ~= "table" then
+            SV.userUIPresets[presetId] = nil
+        else
+            if type(preset.name) ~= "string" or preset.name:match("^%s*$") then
+                preset.name = "Preset " .. tostring(presetId)
+            end
+
+            if type(preset.settings) ~= "table" then
+                preset.settings = {}
+            end
+
+            if type(preset.includes) ~= "table" then
+                preset.includes = InferPresetIncludes(preset.settings)
+            end
+        end
+    end
+end
+
 function FancyActionBar.GetPresets()
     local presets = {}
-    for k, v in pairs(uiPresets) do
-        table.insert(presets, v[1])
+
+    for _, preset in ipairs(builtInUIPresets) do
+        table.insert(presets, preset[1])
+    end
+
+    EnsureUserUIPresets()
+
+    local userPresets = {}
+    for presetId, preset in pairs(SV.userUIPresets) do
+        table.insert(userPresets, { id = presetId, name = preset.name })
+    end
+
+    table.sort(userPresets, function (left, right)
+        local leftName = string.lower(left.name)
+        local rightName = string.lower(right.name)
+
+        if leftName == rightName then
+            return left.id < right.id
+        end
+
+        return leftName < rightName
+    end)
+
+    for _, preset in ipairs(userPresets) do
+        table.insert(presets, preset.name)
     end
 
     return presets
 end
 
-local function SetUIPreset(preset)
-    local presetIndex = 0
-    for i, v in ipairs(uiPresets) do
-        if v[1] == preset then
-            presetIndex = i
+local function GetCharacterScopedSavedVarsForPreset()
+    if CV.useAccountWide then
+        return SV
+    end
+    return CV
+end
+
+local characterScopedPresetGroups =
+{
+    abilityConfig = true,
+}
+
+local function GetPresetSavedVarsForGroup(groupName)
+    if characterScopedPresetGroups[groupName] then
+        return GetCharacterScopedSavedVarsForPreset()
+    end
+
+    return SV
+end
+
+local function GetPresetDefaultValue(key, groupName)
+    if characterScopedPresetGroups[groupName] and FancyActionBar.defaultCharacter[key] ~= nil then
+        return FancyActionBar.defaultCharacter[key]
+    end
+
+    return FancyActionBar.defaultSettings[key]
+end
+
+local function PresetValuesEqual(left, right)
+    if left == right then
+        return true
+    end
+
+    if type(left) ~= "table" or type(right) ~= "table" then
+        return false
+    end
+
+    for key, leftValue in pairs(left) do
+        if not PresetValuesEqual(leftValue, right[key]) then
+            return false
+        end
+    end
+
+    for key, rightValue in pairs(right) do
+        if left[key] == nil and not PresetValuesEqual(nil, rightValue) then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function StorePresetValueIfDifferent(settings, key, value, groupName)
+    if not PresetValuesEqual(value, GetPresetDefaultValue(key, groupName)) then
+        settings[key] = CopyPresetValue(value)
+    end
+end
+
+local function GetUniqueUIPresetName(presetName, ignoredPresetId)
+    local trimmedName = type(presetName) == "string" and presetName:match("^%s*(.-)%s*$") or ""
+    local candidateName
+    local suffix = 2
+
+    if trimmedName == "" then
+        return nil
+    end
+
+    if builtInUIPresetNames[trimmedName] then
+        return nil, "reserved"
+    end
+
+    candidateName = trimmedName
+
+    while true do
+        local duplicateFound = false
+
+        for presetId, preset in pairs(SV.userUIPresets) do
+            if presetId ~= ignoredPresetId and string.lower(preset.name) == string.lower(candidateName) then
+                duplicateFound = true
+                candidateName = string.format("%s (%d)", trimmedName, suffix)
+                suffix = suffix + 1
+                break
+            end
+        end
+
+        if not duplicateFound then
             break
         end
     end
-    local presetSetting = uiPresets[presetIndex]
-    local presetData = presetSetting[2]
 
-    for k, v in pairs(presetData) do
-        if not presetIgnoreKeys[k] then
-            SV[k] = v
+    return candidateName
+end
+
+local function GetUserUIPresetChoices()
+    local choices = {}
+    local sortedPresets = {}
+
+    EnsureUserUIPresets()
+
+    for presetId, preset in pairs(SV.userUIPresets) do
+        table.insert(sortedPresets, { id = presetId, name = preset.name })
+    end
+
+    table.sort(sortedPresets, function (left, right)
+        local leftName = string.lower(left.name)
+        local rightName = string.lower(right.name)
+
+        if leftName == rightName then
+            return left.id < right.id
+        end
+
+        return leftName < rightName
+    end)
+
+    for _, preset in ipairs(sortedPresets) do
+        table.insert(choices, preset.name)
+    end
+
+    return choices
+end
+
+local function GetSelectedUserUIPresetName()
+    if selectedUserUIPresetId == nil then
+        return ""
+    end
+
+    local preset = SV.userUIPresets[selectedUserUIPresetId]
+    if preset == nil then
+        selectedUserUIPresetId = nil
+        return ""
+    end
+
+    return preset.name
+end
+
+local function SetSelectedUserUIPreset(presetName)
+    selectedUserUIPresetId = nil
+
+    for presetId, preset in pairs(SV.userUIPresets) do
+        if preset.name == presetName then
+            selectedUserUIPresetId = presetId
+            break
         end
     end
-    ReloadUI("ingame")
+
+    renameUIPresetName = presetName or ""
+end
+
+local function UpdateUIPresetControls()
+    if IsConsoleUI() then
+        return
+    end
+
+    local presetDropdown = WM:GetControlByName("UI_Preset_Dropdown")
+    if presetDropdown then
+        presetDropdown:UpdateChoices(FancyActionBar.GetPresets())
+        presetDropdown.dropdown:SetSelectedItem(selectedPresetName)
+    end
+
+    local manageDropdown = WM:GetControlByName("UI_Preset_Manage_Dropdown")
+    if manageDropdown then
+        manageDropdown:UpdateChoices(GetUserUIPresetChoices())
+        manageDropdown.dropdown:SetSelectedItem(GetSelectedUserUIPresetName())
+    end
+
+    local newPresetEditbox = WM:GetControlByName("New_UI_Preset_Editbox")
+    if newPresetEditbox then
+        newPresetEditbox.editbox:SetText(newUIPresetName)
+    end
+
+    local renamePresetEditbox = WM:GetControlByName("Rename_UI_Preset_Editbox")
+    if renamePresetEditbox then
+        renamePresetEditbox.editbox:SetText(renameUIPresetName)
+    end
+end
+
+local function CaptureCurrentUIPresetSettings()
+    local settings = {}
+    local includes = {}
+    local includeOptions =
+    {
+        abilityConfig = saveUIPresetIncludeAbilityConfig,
+        externalBlackList = saveUIPresetIncludeExternalBlacklist,
+        multiTargetBlacklist = saveUIPresetIncludeMultiTargetBlacklist,
+        parentTimeBlacklist = saveUIPresetIncludeParentTimeBlacklist,
+        effectWidgets = saveUIPresetIncludeEffectWidgets,
+    }
+
+    for key in pairs(FancyActionBar.defaultSettings) do
+        if not presetAlwaysIgnoreKeys[key] and not presetOptionalKeys[key] then
+            StorePresetValueIfDifferent(settings, key, SV[key])
+        end
+    end
+
+    for groupName, groupKeys in pairs(presetOptionalIncludeGroups) do
+        includes[groupName] = includeOptions[groupName] or false
+
+        if includeOptions[groupName] then
+            local sourceVars = GetPresetSavedVarsForGroup(groupName)
+
+            for key in pairs(groupKeys) do
+                StorePresetValueIfDifferent(settings, key, sourceVars[key], groupName)
+            end
+        end
+    end
+
+    return
+    {
+        settings = settings,
+        includes = includes,
+    }
+end
+
+local function ApplyUserUIPresetSettings(settings, includes, applyAbilityData)
+    for key, defaultValue in pairs(FancyActionBar.defaultSettings) do
+        if not presetAlwaysIgnoreKeys[key] and not presetOptionalKeys[key] then
+            local value = settings[key]
+            if value == nil then
+                value = defaultValue
+            end
+            SV[key] = CopyPresetValue(value)
+        end
+    end
+
+    for groupName, groupKeys in pairs(presetOptionalIncludeGroups) do
+        if includes[groupName] and applyAbilityData then
+            local targetVars = GetPresetSavedVarsForGroup(groupName)
+
+            for key in pairs(groupKeys) do
+                if settings[key] ~= nil then
+                    targetVars[key] = CopyPresetValue(settings[key])
+                end
+            end
+        end
+    end
+end
+
+local function GetBuiltInPresetData(presetName)
+    for _, preset in ipairs(builtInUIPresets) do
+        if preset[1] == presetName then
+            return preset[2]
+        end
+    end
+end
+
+local function GetUserUIPresetByName(presetName)
+    EnsureUserUIPresets()
+
+    for presetId, preset in pairs(SV.userUIPresets) do
+        if preset.name == presetName then
+            return
+            {
+                presetId = presetId,
+                settings = preset.settings,
+                includes = preset.includes,
+            }
+        end
+    end
+end
+
+local function SelectedPresetIncludesAbilityData()
+    if builtInUIPresetNames[selectedPresetName] then
+        return false
+    end
+
+    local presetInfo = GetUserUIPresetByName(selectedPresetName)
+    if presetInfo == nil then
+        return false
+    end
+
+    return PresetHasStoredAbilityData(presetInfo.settings, presetInfo.includes)
+end
+
+local function IsSaveUIPresetDisabled()
+    return (newUIPresetName:match("^%s*(.-)%s*$") or "") == ""
+end
+
+local function SaveCurrentUIPreset()
+    EnsureUserUIPresets()
+
+    local trimmedName = newUIPresetName:match("^%s*(.-)%s*$") or ""
+    if trimmedName == "" then
+        return
+    end
+
+    if builtInUIPresetNames[trimmedName] then
+        CHAT_ROUTER:AddSystemMessage("That preset name is reserved for a built-in preset.")
+        return
+    end
+
+    local presetId = nil
+    for existingId, preset in pairs(SV.userUIPresets) do
+        if string.lower(preset.name) == string.lower(trimmedName) then
+            presetId = existingId
+            break
+        end
+    end
+
+    local presetName = trimmedName
+    if presetId == nil then
+        presetName = GetUniqueUIPresetName(trimmedName)
+        if presetName == nil then
+            return
+        end
+
+        presetId = SV.nextUIPresetId
+        while SV.userUIPresets[presetId] do
+            presetId = presetId + 1
+        end
+        SV.nextUIPresetId = presetId + 1
+    end
+
+    local capturedPreset = CaptureCurrentUIPresetSettings()
+    local userUIPresets = FancyActionBar.EnsureUserUIPresetsStored(SV)
+
+    userUIPresets[presetId] =
+    {
+        name = presetName,
+        settings = capturedPreset.settings,
+        includes = capturedPreset.includes,
+    }
+
+    newUIPresetName = ""
+    selectedUserUIPresetId = presetId
+    renameUIPresetName = presetName
+    CHAT_ROUTER:AddSystemMessage("Saved UI preset: " .. presetName)
+    UpdateUIPresetControls()
+end
+
+local function RenameSelectedUIPreset()
+    EnsureUserUIPresets()
+
+    if selectedUserUIPresetId == nil then
+        return
+    end
+
+    local preset = SV.userUIPresets[selectedUserUIPresetId]
+    if preset == nil then
+        return
+    end
+
+    local presetName, failureReason = GetUniqueUIPresetName(renameUIPresetName, selectedUserUIPresetId)
+    if presetName == nil then
+        if failureReason == "reserved" then
+            CHAT_ROUTER:AddSystemMessage("That preset name is reserved for a built-in preset.")
+        end
+        return
+    end
+
+    preset.name = presetName
+    renameUIPresetName = presetName
+    CHAT_ROUTER:AddSystemMessage("Renamed UI preset to: " .. presetName)
+    UpdateUIPresetControls()
+end
+
+local function DeleteSelectedUIPreset()
+    EnsureUserUIPresets()
+
+    if selectedUserUIPresetId == nil then
+        return
+    end
+
+    local preset = SV.userUIPresets[selectedUserUIPresetId]
+    if preset == nil then
+        return
+    end
+
+    local deletedName = preset.name
+    SV.userUIPresets[selectedUserUIPresetId] = nil
+    selectedUserUIPresetId = nil
+    renameUIPresetName = ""
+
+    if selectedPresetName == deletedName then
+        selectedPresetName = "None"
+    end
+
+    CHAT_ROUTER:AddSystemMessage("Deleted UI preset: " .. deletedName)
+    UpdateUIPresetControls()
+end
+
+local function IsManageUIPresetDisabled()
+    return selectedUserUIPresetId == nil
 end
 
 function FancyActionBar.GetDecimalOptions()
@@ -371,7 +894,25 @@ local function UpdateAzurahDb()
 end
 
 local function RefreshBarLayout(locked)
-    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true, quickslot = true })
+    locked = SV.hideLockedBar and locked
+    FancyActionBar.ApplyActiveHotbarGeometry(nil, locked)
+    FancyActionBar.RefreshAdjacentSlots(locked)
+end
+
+local function overlayVisualSetting(assign)
+    return function (...)
+        assign(...)
+        FancyActionBar.PaintAbilityOverlays()
+    end
+end
+
+local function geometrySetting(assign)
+    return function (...)
+        assign(...)
+        local _, locked = GetActiveWeaponPairInfo()
+        RefreshBarLayout(locked)
+        FancyActionBar.RefreshHotbarPresentation(nil, false)
+    end
 end
 
 local function OnBarScaleChanged(locked)
@@ -1550,27 +2091,10 @@ UpdateAbilityConfigProfileControls = function ()
 end
 
 local function RefreshSelectedAbilityConfigProfile()
-    local refreshedIds = {}
-
     FancyActionBar.BuildAbilityConfig()
     FancyActionBar.SetExternalBuffTracking()
     FancyActionBar.RefreshEffectWidgets()
-
-    for slot = MIN_INDEX, ULT_INDEX do
-        local frontAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_PRIMARY)
-        local backAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_BACKUP)
-
-        if frontAbilityId and frontAbilityId ~= 0 and not refreshedIds[frontAbilityId] then
-            refreshedIds[frontAbilityId] = true
-            FancyActionBar.SlotCurrentAbilityConfiguration(frontAbilityId)
-        end
-
-        if backAbilityId and backAbilityId ~= 0 and not refreshedIds[backAbilityId] then
-            refreshedIds[backAbilityId] = true
-            FancyActionBar.SlotCurrentAbilityConfiguration(backAbilityId)
-        end
-    end
-
+    FancyActionBar.RefreshSlottedAbilityConfigurations()
     ResetUpdateSettings()
 end
 
@@ -2160,6 +2684,51 @@ local function ToggleFrameType()
     end
 end
 
+local function RefreshMenuAfterUIPresetApply(abilityDataApplied)
+    if not FancyActionBar.InMenu() then
+        return
+    end
+
+    ToggleFrameType()
+    FancyActionBar.UpdateTextures()
+
+    if abilityDataApplied then
+        ParseBlacklist(SV.externalBlackList, externalBlacklistConfigData)
+        ParseBlacklist(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
+        ParseBlacklist(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
+        RefreshEffectWidgetChoices()
+    end
+end
+
+local function SetUIPreset(presetName)
+    if presetName == nil or presetName == "" or presetName == "None" then
+        return
+    end
+
+    local abilityDataApplied = false
+    local builtInData = GetBuiltInPresetData(presetName)
+
+    if builtInData then
+        for key, value in pairs(builtInData) do
+            if not presetIgnoreKeys[key] then
+                SV[key] = CopyPresetValue(value)
+            end
+        end
+    else
+        local presetInfo = GetUserUIPresetByName(presetName)
+        if presetInfo == nil or presetInfo.settings == nil then
+            return
+        end
+
+        ApplyUserUIPresetSettings(presetInfo.settings, presetInfo.includes or {}, applyUIPresetIncludeAbilityData)
+        abilityDataApplied = applyUIPresetIncludeAbilityData
+            and PresetHasStoredAbilityData(presetInfo.settings, presetInfo.includes)
+    end
+
+    FancyActionBar.RefreshAfterPresetApply(abilityDataApplied)
+    RefreshMenuAfterUIPresetApply(abilityDataApplied)
+end
+
 local function SetDarkUI()
     local eso_root = "esoui/art/"
     local ui_root = "darkui/"
@@ -2298,33 +2867,226 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 controls =
                 {
                     {
+                        type = "description",
+                        title = "",
+                        text = "Apply a built-in or saved UI preset. Saved presets can optionally include ability configuration and blacklist data.",
+                        width = "full",
+                    },
+                    {
                         type = "dropdown",
                         name = "Select UI Preset",
-                        text = "Selecting a UI Preset requires reloading the game UI to take effect.",
                         scrollable = true,
                         tooltip = "Set a preset UI configuration.",
                         choices = FancyActionBar.GetPresets(),
                         sort = "name-up",
                         getFunc = function ()
-                            return uiPresets[1][1]
+                            return selectedPresetName
                         end,
                         setFunc = function (value)
-                            selectedPreset = value
+                            selectedPresetName = value
+                            if not SelectedPresetIncludesAbilityData() then
+                                applyUIPresetIncludeAbilityData = false
+                            end
                         end,
-                        default = 1,
+                        default = "None",
+                        reference = "UI_Preset_Dropdown",
+                    },
+                    {
+                        type = "checkbox",
+                        name = "Apply Saved Ability Data",
+                        tooltip = "When enabled, applies ability configuration, blacklists, and effect widgets stored in the selected preset. Only affects data that was included when the preset was saved; your current ability data is left unchanged otherwise.",
+                        getFunc = function ()
+                            return applyUIPresetIncludeAbilityData
+                        end,
+                        setFunc = function (value)
+                            applyUIPresetIncludeAbilityData = value or false
+                        end,
+                        disabled = function ()
+                            return selectedPresetName == "None" or not SelectedPresetIncludesAbilityData()
+                        end,
+                        width = "full",
                     },
                     {
                         type = "button",
                         name = "Confirm Preset",
                         width = "half",
                         func = function ()
-                            SetUIPreset(selectedPreset)
+                            SetUIPreset(selectedPresetName)
                         end,
-                        warning = "Will Reload the UI.",
-                        requiresReload = true,
                         reference = "ConfirmPresetButton",
+                        disabled = function ()
+                            return selectedPresetName == "None"
+                        end,
                     },
-
+                    { type = "divider" },
+                    {
+                        type = "description",
+                        title = "Save Current Settings",
+                        text = "Capture your current UI settings as a reusable preset. Only values that differ from defaults are stored. Optional sections are only saved when their checkboxes are enabled.",
+                        width = "full",
+                    },
+                    {
+                        type = "editbox",
+                        name = "Preset Name",
+                        tooltip = "Enter a name for the preset to save or overwrite.",
+                        getFunc = function ()
+                            return newUIPresetName
+                        end,
+                        setFunc = function (value)
+                            newUIPresetName = value or ""
+                        end,
+                        reference = "New_UI_Preset_Editbox",
+                        isMultiline = false,
+                        isExtraWide = false,
+                        width = "full",
+                    },
+                    {
+                        type = "submenu",
+                        name = "Ability Data to Include",
+                        controls =
+                        {
+                            {
+                                type = "description",
+                                title = "",
+                                text = "Choose which ability-related data to store in the preset. Unchecked sections are omitted entirely and will not overwrite anything when the preset is applied.",
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Include Ability Configuration",
+                                tooltip = "Save ability config profiles, selected profile, and dynamic ability config settings.",
+                                getFunc = function ()
+                                    return saveUIPresetIncludeAbilityConfig
+                                end,
+                                setFunc = function (value)
+                                    saveUIPresetIncludeAbilityConfig = value or false
+                                end,
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Include Effect Widgets",
+                                tooltip = "Save effect widget layout and settings.",
+                                getFunc = function ()
+                                    return saveUIPresetIncludeEffectWidgets
+                                end,
+                                setFunc = function (value)
+                                    saveUIPresetIncludeEffectWidgets = value or false
+                                end,
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Include External Blacklist",
+                                tooltip = "Save external buff/debuff blacklist data.",
+                                getFunc = function ()
+                                    return saveUIPresetIncludeExternalBlacklist
+                                end,
+                                setFunc = function (value)
+                                    saveUIPresetIncludeExternalBlacklist = value or false
+                                end,
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Include Multi-Target Blacklist",
+                                tooltip = "Save multi-target tracking blacklist data.",
+                                getFunc = function ()
+                                    return saveUIPresetIncludeMultiTargetBlacklist
+                                end,
+                                setFunc = function (value)
+                                    saveUIPresetIncludeMultiTargetBlacklist = value or false
+                                end,
+                                width = "full",
+                            },
+                            {
+                                type = "checkbox",
+                                name = "Include Parent Time Blacklist",
+                                tooltip = "Save parent/fallback timer blacklist data.",
+                                getFunc = function ()
+                                    return saveUIPresetIncludeParentTimeBlacklist
+                                end,
+                                setFunc = function (value)
+                                    saveUIPresetIncludeParentTimeBlacklist = value or false
+                                end,
+                                width = "full",
+                            },
+                        },
+                    },
+                    {
+                        type = "button",
+                        name = "Save New Preset",
+                        width = "full",
+                        func = function ()
+                            SaveCurrentUIPreset()
+                        end,
+                        disabled = function ()
+                            return IsSaveUIPresetDisabled()
+                        end,
+                    },
+                    { type = "divider" },
+                    {
+                        type = "description",
+                        title = "Manage Saved Presets",
+                        text = "Rename or delete presets you have saved. Built-in presets cannot be modified.",
+                        width = "full",
+                    },
+                    {
+                        type = "dropdown",
+                        name = "Saved Presets",
+                        scrollable = true,
+                        tooltip = "Select one of your saved UI presets to manage.",
+                        choices = GetUserUIPresetChoices(),
+                        getFunc = function ()
+                            return GetSelectedUserUIPresetName()
+                        end,
+                        setFunc = function (value)
+                            SetSelectedUserUIPreset(value)
+                        end,
+                        reference = "UI_Preset_Manage_Dropdown",
+                        width = "half",
+                    },
+                    {
+                        type = "editbox",
+                        name = "Rename Saved Preset",
+                        tooltip = "Rename the selected saved preset.",
+                        getFunc = function ()
+                            return renameUIPresetName
+                        end,
+                        setFunc = function (value)
+                            renameUIPresetName = value or ""
+                        end,
+                        reference = "Rename_UI_Preset_Editbox",
+                        isMultiline = false,
+                        isExtraWide = false,
+                        width = "half",
+                        disabled = function ()
+                            return IsManageUIPresetDisabled()
+                        end,
+                    },
+                    {
+                        type = "button",
+                        name = "Rename Saved Preset",
+                        width = "half",
+                        func = function ()
+                            RenameSelectedUIPreset()
+                        end,
+                        disabled = function ()
+                            return IsManageUIPresetDisabled()
+                        end,
+                    },
+                    {
+                        type = "button",
+                        name = "Delete Saved Preset",
+                        width = "half",
+                        warning = "Permanently deletes the selected saved preset.",
+                        func = function ()
+                            DeleteSelectedUIPreset()
+                        end,
+                        disabled = function ()
+                            return IsManageUIPresetDisabled()
+                        end,
+                    },
                 },
             })
         tableIndex = tableIndex + 1
@@ -2691,7 +3453,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.quickSlotCustomXOffsetKB = value
                     end
-                    FancyActionBar.AdjustQuickSlotSpacing()
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.RefreshLayoutConstants()
+                    RefreshBarLayout(locked)
                 end,
                 width = "half",
             },
@@ -2711,7 +3475,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.quickSlotCustomYOffsetKB = value
                     end
-                    FancyActionBar.AdjustQuickSlotSpacing()
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.RefreshLayoutConstants()
+                    RefreshBarLayout(locked)
                 end,
                 width = "half",
             },
@@ -2737,7 +3503,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.ultimateSlotCustomXOffsetKB = value
                     end
-                    FancyActionBar.RefreshUltimateSlots()
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.RefreshLayoutConstants()
+                    RefreshBarLayout(locked)
                 end,
                 width = "half",
             },
@@ -2757,7 +3525,97 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.ultimateSlotCustomYOffsetKB = value
                     end
-                    FancyActionBar.RefreshUltimateSlots()
+                    local _, locked = GetActiveWeaponPairInfo()
+                    FancyActionBar.RefreshLayoutConstants()
+                    RefreshBarLayout(locked)
+                end,
+                width = "half",
+            },
+            { type = "divider" },
+            {
+                type = "description",
+                title = "[ |cffdf80Adjust Quickslot Slot Size|r ]",
+                width = "full",
+            },
+            {
+                type = "description",
+                title = "[ |cffdf80Keyboard UI|r ]",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Enable Quickslot Resize (Keyboard)",
+                default = defaults.qsScaling.kb.enable,
+                getFunc = function ()
+                    return SV.qsScaling.kb.enable
+                end,
+                setFunc = function (value)
+                    SV.qsScaling.kb.enable = value or false
+                    if FancyActionBar.style == 1 then
+                        FancyActionBar.ApplyQsScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Quickslot Size (Keyboard)",
+                default = defaults.qsScaling.kb.scale,
+                min = 1,
+                max = 500,
+                step = 1,
+                disabled = function ()
+                    return not SV.qsScaling.kb.enable
+                end,
+                getFunc = function ()
+                    return SV.qsScaling.kb.scale
+                end,
+                setFunc = function (value)
+                    SV.qsScaling.kb.scale = value
+                    if FancyActionBar.style == 1 then
+                        FancyActionBar.ApplyQsScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "description",
+                title = "[ |cffdf80Gamepad UI|r ]",
+                width = "full",
+            },
+            {
+                type = "checkbox",
+                name = "Enable Quickslot Resize (Gamepad)",
+                default = defaults.qsScaling.gp.enable,
+                getFunc = function ()
+                    return SV.qsScaling.gp.enable
+                end,
+                setFunc = function (value)
+                    SV.qsScaling.gp.enable = value or false
+                    if FancyActionBar.style == 2 then
+                        FancyActionBar.ApplyQsScalingSettings()
+                    end
+                end,
+                width = "half",
+            },
+            {
+                type = "slider",
+                name = "Quickslot Size (Gamepad)",
+                default = defaults.qsScaling.gp.scale,
+                min = 1,
+                max = 500,
+                step = 1,
+                disabled = function ()
+                    return not SV.qsScaling.gp.enable
+                end,
+                getFunc = function ()
+                    return SV.qsScaling.gp.scale
+                end,
+                setFunc = function (value)
+                    SV.qsScaling.gp.scale = value
+                    if FancyActionBar.style == 2 then
+                        FancyActionBar.ApplyQsScalingSettings()
+                    end
                 end,
                 width = "half",
             },
@@ -2871,9 +3729,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.barXOffsetKB = value
                     end
-                    local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.RefreshLayoutConstants()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true })
+                    local _, locked = GetActiveWeaponPairInfo()
+                    RefreshBarLayout(locked)
                 end,
                 width = "half",
             },
@@ -2893,9 +3751,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.barYOffsetKB = value
                     end
-                    local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.RefreshLayoutConstants()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true })
+                    local _, locked = GetActiveWeaponPairInfo()
+                    RefreshBarLayout(locked)
                     if not FancyActionBar.wasMoved then
                         FancyActionBar.ResetMoveActionBar()
                         FancyActionBar.RepositionElements()
@@ -2919,9 +3777,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     else
                         SV.abilitySlotOffsetXKB = value
                     end
-                    local _, locked = GetActiveWeaponPairInfo()
                     FancyActionBar.RefreshLayoutConstants()
-                    FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked, { layoutOnly = true, refreshButtons = true })
+                    FancyActionBar.SetupButtons(FancyActionBar.constants.style)
+                    local _, locked = GetActiveWeaponPairInfo()
+                    RefreshBarLayout(locked)
                 end,
                 width = "half",
             },
@@ -2973,6 +3832,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.frontBarTop = value or false
+                            local _, locked = GetActiveWeaponPairInfo()
+                            RefreshBarLayout(locked)
                         end,
                         width = "half",
                     },
@@ -2989,6 +3850,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.activeBarTop = value or false
+                            local _, locked = GetActiveWeaponPairInfo()
+                            RefreshBarLayout(locked)
                         end,
                         width = "half",
                     },
@@ -3167,10 +4030,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         getFunc = function ()
                             return SV.overlayBgAlphaActive
                         end,
-                        setFunc = function (value)
+                        setFunc = overlayVisualSetting(function (value)
                             SV.overlayBgAlphaActive = value
-                            FancyActionBar.PaintAbilityOverlays()
-                        end,
+                        end),
                         width = "half",
                     },
                     { type = "description", text = "", width = "full" },
@@ -3193,10 +4055,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         getFunc = function ()
                             return SV.alphaInactive
                         end,
-                        setFunc = function (value)
+                        setFunc = overlayVisualSetting(function (value)
                             SV.alphaInactive = value
-                            FancyActionBar.PaintAbilityOverlays()
-                        end,
+                        end),
                         width = "half",
                     },
                     {
@@ -3210,10 +4071,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         getFunc = function ()
                             return SV.desaturationInactive
                         end,
-                        setFunc = function (value)
+                        setFunc = overlayVisualSetting(function (value)
                             SV.desaturationInactive = value
-                            FancyActionBar.PaintAbilityOverlays()
-                        end,
+                        end),
                         width = "half",
                     },
                     {
@@ -3224,10 +4084,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         getFunc = function ()
                             return unpack(SV.tintInactive)
                         end,
-                        setFunc = function (r, g, b, a)
+                        setFunc = overlayVisualSetting(function (r, g, b, a)
                             SV.tintInactive = { r, g, b, a }
-                            FancyActionBar.PaintAbilityOverlays()
-                        end,
+                        end),
                         width = "half",
                     },
                     {
@@ -3241,10 +4100,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         getFunc = function ()
                             return SV.overlayBgAlphaInactive
                         end,
-                        setFunc = function (value)
+                        setFunc = overlayVisualSetting(function (value)
                             SV.overlayBgAlphaInactive = value
-                            FancyActionBar.PaintAbilityOverlays()
-                        end,
+                        end),
                         width = "half",
                     },
                     { type = "description", text = "", width = "full" },
@@ -3339,10 +4197,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     getFunc = function ()
                         return SV.overlayFrameAlphaActive
                     end,
-                    setFunc = function (value)
+                    setFunc = overlayVisualSetting(function (value)
                         SV.overlayFrameAlphaActive = value
-                        FancyActionBar.PaintAbilityOverlays()
-                    end,
+                    end),
                     width = "half",
                 },
                 {
@@ -3359,10 +4216,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     getFunc = function ()
                         return SV.overlayFrameAlphaInactive
                     end,
-                    setFunc = function (value)
+                    setFunc = overlayVisualSetting(function (value)
                         SV.overlayFrameAlphaInactive = value
-                        FancyActionBar.PaintAbilityOverlays()
-                    end,
+                    end),
                     width = "half",
                 },
             }
@@ -3573,7 +4429,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.useDefaultWeaponSwap = value or false
-                    FancyActionBar.UpdateBarSettings(nil, { quickslot = true })
+                    FancyActionBar.RefreshAdjacentSlots()
                 end,
                 width = "half",
             },
@@ -3608,7 +4464,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 end,
                 setFunc = function (value)
                     SV.centerDefaultWeaponSwap = value or false
-                    FancyActionBar.UpdateBarSettings(nil, { quickslot = true })
+                    FancyActionBar.RefreshAdjacentSlots()
                 end,
                 width = "half",
             },
@@ -3682,7 +4538,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 setFunc = function (value)
                     SV.showHotkeysUltGP = value or false
                     FancyActionBar.HideHotkeys(not SV.showHotkeys)
-                    FancyActionBar.RefreshUltimateSlots()
+                    FancyActionBar.RefreshAdjacentSlots()
                 end,
                 disabled = function ()
                     return FancyActionBar.style ~= 2
@@ -3742,10 +4598,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 getFunc = function ()
                     return SV.hideInactiveSlots
                 end,
-                setFunc = function (value)
+                setFunc = geometrySetting(function (value)
                     SV.hideInactiveSlots = value or false
-                    FancyActionBar.PaintAbilityOverlays()
-                end,
+                end),
                 width = "full"
             },
             -- =============[  Skill Styles  ]==================
@@ -3758,16 +4613,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     return SV.applyActionBarSkillStyles
                 end,
                 setFunc = function (value)
-                    local wasEnabled = SV.applyActionBarSkillStyles
                     SV.applyActionBarSkillStyles = value or false
-                    if wasEnabled and not SV.applyActionBarSkillStyles then
-                        FancyActionBar.ResetActiveBarSkillStyles()
-                        FancyActionBar.PaintAbilityOverlays()
-                        FancyActionBar.RefreshActiveBarIconVisuals()
-                    elseif SV.applyActionBarSkillStyles then
-                        FancyActionBar.PaintAbilityOverlays()
-                        FancyActionBar.RefreshActiveBarIconVisuals()
-                    end
+                    FancyActionBar.ResetActiveBarSkillStyles()
                 end,
                 width = "full",
             },
@@ -7662,6 +8509,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         if panel == FAB_Panel then
             if not settingsPageCreated then
                 settingsPageCreated = true
+                EnsureUserUIPresets()
+                UpdateUIPresetControls()
             end
         end
     end)
@@ -7841,7 +8690,7 @@ function FancyActionBar.ConfigureFrames()
         ToggleFrameType()
     end
     FancyActionBar.SetUltFrameAlpha()
-    FancyActionBar.PaintAbilityOverlays()
+    FancyActionBar.RefreshHotbarPresentation(nil, false)
 end
 
 function FancyActionBar.SetFrameColor()
