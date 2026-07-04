@@ -13,7 +13,8 @@ local registeredDebuffStackEvents = {}
 local function ShouldClearStacksOnTargetChange(abilityId)
     if not abilityId then return true end
     if FancyActionBar.fixedStacks[abilityId] then return true end
-    if FancyActionBar.stackMap[abilityId] or FancyActionBar.debuffStackMap[abilityId] then return true end
+    local debuffStackMap = FancyActionBar.debuffStackMap
+    if FancyActionBar.stackMap[abilityId] or (debuffStackMap and debuffStackMap[abilityId]) then return true end
     local members, sourceId = FancyActionBar.GetStackMap(abilityId, "debuff")
     if not sourceId then
         members, sourceId = FancyActionBar.GetStackMap(abilityId)
@@ -25,7 +26,7 @@ local function ShouldClearStacksOnTargetChange(abilityId)
         if memberEffect and not memberEffect.isDebuff then
             return false
         end
-        if FancyActionBar.stackMap[memberId] and not FancyActionBar.debuffStackMap[memberId] then
+        if FancyActionBar.stackMap[memberId] and not (debuffStackMap and debuffStackMap[memberId]) then
             return false
         end
     end
@@ -153,7 +154,8 @@ local function ClearTargetEffects()
     for effectId, effect in pairs(FancyActionBar.effects) do
         if effect and effect.isDebuff then
             if effect.stacks and effect.stacks ~= 0 then
-                FancyActionBar.SetStacks(effect.id, 0, true)
+                local debuffStackMap = FancyActionBar.debuffStackMap
+                FancyActionBar.SetStacks(effect.id, 0, true, debuffStackMap and debuffStackMap[effect.id] and "debuff" or nil)
             end
             effect.endTime = t
         end
@@ -215,9 +217,9 @@ function FancyActionBar.UpdateDebuff(debuff, stacks, sourceAbilityId)
     effect.hasActiveCast = debuff.hasActiveCast or false
 
     if not FancyActionBar.specialEffects[debuff.id] then
-        local sources = FancyActionBar.GetStackMap(effect.id, "debuff")
+        local sources, _, stackOwnerId = FancyActionBar.GetStackMap(effect.id, "debuff")
         effect.stackSources = sources
-        effect.stackOwnerId = select(3, FancyActionBar.GetStackMap(effect.id, "debuff"))
+        effect.stackOwnerId = stackOwnerId
     end
 
     local nextStacks
@@ -230,7 +232,8 @@ function FancyActionBar.UpdateDebuff(debuff, stacks, sourceAbilityId)
     end
     if nextStacks ~= nil then
         effect.stacks = nextStacks
-        FancyActionBar.SetStacks(effect.id, nextStacks, true)
+        local debuffStackMap = FancyActionBar.debuffStackMap
+        FancyActionBar.SetStacks(effect.id, nextStacks, true, debuffStackMap and debuffStackMap[effect.id] and "debuff" or nil)
     end
 
     FancyActionBar.effects[debuff.id] = effect
@@ -351,8 +354,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
             debuff.stackSources = newSources
         end
     else
-        local sources = FancyActionBar.GetStackMap(debuff.id, "debuff")
-        debuff.stackSources = sources
+        debuff.stackSources = FancyActionBar.GetStackMap(debuff.id, "debuff")
     end
 
     if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then
@@ -368,7 +370,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
             if specialEffect.stacks then
                 stackCount = specialEffect.stacks
             end
-        elseif (stackCount and stackCount > 0) or FancyActionBar.IsStackMapMember(abilityId) then
+        elseif stackCount ~= nil or FancyActionBar.IsStackMapMember(abilityId) then
             FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
         end
 
@@ -383,7 +385,10 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
             FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey, abilityType)
         end
 
-        if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
+        local debuffStackMap = FancyActionBar.debuffStackMap
+        if debuffStackMap and debuffStackMap[debuff.id] and stackCount ~= nil then
+            FancyActionBar.UpdateDebuff(debuff, stackCount, abilityId)
+        elseif (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) or (debuff.duration > FancyActionBar.durationMin) then
             FancyActionBar.UpdateDebuff(debuff, stackCount, abilityId)
         end
     elseif (change == EFFECT_RESULT_FADED) then

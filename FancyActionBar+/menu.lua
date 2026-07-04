@@ -248,7 +248,7 @@ for _, groupKeys in pairs(presetOptionalIncludeGroups) do
     end
 end
 
-local function CopyPresetValue(value)
+function FancyActionBar.CopyPresetValue(value)
     if type(value) == "table" then
         return ZO_DeepTableCopy(value)
     end
@@ -256,7 +256,7 @@ local function CopyPresetValue(value)
     return value
 end
 
-local function InferPresetIncludes(settings)
+function FancyActionBar.InferPresetIncludes(settings)
     local includes = {}
 
     if type(settings) ~= "table" then
@@ -275,7 +275,7 @@ local function InferPresetIncludes(settings)
     return includes
 end
 
-local function PresetHasStoredAbilityData(settings, includes)
+function FancyActionBar.PresetHasStoredAbilityData(settings, includes)
     if type(settings) ~= "table" or type(includes) ~= "table" then
         return false
     end
@@ -319,7 +319,7 @@ function FancyActionBar.GetFonts()
     return fonts
 end
 
-local function EnsureUserUIPresets()
+function FancyActionBar.EnsureUserUIPresets()
     FancyActionBar.EnsureUserUIPresetsStored(SV)
 
     for presetId, preset in pairs(SV.userUIPresets) do
@@ -335,7 +335,7 @@ local function EnsureUserUIPresets()
             end
 
             if type(preset.includes) ~= "table" then
-                preset.includes = InferPresetIncludes(preset.settings)
+                preset.includes = FancyActionBar.InferPresetIncludes(preset.settings)
             end
         end
     end
@@ -348,7 +348,7 @@ function FancyActionBar.GetPresets()
         table.insert(presets, preset[1])
     end
 
-    EnsureUserUIPresets()
+    FancyActionBar.EnsureUserUIPresets()
 
     local userPresets = {}
     for presetId, preset in pairs(SV.userUIPresets) do
@@ -373,7 +373,7 @@ function FancyActionBar.GetPresets()
     return presets
 end
 
-local function GetCharacterScopedSavedVarsForPreset()
+function FancyActionBar.GetCharacterScopedSavedVarsForPreset()
     if CV.useAccountWide then
         return SV
     end
@@ -385,15 +385,15 @@ local characterScopedPresetGroups =
     abilityConfig = true,
 }
 
-local function GetPresetSavedVarsForGroup(groupName)
+function FancyActionBar.GetPresetSavedVarsForGroup(groupName)
     if characterScopedPresetGroups[groupName] then
-        return GetCharacterScopedSavedVarsForPreset()
+        return FancyActionBar.GetCharacterScopedSavedVarsForPreset()
     end
 
     return SV
 end
 
-local function GetPresetDefaultValue(key, groupName)
+function FancyActionBar.GetPresetDefaultValue(key, groupName)
     if characterScopedPresetGroups[groupName] and FancyActionBar.defaultCharacter[key] ~= nil then
         return FancyActionBar.defaultCharacter[key]
     end
@@ -401,7 +401,7 @@ local function GetPresetDefaultValue(key, groupName)
     return FancyActionBar.defaultSettings[key]
 end
 
-local function PresetValuesEqual(left, right)
+function FancyActionBar.PresetValuesEqual(left, right)
     if left == right then
         return true
     end
@@ -411,13 +411,13 @@ local function PresetValuesEqual(left, right)
     end
 
     for key, leftValue in pairs(left) do
-        if not PresetValuesEqual(leftValue, right[key]) then
+        if not FancyActionBar.PresetValuesEqual(leftValue, right[key]) then
             return false
         end
     end
 
     for key, rightValue in pairs(right) do
-        if left[key] == nil and not PresetValuesEqual(nil, rightValue) then
+        if left[key] == nil and not FancyActionBar.PresetValuesEqual(nil, rightValue) then
             return false
         end
     end
@@ -425,13 +425,13 @@ local function PresetValuesEqual(left, right)
     return true
 end
 
-local function StorePresetValueIfDifferent(settings, key, value, groupName)
-    if not PresetValuesEqual(value, GetPresetDefaultValue(key, groupName)) then
-        settings[key] = CopyPresetValue(value)
+function FancyActionBar.StorePresetValueIfDifferent(settings, key, value, groupName)
+    if not FancyActionBar.PresetValuesEqual(value, FancyActionBar.GetPresetDefaultValue(key, groupName)) then
+        settings[key] = FancyActionBar.CopyPresetValue(value)
     end
 end
 
-local function GetUniqueUIPresetName(presetName, ignoredPresetId)
+function FancyActionBar.GetUniqueUIPresetName(presetName, ignoredPresetId)
     local trimmedName = type(presetName) == "string" and presetName:match("^%s*(.-)%s*$") or ""
     local candidateName
     local suffix = 2
@@ -466,11 +466,11 @@ local function GetUniqueUIPresetName(presetName, ignoredPresetId)
     return candidateName
 end
 
-local function GetUserUIPresetChoices()
+function FancyActionBar.GetUserUIPresetChoices()
     local choices = {}
     local sortedPresets = {}
 
-    EnsureUserUIPresets()
+    FancyActionBar.EnsureUserUIPresets()
 
     for presetId, preset in pairs(SV.userUIPresets) do
         table.insert(sortedPresets, { id = presetId, name = preset.name })
@@ -494,7 +494,7 @@ local function GetUserUIPresetChoices()
     return choices
 end
 
-local function GetSelectedUserUIPresetName()
+function FancyActionBar.GetSelectedUserUIPresetName()
     if selectedUserUIPresetId == nil then
         return ""
     end
@@ -508,7 +508,7 @@ local function GetSelectedUserUIPresetName()
     return preset.name
 end
 
-local function SetSelectedUserUIPreset(presetName)
+function FancyActionBar.SetSelectedUserUIPreset(presetName)
     selectedUserUIPresetId = nil
 
     for presetId, preset in pairs(SV.userUIPresets) do
@@ -521,7 +521,7 @@ local function SetSelectedUserUIPreset(presetName)
     renameUIPresetName = presetName or ""
 end
 
-local function UpdateUIPresetControls()
+function FancyActionBar.UpdateUIPresetControls()
     if IsConsoleUI() then
         return
     end
@@ -534,8 +534,8 @@ local function UpdateUIPresetControls()
 
     local manageDropdown = WM:GetControlByName("UI_Preset_Manage_Dropdown")
     if manageDropdown then
-        manageDropdown:UpdateChoices(GetUserUIPresetChoices())
-        manageDropdown.dropdown:SetSelectedItem(GetSelectedUserUIPresetName())
+        manageDropdown:UpdateChoices(FancyActionBar.GetUserUIPresetChoices())
+        manageDropdown.dropdown:SetSelectedItem(FancyActionBar.GetSelectedUserUIPresetName())
     end
 
     local newPresetEditbox = WM:GetControlByName("New_UI_Preset_Editbox")
@@ -549,7 +549,7 @@ local function UpdateUIPresetControls()
     end
 end
 
-local function CaptureCurrentUIPresetSettings()
+function FancyActionBar.CaptureCurrentUIPresetSettings()
     local settings = {}
     local includes = {}
     local includeOptions =
@@ -563,7 +563,7 @@ local function CaptureCurrentUIPresetSettings()
 
     for key in pairs(FancyActionBar.defaultSettings) do
         if not presetAlwaysIgnoreKeys[key] and not presetOptionalKeys[key] then
-            StorePresetValueIfDifferent(settings, key, SV[key])
+            FancyActionBar.StorePresetValueIfDifferent(settings, key, SV[key])
         end
     end
 
@@ -571,10 +571,10 @@ local function CaptureCurrentUIPresetSettings()
         includes[groupName] = includeOptions[groupName] or false
 
         if includeOptions[groupName] then
-            local sourceVars = GetPresetSavedVarsForGroup(groupName)
+            local sourceVars = FancyActionBar.GetPresetSavedVarsForGroup(groupName)
 
             for key in pairs(groupKeys) do
-                StorePresetValueIfDifferent(settings, key, sourceVars[key], groupName)
+                FancyActionBar.StorePresetValueIfDifferent(settings, key, sourceVars[key], groupName)
             end
         end
     end
@@ -586,31 +586,31 @@ local function CaptureCurrentUIPresetSettings()
     }
 end
 
-local function ApplyUserUIPresetSettings(settings, includes, applyAbilityData)
+function FancyActionBar.ApplyUserUIPresetSettings(settings, includes, applyAbilityData)
     for key, defaultValue in pairs(FancyActionBar.defaultSettings) do
         if not presetAlwaysIgnoreKeys[key] and not presetOptionalKeys[key] then
             local value = settings[key]
             if value == nil then
                 value = defaultValue
             end
-            SV[key] = CopyPresetValue(value)
+            SV[key] = FancyActionBar.CopyPresetValue(value)
         end
     end
 
     for groupName, groupKeys in pairs(presetOptionalIncludeGroups) do
         if includes[groupName] and applyAbilityData then
-            local targetVars = GetPresetSavedVarsForGroup(groupName)
+            local targetVars = FancyActionBar.GetPresetSavedVarsForGroup(groupName)
 
             for key in pairs(groupKeys) do
                 if settings[key] ~= nil then
-                    targetVars[key] = CopyPresetValue(settings[key])
+                    targetVars[key] = FancyActionBar.CopyPresetValue(settings[key])
                 end
             end
         end
     end
 end
 
-local function GetBuiltInPresetData(presetName)
+function FancyActionBar.GetBuiltInPresetData(presetName)
     for _, preset in ipairs(builtInUIPresets) do
         if preset[1] == presetName then
             return preset[2]
@@ -618,8 +618,8 @@ local function GetBuiltInPresetData(presetName)
     end
 end
 
-local function GetUserUIPresetByName(presetName)
-    EnsureUserUIPresets()
+function FancyActionBar.GetUserUIPresetByName(presetName)
+    FancyActionBar.EnsureUserUIPresets()
 
     for presetId, preset in pairs(SV.userUIPresets) do
         if preset.name == presetName then
@@ -633,25 +633,25 @@ local function GetUserUIPresetByName(presetName)
     end
 end
 
-local function SelectedPresetIncludesAbilityData()
+function FancyActionBar.SelectedPresetIncludesAbilityData()
     if builtInUIPresetNames[selectedPresetName] then
         return false
     end
 
-    local presetInfo = GetUserUIPresetByName(selectedPresetName)
+    local presetInfo = FancyActionBar.GetUserUIPresetByName(selectedPresetName)
     if presetInfo == nil then
         return false
     end
 
-    return PresetHasStoredAbilityData(presetInfo.settings, presetInfo.includes)
+    return FancyActionBar.PresetHasStoredAbilityData(presetInfo.settings, presetInfo.includes)
 end
 
-local function IsSaveUIPresetDisabled()
+function FancyActionBar.IsSaveUIPresetDisabled()
     return (newUIPresetName:match("^%s*(.-)%s*$") or "") == ""
 end
 
-local function SaveCurrentUIPreset()
-    EnsureUserUIPresets()
+function FancyActionBar.SaveCurrentUIPreset()
+    FancyActionBar.EnsureUserUIPresets()
 
     local trimmedName = newUIPresetName:match("^%s*(.-)%s*$") or ""
     if trimmedName == "" then
@@ -673,7 +673,7 @@ local function SaveCurrentUIPreset()
 
     local presetName = trimmedName
     if presetId == nil then
-        presetName = GetUniqueUIPresetName(trimmedName)
+        presetName = FancyActionBar.GetUniqueUIPresetName(trimmedName)
         if presetName == nil then
             return
         end
@@ -685,7 +685,7 @@ local function SaveCurrentUIPreset()
         SV.nextUIPresetId = presetId + 1
     end
 
-    local capturedPreset = CaptureCurrentUIPresetSettings()
+    local capturedPreset = FancyActionBar.CaptureCurrentUIPresetSettings()
     local userUIPresets = FancyActionBar.EnsureUserUIPresetsStored(SV)
 
     userUIPresets[presetId] =
@@ -699,11 +699,11 @@ local function SaveCurrentUIPreset()
     selectedUserUIPresetId = presetId
     renameUIPresetName = presetName
     CHAT_ROUTER:AddSystemMessage("Saved UI preset: " .. presetName)
-    UpdateUIPresetControls()
+    FancyActionBar.UpdateUIPresetControls()
 end
 
-local function RenameSelectedUIPreset()
-    EnsureUserUIPresets()
+function FancyActionBar.RenameSelectedUIPreset()
+    FancyActionBar.EnsureUserUIPresets()
 
     if selectedUserUIPresetId == nil then
         return
@@ -714,7 +714,7 @@ local function RenameSelectedUIPreset()
         return
     end
 
-    local presetName, failureReason = GetUniqueUIPresetName(renameUIPresetName, selectedUserUIPresetId)
+    local presetName, failureReason = FancyActionBar.GetUniqueUIPresetName(renameUIPresetName, selectedUserUIPresetId)
     if presetName == nil then
         if failureReason == "reserved" then
             CHAT_ROUTER:AddSystemMessage("That preset name is reserved for a built-in preset.")
@@ -725,11 +725,11 @@ local function RenameSelectedUIPreset()
     preset.name = presetName
     renameUIPresetName = presetName
     CHAT_ROUTER:AddSystemMessage("Renamed UI preset to: " .. presetName)
-    UpdateUIPresetControls()
+    FancyActionBar.UpdateUIPresetControls()
 end
 
-local function DeleteSelectedUIPreset()
-    EnsureUserUIPresets()
+function FancyActionBar.DeleteSelectedUIPreset()
+    FancyActionBar.EnsureUserUIPresets()
 
     if selectedUserUIPresetId == nil then
         return
@@ -750,10 +750,10 @@ local function DeleteSelectedUIPreset()
     end
 
     CHAT_ROUTER:AddSystemMessage("Deleted UI preset: " .. deletedName)
-    UpdateUIPresetControls()
+    FancyActionBar.UpdateUIPresetControls()
 end
 
-local function IsManageUIPresetDisabled()
+function FancyActionBar.IsManageUIPresetDisabled()
     return selectedUserUIPresetId == nil
 end
 
@@ -777,7 +777,7 @@ end
 --- @return string font
 --- @return integer size
 --- @return string outline
-local function GetCurrentFont()
+function FancyActionBar.GetCurrentFont()
     local c = FancyActionBar.constants.duration
     return c.font, c.size, c.outline
 end
@@ -786,7 +786,7 @@ end
 --- @return string font
 --- @return integer size
 --- @return string outline
-local function GetCurrentStackFont()
+function FancyActionBar.GetCurrentStackFont()
     local c = FancyActionBar.constants.stacks
     return c.font, c.size, c.outline
 end
@@ -795,7 +795,7 @@ end
 --- @return string font
 --- @return integer size
 --- @return string outline
-local function GetCurrentTargetFont()
+function FancyActionBar.GetCurrentTargetFont()
     local c = FancyActionBar.constants.targets
     return c.font, c.size, c.outline
 end
@@ -807,7 +807,7 @@ end
 --- @return string stackFont
 --- @return integer stackSize
 --- @return string stackOutline
-local function GetCurrentQuickSlotTimerFont()
+function FancyActionBar.GetCurrentQuickSlotTimerFont()
     local c = FancyActionBar.constants.qs
     return c.font, c.size, c.outline, c.stackFont, c.stackSize, c.stackOutline
 end
@@ -816,7 +816,7 @@ end
 --- @return string font
 --- @return integer size
 --- @return string outline
-local function GetCurrentUltFont()
+function FancyActionBar.GetCurrentUltFont()
     local c = FancyActionBar.constants.ult.duration
     return c.font, c.size, c.outline
 end
@@ -825,7 +825,7 @@ end
 --- @return string font
 --- @return integer size
 --- @return string outline
-local function GetCurrentUltValueFont()
+function FancyActionBar.GetCurrentUltValueFont()
     local c = FancyActionBar.constants.ult.value
     return c.font, c.size, c.outline
 end
@@ -1567,7 +1567,7 @@ local function SetChangedSkillToEdit(string)
     end
 end
 
-local function RefreshEffectWidgetChoices()
+function FancyActionBar.RefreshEffectWidgetChoices()
     local widgets = SV.effectWidgets
     effectWidgetNames = { "== Select a Widget ==" }
     effectWidgetNameById = {}
@@ -1597,15 +1597,15 @@ local function RefreshEffectWidgetChoices()
     end
 end
 
-local function GetEffectWidgetAbilityId()
+function FancyActionBar.GetEffectWidgetAbilityId()
     return effectWidgetAbilityId > 0 and tostring(effectWidgetAbilityId) or ""
 end
 
-local function GetEffectWidgetAbilityName()
+function FancyActionBar.GetEffectWidgetAbilityName()
     return effectWidgetAbilityName ~= "" and "|cffa31a" .. effectWidgetAbilityName .. "|r" or ""
 end
 
-local function RefreshEffectWidgetSettingControls()
+function FancyActionBar.RefreshEffectWidgetSettingControls()
     if IsConsoleUI() then
         return
     end
@@ -1617,7 +1617,7 @@ local function RefreshEffectWidgetSettingControls()
     end
 end
 
-local function RefreshEffectWidgetDropdownSelection(updateChoices)
+function FancyActionBar.RefreshEffectWidgetDropdownSelection(updateChoices)
     
     if not IsConsoleUI() then
         local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
@@ -1628,7 +1628,7 @@ local function RefreshEffectWidgetDropdownSelection(updateChoices)
     end
 end
 
-local function ApplyEffectWidgetState(widget)
+function FancyActionBar.ApplyEffectWidgetState(widget)
     if not widget then
         return
     end
@@ -1639,7 +1639,7 @@ local function ApplyEffectWidgetState(widget)
     effectWidgetExternalOnly = widget.externalOnly == true
 end
 
-local function SetEffectWidgetAbilityId(value)
+function FancyActionBar.SetEffectWidgetAbilityId(value)
     if value == "" or not IsValidId(value) then
         if value ~= "" then
             CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid ID.")
@@ -1649,8 +1649,8 @@ local function SetEffectWidgetAbilityId(value)
         effectWidgetAbilityName = ""
         effectWidgetAllowExternal = false
         effectWidgetExternalOnly = false
-        RefreshEffectWidgetDropdownSelection(false)
-        RefreshEffectWidgetSettingControls()
+        FancyActionBar.RefreshEffectWidgetDropdownSelection(false)
+        FancyActionBar.RefreshEffectWidgetSettingControls()
         return
     end
 
@@ -1661,22 +1661,22 @@ local function SetEffectWidgetAbilityId(value)
     local widget = SV.effectWidgets[id]
     if widget then
         selectedEffectWidget = id
-        ApplyEffectWidgetState(widget)
+        FancyActionBar.ApplyEffectWidgetState(widget)
     else
         selectedEffectWidget = 0
         effectWidgetAllowExternal = false
         effectWidgetExternalOnly = false
     end
 
-    RefreshEffectWidgetDropdownSelection(false)
-    RefreshEffectWidgetSettingControls()
+    FancyActionBar.RefreshEffectWidgetDropdownSelection(false)
+    FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
-local function GetSelectedEffectWidgetName()
+function FancyActionBar.GetSelectedEffectWidgetName()
     return effectWidgetNameById[selectedEffectWidget] or "== Select a Widget =="
 end
 
-local function SetSelectedEffectWidget(value)
+function FancyActionBar.SetSelectedEffectWidget(value)
     if not value or value == "" or value == "== Select a Widget ==" then
         selectedEffectWidget = 0
     else
@@ -1685,13 +1685,13 @@ local function SetSelectedEffectWidget(value)
             selectedEffectWidget = abilityId
             effectWidgetAbilityId = abilityId
             effectWidgetAbilityName = GetAbilityName(abilityId)
-            ApplyEffectWidgetState(SV.effectWidgets[abilityId])
+            FancyActionBar.ApplyEffectWidgetState(SV.effectWidgets[abilityId])
         end
     end
-    RefreshEffectWidgetSettingControls()
+    FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
-local function GetCurrentEffectWidgetId()
+function FancyActionBar.GetCurrentEffectWidgetId()
     if selectedEffectWidget ~= 0 then
         return selectedEffectWidget
     end
@@ -1701,28 +1701,28 @@ local function GetCurrentEffectWidgetId()
     return 0
 end
 
-local function GetCurrentEffectWidget()
-    local abilityId = GetCurrentEffectWidgetId()
+function FancyActionBar.GetCurrentEffectWidget()
+    local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId == 0 then
         return 0, nil
     end
     return abilityId, SV.effectWidgets[abilityId]
 end
 
-local function IsEffectWidgetActionDisabled()
-    return GetCurrentEffectWidgetId() == 0
+function FancyActionBar.IsEffectWidgetActionDisabled()
+    return FancyActionBar.GetCurrentEffectWidgetId() == 0
 end
 
-local function GetCurrentEffectWidgetScale()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetCurrentEffectWidgetScale()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if widget then
         return tonumber(widget.scale) or 1
     end
     return tonumber(effectWidgetScale) or 1
 end
 
-local function GetCurrentEffectWidgetActiveAlpha()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetCurrentEffectWidgetActiveAlpha()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if widget then
         local value = tonumber(widget.activeAlpha)
         if value then
@@ -1732,8 +1732,8 @@ local function GetCurrentEffectWidgetActiveAlpha()
     return zo_clamp(tonumber(effectWidgetActiveAlpha) or effectWidgetActiveAlphaDefault, 0, 1)
 end
 
-local function GetCurrentEffectWidgetInactiveAlpha()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetCurrentEffectWidgetInactiveAlpha()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if widget then
         local value = tonumber(widget.inactiveAlpha)
         if value then
@@ -1743,7 +1743,7 @@ local function GetCurrentEffectWidgetInactiveAlpha()
     return zo_clamp(tonumber(effectWidgetInactiveAlpha) or effectWidgetInactiveAlphaDefault, 0, 1)
 end
 
-local function SetEffectWidgetScaleValue(value)
+function FancyActionBar.SetEffectWidgetScaleValue(value)
     local scale
     if value == "" then
         scale = 1
@@ -1757,7 +1757,7 @@ local function SetEffectWidgetScaleValue(value)
 
     effectWidgetScale = scale
 
-    local abilityId, widget = GetCurrentEffectWidget()
+    local abilityId, widget = FancyActionBar.GetCurrentEffectWidget()
     if abilityId ~= 0 and widget then
         widget.scale = scale
         local control = FancyActionBar.effectWidgetControls[abilityId]
@@ -1767,7 +1767,7 @@ local function SetEffectWidgetScaleValue(value)
     end
 end
 
-local function SetEffectWidgetActiveAlphaValue(value)
+function FancyActionBar.SetEffectWidgetActiveAlphaValue(value)
     local alpha
     if value == "" then
         alpha = effectWidgetActiveAlphaDefault
@@ -1782,7 +1782,7 @@ local function SetEffectWidgetActiveAlphaValue(value)
     alpha = zo_clamp(alpha, 0, 1)
     effectWidgetActiveAlpha = alpha
 
-    local abilityId, widget = GetCurrentEffectWidget()
+    local abilityId, widget = FancyActionBar.GetCurrentEffectWidget()
     if abilityId ~= 0 and widget then
         widget.activeAlpha = alpha
         local control = FancyActionBar.effectWidgetControls[abilityId]
@@ -1792,7 +1792,7 @@ local function SetEffectWidgetActiveAlphaValue(value)
     end
 end
 
-local function SetEffectWidgetInactiveAlphaValue(value)
+function FancyActionBar.SetEffectWidgetInactiveAlphaValue(value)
     local alpha
     if value == "" then
         alpha = effectWidgetInactiveAlphaDefault
@@ -1807,7 +1807,7 @@ local function SetEffectWidgetInactiveAlphaValue(value)
     alpha = zo_clamp(alpha, 0, 1)
     effectWidgetInactiveAlpha = alpha
 
-    local abilityId, widget = GetCurrentEffectWidget()
+    local abilityId, widget = FancyActionBar.GetCurrentEffectWidget()
     if abilityId ~= 0 and widget then
         widget.inactiveAlpha = alpha
         local control = FancyActionBar.effectWidgetControls[abilityId]
@@ -1817,29 +1817,29 @@ local function SetEffectWidgetInactiveAlphaValue(value)
     end
 end
 
-local function GetCurrentEffectWidgetX()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetCurrentEffectWidgetX()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if widget and widget.x then
         return tonumber(widget.x)
     end
     return 0
 end
 
-local function GetCurrentEffectWidgetY()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetCurrentEffectWidgetY()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if widget and widget.y then
         return tonumber(widget.y)
     end
     return 0
 end
 
-local function SetEffectWidgetXValue(value)
+function FancyActionBar.SetEffectWidgetXValue(value)
     local x = tonumber(value)
     if x == nil then
         CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget X position.")
         return
     end
-    local abilityId, widget = GetCurrentEffectWidget()
+    local abilityId, widget = FancyActionBar.GetCurrentEffectWidget()
     if abilityId == 0 or not widget then return end
     widget.x = x
     local control = FancyActionBar.effectWidgetControls[abilityId]
@@ -1852,13 +1852,13 @@ local function SetEffectWidgetXValue(value)
     end
 end
 
-local function SetEffectWidgetYValue(value)
+function FancyActionBar.SetEffectWidgetYValue(value)
     local y = tonumber(value)
     if y == nil then
         CHAT_ROUTER:AddSystemMessage("|cffffff" .. tostring(value) .. " is not a valid widget Y position.")
         return
     end
-    local abilityId, widget = GetCurrentEffectWidget()
+    local abilityId, widget = FancyActionBar.GetCurrentEffectWidget()
     if abilityId == 0 or not widget then return end
     widget.y = y
     local control = FancyActionBar.effectWidgetControls[abilityId]
@@ -1871,8 +1871,8 @@ local function SetEffectWidgetYValue(value)
     end
 end
 
-local function AddOrUpdateEffectWidget()
-    local abilityId = GetCurrentEffectWidgetId()
+function FancyActionBar.AddOrUpdateEffectWidget()
+    local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId == 0 then
         return
     end
@@ -1903,13 +1903,13 @@ local function AddOrUpdateEffectWidget()
     effectWidgetInactiveAlpha = inactiveAlpha
     effectWidgetAllowExternal = allowExternal
     effectWidgetExternalOnly = externalOnly
-    RefreshEffectWidgetChoices()
-    RefreshEffectWidgetDropdownSelection(true)
-    RefreshEffectWidgetSettingControls()
+    FancyActionBar.RefreshEffectWidgetChoices()
+    FancyActionBar.RefreshEffectWidgetDropdownSelection(true)
+    FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
-local function RemoveSelectedEffectWidget()
-    local abilityId = GetCurrentEffectWidgetId()
+function FancyActionBar.RemoveSelectedEffectWidget()
+    local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId == 0 then
         return
     end
@@ -1923,26 +1923,26 @@ local function RemoveSelectedEffectWidget()
     effectWidgetInactiveAlpha = effectWidgetInactiveAlphaDefault
     effectWidgetAllowExternal = false
     effectWidgetExternalOnly = false
-    RefreshEffectWidgetChoices()
-    RefreshEffectWidgetDropdownSelection(true)
-    RefreshEffectWidgetSettingControls()
+    FancyActionBar.RefreshEffectWidgetChoices()
+    FancyActionBar.RefreshEffectWidgetDropdownSelection(true)
+    FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
-local function GetSelectedEffectWidgetAllowExternal()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetSelectedEffectWidgetAllowExternal()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if not widget then
         return effectWidgetAllowExternal == true
     end
     return widget.allowExternal == true
 end
 
-local function SetSelectedEffectWidgetAllowExternal(value)
+function FancyActionBar.SetSelectedEffectWidgetAllowExternal(value)
     effectWidgetAllowExternal = value == true
     if not effectWidgetAllowExternal then
         effectWidgetExternalOnly = false
     end
 
-    local abilityId = GetCurrentEffectWidgetId()
+    local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId ~= 0 then
         local widget = SV.effectWidgets[abilityId]
         if widget then
@@ -1953,24 +1953,24 @@ local function SetSelectedEffectWidgetAllowExternal(value)
             FancyActionBar.SetExternalBuffTracking()
         end
     end
-    RefreshEffectWidgetSettingControls()
+    FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
-local function GetSelectedEffectWidgetExternalOnly()
-    local _, widget = GetCurrentEffectWidget()
+function FancyActionBar.GetSelectedEffectWidgetExternalOnly()
+    local _, widget = FancyActionBar.GetCurrentEffectWidget()
     if not widget then
         return effectWidgetExternalOnly == true
     end
     return widget.externalOnly == true
 end
 
-local function SetSelectedEffectWidgetExternalOnly(value)
+function FancyActionBar.SetSelectedEffectWidgetExternalOnly(value)
     effectWidgetExternalOnly = value == true
     if effectWidgetExternalOnly then
         effectWidgetAllowExternal = true
     end
 
-    local abilityId = GetCurrentEffectWidgetId()
+    local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId ~= 0 then
         local widget = SV.effectWidgets[abilityId]
         if widget then
@@ -1981,14 +1981,14 @@ local function SetSelectedEffectWidgetExternalOnly(value)
             FancyActionBar.SetExternalBuffTracking()
         end
     end
-    RefreshEffectWidgetSettingControls()
+    FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
-local function GetEffectWidgetsLocked()
+function FancyActionBar.GetEffectWidgetsLocked()
     return SV.effectWidgetsLocked ~= false
 end
 
-local function SetEffectWidgetsLocked(value)
+function FancyActionBar.SetEffectWidgetsLocked(value)
     SV.effectWidgetsLocked = not value
     for _, control in pairs(FancyActionBar.effectWidgetControls) do
         control:SetMovable(value)
@@ -2090,7 +2090,7 @@ UpdateAbilityConfigProfileControls = function ()
     end
 end
 
-local function RefreshSelectedAbilityConfigProfile()
+function FancyActionBar.RefreshSelectedAbilityConfigProfile()
     FancyActionBar.BuildAbilityConfig()
     FancyActionBar.SetExternalBuffTracking()
     FancyActionBar.RefreshEffectWidgets()
@@ -2098,7 +2098,7 @@ local function RefreshSelectedAbilityConfigProfile()
     ResetUpdateSettings()
 end
 
-local function SetSelectedAbilityConfigProfile(profileName)
+local function SelectAbilityConfigProfileByName(profileName)
     local profileId = configProfileIds[profileName]
 
     if profileId == nil then
@@ -2106,11 +2106,11 @@ local function SetSelectedAbilityConfigProfile(profileName)
     end
 
     if FancyActionBar.SetSelectedAbilityConfigProfile(profileId) then
-        RefreshSelectedAbilityConfigProfile()
+        FancyActionBar.RefreshSelectedAbilityConfigProfile()
     end
 end
 
-local function SetSelectedAbilityConfigProfileName(profileName)
+function FancyActionBar.SetSelectedAbilityConfigProfileName(profileName)
     local _, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
     local renamed, actualName = FancyActionBar.SetAbilityConfigProfileName(profileId, profileName)
 
@@ -2120,29 +2120,29 @@ local function SetSelectedAbilityConfigProfileName(profileName)
     end
 end
 
-local function GetNewAbilityConfigProfileName()
+function FancyActionBar.GetNewAbilityConfigProfileName()
     return newConfigProfileName
 end
 
-local function SetNewAbilityConfigProfileName(profileName)
+function FancyActionBar.SetNewAbilityConfigProfileName(profileName)
     newConfigProfileName = profileName or ""
 end
 
-local function IsCreateAbilityConfigProfileDisabled()
+function FancyActionBar.IsCreateAbilityConfigProfileDisabled()
     return (newConfigProfileName:match("^%s*(.-)%s*$") or "") == ""
 end
 
-local function CreateAbilityConfigProfile()
+local function CreateAbilityConfigProfileFromMenu()
     local profileId, profileName = FancyActionBar.CreateAbilityConfigProfile(newConfigProfileName)
 
     if profileId then
         newConfigProfileName = ""
         CHAT_ROUTER:AddSystemMessage("Created ability config profile: " .. profileName)
-        RefreshSelectedAbilityConfigProfile()
+        FancyActionBar.RefreshSelectedAbilityConfigProfile()
     end
 end
 
-local function DuplicateSelectedAbilityConfigProfile()
+function FancyActionBar.DuplicateSelectedAbilityConfigProfile()
     local profile, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
     local duplicatedProfileId, duplicatedProfileName
 
@@ -2153,11 +2153,11 @@ local function DuplicateSelectedAbilityConfigProfile()
     duplicatedProfileId, duplicatedProfileName = FancyActionBar.DuplicateAbilityConfigProfile(profileId)
     if duplicatedProfileId then
         CHAT_ROUTER:AddSystemMessage("Duplicated ability config profile to: " .. duplicatedProfileName)
-        RefreshSelectedAbilityConfigProfile()
+        FancyActionBar.RefreshSelectedAbilityConfigProfile()
     end
 end
 
-local function DeleteSelectedAbilityConfigProfile()
+function FancyActionBar.DeleteSelectedAbilityConfigProfile()
     local profile, profileId = FancyActionBar.GetSelectedAbilityConfigProfile()
 
     if profile == nil or profileId == nil then
@@ -2166,7 +2166,7 @@ local function DeleteSelectedAbilityConfigProfile()
 
     if FancyActionBar.DeleteAbilityConfigProfile(profileId) then
         CHAT_ROUTER:AddSystemMessage("Deleted ability config profile: " .. profile.name)
-        RefreshSelectedAbilityConfigProfile()
+        FancyActionBar.RefreshSelectedAbilityConfigProfile()
     end
 end
 
@@ -2440,77 +2440,33 @@ end
 --   end
 -- end
 
-local function GetCurrentFrontBarInfo()
+function FancyActionBar.GetCurrentBarInfo(barIndex)
     local list = ""
+    local weaponType = barIndex == 0 and FancyActionBar.weaponFront or FancyActionBar.weaponBack
 
     for i = 3, 8 do
-        local id = FancyActionBar.GetSlotBoundAbilityId(i, 0)
+        local id = FancyActionBar.GetSlotBoundAbilityId(i, barIndex)
         local craftedId = GetAbilityCraftedAbilityId(id)
         local line = "empty"
         local name = ""
 
-        if craftedId ~= 0 then
-            -- if FancyActionBar.destroSkills[id] then
-            --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 0));
-            --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 0) .. ")";
-            -- else
+        if craftedId ~= 0 and (barIndex == 0 or id > 0) then
             name = GetCraftedAbilityDisplayName(craftedId)
             local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) }
             local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or ""
             local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or ""
             local terScript = (scripts[3] and scripts[3] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[3]) or ""
             line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. tostring(scripts[1]) .. ")" .. "\n  " .. secScript .. " (" .. tostring(scripts[2]) .. ")" .. "\n  " .. terScript .. " (" .. tostring(scripts[3]) .. ")"
-            -- end;
-        else
-            if id > 0 then
-                if FancyActionBar.barHighlightDestroFix[id] then
-                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponFront))
-                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponFront) .. ")"
-                else
-                    name = GetAbilityName(id)
-                    line = "|cffa31a" .. name .. "|r (" .. id .. ")"
-                end
+        elseif id > 0 then
+            if FancyActionBar.barHighlightDestroFix[id] then
+                name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, weaponType))
+                line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, weaponType) .. ")"
+            else
+                name = GetAbilityName(id)
+                line = "|cffa31a" .. name .. "|r (" .. id .. ")"
             end
         end
 
-        list = list .. "\n" .. line
-    end
-    return list
-end
-
-local function GetCurrentBackBarInfo()
-    local list = ""
-    for i = 3, 8 do
-        local id = FancyActionBar.GetSlotBoundAbilityId(i, 1)
-        local craftedId = GetAbilityCraftedAbilityId(id)
-        local line = "empty"
-        local name = ""
-
-        if craftedId ~= 0 then
-            if id > 0 then
-                -- if FancyActionBar.destroSkills[id] then
-                --   name = GetAbilityName(FancyActionBar.GetIdForDestroSkill(id, 1));
-                --   line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetIdForDestroSkill(id, 1) .. ")";
-                -- else
-                name = GetCraftedAbilityDisplayName(craftedId)
-                local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) }
-                local priScript = (scripts[1] and scripts[1] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[1]) or ""
-                local secScript = (scripts[2] and scripts[2] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[2]) or ""
-                local terScript = (scripts[3] and scripts[3] ~= 0) and GetCraftedAbilityScriptDisplayName(scripts[3]) or ""
-                line = "|cffa31a" .. name .. "|r (" .. id .. ")" .. ":" .. "\n  " .. priScript .. " (" .. tostring(scripts[1]) .. ")" .. "\n  " .. secScript .. " (" .. tostring(scripts[2]) .. ")" .. "\n  " .. terScript .. " (" .. tostring(scripts[3]) .. ")"
-                -- end;
-            end
-        else
-            if id > 0 then
-                if FancyActionBar.barHighlightDestroFix[id] then
-                    name = GetAbilityName(FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponBack))
-                    line = "|cffa31a" .. name .. "|r (" .. FancyActionBar.GetCorrectedAbilityId(id, FancyActionBar.weaponBack) .. ")"
-                else
-                    name = GetAbilityName(id)
-                    line = "|cffa31a" .. name .. "|r (" .. id .. ")"
-                end
-            end
-        end
         list = list .. "\n" .. line
     end
     return list
@@ -2518,8 +2474,8 @@ end
 
 function FancyActionBar.UpdateSlottedSkillsDecriptions()
     if settingsPageCreated then
-        Front_Bar_List.desc:SetText(GetCurrentFrontBarInfo())
-        Back_Bar_List.desc:SetText(GetCurrentBackBarInfo())
+        Front_Bar_List.desc:SetText(FancyActionBar.GetCurrentBarInfo(0))
+        Back_Bar_List.desc:SetText(FancyActionBar.GetCurrentBarInfo(1))
     end
 end
 
@@ -2527,7 +2483,7 @@ end
 -----------[   Label Functions   ]------------
 ----------------------------------------------
 
-local function GetUltValueOptions()
+function FancyActionBar.GetUltValueOptions()
     local options = {}
     for mode in pairs(ultModeOptions) do
         table.insert(options, mode)
@@ -2535,7 +2491,7 @@ local function GetUltValueOptions()
     return options
 end
 
-local function GetUltValueMode(ui)
+function FancyActionBar.GetUltValueMode(ui)
     local vMode
     local mode = ui == 1 and SV.ultValueModeKB or SV.ultValueModeGP
     for option, ultMode in pairs(ultModeOptions) do
@@ -2549,7 +2505,7 @@ local function GetUltValueMode(ui)
     end
 end
 
-local function DisplayUltimateSlotTimer(durationControl, duration, timerColor)
+function FancyActionBar.DisplayUltimateSlotTimer(durationControl, duration, timerColor)
     local t = ultDisplayTime - GetFrameTimeSeconds()
 
     -- Ensure duration is not nil and has a default value if not provided
@@ -2605,14 +2561,14 @@ local function DisplayUltimateSlotTimer(durationControl, duration, timerColor)
     end
 end
 
-local function DisplayUltimateLabelChanges()
+function FancyActionBar.DisplayUltimateLabelChanges()
     EM:UnregisterForUpdate(FancyActionBar.GetName() .. "UltTimer")
     ultDisplayTime = GetFrameTimeSeconds() + 30.00
-    DisplayUltimateSlotTimer()
-    EM:RegisterForUpdate(FancyActionBar.GetName() .. "UltTimer", 100, DisplayUltimateSlotTimer)
+    FancyActionBar.DisplayUltimateSlotTimer()
+    EM:RegisterForUpdate(FancyActionBar.GetName() .. "UltTimer", 100, FancyActionBar.DisplayUltimateSlotTimer)
 end
 
-local function DisplayQuickSlotTimer()
+function FancyActionBar.DisplayQuickSlotTimer()
     local d = FancyActionBar.qsOverlay:GetNamedChild("Duration")
     local t = qsDisplayTime - GetFrameTimeSeconds()
 
@@ -2624,16 +2580,16 @@ local function DisplayQuickSlotTimer()
     end
 end
 
-local function DisplayQuickSlotLabelChanges()
+function FancyActionBar.DisplayQuickSlotLabelChanges()
     EM:UnregisterForUpdate(FancyActionBar.GetName() .. "QSTimer")
     qsDisplayTime = GetFrameTimeSeconds() + 5
-    DisplayQuickSlotTimer()
-    EM:RegisterForUpdate(FancyActionBar.GetName() .. "QSTimer", 100, DisplayQuickSlotTimer)
+    FancyActionBar.DisplayQuickSlotTimer()
+    EM:RegisterForUpdate(FancyActionBar.GetName() .. "QSTimer", 100, FancyActionBar.DisplayQuickSlotTimer)
 end
 ----------------------------------------------
 ---------[   Actionbar Position   ]-----------
 ----------------------------------------------
-local function SaveCurrentLocation()
+function FancyActionBar.SaveCurrentLocation()
     if not FancyActionBar.wasMoved then
         return
     end
@@ -2654,14 +2610,14 @@ local function SaveCurrentLocation()
     end
 end
 
-local function ReanchorMover()
+function FancyActionBar.ReanchorMover()
     local x = ACTION_BAR:GetLeft()
     local y = ACTION_BAR:GetTop()
     FAB_Mover:ClearAnchors()
     FAB_Mover:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y, FAB_Mover:GetResizeToFitConstrains())
 end
 
-local function RefreshMoverSize()
+function FancyActionBar.RefreshMoverSize()
     local w, h = ACTION_BAR:GetDimensions()
     FAB_Mover:SetDimensions(w, h)
 end
@@ -2669,7 +2625,7 @@ end
 ----------------[   Other   ]-----------------
 ----------------------------------------------
 
-local function ToggleFrameType()
+function FancyActionBar.ToggleFrameType()
     if SV.useThinFrames then
         RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_edge_semitrans_16.dds", FAB_BD_EDGE)
         RedirectTexture("esoui/art/miscellaneous/gamepad/gp_tooltip_center_semitrans_16.dds", FAB_BD_CENTER)
@@ -2684,52 +2640,52 @@ local function ToggleFrameType()
     end
 end
 
-local function RefreshMenuAfterUIPresetApply(abilityDataApplied)
+function FancyActionBar.RefreshMenuAfterUIPresetApply(abilityDataApplied)
     if not FancyActionBar.InMenu() then
         return
     end
 
-    ToggleFrameType()
+    FancyActionBar.ToggleFrameType()
     FancyActionBar.UpdateTextures()
 
     if abilityDataApplied then
         ParseBlacklist(SV.externalBlackList, externalBlacklistConfigData)
         ParseBlacklist(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
         ParseBlacklist(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
-        RefreshEffectWidgetChoices()
+        FancyActionBar.RefreshEffectWidgetChoices()
     end
 end
 
-local function SetUIPreset(presetName)
+function FancyActionBar.SetUIPreset(presetName)
     if presetName == nil or presetName == "" or presetName == "None" then
         return
     end
 
     local abilityDataApplied = false
-    local builtInData = GetBuiltInPresetData(presetName)
+    local builtInData = FancyActionBar.GetBuiltInPresetData(presetName)
 
     if builtInData then
         for key, value in pairs(builtInData) do
             if not presetIgnoreKeys[key] then
-                SV[key] = CopyPresetValue(value)
+                SV[key] = FancyActionBar.CopyPresetValue(value)
             end
         end
     else
-        local presetInfo = GetUserUIPresetByName(presetName)
+        local presetInfo = FancyActionBar.GetUserUIPresetByName(presetName)
         if presetInfo == nil or presetInfo.settings == nil then
             return
         end
 
-        ApplyUserUIPresetSettings(presetInfo.settings, presetInfo.includes or {}, applyUIPresetIncludeAbilityData)
+        FancyActionBar.ApplyUserUIPresetSettings(presetInfo.settings, presetInfo.includes or {}, applyUIPresetIncludeAbilityData)
         abilityDataApplied = applyUIPresetIncludeAbilityData
-            and PresetHasStoredAbilityData(presetInfo.settings, presetInfo.includes)
+            and FancyActionBar.PresetHasStoredAbilityData(presetInfo.settings, presetInfo.includes)
     end
 
     FancyActionBar.RefreshAfterPresetApply(abilityDataApplied)
-    RefreshMenuAfterUIPresetApply(abilityDataApplied)
+    FancyActionBar.RefreshMenuAfterUIPresetApply(abilityDataApplied)
 end
 
-local function SetDarkUI()
+function FancyActionBar.SetDarkUI()
     local eso_root = "esoui/art/"
     local ui_root = "darkui/"
     local theme
@@ -2780,7 +2736,7 @@ local function SetDarkUI()
     end
 end
 
-local function SetDefaultAbilityFrame()
+function FancyActionBar.SetDefaultAbilityFrame()
     local f = { "/esoui/art/actionbar/abilityframe64_up.dds", "/esoui/art/actionbar/abilityframe64_down.dds", FAB_BLANK, FAB_NO_FRAME_DOWN }
     if SV.hideDefaultFrames or SV.forceGamepadStyle then
         RedirectTexture(f[1], f[3])
@@ -2796,7 +2752,7 @@ local function SetDefaultAbilityFrame()
 end
 
 -- /script local a=ACTION_BAR for i=1,a:GetNumChildren() do local c=a:GetChild(i) local s='' if c.slot ~= nil then s=c.slot.slotNum end  CHAT_ROUTER:AddSystemMessage('['..i..']: '..c:GetName()..' / '..s) end
-local function CheckDeathState()
+function FancyActionBar.CheckDeathState()
     if (IsUnitDead("player") and SV.showDeath) then
         ACTION_BAR:SetHidden(false)
     end
@@ -2884,7 +2840,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             selectedPresetName = value
-                            if not SelectedPresetIncludesAbilityData() then
+                            if not FancyActionBar.SelectedPresetIncludesAbilityData() then
                                 applyUIPresetIncludeAbilityData = false
                             end
                         end,
@@ -2902,7 +2858,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                             applyUIPresetIncludeAbilityData = value or false
                         end,
                         disabled = function ()
-                            return selectedPresetName == "None" or not SelectedPresetIncludesAbilityData()
+                            return selectedPresetName == "None" or not FancyActionBar.SelectedPresetIncludesAbilityData()
                         end,
                         width = "full",
                     },
@@ -2911,7 +2867,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         name = "Confirm Preset",
                         width = "half",
                         func = function ()
-                            SetUIPreset(selectedPresetName)
+                            FancyActionBar.SetUIPreset(selectedPresetName)
                         end,
                         reference = "ConfirmPresetButton",
                         disabled = function ()
@@ -3018,10 +2974,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         name = "Save New Preset",
                         width = "full",
                         func = function ()
-                            SaveCurrentUIPreset()
+                            FancyActionBar.SaveCurrentUIPreset()
                         end,
                         disabled = function ()
-                            return IsSaveUIPresetDisabled()
+                            return FancyActionBar.IsSaveUIPresetDisabled()
                         end,
                     },
                     { type = "divider" },
@@ -3036,12 +2992,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         name = "Saved Presets",
                         scrollable = true,
                         tooltip = "Select one of your saved UI presets to manage.",
-                        choices = GetUserUIPresetChoices(),
+                        choices = FancyActionBar.GetUserUIPresetChoices(),
                         getFunc = function ()
-                            return GetSelectedUserUIPresetName()
+                            return FancyActionBar.GetSelectedUserUIPresetName()
                         end,
                         setFunc = function (value)
-                            SetSelectedUserUIPreset(value)
+                            FancyActionBar.SetSelectedUserUIPreset(value)
                         end,
                         reference = "UI_Preset_Manage_Dropdown",
                         width = "half",
@@ -3061,7 +3017,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         isExtraWide = false,
                         width = "half",
                         disabled = function ()
-                            return IsManageUIPresetDisabled()
+                            return FancyActionBar.IsManageUIPresetDisabled()
                         end,
                     },
                     {
@@ -3069,10 +3025,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         name = "Rename Saved Preset",
                         width = "half",
                         func = function ()
-                            RenameSelectedUIPreset()
+                            FancyActionBar.RenameSelectedUIPreset()
                         end,
                         disabled = function ()
-                            return IsManageUIPresetDisabled()
+                            return FancyActionBar.IsManageUIPresetDisabled()
                         end,
                     },
                     {
@@ -3081,10 +3037,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         width = "half",
                         warning = "Permanently deletes the selected saved preset.",
                         func = function ()
-                            DeleteSelectedUIPreset()
+                            FancyActionBar.DeleteSelectedUIPreset()
                         end,
                         disabled = function ()
-                            return IsManageUIPresetDisabled()
+                            return FancyActionBar.IsManageUIPresetDisabled()
                         end,
                     },
                 },
@@ -5165,9 +5121,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     type = "dropdown",
                                     name = "Display Mode",
                                     tooltip = "Dynamic: display current / cost if current is lower than cost and only current when you have enough to cast it.\nStatic: always display current / cost.",
-                                    choices = GetUltValueOptions(),
+                                    choices = FancyActionBar.GetUltValueOptions(),
                                     getFunc = function ()
-                                        return GetUltValueMode(1)
+                                        return FancyActionBar.GetUltValueMode(1)
                                     end,
                                     setFunc = function (mode)
                                         SV.ultValueModeKB = ultModeOptions[mode]
@@ -5463,7 +5419,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.font = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5483,7 +5439,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.size = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5503,7 +5459,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.outline = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5521,7 +5477,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.color = { r, g, b }
                                             FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetColor(unpack(SV.qsColorKB))
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5542,7 +5498,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.y = value
                                             FancyActionBar:AdjustQuickSlotTimer()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5563,7 +5519,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.x = value
                                             FancyActionBar:AdjustQuickSlotTimer()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5584,7 +5540,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.stackFont = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5604,7 +5560,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.stackSize = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5624,7 +5580,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.stackOutline = value
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -5642,7 +5598,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         if FancyActionBar.style == 1 then
                                             FancyActionBar.constants.qs.stackColor = { r, g, b }
                                             FancyActionBar.ApplyQuickSlotFont()
-                                            DisplayQuickSlotLabelChanges()
+                                            FancyActionBar.DisplayQuickSlotLabelChanges()
                                         end
                                     end,
                                     width = "half",
@@ -6170,9 +6126,9 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "dropdown",
                                 name = "Display Mode",
                                 tooltip = "Dynamic: display current / cost if current is lower than cost and only current when you have enough to cast it.\nStatic: always display current / cost.",
-                                choices = GetUltValueOptions(),
+                                choices = FancyActionBar.GetUltValueOptions(),
                                 getFunc = function ()
-                                    return GetUltValueMode(2)
+                                    return FancyActionBar.GetUltValueMode(2)
                                 end,
                                 setFunc = function (mode)
                                     SV.ultValueModeGP = ultModeOptions[mode]
@@ -6512,7 +6468,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.font = value
                                         FancyActionBar.ApplyQuickSlotFont()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6532,7 +6488,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.size = value
                                         FancyActionBar.ApplyQuickSlotFont()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6552,7 +6508,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.outline = value
                                         FancyActionBar.ApplyQuickSlotFont()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6570,7 +6526,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.color = { r, g, b }
                                         FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetColor(unpack(SV.qsColorGP))
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6596,7 +6552,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.y = value
                                         FancyActionBar:AdjustQuickSlotTimer()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6617,7 +6573,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.x = value
                                         FancyActionBar:AdjustQuickSlotTimer()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6657,7 +6613,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.stackSize = value
                                         FancyActionBar.ApplyQuickSlotFont()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6677,7 +6633,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.stackOutline = value
                                         FancyActionBar.ApplyQuickSlotFont()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -6695,7 +6651,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.qs.stackColor = { r, g, b }
                                         FancyActionBar.ApplyQuickSlotFont()
-                                        DisplayQuickSlotLabelChanges()
+                                        FancyActionBar.DisplayQuickSlotLabelChanges()
                                     end
                                 end,
                                 width = "half",
@@ -7034,7 +6990,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "description",
                                 title = "Front Bar",
                                 text = function ()
-                                    return GetCurrentFrontBarInfo()
+                                    return FancyActionBar.GetCurrentBarInfo(0)
                                 end,
                                 width = "half",
                                 reference = "Front_Bar_List",
@@ -7043,7 +6999,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "description",
                                 title = "Back Bar",
                                 text = function ()
-                                    return GetCurrentBackBarInfo()
+                                    return FancyActionBar.GetCurrentBarInfo(1)
                                 end,
                                 width = "half",
                                 reference = "Back_Bar_List",
@@ -7055,8 +7011,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 func = function ()
                                     local barInfo =
                                     {
-                                        { "Front Bar", GetCurrentFrontBarInfo() },
-                                        { "Back Bar",  GetCurrentBackBarInfo() },
+                                        { "Front Bar", FancyActionBar.GetCurrentBarInfo(0) },
+                                        { "Back Bar",  FancyActionBar.GetCurrentBarInfo(1) },
                                     }
 
                                     for _, info in ipairs(barInfo) do
@@ -7225,7 +7181,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                             return GetSelectedAbilityConfigProfileName()
                                         end,
                                         setFunc = function (value)
-                                            SetSelectedAbilityConfigProfile(value)
+                                            SelectAbilityConfigProfileByName(value)
                                         end,
                                         default = 1,
                                         reference = "Ability_Config_Profile_Dropdown",
@@ -7240,7 +7196,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                             return GetSelectedAbilityConfigProfileName()
                                         end,
                                         setFunc = function (value)
-                                            SetSelectedAbilityConfigProfileName(value)
+                                            FancyActionBar.SetSelectedAbilityConfigProfileName(value)
                                         end,
                                         reference = "Selected_Ability_Config_Profile_Editbox",
                                         isMultiline = false,
@@ -7253,10 +7209,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         name = "New Profile Name",
                                         tooltip = "Create a new profile for ability configuration changes.",
                                         getFunc = function ()
-                                            return GetNewAbilityConfigProfileName()
+                                            return FancyActionBar.GetNewAbilityConfigProfileName()
                                         end,
                                         setFunc = function (value)
-                                            SetNewAbilityConfigProfileName(value)
+                                            FancyActionBar.SetNewAbilityConfigProfileName(value)
                                         end,
                                         reference = "New_Ability_Config_Profile_Editbox",
                                         isMultiline = false,
@@ -7269,10 +7225,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         name = "Create New Profile",
                                         width = "half",
                                         func = function ()
-                                            CreateAbilityConfigProfile()
+                                            CreateAbilityConfigProfileFromMenu()
                                         end,
                                         disabled = function ()
-                                            return IsCreateAbilityConfigProfileDisabled()
+                                            return FancyActionBar.IsCreateAbilityConfigProfileDisabled()
                                         end,
                                     },
 
@@ -7281,7 +7237,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         name = "Duplicate Selected Profile",
                                         width = "half",
                                         func = function ()
-                                            DuplicateSelectedAbilityConfigProfile()
+                                            FancyActionBar.DuplicateSelectedAbilityConfigProfile()
                                         end,
                                     },
 
@@ -7291,7 +7247,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                         width = "half",
                                         warning = "Deletes the selected ability config profile. If it is the last profile, a blank default profile will be recreated.",
                                         func = function ()
-                                            DeleteSelectedAbilityConfigProfile()
+                                            FancyActionBar.DeleteSelectedAbilityConfigProfile()
                                         end,
                                     },
                                 },
@@ -7318,10 +7274,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Widgets",
                                 choices = effectWidgetNames,
                                 getFunc = function ()
-                                    return GetSelectedEffectWidgetName()
+                                    return FancyActionBar.GetSelectedEffectWidgetName()
                                 end,
                                 setFunc = function (value)
-                                    SetSelectedEffectWidget(value)
+                                    FancyActionBar.SetSelectedEffectWidget(value)
                                 end,
                                 default = 1,
                                 reference = "Configured_Widgets_Dropdown",
@@ -7332,10 +7288,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Widget Ability ID",
                                 tooltip = "Enter an ability ID to create or update a floating effect widget.",
                                 getFunc = function ()
-                                    return GetEffectWidgetAbilityId()
+                                    return FancyActionBar.GetEffectWidgetAbilityId()
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetAbilityId(value)
+                                    FancyActionBar.SetEffectWidgetAbilityId(value)
                                 end,
                                 isMultiline = false,
                                 isExtraWide = false,
@@ -7345,7 +7301,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 type = "description",
                                 title = "Selected Ability:",
                                 text = function ()
-                                    return GetEffectWidgetAbilityName()
+                                    return FancyActionBar.GetEffectWidgetAbilityName()
                                 end,
                                 width = "half",
                             },
@@ -7354,13 +7310,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Allow External Buff Data",
                                 tooltip = "When enabled, this widget can show effects gained from allies similarly to the external buff tracking system.",
                                 getFunc = function ()
-                                    return GetSelectedEffectWidgetAllowExternal()
+                                    return FancyActionBar.GetSelectedEffectWidgetAllowExternal()
                                 end,
                                 setFunc = function (value)
-                                    SetSelectedEffectWidgetAllowExternal(value)
+                                    FancyActionBar.SetSelectedEffectWidgetAllowExternal(value)
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled()
+                                    return FancyActionBar.IsEffectWidgetActionDisabled()
                                 end,
                                 reference = "EffectWidget_AllowExternal_Checkbox",
                                 width = "half",
@@ -7370,13 +7326,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Only Use External Buff Data",
                                 tooltip = "When enabled, this widget ignores player-sourced effects and only uses external ally-sourced data.",
                                 getFunc = function ()
-                                    return GetSelectedEffectWidgetExternalOnly()
+                                    return FancyActionBar.GetSelectedEffectWidgetExternalOnly()
                                 end,
                                 setFunc = function (value)
-                                    SetSelectedEffectWidgetExternalOnly(value)
+                                    FancyActionBar.SetSelectedEffectWidgetExternalOnly(value)
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled() or not GetSelectedEffectWidgetAllowExternal()
+                                    return FancyActionBar.IsEffectWidgetActionDisabled() or not FancyActionBar.GetSelectedEffectWidgetAllowExternal()
                                 end,
                                 reference = "EffectWidget_ExternalOnly_Checkbox",
                                 width = "half",
@@ -7386,10 +7342,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Widget Scale Factor",
                                 tooltip = "Set a per-widget scale offset. 0 keeps the default size, 0.25 makes it 25% larger, and -0.2 makes it 20% smaller.",
                                 getFunc = function ()
-                                    return tostring(GetCurrentEffectWidgetScale())
+                                    return tostring(FancyActionBar.GetCurrentEffectWidgetScale())
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetScaleValue(value)
+                                    FancyActionBar.SetEffectWidgetScaleValue(value)
                                 end,
                                 isMultiline = false,
                                 isExtraWide = false,
@@ -7400,10 +7356,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Widget Active Transparency",
                                 tooltip = "Set widget transparency for active state. Range 0.0 to 1.0 (default 1.0).",
                                 getFunc = function ()
-                                    return tostring(GetCurrentEffectWidgetActiveAlpha())
+                                    return tostring(FancyActionBar.GetCurrentEffectWidgetActiveAlpha())
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetActiveAlphaValue(value)
+                                    FancyActionBar.SetEffectWidgetActiveAlphaValue(value)
                                 end,
                                 isMultiline = false,
                                 isExtraWide = false,
@@ -7415,10 +7371,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Widget Inactive Transparency",
                                 tooltip = "Set widget transparency for inactive state. Range 0.0 to 1.0 (default 0).",
                                 getFunc = function ()
-                                    return tostring(GetCurrentEffectWidgetInactiveAlpha())
+                                    return tostring(FancyActionBar.GetCurrentEffectWidgetInactiveAlpha())
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetInactiveAlphaValue(value)
+                                    FancyActionBar.SetEffectWidgetInactiveAlphaValue(value)
                                 end,
                                 isMultiline = false,
                                 isExtraWide = false,
@@ -7434,13 +7390,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 step = 1,
                                 default = 0,
                                 getFunc = function ()
-                                    return GetCurrentEffectWidgetX()
+                                    return FancyActionBar.GetCurrentEffectWidgetX()
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetXValue(value)
+                                    FancyActionBar.SetEffectWidgetXValue(value)
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled() or GetEffectWidgetsLocked()
+                                    return FancyActionBar.IsEffectWidgetActionDisabled() or FancyActionBar.GetEffectWidgetsLocked()
                                 end,
                                 reference = "EffectWidget_X_Slider",
                                 width = "half",
@@ -7454,13 +7410,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 step = 1,
                                 default = 0,
                                 getFunc = function ()
-                                    return GetCurrentEffectWidgetY()
+                                    return FancyActionBar.GetCurrentEffectWidgetY()
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetYValue(value)
+                                    FancyActionBar.SetEffectWidgetYValue(value)
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled() or GetEffectWidgetsLocked()
+                                    return FancyActionBar.IsEffectWidgetActionDisabled() or FancyActionBar.GetEffectWidgetsLocked()
                                 end,
                                 reference = "EffectWidget_Y_Slider",
                                 width = "half",
@@ -7470,10 +7426,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Create / Update Widget",
                                 width = "half",
                                 func = function ()
-                                    AddOrUpdateEffectWidget()
+                                    FancyActionBar.AddOrUpdateEffectWidget()
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled()
+                                    return FancyActionBar.IsEffectWidgetActionDisabled()
                                 end,
                             },
                             {
@@ -7481,10 +7437,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Remove Widget",
                                 width = "half",
                                 func = function ()
-                                    RemoveSelectedEffectWidget()
+                                    FancyActionBar.RemoveSelectedEffectWidget()
                                 end,
                                 disabled = function ()
-                                    return IsEffectWidgetActionDisabled()
+                                    return FancyActionBar.IsEffectWidgetActionDisabled()
                                 end,
                             },
                             {
@@ -7492,10 +7448,10 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                 name = "Unlock Widget Positions",
                                 tooltip = "Unlock all widgets so they can be dragged on screen. Positions are saved in SavedVariables.",
                                 getFunc = function ()
-                                    return not GetEffectWidgetsLocked()
+                                    return not FancyActionBar.GetEffectWidgetsLocked()
                                 end,
                                 setFunc = function (value)
-                                    SetEffectWidgetsLocked(value)
+                                    FancyActionBar.SetEffectWidgetsLocked(value)
                                 end,
                             },
                         },
@@ -8105,7 +8061,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         setFunc = function (value)
                             SV.showDeath = value or false
-                            CheckDeathState()
+                            FancyActionBar.CheckDeathState()
                             FancyActionBar.ApplyDeathStateOption()
                         end,
                         width = "half",
@@ -8478,12 +8434,12 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
             FAB_GCD:SetHidden(not SV.gcd.enable)
             inMenu = true
             FancyActionBar.UpdateSlottedSkillsDecriptions()
-            RefreshEffectWidgetChoices()
+            FancyActionBar.RefreshEffectWidgetChoices()
             if not IsConsoleUI() then
                 local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
                 if widgetDropdown then
                     widgetDropdown:UpdateChoices(effectWidgetNames)
-                    widgetDropdown.dropdown:SetSelectedItem(GetSelectedEffectWidgetName())
+                    widgetDropdown.dropdown:SetSelectedItem(FancyActionBar.GetSelectedEffectWidgetName())
                 end
             end
         else
@@ -8509,8 +8465,8 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
         if panel == FAB_Panel then
             if not settingsPageCreated then
                 settingsPageCreated = true
-                EnsureUserUIPresets()
-                UpdateUIPresetControls()
+                FancyActionBar.EnsureUserUIPresets()
+                FancyActionBar.UpdateUIPresetControls()
             end
         end
     end)
@@ -8518,7 +8474,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
     ParseBlacklist(SV.externalBlackList, externalBlacklistConfigData)
     ParseBlacklist(SV.multiTargetBlacklist, multiTargetBlacklistConfigData)
     ParseBlacklist(SV.parentTimeBlacklist, parentTimeBlacklistConfigData)
-    RefreshEffectWidgetChoices()
+    FancyActionBar.RefreshEffectWidgetChoices()
 end
 
 -------------------------------------------------------------------------------
@@ -8683,11 +8639,11 @@ function FancyActionBar.ConfigureFrames()
             FancyActionBar.SetFrameColor()
         end
     end
-    SetDefaultAbilityFrame()
+    FancyActionBar.SetDefaultAbilityFrame()
     if _G["darkui"] then
-        SetDarkUI()
+        FancyActionBar.SetDarkUI()
     else
-        ToggleFrameType()
+        FancyActionBar.ToggleFrameType()
     end
     FancyActionBar.SetUltFrameAlpha()
     FancyActionBar.RefreshHotbarPresentation(nil, false)
@@ -8719,7 +8675,7 @@ function FancyActionBar.SetFrameColor()
 end
 
 function FancyActionBar.ApplyTimerFont()
-    local name, size, outline = GetCurrentFont()
+    local name, size, outline = FancyActionBar.GetCurrentFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -8759,7 +8715,7 @@ function FancyActionBar.AdjustTimerY()
 end
 
 function FancyActionBar.ApplyStackFont()
-    local name, size, outline = GetCurrentStackFont()
+    local name, size, outline = FancyActionBar.GetCurrentStackFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -8802,7 +8758,7 @@ function FancyActionBar.ApplyStackPosition()
 end
 
 function FancyActionBar.ApplyTargetFont()
-    local name, size, outline = GetCurrentTargetFont()
+    local name, size, outline = FancyActionBar.GetCurrentTargetFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -8852,7 +8808,7 @@ function FancyActionBar:AdjustQuickSlotTimer()
 end
 
 function FancyActionBar.ApplyQuickSlotFont()
-    local name, size, type, stackName, stackSize, stackType = GetCurrentQuickSlotTimerFont()
+    local name, size, type, stackName, stackSize, stackType = FancyActionBar.GetCurrentQuickSlotTimerFont()
     if name == "" then
         name = "$(BOLD_FONT)"
     end
@@ -8877,14 +8833,14 @@ function FancyActionBar.AdjustUltTimer(sample)
             durationControl:ClearAnchors()
             durationControl:SetAnchor(CENTER, overlay, CENTER, x, y)
             if inMenu and sample then
-                DisplayUltimateLabelChanges()
+                FancyActionBar.DisplayUltimateLabelChanges()
             end
         end
     end
 end
 
 function FancyActionBar.ApplyUltFont(sample)
-    local name, size, outline = GetCurrentUltFont()
+    local name, size, outline = FancyActionBar.GetCurrentUltFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -8897,7 +8853,7 @@ function FancyActionBar.ApplyUltFont(sample)
     end
 
     if sample then
-        DisplayUltimateLabelChanges()
+        FancyActionBar.DisplayUltimateLabelChanges()
     end
 end
 
@@ -8916,7 +8872,7 @@ function FancyActionBar.AdjustCompanionUltValue()
 end
 
 function FancyActionBar.ApplyUltValueFont()
-    local name, size, outline = GetCurrentUltValueFont()
+    local name, size, outline = FancyActionBar.GetCurrentUltValueFont()
 
     if name == "" then
         name = "$(BOLD_FONT)"
@@ -9062,17 +9018,17 @@ function FancyActionBar.UndoMove()
         prevX = SV.abMove.kb.prevX
         prevY = SV.abMove.kb.prevY
     end
-    SaveCurrentLocation()
+    FancyActionBar.SaveCurrentLocation()
     ACTION_BAR:ClearAnchors()
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, prevX, prevY)
-    ReanchorMover()
+    FancyActionBar.ReanchorMover()
     FancyActionBar.SaveMoverPosition()
     FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
 end
 
 function FancyActionBar.ResetMoveActionBar()
     local v, d = FancyActionBar:GetMovableVarsForUI()
-    SaveCurrentLocation()
+    FancyActionBar.SaveCurrentLocation()
     ACTION_BAR:ClearAnchors()
 
     local screenWidth = GuiRoot:GetWidth()
@@ -9104,7 +9060,7 @@ function FancyActionBar.ResetMoveActionBar()
         end
     end)
 
-    ReanchorMover()
+    FancyActionBar.ReanchorMover()
     FancyActionBar.SaveMoverPosition()
 
     if FancyActionBar.style == 2 then
@@ -9125,7 +9081,7 @@ function FancyActionBar.ResetMoveActionBar()
 end
 
 function FancyActionBar.CenterActionBar(horiz, vert)
-    SaveCurrentLocation()
+    FancyActionBar.SaveCurrentLocation()
     local x = FAB_Mover:GetLeft()
     local y = FAB_Mover:GetTop()
 
@@ -9141,7 +9097,7 @@ function FancyActionBar.CenterActionBar(horiz, vert)
 
     ACTION_BAR:ClearAnchors()
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
-    ReanchorMover()
+    FancyActionBar.ReanchorMover()
     FancyActionBar.SaveMoverPosition()
     FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
 end
@@ -9149,9 +9105,9 @@ end
 function FancyActionBar.ToggleMover(enableMove)
     if enableMove == true then
         unlocked = enableMove
-        -- RefreshMoverSize()
-        ReanchorMover()
-        SaveCurrentLocation()
+        -- FancyActionBar.RefreshMoverSize()
+        FancyActionBar.ReanchorMover()
+        FancyActionBar.SaveCurrentLocation()
         FAB_Mover:SetHidden(false)
         FAB_Mover:SetMovable(true)
         FAB_Mover:SetMouseEnabled(true)
@@ -9160,7 +9116,7 @@ function FancyActionBar.ToggleMover(enableMove)
         FAB_Mover:SetHidden(true)
         FAB_Mover:SetMovable(false)
         FAB_Mover:SetMouseEnabled(false)
-        ReanchorMover()
+        FancyActionBar.ReanchorMover()
     end
 end
 
@@ -9265,7 +9221,7 @@ function FancyActionBar.ConsoleMoveActionBarViaMover(x, y, movedX, movedY)
     ACTION_BAR:ClearAnchors()
     ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, newX, newY)
 
-    ReanchorMover()
+    FancyActionBar.ReanchorMover()
     FancyActionBar.SaveMoverPosition()
 end
 
@@ -9389,7 +9345,7 @@ end
 function FancyActionBar.UpdateScale(s)
     local scale = s
     ACTION_BAR:SetScale(scale)
-    RefreshMoverSize()
+    FancyActionBar.RefreshMoverSize()
 end
 
 function FancyActionBar.InitializeScreenResizeHandler()
@@ -9424,7 +9380,7 @@ function FancyActionBar.InitializeScreenResizeHandler()
             end
 
             -- Update mover position
-            ReanchorMover()
+            FancyActionBar.ReanchorMover()
         end
     end
 

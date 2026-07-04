@@ -838,11 +838,14 @@ FancyActionBar.debuffStackMap =
     -- Magma Fist
     [134340] =
     {
-        134340,
         31816,
     },
 
     -- Fetcher Infection
+    [101904] =
+    {
+        91416,
+    }
 
     -- [134336] = 134336;  -- Stone Giant (stacks on target)
 
