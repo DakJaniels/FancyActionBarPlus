@@ -15,9 +15,12 @@ local function ShouldClearStacksOnTargetChange(abilityId)
     if FancyActionBar.fixedStacks[abilityId] then return true end
     local debuffStackMap = FancyActionBar.debuffStackMap
     if FancyActionBar.stackMap[abilityId] or (debuffStackMap and debuffStackMap[abilityId]) then return true end
-    local members, sourceId = FancyActionBar.GetStackMap(abilityId, "debuff")
+    local debuffEntry = FancyActionBar.GetStackMap(abilityId, "debuff")
+    local members, sourceId = debuffEntry.sources, debuffEntry.sourceId
     if not sourceId then
-        members, sourceId = FancyActionBar.GetStackMap(abilityId)
+        local defaultEntry = FancyActionBar.GetStackMap(abilityId)
+        members = defaultEntry.sources
+        sourceId = defaultEntry.sourceId
     end
     if not sourceId or not members then return true end
     for i = 1, #members do
@@ -217,9 +220,9 @@ function FancyActionBar.UpdateDebuff(debuff, stacks, sourceAbilityId)
     effect.hasActiveCast = debuff.hasActiveCast or false
 
     if not FancyActionBar.specialEffects[debuff.id] then
-        local sources, _, stackOwnerId = FancyActionBar.GetStackMap(effect.id, "debuff")
-        effect.stackSources = sources
-        effect.stackOwnerId = stackOwnerId
+        local debuffStackEntry = FancyActionBar.GetStackMap(effect.id, "debuff")
+        effect.stackSources = debuffStackEntry.sources
+        effect.stackOwnerId = debuffStackEntry.ownerId
     end
 
     local nextStacks
@@ -350,12 +353,14 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
     end
 
     if specialEffect then
-        local newSources = debuff.stackSources or specialEffect.stackSources or specialEffect.stackId or FancyActionBar.GetStackMap(abilityId)
+        local newSources = debuff.stackSources or specialEffect.stackSources or specialEffect.stackId or FancyActionBar.GetStackMap(abilityId).sources
         if debuff.stackSources ~= newSources then
             debuff.stackSources = newSources
         end
     else
-        debuff.stackSources = FancyActionBar.GetStackMap(debuff.id, "debuff")
+        local debuffStackEntry = FancyActionBar.GetStackMap(debuff.id, "debuff")
+        debuff.stackSources = debuffStackEntry.sources
+        debuff.stackOwnerId = debuffStackEntry.ownerId
     end
 
     if change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED then

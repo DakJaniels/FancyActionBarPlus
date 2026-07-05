@@ -379,55 +379,120 @@ local function GetConfiguredStackSources(spec)
     return spec and (spec.stackSources or spec.stackId) or FancyActionBar.emptyStackList
 end
 
-function FancyActionBar.GetStackMap(abilityId, mapType)
-    if not abilityId or abilityId == 0 then
-        return FancyActionBar.emptyStackList, nil, abilityId
-    end
-
-    local cache = FancyActionBar.stackMapCache
-    local cacheKey = mapType and (abilityId .. ":" .. mapType) or abilityId
-    local cached = cache[cacheKey]
-    if cached then
-        return cached.sources, cached.sourceId, cached.ownerId
-    end
-
-    local stackMap = FancyActionBar.stackMap or {}
-    local debuffStackMap = FancyActionBar.debuffStackMap or {}
-    local primary = (mapType == "debuff") and debuffStackMap or stackMap
-    local secondary = (mapType == "debuff") and stackMap or debuffStackMap
-
-    local function findInStackMap(stackMapTable, key)
-        if not stackMapTable then return nil, nil end
-        if stackMapTable[key] then
-            return stackMapTable[key], key
+do
+    local function lookupInStackMap(mapTable, memberIndex, abilityId)
+        if not mapTable then
+            return nil, nil
         end
-        for sourceId, configuredSourceIds in pairs(stackMapTable) do
-            for i = 1, #configuredSourceIds do
-                if configuredSourceIds[i] == key then
-                    return configuredSourceIds, sourceId
-                end
-            end
+        if mapTable[abilityId] then
+            return mapTable[abilityId], abilityId
+        end
+        local memberEntry = memberIndex and memberIndex[abilityId]
+        if memberEntry then
+            return memberEntry.sources, memberEntry.sourceId
         end
         return nil, nil
     end
 
-    local configuredSourceIds, sourceId = findInStackMap(primary, abilityId)
-    if not configuredSourceIds then
-        configuredSourceIds, sourceId = findInStackMap(secondary, abilityId)
-    end
-    if not configuredSourceIds then
-        configuredSourceIds = { abilityId }
+    local function buildStackMapMemberIndex(stackMapTable)
+        local memberIndex = {}
+        if not stackMapTable then
+            return memberIndex
+        end
+        for sourceId, configuredSourceIds in pairs(stackMapTable) do
+            for i = 1, #configuredSourceIds do
+                local memberId = configuredSourceIds[i]
+                if not stackMapTable[memberId] and not memberIndex[memberId] then
+                    memberIndex[memberId] = { sources = configuredSourceIds, sourceId = sourceId }
+                end
+            end
+        end
+        return memberIndex
     end
 
-    local ownerId = sourceId or abilityId
-    cache[cacheKey] = { sources = configuredSourceIds, sourceId = sourceId, ownerId = ownerId }
-    return configuredSourceIds, sourceId, ownerId
+    local function resolveStackMapEntry(abilityId, mapType)
+        local stackMap = FancyActionBar.stackMap or {}
+        local debuffStackMap = FancyActionBar.debuffStackMap or {}
+        local primary = (mapType == "debuff") and debuffStackMap or stackMap
+        local secondary = (mapType == "debuff") and stackMap or debuffStackMap
+        local stackMapMemberIndex = FancyActionBar.stackMapMemberIndex
+        local debuffStackMapMemberIndex = FancyActionBar.debuffStackMapMemberIndex
+        local primaryMemberIndex = (mapType == "debuff") and debuffStackMapMemberIndex or stackMapMemberIndex
+        local secondaryMemberIndex = (mapType == "debuff") and stackMapMemberIndex or debuffStackMapMemberIndex
+
+        local configuredSourceIds, sourceId = lookupInStackMap(primary, primaryMemberIndex, abilityId)
+        if not configuredSourceIds then
+            configuredSourceIds, sourceId = lookupInStackMap(secondary, secondaryMemberIndex, abilityId)
+        end
+        if not configuredSourceIds then
+            configuredSourceIds = { abilityId }
+            sourceId = nil
+        end
+        local ownerId = sourceId or abilityId
+        return { sources = configuredSourceIds, sourceId = sourceId, ownerId = ownerId }
+    end
+
+    local function collectStackMapIds(allIds, stackMapTable)
+        if not stackMapTable then
+            return
+        end
+        for sourceId, configuredSourceIds in pairs(stackMapTable) do
+            allIds[sourceId] = true
+            for i = 1, #configuredSourceIds do
+                allIds[configuredSourceIds[i]] = true
+            end
+        end
+    end
+
+    function FancyActionBar.BuildStackMapLookups()
+        FancyActionBar.stackMapMemberIndex = buildStackMapMemberIndex(FancyActionBar.stackMap)
+        FancyActionBar.debuffStackMapMemberIndex = buildStackMapMemberIndex(FancyActionBar.debuffStackMap)
+
+        local cache = FancyActionBar.stackMapCache
+        for cacheKey in pairs(cache) do
+            cache[cacheKey] = nil
+        end
+
+        local allIds = {}
+        collectStackMapIds(allIds, FancyActionBar.stackMap)
+        collectStackMapIds(allIds, FancyActionBar.debuffStackMap)
+
+        for abilityId in pairs(allIds) do
+            cache[abilityId] = resolveStackMapEntry(abilityId, nil)
+            cache[abilityId .. ":debuff"] = resolveStackMapEntry(abilityId, "debuff")
+        end
+    end
+
+    function FancyActionBar.GetStackMap(abilityId, mapType)
+        if not abilityId or abilityId == 0 then
+            return { sources = FancyActionBar.emptyStackList, sourceId = nil, ownerId = abilityId }
+        end
+
+        local cache = FancyActionBar.stackMapCache
+        local cacheKey = mapType and (abilityId .. ":" .. mapType) or abilityId
+        local cached = cache[cacheKey]
+        if cached then
+            return cached
+        end
+
+        local entry = resolveStackMapEntry(abilityId, mapType)
+        cache[cacheKey] = entry
+        return entry
+    end
+end
+
+function FancyActionBar.GetStackOwnerId(abilityId, mapType)
+    return FancyActionBar.GetStackMap(abilityId, mapType).ownerId
+end
+
+function FancyActionBar.GetStackSourceId(abilityId, mapType)
+    return FancyActionBar.GetStackMap(abilityId, mapType).sourceId
 end
 
 function FancyActionBar.IsStackMapMember(abilityId)
     if not abilityId or abilityId == 0 then return false end
     if FancyActionBar.fixedStacks[abilityId] ~= nil then return true end
-    local _, sourceId = FancyActionBar.GetStackMap(abilityId)
+    local sourceId = FancyActionBar.GetStackSourceId(abilityId)
     return sourceId ~= nil and sourceId ~= abilityId
 end
 
@@ -437,7 +502,7 @@ function FancyActionBar.GetStacks(abilityId, currentTime, mapType)
     end
 
     currentTime = currentTime or time()
-    local _, _, ownerId = FancyActionBar.GetStackMap(abilityId, mapType)
+    local ownerId = FancyActionBar.GetStackOwnerId(abilityId, mapType)
     local stackableBuff = FancyActionBar.stackableBuff
     local trackedId = (stackableBuff and stackableBuff[ownerId]) or ownerId
     local effects = FancyActionBar.effects
@@ -470,7 +535,7 @@ end
 function FancyActionBar.SetStacks(abilityId, stacks, force, mapType)
     if not abilityId then return end
 
-    local _, _, ownerId = FancyActionBar.GetStackMap(abilityId, mapType)
+    local ownerId = FancyActionBar.GetStackOwnerId(abilityId, mapType)
     local effects = FancyActionBar.effects
     if not effects then return end
     local eff = effects[ownerId] or FancyActionBar.GetEffect(ownerId)
@@ -502,12 +567,12 @@ end
 
 function FancyActionBar.GetDisplayStacks(effect, currentTime)
     if not effect then return 0 end
-
     currentTime = currentTime or time()
     local isDebuff = effect.isDebuff == true
     local sourceIds = effect.stackSources
     if not sourceIds or #sourceIds == 0 then
-        sourceIds = isDebuff and FancyActionBar.GetStackMap(effect.id, "debuff") or FancyActionBar.GetStackMap(effect.id)
+        local entry = FancyActionBar.GetStackMap(effect.id, isDebuff and "debuff" or nil)
+        sourceIds = entry.sources
     end
     local count = #sourceIds
     if count == 0 then return 0 end
@@ -537,14 +602,14 @@ function FancyActionBar.GetDisplayStacks(effect, currentTime)
         local sourceId = sourceIds[1]
         local lookupId = effect.stackOwnerId
         if not lookupId then
-            _, _, lookupId = FancyActionBar.GetStackMap(sourceId)
+            lookupId = FancyActionBar.GetStackOwnerId(sourceId)
         end
         return FancyActionBar.GetStacks(lookupId or sourceId, currentTime)
     end
 
     local commonOwner = effect.stackOwnerId
     if not commonOwner then
-        _, _, commonOwner = FancyActionBar.GetStackMap(sourceIds[1])
+        commonOwner = FancyActionBar.GetStackOwnerId(sourceIds[1])
     end
     commonOwner = commonOwner or sourceIds[1]
     local canUseOwnerShortcut = not FancyActionBar.IsStackableBuff(sourceIds[1])
@@ -554,7 +619,7 @@ function FancyActionBar.GetDisplayStacks(effect, currentTime)
     end
     for i = 2, count do
         local sourceId = sourceIds[i]
-        local _, owner = FancyActionBar.GetStackMap(sourceId)
+        local owner = FancyActionBar.GetStackSourceId(sourceId)
         owner = owner or sourceId
         if owner ~= commonOwner
             or FancyActionBar.IsStackableBuff(sourceId)
@@ -579,7 +644,9 @@ end
 function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
     local debuffStackMap = FancyActionBar.debuffStackMap
     local debuffMapType = debuffStackMap and debuffStackMap[abilityId] and "debuff" or nil
-    local configuredSourceIds, sourceId = FancyActionBar.GetStackMap(abilityId, debuffMapType)
+    local stackEntry = FancyActionBar.GetStackMap(abilityId, debuffMapType)
+    local configuredSourceIds = stackEntry.sources
+    local sourceId = stackEntry.sourceId
     local fixedDisplayId = nil
     local fixedDisplayCount = 0
     local effects = FancyActionBar.effects
@@ -1799,16 +1866,16 @@ local function IsAbilityConfigured(abilityId)
     return cfg == false or (cfg ~= nil and cfg ~= false) or FancyActionBar.specialEffects[abilityId] ~= nil
 end
 
-local function ResolveStackSources(abilityId, effectId)
-    local effectSources, effectSourceId = FancyActionBar.GetStackMap(effectId)
-    if (effectSourceId and effectSourceId ~= effectId) or #effectSources > 1 then
-        return effectSources
+local function ResolveStackSources(abilityId, effectId, effectEntry, abilityEntry)
+    effectEntry = effectEntry or FancyActionBar.GetStackMap(effectId)
+    if (effectEntry.sourceId and effectEntry.sourceId ~= effectId) or #effectEntry.sources > 1 then
+        return effectEntry.sources
     end
-    local abilitySources, abilitySourceId = FancyActionBar.GetStackMap(abilityId)
-    if abilitySourceId and abilitySourceId ~= abilityId then
-        return abilitySources
+    abilityEntry = abilityEntry or FancyActionBar.GetStackMap(abilityId)
+    if abilityEntry.sourceId and abilityEntry.sourceId ~= abilityId then
+        return abilityEntry.sources
     end
-    return effectSources
+    return effectEntry.sources
 end
 
 local function ApplyEffectBind(effect, abilityId, effectId, overrideRank, casterUnitTag)
@@ -1852,9 +1919,10 @@ local function ApplyEffectBind(effect, abilityId, effectId, overrideRank, caster
     effect.instantFade = instantFade
     effect.dontFade = dontFade
     effect.isChanneled = GetAbilityCastInfo(abilityId, overrideRank, casterUnitTag)
-    effect.stackSources = ResolveStackSources(abilityId, effectId)
-    local _, _, stackOwnerId = FancyActionBar.GetStackMap(effectId)
-    effect.stackOwnerId = stackOwnerId
+    local effectStackEntry = FancyActionBar.GetStackMap(effectId)
+    local abilityStackEntry = FancyActionBar.GetStackMap(abilityId)
+    effect.stackSources = ResolveStackSources(abilityId, effectId, effectStackEntry, abilityStackEntry)
+    effect.stackOwnerId = effectStackEntry.ownerId
 
     local duration = -1
     if toggled == false and not ignore then
@@ -1883,19 +1951,20 @@ function FancyActionBar.GetEffect(id, opts)
         }
     end
 
-    local mapSources, _, stackOwnerId = FancyActionBar.GetStackMap(id)
-
     if opts.abilityId then
         ApplyEffectBind(effect, opts.abilityId, id, opts.overrideRank, opts.casterUnitTag)
     elseif opts.stackSources then
         if effect.stackSources ~= opts.stackSources then
             effect.stackSources = opts.stackSources
         end
-    elseif effect.stackSources ~= mapSources then
-        effect.stackSources = mapSources
-    end
-    if effect.stackSources then
-        effect.stackOwnerId = stackOwnerId
+    else
+        local stackEntry = FancyActionBar.GetStackMap(id)
+        if effect.stackSources ~= stackEntry.sources then
+            effect.stackSources = stackEntry.sources
+        end
+        if effect.stackSources then
+            effect.stackOwnerId = stackEntry.ownerId
+        end
     end
 
     if opts.reset or isNew then
@@ -1975,8 +2044,8 @@ function FancyActionBar.SetSlottedEffect(index, abilityId, effectId)
 
     local showStacks = false
     if effectId ~= 0 then
-        local _, abilitySourceId = FancyActionBar.GetStackMap(abilityId)
-        local _, effectSourceId = FancyActionBar.GetStackMap(effectId)
+        local abilitySourceId = FancyActionBar.GetStackSourceId(abilityId)
+        local effectSourceId = FancyActionBar.GetStackSourceId(effectId)
         showStacks = abilitySourceId ~= abilityId
             or effectSourceId ~= effectId
             or effectId == abilityId
@@ -2002,7 +2071,7 @@ function FancyActionBar.SetSlottedEffect(index, abilityId, effectId)
             slottedEffectIds[slot.effectId] = true
         end
         if slot.abilityId and slot.abilityId ~= 0 then
-            local members = FancyActionBar.GetStackMap(slot.abilityId)
+            local members = FancyActionBar.GetStackMap(slot.abilityId).sources
             for i = 1, #members do
                 slottedEffectIds[members[i]] = true
             end
@@ -2542,8 +2611,7 @@ function FancyActionBar.UpdateEffectDuration(index, updateTime, overlay, stacksO
         if effect.origStackSources then
             effect.stackSources = effect.origStackSources
             effect.origStackSources = nil
-            local _, _, stackOwnerId = FancyActionBar.GetStackMap(effect.id)
-            effect.stackOwnerId = stackOwnerId
+            effect.stackOwnerId = FancyActionBar.GetStackOwnerId(effect.id)
         end
     end
 
@@ -2723,13 +2791,13 @@ function FancyActionBar.UpdateStacksControl(slot, stacksControl, currentTime, in
 
     local effect = FancyActionBar.effects[slot.effectId]
     if (not effect or effect.ignore) and slot.abilityId and FancyActionBar.debuffStackSourceIds and FancyActionBar.debuffStackSourceIds[slot.effectId] then
-        local stackSources, _, stackOwnerId = FancyActionBar.GetStackMap(slot.effectId, "debuff")
+        local debuffStackEntry = FancyActionBar.GetStackMap(slot.effectId, "debuff")
         effect =
         {
             id = slot.effectId,
             isDebuff = true,
-            stackSources = stackSources,
-            stackOwnerId = stackOwnerId,
+            stackSources = debuffStackEntry.sources,
+            stackOwnerId = debuffStackEntry.ownerId,
         }
     elseif not effect or effect.ignore then
         stacksControl:SetText("")
@@ -2896,7 +2964,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
 
     if not effect.isDebuff then
-        local _, _, ownerId = FancyActionBar.GetStackMap(effectId)
+        local ownerId = FancyActionBar.GetStackOwnerId(effectId)
         local hasActiveEffect, activeDuration, activeStacks = FancyActionBar.CheckForActiveEffect(ownerId)
         if hasActiveEffect then
             effect.endTime = activeDuration == -1 and -1 or (time() + activeDuration)
@@ -3962,9 +4030,10 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control, upd
     end
 
     if not effect.stackSources then
-        effect.stackSources = ResolveStackSources(abilityId, effect.id)
-        local _, _, stackOwnerId = FancyActionBar.GetStackMap(effect.id)
-        effect.stackOwnerId = stackOwnerId
+        local effectStackEntry = FancyActionBar.GetStackMap(effect.id)
+        local abilityStackEntry = FancyActionBar.GetStackMap(abilityId)
+        effect.stackSources = ResolveStackSources(abilityId, effect.id, effectStackEntry, abilityStackEntry)
+        effect.stackOwnerId = effectStackEntry.ownerId
     end
 
     local resolvedStacks = FancyActionBar.GetDisplayStacks(effect, currentTime)
@@ -5343,8 +5412,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     elseif not effect.stackSources then
         effect.stackSources = FancyActionBar.emptyStackList
     end
-    local _, _, stackOwnerId = FancyActionBar.GetStackMap(effect.id)
-    effect.stackOwnerId = stackOwnerId
+    effect.stackOwnerId = FancyActionBar.GetStackOwnerId(effect.id)
 
     if specialEffect.stacks then
         FancyActionBar.SetStacks(effect.id, specialEffect.stacks, true)
@@ -6019,14 +6087,13 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             end
             local newSources = GetConfiguredStackSources(specialEffect)
             if #newSources == 0 then
-                newSources = FancyActionBar.GetStackMap(stackSourceId)
+                newSources = FancyActionBar.GetStackMap(stackSourceId).sources
             else
                 newSources = ZO_DeepTableCopy(newSources)
             end
             if effect.stackSources ~= newSources then
                 effect.stackSources = newSources
-                local _, _, ownerId = FancyActionBar.GetStackMap(effect.id)
-                effect.stackOwnerId = ownerId
+                effect.stackOwnerId = FancyActionBar.GetStackOwnerId(effect.id)
             end
             effect.slotStateBeginTime = beginTime
             effect.slotStateEndTime = endTime
@@ -6058,8 +6125,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             if trackedEffect.origStackSources then
                 trackedEffect.stackSources = trackedEffect.origStackSources
                 trackedEffect.origStackSources = nil
-                local _, _, stackOwnerId = FancyActionBar.GetStackMap(trackedEffect.id)
-                trackedEffect.stackOwnerId = stackOwnerId
+                trackedEffect.stackOwnerId = FancyActionBar.GetStackOwnerId(trackedEffect.id)
             end
         end
         FancyActionBar.slotStateSpecialEffects[index] = nil
@@ -6199,7 +6265,9 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
 
     local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] ~= nil
     local targetUnitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
-    local _, sourceId, ownerId = FancyActionBar.GetStackMap(abilityId)
+    local stackEntry = FancyActionBar.GetStackMap(abilityId)
+    local sourceId = stackEntry.sourceId
+    local ownerId = stackEntry.ownerId
     local ownsStackStorage = not sourceId or sourceId == abilityId
 
     local effectId = abilityId
@@ -6418,7 +6486,7 @@ function FancyActionBar.ReleaseEffect(id, fade)
             return
         end
         if slot.abilityId and slot.abilityId ~= 0 then
-            local configured = FancyActionBar.GetStackMap(slot.abilityId)
+            local configured = FancyActionBar.GetStackMap(slot.abilityId).sources
             for i = 1, #configured do
                 if configured[i] == id then
                     return
@@ -6456,7 +6524,7 @@ function FancyActionBar.SyncEffectState(scope)
                 reconcileFilter[slot.effectId] = true
             end
             if slot.abilityId and slot.abilityId ~= 0 then
-                local members = FancyActionBar.GetStackMap(slot.abilityId)
+                local members = FancyActionBar.GetStackMap(slot.abilityId).sources
                 for i = 1, #members do
                     reconcileFilter[members[i]] = true
                 end
@@ -6519,7 +6587,9 @@ function FancyActionBar.SyncEffectState(scope)
 
     for id, effect in pairs(FancyActionBar.effects) do
         if (not reconcileFilter or reconcileFilter[id]) and not effect.isDebuff and not specialEffects[effect.id] then
-            local configuredSourceIds, _, ownerId = FancyActionBar.GetStackMap(id)
+            local stackEntry = FancyActionBar.GetStackMap(id)
+            local configuredSourceIds = stackEntry.sources
+            local ownerId = stackEntry.ownerId
             local isStackable = FancyActionBar.IsStackableBuff(effect.id)
             local canonicalId = isStackable and ((stackableBuff and stackableBuff[effect.id]) or effect.id) or effect.id
             local buffStacks = nil
@@ -6904,6 +6974,8 @@ function FancyActionBar.Initialize()
     end
 
     FancyActionBar.ValidateVariables()
+    FancyActionBar.BuildStackMapLookups()
+
     FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
     FancyActionBar.ApplyBarFoundation()
     FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
