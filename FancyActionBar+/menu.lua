@@ -84,7 +84,8 @@ local effectWidgetActiveAlpha = effectWidgetActiveAlphaDefault
 local effectWidgetInactiveAlpha = effectWidgetInactiveAlphaDefault
 local effectWidgetAllowExternal = false
 local effectWidgetExternalOnly = false
-local WIDGET_SETTING_CONTROL_NAMES = {
+local WIDGET_SETTING_CONTROL_NAMES =
+{
     "EffectWidget_AllowExternal_Checkbox",
     "EffectWidget_ExternalOnly_Checkbox",
     "EffectWidget_ActiveAlpha_Editbox",
@@ -1618,7 +1619,6 @@ function FancyActionBar.RefreshEffectWidgetSettingControls()
 end
 
 function FancyActionBar.RefreshEffectWidgetDropdownSelection(updateChoices)
-    
     if not IsConsoleUI() then
         local widgetDropdown = WM:GetControlByName("Configured_Widgets_Dropdown")
         if updateChoices then
@@ -2586,6 +2586,7 @@ function FancyActionBar.DisplayQuickSlotLabelChanges()
     FancyActionBar.DisplayQuickSlotTimer()
     EM:RegisterForUpdate(FancyActionBar.GetName() .. "QSTimer", 100, FancyActionBar.DisplayQuickSlotTimer)
 end
+
 ----------------------------------------------
 ---------[   Actionbar Position   ]-----------
 ----------------------------------------------
@@ -2621,6 +2622,7 @@ function FancyActionBar.RefreshMoverSize()
     local w, h = ACTION_BAR:GetDimensions()
     FAB_Mover:SetDimensions(w, h)
 end
+
 ----------------------------------------------
 ----------------[   Other   ]-----------------
 ----------------------------------------------
@@ -6817,7 +6819,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         end,
                         width = "full",
                     },
-                    { type = "description", text = "", width = "full" },
+                    { type = "description", text = "",                                  width = "full" },
 
                     -- ============[	Expiring Highlight Color	]=========
                     { type = "description", title = "[ |cffdf80Highlight|r ]", width = "full",

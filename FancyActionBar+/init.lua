@@ -586,15 +586,33 @@ local targetFields = { font = "fontNameTarget", size = "fontSizeTarget", outline
 local ultDurationFields = { show = "ultShow", font = "ultName", size = "ultSize", outline = "ultType", x = "ultX", y = "ultY", color = "ultColor" }
 local ultValueFields =
 {
-    show = "ultValueEnable", mode = "ultValueMode", font = "ultValueName", size = "ultValueSize", outline = "ultValueType",
-    x = "ultValueX", y = "ultValueY", color = "ultValueColor", threshold = "ultValueThreshold",
-    usableThresholdColor = "ultUsableThresholdColor", usableColor = "ultUsableValueColor", maxColor = "ultMaxValueColor",
+    show = "ultValueEnable",
+    mode = "ultValueMode",
+    font = "ultValueName",
+    size = "ultValueSize",
+    outline = "ultValueType",
+    x = "ultValueX",
+    y = "ultValueY",
+    color = "ultValueColor",
+    threshold = "ultValueThreshold",
+    usableThresholdColor = "ultUsableThresholdColor",
+    usableColor = "ultUsableValueColor",
+    maxColor = "ultMaxValueColor",
 }
 local ultCompanionFields = { show = "ultValueEnableCompanion", mode = "ultValueModeCompanion", x = "ultValueCompanionX", y = "ultValueCompanionY" }
 local qsFields =
 {
-    show = "qsTimerEnable", font = "qsName", size = "qsSize", outline = "qsType", x = "qsX", y = "qsY", color = "qsColor",
-    stackFont = "qsStackName", stackSize = "qsStackSize", stackOutline = "qsStackType", stackColor = "qsStackColor",
+    show = "qsTimerEnable",
+    font = "qsName",
+    size = "qsSize",
+    outline = "qsType",
+    x = "qsX",
+    y = "qsY",
+    color = "qsColor",
+    stackFont = "qsStackName",
+    stackSize = "qsStackSize",
+    stackOutline = "qsStackType",
+    stackColor = "qsStackColor",
 }
 
 --- User layout offsets for the active UI mode.

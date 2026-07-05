@@ -257,7 +257,8 @@ local function OnReticleTargetChanged()
                 if castByPlayer or (FancyActionBar.allowExternalStacks[abilityId]) then
                     local specialEffect = (FancyActionBar.specialEffects[abilityId]
                         and ZO_DeepTableCopy(FancyActionBar.specialEffects[abilityId]))
-                    local debuff = {
+                    local debuff =
+                    {
                         id = (specialEffect and specialEffect.id) or abilityId,
                         beginTime = beginTime or 0,
                         endTime = endTime or 0,
