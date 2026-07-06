@@ -686,7 +686,7 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
         return
     end
 
-    if not ownsStackStorage and not fixedDisplayId and debuffMapType == nil then
+    if not ownsStackStorage and not fixedDisplayId and not sourceId and debuffMapType == nil then
         return
     end
 
@@ -2042,11 +2042,12 @@ function FancyActionBar.SetSlottedEffect(index, abilityId, effectId)
         FancyActionBar.slotStateSpecialEffects[index] = nil
     end
 
-    local showStacks = false
+    local showStacks = FancyActionBar.IsStackMapMember(abilityId)
     if effectId ~= 0 then
         local abilitySourceId = FancyActionBar.GetStackSourceId(abilityId)
         local effectSourceId = FancyActionBar.GetStackSourceId(effectId)
-        showStacks = abilitySourceId ~= abilityId
+        showStacks = showStacks
+            or abilitySourceId ~= abilityId
             or effectSourceId ~= effectId
             or effectId == abilityId
             or FancyActionBar.IsAbilityTaunt(effectId)
@@ -2799,6 +2800,14 @@ function FancyActionBar.UpdateStacksControl(slot, stacksControl, currentTime, in
             stackSources = debuffStackEntry.sources,
             stackOwnerId = debuffStackEntry.ownerId,
         }
+    elseif slot.abilityId and FancyActionBar.IsStackMapMember(slot.abilityId) then
+        local stackEntry = FancyActionBar.GetStackMap(slot.abilityId)
+        effect =
+        {
+            id = stackEntry.ownerId,
+            stackSources = stackEntry.sources,
+            stackOwnerId = stackEntry.ownerId,
+        }
     elseif not effect or effect.ignore then
         stacksControl:SetText("")
         return false
@@ -2964,7 +2973,10 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     end
 
     if not effect.isDebuff then
-        local ownerId = FancyActionBar.GetStackOwnerId(effectId)
+        local ownerId = FancyActionBar.GetStackOwnerId(abilityId)
+        if ownerId == abilityId then
+            ownerId = FancyActionBar.GetStackOwnerId(effectId)
+        end
         local hasActiveEffect, activeDuration, activeStacks = FancyActionBar.CheckForActiveEffect(ownerId)
         if hasActiveEffect then
             effect.endTime = activeDuration == -1 and -1 or (time() + activeDuration)
@@ -4580,7 +4592,7 @@ local function UpdateWeaponSwapTransformOffset()
     end
 end
 
-local function syncActionButton(button, hotbarCategory)
+local function syncActionButton(button, hotbarCategory, overlay)
     if not button then
         return
     end
@@ -4590,6 +4602,9 @@ local function syncActionButton(button, hotbarCategory)
     if button.timerText then button.timerText:SetHidden(true) end
     if button.timerOverlay then button.timerOverlay:SetHidden(true) end
     button:HandleSlotChanged(hotbarCategory)
+    if overlay and button.slot then
+        AnchorOverlayToSlot(overlay, button.slot)
+    end
     if button.buttonText then
         button.buttonText:SetHidden(not SV.showHotkeys)
     end
@@ -4612,7 +4627,10 @@ local function syncInactiveSlotButton(slotNum, hotbarCategory)
         local fabButton = FancyActionBar.GetActionButton(physicalIndex)
         if fabButton then
             fabButton.noUpdates = true
-            syncActionButton(fabButton, hotbarCategory)
+            local overlay = slotNum == ULT_INDEX
+                and FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
+                or FancyActionBar.overlays[physicalIndex]
+            syncActionButton(fabButton, hotbarCategory, overlay)
         end
     end
 end
@@ -4620,12 +4638,20 @@ end
 function FancyActionBar.RefreshActiveBarSlots(hotbar, cleanup)
     hotbar = hotbar or GetActiveHotbarCategory()
     for i = MIN_INDEX, MAX_INDEX do
-        syncActionButton(ZO_ActionBar_GetButton(i), hotbar)
+        syncActionButton(ZO_ActionBar_GetButton(i), hotbar, FancyActionBar.overlays[i])
     end
     local ult = ZO_ActionBar_GetButton(ULT_INDEX, hotbar)
     if ult then
         ult.showTimer = false
         ult:HandleSlotChanged(hotbar)
+        local ultOverlay = FancyActionBar.ultOverlays[ULT_INDEX]
+        if ultOverlay and ult.slot then
+            AnchorOverlayToSlot(ultOverlay, ult.slot)
+        end
+        if ult.buttonText then
+            ult.buttonText:SetHidden(not SV.showHotkeys)
+        end
+        ult:ApplySwapAnimationStyle()
         if not cleanup and ult.hasAction then
             ult:UpdateUltimateMeter()
         end
@@ -4656,6 +4682,15 @@ local function tickOverlayTimers(currentTime, activeHotbar)
         FancyActionBar.UpdateOverlay(i, currentTime, activeHotbar, inactiveHotbar)
         FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET, currentTime, activeHotbar, inactiveHotbar)
     end
+end
+
+function FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, reconcileSlotEffects)
+    if reconcileSlotEffects then
+        FancyActionBar.SlotEffects()
+    end
+    syncAllHotbarSlots()
+    FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, false)
+    tickOverlayTimers(time(), (activeHotbarCategory == HOTBAR_CATEGORY_PRIMARY or activeHotbarCategory == HOTBAR_CATEGORY_BACKUP) and activeHotbarCategory or layoutHotbarCategory)
 end
 
 function FancyActionBar.RefreshHotbarPresentation(activeHotbar, syncSlots)
@@ -5816,29 +5851,20 @@ local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbili
             applyWeaponLockPresentation(specialHotbarActive)
         else
             FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
-            FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, true)
         end
-        if shouldUpdateAbilityAssignments ~= false then
-            FancyActionBar.SlotEffects()
-        end
+        FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, shouldUpdateAbilityAssignments ~= false)
     elseif didActiveHotbarChange and specialHotbarActive and not FancyActionBar.specialHotbar[activeHotbarCategory] then
         specialHotbarActive = false
-        if FancyActionBar.oakensoulEquipped then
-            FancyActionBar.SlotEffects()
-        else
-            if not SV.hideLockedBar then
-                isWeaponSwapLocked = false
-            end
-            if SV.hideLockedBar then
-                applyWeaponLockPresentation(specialHotbarActive)
-            else
-                FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
-                FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, true)
-            end
-            if shouldUpdateAbilityAssignments ~= false then
-                FancyActionBar.SlotEffects()
-            end
+        if not SV.hideLockedBar then
+            isWeaponSwapLocked = false
         end
+        if SV.hideLockedBar then
+            applyWeaponLockPresentation(specialHotbarActive)
+        else
+            FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
+            FancyActionBar.RefreshAdjacentSlots(isWeaponSwapLocked)
+        end
+        FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, true)
     elseif didActiveHotbarChange
         and (activeHotbarCategory == HOTBAR_CATEGORY_PRIMARY or activeHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
         if layoutHotbarCategory ~= activeHotbarCategory then
