@@ -3010,7 +3010,7 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     return effect
 end
 
-function FancyActionBar.SlotEffects(reconcileBuffs) -- slot effects for primary and backup bars.
+function FancyActionBar.SlotEffects() -- slot effects for primary and backup bars.
     local currentHotbarCategory = GetActiveHotbarCategory()
     if currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         for i = MIN_INDEX, MAX_INDEX do
@@ -3026,9 +3026,6 @@ function FancyActionBar.SlotEffects(reconcileBuffs) -- slot effects for primary 
         end
     end
     FancyActionBar.UpdateUltimateCost()
-    if reconcileBuffs ~= false then
-        FancyActionBar.SyncEffectState("slotted")
-    end
 end
 
 --------------
@@ -4687,6 +4684,7 @@ end
 function FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, reconcileSlotEffects)
     if reconcileSlotEffects then
         FancyActionBar.SlotEffects()
+        FancyActionBar.SyncEffectState("slotted")
     end
     syncAllHotbarSlots()
     FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, false)
@@ -4901,6 +4899,7 @@ function FancyActionBar.RefreshAfterPresetApply(abilityDataApplied)
     FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
     FancyActionBar.RefreshActiveBarSlots()
     FancyActionBar.SlotEffects()
+    FancyActionBar.SyncEffectState("slotted")
     FancyActionBar.RefreshHotbarPresentation(nil, false)
 
     if abilityDataApplied then
@@ -4917,6 +4916,7 @@ function FancyActionBar.OnUIModeChanged()
     FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
     FancyActionBar.RefreshActiveBarSlots()
     FancyActionBar.SlotEffects()
+    FancyActionBar.SyncEffectState("slotted")
     FancyActionBar.RefreshHotbarPresentation(nil, false)
 end
 
@@ -5870,9 +5870,10 @@ local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbili
         if layoutHotbarCategory ~= activeHotbarCategory then
             FancyActionBar.ApplyActiveHotbarGeometry(activeHotbarCategory, isWeaponSwapLocked)
             FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, true)
-            tickOverlayTimers(time(), activeHotbarCategory)
         end
-        FancyActionBar.SyncEffectState("slotted")
+        refreshBackupBarButtons()
+        FancyActionBar.PaintAbilityOverlays(nil, activeHotbarCategory)
+        tickOverlayTimers(time(), activeHotbarCategory)
         FancyActionBar.UpdateUltimateCost()
     end
 end
@@ -5893,10 +5894,7 @@ local function PrepareWeaponLockState()
     end
 end
 
-local function OnAllHotbarsUpdated(opts)
-    if type(opts) ~= "table" then
-        opts = {}
-    end
+local function OnAllHotbarsUpdated()
     local activeHotbar = GetActiveHotbarCategory()
     if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
         activeHotbar = HOTBAR_CATEGORY_PRIMARY
@@ -5907,14 +5905,12 @@ local function OnAllHotbarsUpdated(opts)
         FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
         FancyActionBar.RefreshAdjacentSlots(isWeaponSwapLocked)
         syncAllHotbarSlots()
-        FancyActionBar.SlotEffects(opts.reconcileBuffs)
         FancyActionBar.RefreshHotbarPresentation(nil, false)
-        tickOverlayTimers(time(), activeHotbar)
     else
         refreshBackupBarButtons()
         FancyActionBar.PaintAbilityOverlays(nil, activeHotbar)
-        FancyActionBar.SlotEffects(opts.reconcileBuffs)
     end
+    tickOverlayTimers(time(), activeHotbar)
     FancyActionBar.RefreshEffectWidgets()
     FancyActionBar.UpdateSlottedSkillsDecriptions()
     HideAllAbilityActionButtonDropCallouts()
@@ -5929,6 +5925,8 @@ local function OnArmory()
     if SV.hideLockedBar and (isOakensoulEquipped or wasOakensoulEquipped) then
         isWeaponSwapLocked = FancyActionBar.oakensoulEquipped or FancyActionBar.isWerewolf
     end
+    FancyActionBar.SlotEffects()
+    FancyActionBar.SyncEffectState("slotted")
     OnAllHotbarsUpdated()
 end
 
@@ -6188,7 +6186,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
     local hasValidSlotEffect = duration > 0 and remain > 0
 
     if not hasValidSlotEffect then
-        if slot then
+        if slot and (hotbarCategory == GetActiveHotbarCategory() or not (slot.parentEndTime and slot.parentEndTime > t)) then
             slot.parentEndTime = nil
         end
         if not effect then
@@ -6697,26 +6695,20 @@ local function OnPlayerActivated(_eventId, _initial)
         FancyActionBar.InitializeScreenResizeHandler()
         FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
         FancyActionBar.RefreshActiveBarSlots()
-        FancyActionBar.SlotEffects(false)
+        FancyActionBar.SlotEffects()
         refreshBackupBarButtons()
-        FancyActionBar.SyncEffectState()
-        FancyActionBar.RefreshHotbarPresentation(nil, false)
-        FancyActionBar.RefreshEffectWidgets()
         FancyActionBar.ToggleUltimateValue()
         FancyActionBar.SetUltFrameAlpha()
-        FancyActionBar.UpdateSlottedSkillsDecriptions()
-        HideAllAbilityActionButtonDropCallouts()
         EM:UnregisterForUpdate(NAME .. "Update")
         EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
         doneInitialHotbarSetup = true
-    else
-        if not FancyActionBar.wasStopped and not ACTION_BAR:IsHidden() then
-            FancyActionBar.RefreshBarPosition(true)
-        end
-        OnAllHotbarsUpdated({ reconcileBuffs = false })
+    elseif not FancyActionBar.wasStopped and not ACTION_BAR:IsHidden() then
+        FancyActionBar.RefreshBarPosition(true)
     end
+
+    FancyActionBar.SyncEffectState()
+    OnAllHotbarsUpdated()
     if not firstZone then
-        FancyActionBar.SyncEffectState()
         FancyActionBar.HandleCompanionUltimate()
     end
 end
@@ -7071,6 +7063,7 @@ function FancyActionBar.Initialize()
             applyWeaponLockPresentation(FancyActionBar.oakensoulEquipped or value)
         end
         FancyActionBar.SlotEffects()
+        FancyActionBar.SyncEffectState("slotted")
     end)
 
     EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
