@@ -5901,6 +5901,8 @@ local function OnAllHotbarsUpdated()
     end
     local layoutCurrent = layoutHotbarCategory == activeHotbar
 
+    FancyActionBar.SlotEffects()
+
     if not layoutCurrent then
         FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
         FancyActionBar.RefreshAdjacentSlots(isWeaponSwapLocked)
