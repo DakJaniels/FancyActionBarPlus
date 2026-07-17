@@ -1184,11 +1184,10 @@ FancyActionBar.toggled =
     [78338] = true, -- active: Guard (Guard)
     [81415] = true, -- active: Mystic Guard (Mystic Guard)
 
-    -- [80923] = true; -- guard (on self)
-    -- [80947] = true; -- mystic guard (on self)
-    -- [80983] = true; -- stalwart guard (on self) 80984 = minor force on target. 80986 = minor force on self
+    [80923] = true; -- guard (on self)
+    [80947] = true; -- mystic guard (on self)
+    [80983] = true; -- stalwart guard (on self) 80984 = minor force on target. 80986 = minor force on self
 
-    -- [78338] = true; -- guard (inactive)
     [81420] = true, -- Link active
 
     -- Sorcerer

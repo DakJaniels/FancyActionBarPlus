@@ -2690,14 +2690,17 @@ function FancyActionBar.UpdateEffectDuration(index, updateTime, overlay, stacksO
         end
     end
 
-    local isToggled = nil
-    if FancyActionBar.bannerBearer[effect.id] then
-        isToggled = FancyActionBar.toggles["banner"] or false
-    else
-        isToggled = FancyActionBar.toggles[effect.id]
-    end
-
+    local toggleKey = (FancyActionBar.bannerBearer[effect.id] or FancyActionBar.bannerBearer[abilityId]) and "banner" or effect.id
+    local isToggled = FancyActionBar.toggles[toggleKey]
     if effect.toggled then
+        local activeHotbar = GetActiveHotbarCategory()
+        if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
+            activeHotbar = HOTBAR_CATEGORY_PRIMARY
+        end
+        if GetHotbarCategoryForOverlayIndex(index) == activeHotbar then
+            isToggled = IsSlotToggled(GetSlotFromOverlayIndex(index), activeHotbar)
+            FancyActionBar.toggles[toggleKey] = isToggled
+        end
         local tickRate = isToggled and SV.showToggleTicks and effect.tickRate or 0
         if tickRate ~= 0 and effect.beginTime then
             duration = tickRate - ((currentTime - effect.beginTime) % tickRate)
@@ -2708,8 +2711,8 @@ function FancyActionBar.UpdateEffectDuration(index, updateTime, overlay, stacksO
         isFading = true
     end
 
-    local highlightOn = hasDuration or isFading or isParentTime or (effect.toggled and isToggled) or effect.passive
-    local highlightToggled = (effect.toggled and isToggled) or effect.passive
+    local highlightOn = hasDuration or isFading or isParentTime or isToggled or effect.passive
+    local highlightToggled = isToggled or effect.passive
     local highlightProfile = isUlt and highlights.ult or highlights.regular
 
     local labelText, labelColor = "", nil
@@ -2757,7 +2760,7 @@ function FancyActionBar.UpdateEffectDuration(index, updateTime, overlay, stacksO
     end
 
     if not stacksOnly and highlightOn then
-        bgColor = FancyActionBar.GetHighlightColor(isFading, effect.toggled or effect.passive, highlightToggled, isParentTime, highlightProfile)
+        bgColor = FancyActionBar.GetHighlightColor(isFading, effect.toggled or effect.passive or isToggled, highlightToggled, isParentTime, highlightProfile)
     end
 
     local hasDisplay = useUltDisplay and (duration > -((SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)) or hasDuration or isToggled or isFading or isParentTime
@@ -2889,10 +2892,17 @@ function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime
 end
 
 function FancyActionBar.UpdateToggledAbility(id, active)
-    if FancyActionBar.bannerBearer[id] then
-        FancyActionBar.toggles["banner"] = active
-    else
-        FancyActionBar.toggles[id] = active
+    FancyActionBar.toggles[FancyActionBar.bannerBearer[id] and "banner" or id] = active
+    for index, slot in pairs(slots) do
+        local match
+        if FancyActionBar.bannerBearer[id] then
+            match = FancyActionBar.bannerBearer[slot.effectId] or FancyActionBar.bannerBearer[slot.abilityId]
+        else
+            match = slot.effectId == id or slot.abilityId == id
+        end
+        if match then
+            FancyActionBar.UpdateOverlay(index)
+        end
     end
 end
 
@@ -3275,7 +3285,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 
         if FancyActionBar.toggled[id] then
             toggled = true
-            FancyActionBar.toggles[id] = false
+            FancyActionBar.toggles[FancyActionBar.bannerBearer[id] and "banner" or id] = false
         end
 
         local cI, rI = id, false
@@ -3312,11 +3322,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
             cfg = customConfig[id]
             if FancyActionBar.toggled[id] then
                 toggled = true
-                if FancyActionBar.bannerBearer[id] then
-                    FancyActionBar.toggles["banner"] = false
-                else
-                    FancyActionBar.toggles[id] = false
-                end
+                FancyActionBar.toggles[FancyActionBar.bannerBearer[id] and "banner" or id] = false
             end
             if FancyActionBar.removeInstantly[cI] then
                 rI = true
@@ -4005,7 +4011,7 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control, upd
         FancyActionBar.widgetEffects[effect.id] = we
     end
     local hasDuration = duration > 0
-    local isToggled = FancyActionBar.toggles[effect.id] == true
+    local isToggled = FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id]
 
     local restrictSources = widget.externalOnly or not widget.allowExternal
     if restrictSources then
@@ -5984,7 +5990,7 @@ local function OnAbilityUsed(_, n)
     end
 
     if effect and FancyActionBar.toggled[effect.id] then
-        local isToggled = FancyActionBar.bannerBearer[effect.id] and FancyActionBar.toggles["banner"] or FancyActionBar.toggles[effect.id]
+        local isToggled = FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id]
         local O = (not isToggled) and "On" or "Off"
         FancyActionBar.AddSystemMessage("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
     end
@@ -6210,7 +6216,6 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         if slot then
             slot.parentEndTime = t + remain
         end
-        FancyActionBar.UpdateOverlay(index)
         return
     end
 
@@ -6307,7 +6312,6 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     end
 
     if FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and isTargetPlayer then
-        FancyActionBar.toggles["banner"] = isGain
         if isGain then
             local resolvedBegin = (beginTime ~= 0) and beginTime or t
             for k in pairs(FancyActionBar.bannerBearer) do
@@ -6318,6 +6322,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 end
             end
         end
+        FancyActionBar.UpdateToggledAbility(abilityId, isGain)
     elseif effect.toggled then
         effect.beginTime = (beginTime ~= 0) and beginTime or t
         FancyActionBar.UpdateToggledAbility(effect.id, not isFade)
@@ -6593,7 +6598,7 @@ function FancyActionBar.SyncEffectState(scope)
                     end
                 end
             elseif FancyActionBar.toggled[abilityId] or FancyActionBar.toggled[trackedId] then
-                FancyActionBar.toggles[trackedId] = true
+                FancyActionBar.toggles[FancyActionBar.bannerBearer[trackedId] and "banner" or trackedId] = true
                 local toggleEffect = FancyActionBar.effects[trackedId]
                 if toggleEffect then
                     toggleEffect.beginTime = (beginTime ~= 0) and beginTime or currentTime
@@ -6601,6 +6606,7 @@ function FancyActionBar.SyncEffectState(scope)
             end
         end
     end
+
     FancyActionBar.toggles["banner"] = bannerActive
 
     if not slottedOnly then
@@ -6659,7 +6665,7 @@ function FancyActionBar.SyncEffectState(scope)
             if not exists then
                 local keep = (effect.endTime and effect.endTime > currentTime)
                     or FancyActionBar.IsEffectWidgetTracked(effect.id)
-                    or (effect.toggled and ((FancyActionBar.bannerBearer[effect.id] and FancyActionBar.toggles["banner"]) or FancyActionBar.toggles[effect.id]))
+                    or (effect.toggled and FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id])
 
                 if not keep then
                     SyncFadedEffect(effect, currentTime)
