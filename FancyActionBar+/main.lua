@@ -6478,19 +6478,23 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     end
 end
 
-local function SyncFadedEffect(effect, currentTime)
+local function SyncFadedEffect(effect)
+    effect.endTime = -1
+    effect.slotStateEndTime = nil
+    if effect.isChanneled then
+        FancyActionBar.ChanneledAbilityEnd(effect.id)
+        effect.castEndTime = -1
+    end
+    for _, slot in pairs(slots) do
+        if slot.effectId == effect.id then
+            slot.parentEndTime = nil
+        end
+    end
     if effect.toggled then
         FancyActionBar.UpdateToggledAbility(effect.id, false)
     end
     if effect.passive then
         FancyActionBar.UpdatePassiveEffect(effect.id, false)
-    end
-    if effect.isChanneled and not channeledAbility.active then
-        FancyActionBar.ChanneledAbilityEnd(effect.id)
-        effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
-        effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
-    else
-        effect.endTime = currentTime
     end
 end
 
@@ -6659,18 +6663,25 @@ function FancyActionBar.SyncEffectState(scope)
             end
 
             local stacks = (isStackable and FancyActionBar.effects[canonicalId] and FancyActionBar.effects[canonicalId].stacks) or effect.stacks or 0
-            local onOthers = (FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets") or 0) > 0
-            local exists = buffStacks ~= nil or (isStackable and stacks > 0) or onOthers or FancyActionBar.IsEffectSlotted(id)
+            local isToggleActive = FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id]
+            local stillActive = buffStacks ~= nil or (isStackable and stacks > 0) or isToggleActive
+            if slottedOnly then
+                stillActive = stillActive or (FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets") or 0) > 0
+            end
 
-            if not exists then
-                local keep = (effect.endTime and effect.endTime > currentTime)
-                    or FancyActionBar.IsEffectWidgetTracked(effect.id)
-                    or (effect.toggled and FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id])
-
-                if not keep then
-                    SyncFadedEffect(effect, currentTime)
-                    FancyActionBar.ReleaseEffect(id, false)
+            if not stillActive then
+                if not slottedOnly then
+                    local targets = effect.targets
+                    if targets and targets.times then
+                        for unitKey in pairs(targets.times) do
+                            targets.times[unitKey] = nil
+                        end
+                        targets.unitCount = 0
+                        targets.maxEndTime = 0
+                    end
                 end
+                SyncFadedEffect(effect)
+                FancyActionBar.ReleaseEffect(id, false)
             end
         end
     end
