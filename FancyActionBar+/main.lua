@@ -4652,7 +4652,9 @@ function FancyActionBar.RefreshActiveBarSlots(hotbar, cleanup)
             AnchorOverlayToSlot(ultOverlay, ult.slot)
         end
         if ult.buttonText then
-            ult.buttonText:SetHidden(not SV.showHotkeys)
+            local isFakeGamepadMode = SV.forceGamepadStyle and not IsInGamepadPreferredMode()
+            local hideUltimateButtonText = (not SV.showHotkeys) or (FancyActionBar.style ~= 1 and not isFakeGamepadMode)
+            ult.buttonText:SetHidden(hideUltimateButtonText)
         end
         ult:ApplySwapAnimationStyle()
         if not cleanup and ult.hasAction then
