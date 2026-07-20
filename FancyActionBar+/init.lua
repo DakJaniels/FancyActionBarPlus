@@ -513,7 +513,7 @@ FancyActionBar.gamepadConstants =
     overlayTemplate = "FAB_ActionButtonOverlay_Gamepad_Template",
     ultOverlayTemplate = "FAB_UltimateButtonOverlay_Gamepad_Template",
     qsOverlayTemplate = "FAB_QuickSlotOverlay_Gamepad_Template",
-    swapAnimationSize = 67,
+    swapAnimationSize = 61,
     quickSlotAnchor = { base = 2, multiplySlotCount = true },
     ultimateSpacing = { baseX = 10, baseGap = 10, companionExtraX = 20, ultWidth = 65 },
 }

@@ -4812,9 +4812,12 @@ end
 function FancyActionBar.UpdateBarSettings(locked, opts)
     opts = opts or {}
     locked = locked ~= nil and locked or isWeaponSwapLocked
-    local style = FancyActionBar.constants.style
 
     FancyActionBar.ApplyBarFoundation()
+
+    local style = FancyActionBar.constants.style
+    FancyActionBar.SetupActionBar(style)
+    FancyActionBar.SetupButtons(style)
     FancyActionBar.SetupOverlays(style)
     if opts.skipSlots then
         applyActiveBarButtonStyles()
@@ -4823,8 +4826,6 @@ function FancyActionBar.UpdateBarSettings(locked, opts)
     end
     FancyActionBar:ApplySettings()
     FancyActionBar.RefreshBounceAnimations()
-    FancyActionBar.SetupActionBar(style)
-    FancyActionBar.SetupButtons(style)
     FancyActionBar.ApplyActiveHotbarGeometry(opts.activeHotbar, locked)
     FancyActionBar.AdjustQuickSlotSpacing(locked)
     positionUltimateSlots()
@@ -4935,7 +4936,7 @@ local function ApplySwapAnimationStyle(button)
     local constants = FancyActionBar.constants
     local timeline = button.hotbarSwapAnimation
     local isUltimateSlot = button.GetSlot and ZO_ActionBar_IsUltimateSlot(button:GetSlot(), button:GetHotbarCategory())
-    local swapSize = isUltimateSlot and constants.style.ultFlipCardSize or constants.style.swapAnimationSize
+    local swapSize = isUltimateSlot and constants.style.ultFlipCardSize or constants.style.flipCardSize
 
     if timeline then
         local firstAnimation = timeline:GetFirstAnimation()
