@@ -5421,9 +5421,8 @@ function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, e
     end
 
     local effect = FancyActionBar.effects[specialEffect.id]
-    if effect then
-        FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
-    end
+        or FancyActionBar.GetEffect(specialEffect.id)
+    FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
 end
 
 function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
