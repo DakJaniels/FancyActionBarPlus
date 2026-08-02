@@ -580,8 +580,7 @@ function FancyActionBar.CaptureCurrentUIPresetSettings()
         end
     end
 
-    return
-    {
+    return {
         settings = settings,
         includes = includes,
     }
