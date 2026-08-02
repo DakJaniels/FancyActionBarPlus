@@ -492,6 +492,11 @@ end
 function FancyActionBar.IsStackMapMember(abilityId)
     if not abilityId or abilityId == 0 then return false end
     if FancyActionBar.fixedStacks[abilityId] ~= nil then return true end
+    local stackMap = FancyActionBar.stackMap
+    local debuffStackMap = FancyActionBar.debuffStackMap
+    if (stackMap and stackMap[abilityId]) or (debuffStackMap and debuffStackMap[abilityId]) then
+        return true
+    end
     local sourceId = FancyActionBar.GetStackSourceId(abilityId)
     return sourceId ~= nil and sourceId ~= abilityId
 end
