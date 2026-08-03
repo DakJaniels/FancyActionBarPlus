@@ -623,8 +623,7 @@ function FancyActionBar.GetUserUIPresetByName(presetName)
 
     for presetId, preset in pairs(SV.userUIPresets) do
         if preset.name == presetName then
-            return
-            {
+            return {
                 presetId = presetId,
                 settings = preset.settings,
                 includes = preset.includes,
