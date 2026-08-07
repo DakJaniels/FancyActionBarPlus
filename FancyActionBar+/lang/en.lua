@@ -13,6 +13,7 @@ local strings =
     FANCYAB_SUBMENU_STACKKB_DESC = "Keyboard UI target count display settings",
     FANCYAB_SUBMENU_TARGETKB_DESC = "Keyboard UI target count display settings",
 
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Front Bar Visibility|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Back Bar Visibility|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Hotkey Text|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Button Frames|r ]",
@@ -28,8 +29,45 @@ local strings =
     FANCYAB_ALPHA_NAME = "Inactive bar alpha",
     FANCYAB_ALPHA_TT = "Higher value = more solid.\nLower value = more see through.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Apply active bar alpha",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Allow overriding the active bar transparency. Note that this conflicts with how the basegame indicates that targeted abilities are castable.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Apply active bar desaturation",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Allow overriding the active bar saturation/greyscale. Note that this conflicts with how the basegame indicates that targeted abilities are castable.",
+
+    FANCYAB_ALPHA_USABLE_NAME = "Usable ability alpha",
+    FANCYAB_ALPHA_USABLE_TT = "Icon opacity while the slotted ability can be used.\n100 matches the base game default.",
+
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Unusable ability alpha",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Icon opacity while the slotted ability cannot be used.\n57 matches the base game default.",
+
     FANCYAB_DESAT_NAME = "Inactive bar desaturation",
     FANCYAB_DESAT_TT = "Higher value = more grey.\nLower value = more colors.",
+
+    FANCYAB_TINT_INACTIVE_NAME = "Inactive bar tint",
+    FANCYAB_TINT_INACTIVE_TT = "Icon color tint for the inactive (back) bar.\nWhite leaves hue unchanged.",
+
+    FANCYAB_DESAT_USABLE_NAME = "Usable ability desaturation",
+    FANCYAB_DESAT_USABLE_TT = "Greyscale while the slotted ability can be used.\n0 matches the base game default.",
+
+    FANCYAB_DESAT_UNUSABLE_NAME = "Unusable ability desaturation",
+    FANCYAB_DESAT_UNUSABLE_TT = "Greyscale while the slotted ability cannot be used.\n100 matches the base game default for cooldown greyscale.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Apply active bar icon tint",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Allow overriding the active bar icon color tint. The base game uses a dark grey tint (not desaturation) for many unusable abilities.",
+
+    FANCYAB_TINT_USABLE_NAME = "Usable ability tint",
+    FANCYAB_TINT_USABLE_TT = "Icon color while the slotted ability can be used.\nWhite matches the base game default.",
+
+    FANCYAB_TINT_UNUSABLE_NAME = "Unusable ability tint",
+    FANCYAB_TINT_UNUSABLE_TT = "Icon color while the slotted ability cannot be used.\nDark grey (30%) matches the base game disabled tint for cost failures.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Active Bar frame alpha",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Active bar button backdrop alpha",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Inactive Bar frame alpha",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Inactive bar button backdrop alpha",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Opacity for the backdrop behind the ability icon.\nHigher value = more solid.\nLower value = more see through.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Opacity for the button frame.\nOnly applies when Custom frames is enabled.\nHigher value = more solid.\nLower value = more see through.",
 
     FANCYAB_HOTKEY_NAME = "Show hotkeys",
     FANCYAB_HOTKEY_TT = "Show hotkeys under the action bar.",

@@ -13,6 +13,7 @@ local strings =
     FANCYAB_SUBMENU_STACKKB_DESC = "键盘界面堆叠计数显示设置",
     FANCYAB_SUBMENU_TARGETKB_DESC = "键盘界面目标计数显示设置",
 
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80前置技能栏可见性|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80后置技能栏可见性|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80快捷键文本|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80按钮边框|r ]",
@@ -28,8 +29,43 @@ local strings =
     FANCYAB_ALPHA_NAME = "非当前技能栏透明度",
     FANCYAB_ALPHA_TT = "数值越高 = 越不透明。\n数值越低 = 越透明。",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "应用当前技能栏透明度",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "允许覆盖当前技能栏的透明度。请注意，这会与原版游戏指示目标技能是否可施放的方式冲突。",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "应用当前技能栏饱和度",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "允许覆盖当前技能栏的饱和度/灰度。请注意，这会与原版游戏指示目标技能是否可施放的方式冲突。",
+
+    FANCYAB_ALPHA_USABLE_NAME = "可用技能透明度",
+    FANCYAB_ALPHA_USABLE_TT = "技能可用时的图标不透明度。\n100 与原版游戏默认一致。",
+
     FANCYAB_DESAT_NAME = "非当前技能栏饱和度",
     FANCYAB_DESAT_TT = "数值越高 = 越灰暗。\n数值越低 = 越鲜艳。",
+
+    FANCYAB_TINT_INACTIVE_NAME = "非当前技能栏色调",
+    FANCYAB_TINT_INACTIVE_TT = "非当前（后备）技能栏图标的颜色色调。\n白色不改变色相。",
+
+    FANCYAB_ALPHA_UNUSABLE_NAME = "不可用技能透明度",
+    FANCYAB_ALPHA_UNUSABLE_TT = "技能不可用时的图标不透明度。\n57 与原版游戏默认一致。",
+
+    FANCYAB_DESAT_USABLE_NAME = "可用技能饱和度",
+    FANCYAB_DESAT_USABLE_TT = "技能可用时的灰度。\n0 与原版游戏默认一致。",
+
+    FANCYAB_DESAT_UNUSABLE_NAME = "不可用技能饱和度",
+    FANCYAB_DESAT_UNUSABLE_TT = "技能不可用时的灰度。\n100 与原版游戏冷却灰度默认一致。",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "应用当前技能栏图标色调",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "允许覆盖图标颜色色调。原版游戏对许多不可用技能使用深灰色调（而非去饱和度）。",
+    FANCYAB_TINT_USABLE_NAME = "可用技能色调",
+    FANCYAB_TINT_USABLE_TT = "技能可用时的图标颜色。\n白色与原版游戏默认一致。",
+    FANCYAB_TINT_UNUSABLE_NAME = "不可用技能色调",
+    FANCYAB_TINT_UNUSABLE_TT = "技能不可用时的图标颜色。\n深灰（30%）与原版资源不足时的禁用色调一致。",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "当前栏边框透明度",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "当前栏按钮背景透明度",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "非当前栏边框透明度",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "非当前栏按钮背景透明度",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "技能图标背后背景的不透明度。\n数值越高 = 越不透明。\n数值越低 = 越透明。",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "按钮边框的不透明度。\n仅在启用自定义边框时生效。\n数值越高 = 越不透明。\n数值越低 = 越透明。",
 
     FANCYAB_HOTKEY_NAME = "显示快捷键",
     FANCYAB_HOTKEY_TT = "在技能栏下方显示快捷键。",

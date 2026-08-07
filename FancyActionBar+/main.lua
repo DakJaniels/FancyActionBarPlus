@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.18.5"
+local VERSION = "2.19.0"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -25,114 +25,41 @@ local weaponSwapControl = ACTION_BAR:GetNamedChild("WeaponSwap")
 local FAB_Default_Bar_Position = GetControl("FAB_Default_Bar_Position")
 local FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
 local currentWeaponPair = GetHeldWeaponPair()
-local isWeaponSwapLocked = false  -- for tracking weapon swap lock state
-local specialHotbarActive = false -- for tracking if a specialHotbar is active
-local rebuildHotbar = nil
-
-local specialHotbar =
-{
-    [HOTBAR_CATEGORY_TEMPORARY] = true,
-    [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = true,
-}
-
-local DROP_CALLOUT_VALIDITY_BY_ACTION_TYPE =
-{
-    [ACTION_TYPE_ABILITY] = IsValidAbilityForSlot,
-    [ACTION_TYPE_CRAFTED_ABILITY] = IsValidCraftedAbilityForSlot,
-}
-
-local GAMEPAD_CONSTANTS =
-{
-    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, -25),
-    dimensions = 64,
-    flipCardSize = 61,
-    ultFlipCardSize = 67,
-    abilitySlotWidth = 64,
-    buttonTextOffsetY = 80,
-    actionBarOffset = -52,
-    attributesOffset = -152,
-    width = 606,
-    anchorOffsetY = -25,
-    ultimateSlotOffsetX = 12, -- 65,
-    ultSize = 70,
-    quickslotOffsetX = 0,
-    bindingTextOnUlt = false,
-    showKeybindBG = false,
-    buttonTemplate = "FAB_ActionButton_Gamepad_Template",
-    ultButtonTemplate = "FAB_UltimateActionButton_Gamepad_Template",
-    overlayTemplate = "FAB_ActionButtonOverlay_Gamepad_Template",
-    ultOverlayTemplate = "FAB_UltimateButtonOverlay_Gamepad_Template",
-    qsOverlayTemplate = "FAB_QuickSlotOverlay_Gamepad_Template",
-}
-local KEYBOARD_CONSTANTS =
-{
-    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, 0),
-    dimensions = 50,
-    flipCardSize = 47,
-    ultFlipCardSize = 47,
-    abilitySlotWidth = 50,
-    buttonTextOffsetY = 62,
-    actionBarOffset = -22,
-    attributesOffset = -112,
-    width = 483,
-    anchorOffsetY = 0,
-    ultimateSlotOffsetX = 8, -- 12,
-    ultSize = 50,
-    quickslotOffsetX = 0,
-    bindingTextOnUlt = false,
-    showKeybindBG = false,
-    buttonTemplate = "FAB_ActionButton_Keyboard_Template",
-    ultButtonTemplate = "FAB_UltimateActionButton_Keyboard_Template",
-    overlayTemplate = "FAB_ActionButtonOverlay_Keyboard_Template",
-    ultOverlayTemplate = "FAB_UltimateButtonOverlay_Keyboard_Template",
-    qsOverlayTemplate = "FAB_QuickSlotOverlay_Keyboard_Template",
-}
-local ULTIMATE_BUTTON_STYLE =
-{ -- TODO make back bar ult button to display duration.
-    type = ACTION_BUTTON_TYPE_VISIBLE,
-    template = "ZO_UltimateActionButton",
-    showBinds = false,
-    parentBar = "",
-}
-local GROUND_EFFECT = ABILITY_TYPE_AREAEFFECT
-local DEBUFF = BUFF_EFFECT_TYPE_DEBUFF
+local isWeaponSwapLocked = false                     -- for tracking weapon swap lock state
+local specialHotbarActive = false                    -- for tracking if a specialHotbar is active
+local layoutHotbarCategory = HOTBAR_CATEGORY_PRIMARY -- visual row layout; lags GetActiveHotbarCategory during swap
+local doneInitialHotbarSetup = false                 -- one-time zone-in setup (rebuild, update loop)
 -------------------------------------------------------------------------------
 -----------------------------[    Global    ]----------------------------------
 -------------------------------------------------------------------------------
-FancyActionBar.effects = {} -- currently slotted abilities
--- FancyActionBar.targets = {}     -- Per-effect target tracking is now stored in each effect at effects[id].targets.
--- FancyActionBar.activeCasts = {} -- Per-effect active cast data is now stored in each effect with hasActiveCast, castTime, and beginTime/endTime.
-FancyActionBar.stackSourceConfig = {} -- Cache for GetConfiguredStackSources results to avoid repeated computation
+FancyActionBar.effects = {}
+FancyActionBar.stackMapCache = {}
 
 --- @type table<integer, boolean>
 FancyActionBar.toggles = {}        -- works together with effects to update toggled abilities activation
--- FancyActionBar.debuffs = {}     -- per-effect debuff state is now tracked with FancyActionBar.effects[id].isDebuff.
-FancyActionBar.stashedEffects = {} -- Used with specalEffects to track prioritized effects from skills that apply multiple with different durations
+FancyActionBar.stashedEffects = {} -- Used with specialEffects to track prioritized effects from skills that apply multiple with different durations
+FancyActionBar.slotStateSpecialEffects = {}
 
 -- Backbar buttons.
 FancyActionBar.buttons = {} -- Contains: abilities duration, number of stacks and debuffed targets, and visual effects.
 FancyActionBar.slotHidden = {}
-FancyActionBar.slotStateSpecialEffects = {}
 
--- FancyActionBar.abilitySlots                  = {} -- TODO enable tooltip, mouse click and drag functions
 --- @type {[1]:(FAB_ActionButtonOverlay_Keyboard_Template|FAB_ActionButtonOverlay_Gamepad_Template),[any] : any|userdata}
-FancyActionBar.overlays = {}                 -- normal skill button overlays
+FancyActionBar.overlays = {}    -- normal skill button overlays
 --- @type {[1]:(FAB_UltimateButtonOverlay_Keyboard_Template|FAB_UltimateButtonOverlay_Gamepad_Template),[any] : any|userdata}
-FancyActionBar.ultOverlays = {}              -- player and companion ultimate skill button overlays
-FancyActionBar.style = nil                   -- Gamepad or Keyboard UI for compatibility
+FancyActionBar.ultOverlays = {} -- player and companion ultimate skill button overlays
 
-FancyActionBar.qsOverlay = nil               -- shortcut for.. reasons..
+FancyActionBar.qsOverlay = nil  -- shortcut for.. reasons..
 FancyActionBar.effectWidgets = {}
 FancyActionBar.effectWidgetControls = {}
-FancyActionBar.widgetEffects = {}           -- external end-times keyed by abilityId, isolated from main effects table
+FancyActionBar.widgetEffects = {} -- external end-times keyed by abilityId, isolated from main effects table
 FancyActionBar.externalTrackingIds = {}
 
-FancyActionBar.updateUI = false              -- don't change configuration if not needed
-FancyActionBar.useGamepadActionBar = false   -- If the gamepad actionbar style should be force enabled
 FancyActionBar.wasMoved = false              -- don't move action bar if it wasn't moved to begin with
 FancyActionBar.wasStopped = false            -- don't register updates if already registered
+FancyActionBar.useGamepadActionBar = false   -- gamepad action bar style active
+FancyActionBar.style = nil                   -- 1 = keyboard, 2 = gamepad (set by UpdateStyle)
 
-FancyActionBar.zone = 0                      -- some buffs expire when traveling, and some don't. check active buffs on player
 FancyActionBar.inCombat = false              -- for GCD
 
 FancyActionBar.weaponFront = WEAPONTYPE_NONE -- for getting correct id's for destro staff skills on back bar
@@ -146,127 +73,16 @@ FancyActionBar.durationMax = 99
 
 FancyActionBar.player = { name = "", id = 0 } -- might be needed to check for some effects before updating timer
 
-FancyActionBar.constants =
-{ -- all current values for the UI and configuration to use. not sure why I called it 'constants' when they are all in fact variables.
-    duration =
-    {
-        font = "Univers 67",
-        size = 24,
-        outline = "thick-outline",
-        y = 0,
-        color = { 1, 1, 1 },
-    },
-    stacks =
-    {
-        font = "Univers 67",
-        size = 20,
-        outline = "thick-outline",
-        x = 37,
-        color = { 1, 0.8, 0 },
-    },
-    targets =
-    {
-        font = "Univers 67",
-        size = 20,
-        outline = "thick-outline",
-        x = 37,
-        color = { 1, 0.8, 0 },
-    },
-    ult =
-    {
-        duration =
-        {
-            show = true,
-            font = "Univers 67",
-            size = 24,
-            outline = "thick-outline",
-            x = 37,
-            y = 0,
-            color = { 1, 1, 1 },
-        },
-        value =
-        {
-            show = false,
-            mode = 1,
-            font = "Univers 67",
-            size = 20,
-            outline = "outline",
-            x = -2,
-            y = -5,
-            color = { 1, 1, 1 },
-        },
-        companion =
-        {
-            show = true,
-            mode = 1,
-            x = 0,
-            y = 0,
-        },
-    },
-    qs =
-    {
-        show = true,
-        font = "Univers 67",
-        size = 24,
-        outline = "outline",
-        x = 0,
-        y = 10,
-        color = { 1, 0.5, 0.2 },
-        stackFont = "Univers 67",
-        stackSize = 18,
-        stackOutline = "soft-shadow-thin",
-        stackColor = { 1, 1, 1 },
-    },
-    abScale =
-    {
-        enable = false,
-        scale = 100,
-    },
-    move =
-    {
-        enable = false,
-        x = 0,
-        y = 0,
-    },
-    noTargetAlpha = 90,
-    abilitySlot =
-    {
-        offsetX = 2,
-    },
-    style =
-    {
-        abilitySlotWidth    = nil,
-        actionBarOffset     = nil,
-        anchor              = nil,
-        anchorOffsetY       = nil,
-        attributesOffset    = nil,
-        bindingTextOnUlt    = nil,
-        buttonTemplate      = nil,
-        buttonTextOffsetY   = nil,
-        dimensions          = nil,
-        flipCardSize        = nil,
-        overlayTemplate     = nil,
-        qsOverlayTemplate   = nil,
-        quickslotOffsetX    = nil,
-        showKeybindBG       = nil,
-        ultButtonTemplate   = nil,
-        ultFlipCardSize     = nil,
-        ultOverlayTemplate  = nil,
-        ultSize             = nil,
-        ultimateSlotOffsetX = nil,
-        width               = nil,
-    },
-    update = {},
-    hideOnNoTargetGlobal = {},
-    hideOnNoTargetList = {}
-}
+-- all current values for the UI and configuration to use. not sure why I called it 'constants' when they are all in fact variables.
+FancyActionBar.constants = nil
 -------------------------------------------------------------------------------
 -----------------------------[    Tables    ]----------------------------------
 -------------------------------------------------------------------------------
 local defaultSettings = FancyActionBar.defaultSettings -- default settings variables...
 local abilityConfig = {}                               -- parsed FancyActionBar.abilityConfig.
+local slots = {}
 local sourceAbilities = {}                             -- to track which abilities are currently slotting effects
-local slottedIds = {}                                  -- to match skills with their tracked effect
+local slottedEffectIds = {}                            -- to match skills with their tracked effect
 local lastAreaTargets = {}                             -- unit id for 'offline' target when casting ground effects always change. check if it was the same target id before fading if before 0
 local registeredSkillLines = {}                        -- to track skill lines that have been registered for ability changes
 -------------------------------------------------------------------------------
@@ -276,32 +92,38 @@ local SV = ...         -- saved variables (accountwide)
 local CV = ...         -- saved variables (character)
 local debug = false    -- debug mode
 
-local scale = 100      -- default or custom scale of the action bar to use
+local scale = 1        -- action bar scale factor (ApplyBarFoundation)
 local updateRate = 100 -- overlay update interval
 
-local wasBlockActive = false               -- for tracking block state
-local channeledAbility = {
-    id = nil,           -- ability id being tracked (pending or active)
-    pending = false,    -- true after OnAbilityUsed when castDuration discovered
-    active = false,     -- true while channel/cast is active
-    castEndTime = nil,  -- cast end time (seconds)
-    castDuration = nil, -- recorded cast duration (seconds)
-    -- startTime = nil,    -- cast start time (seconds)
+local hasEnabledEffectWidgets = false
+local companionOverlayActive = false
+
+local channeledAbility =
+{
+    id = nil,               -- ability id being tracked (pending or active)
+    pending = false,        -- true after OnAbilityUsed when castDuration discovered
+    active = false,         -- true while channel/cast is active
+    castEndTime = nil,      -- cast end time (seconds)
+    castDuration = nil,     -- recorded cast duration (seconds)
+    wasBlockActive = false, -- previous frame block state for edge-triggered channel cancel
 }
 
-local activeUlt = { id = 0, endTime = -1 } -- for tracking ultimate duration across barswap
-
-local guardId = 0                          -- sync active id for guard on both bars as active and inactive are different
-local cost1 = 0
-local cost2 = 0
-local cost3 = 0
-local costAlt = 0
-local WEAPONTYPE_NONE = WEAPONTYPE_NONE -- just to make sure the game isn't confused by its own constants. ( not sure why this would even happen, but it does.. )
-local WEAPONTYPE_FIRE_STAFF = WEAPONTYPE_FIRE_STAFF
-local WEAPONTYPE_FROST_STAFF = WEAPONTYPE_FROST_STAFF
-local WEAPONTYPE_LIGHTNING_STAFF = WEAPONTYPE_LIGHTNING_STAFF
+local ULT_STUB_EFFECT = { id = 0, endTime = -1 }
+local playerUltTimer = { endTime = nil, instantFade = nil, beginTime = nil, isParentTime = nil, lastTime = -1 }
+local highlights = { regular = {}, ult = {} }
+local ultCosts = { guardId = 0, cost1 = 0, cost2 = 0, cost3 = 0, costAlt = 0 }
+local WT =
+{
+    NONE = WEAPONTYPE_NONE,
+    FIRE = WEAPONTYPE_FIRE_STAFF,
+    FROST = WEAPONTYPE_FROST_STAFF,
+    LIGHTNING = WEAPONTYPE_LIGHTNING_STAFF,
+}
 
 local function GetInactiveHotbarCategory(activeHotbarCategory)
+    if activeHotbarCategory ~= HOTBAR_CATEGORY_PRIMARY and activeHotbarCategory ~= HOTBAR_CATEGORY_BACKUP then
+        activeHotbarCategory = HOTBAR_CATEGORY_PRIMARY
+    end
     if activeHotbarCategory == HOTBAR_CATEGORY_PRIMARY then
         return HOTBAR_CATEGORY_BACKUP
     end
@@ -334,7 +156,7 @@ local function HideAllAbilityActionButtonDropCallouts()
 end
 
 local function ShowAppropriateAbilityActionButtonDropCallouts(actionType, actionValue)
-    local validityFunction = DROP_CALLOUT_VALIDITY_BY_ACTION_TYPE[actionType]
+    local validityFunction = FancyActionBar.dropCalloutValidityByActionType[actionType]
     if not validityFunction then
         return
     end
@@ -498,20 +320,20 @@ function FancyActionBar.GetCorrectedAbilityId(abilityId, weaponType)
     end
 
     -- Only apply correction for staff weapon types
-    if weaponType == WEAPONTYPE_FIRE_STAFF or weaponType == WEAPONTYPE_FROST_STAFF or weaponType == WEAPONTYPE_LIGHTNING_STAFF or weaponType == WEAPONTYPE_NONE then
+    if weaponType == WT.FIRE or weaponType == WT.FROST or weaponType == WT.LIGHTNING or weaponType == WT.NONE then
         if barHighlightDestroFix[abilityId] and barHighlightDestroFix[abilityId][weaponType] then
             correctedAbilityId = barHighlightDestroFix[abilityId][weaponType]
 
             -- Debug output if enabled
             if FancyActionBar.IsDebugMode() then
                 local staffType = "unknown"
-                if weaponType == WEAPONTYPE_FIRE_STAFF then
+                if weaponType == WT.FIRE then
                     staffType = "fire"
-                elseif weaponType == WEAPONTYPE_FROST_STAFF then
+                elseif weaponType == WT.FROST then
                     staffType = "frost"
-                elseif weaponType == WEAPONTYPE_LIGHTNING_STAFF then
+                elseif weaponType == WT.LIGHTNING then
                     staffType = "lightning"
-                elseif weaponType == WEAPONTYPE_NONE then
+                elseif weaponType == WT.NONE then
                     staffType = "none"
                 end
 
@@ -525,16 +347,13 @@ function FancyActionBar.GetCorrectedAbilityId(abilityId, weaponType)
 end
 
 function FancyActionBar.GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
-    overrideActiveRank = overrideActiveRank or nil
     overrideCasterUnitTag = overrideCasterUnitTag or "player"
     return GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
 end
 
-local GetAbilityDuration = FancyActionBar.GetAbilityDuration
-
 function FancyActionBar.GetSkillStyleIconForAbilityId(abilityId)
     if FancyActionBar.barHighlightDestroFix[abilityId] then
-        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId, WEAPONTYPE_NONE)
+        abilityId = FancyActionBar.GetCorrectedAbilityId(abilityId, WT.NONE)
     elseif FancyActionBar.styleFix[abilityId] then
         abilityId = FancyActionBar.styleFix[abilityId]
     end
@@ -552,105 +371,291 @@ function FancyActionBar.SkillStyleCollectibleUpdated(collectibleId)
     if not SV.applyActionBarSkillStyles then
         return
     end
-    FancyActionBar.ApplyAbilityFxOverrides(SV.applyActionBarSkillStyles) -- TODO: Only update the specific ability and only when the specific collectible is updated.
-    -- local ZO_COLLECTIBLE_DATA_MANAGER = ZO_COLLECTIBLE_DATA_MANAGER;
-    -- local data;
-    -- local collectibleIcon;
-    -- data = ZO_COLLECTIBLE_DATA_MANAGER:GetCategoryDataById(COLLECTIBLE_CATEGORY_TYPE_ABILITY_FX_OVERRIDE);
-    -- if data then
-    --   data:GetSpecializedSortedCollectiblesObject().dirty = true;
-    -- end;
-    -- local collectibleData = ZO_COLLECTIBLE_DATA_MANAGER:GetCollectibleDataById(collectibleId);
-    -- if (not collectibleData) or (not collectibleData:IsSkillStyle()) then return; end;
+    FancyActionBar.PaintAbilityOverlays()
+    FancyActionBar.RefreshActiveBarIconVisuals()
 end
 
-local EMPTY_STACK_LIST = {}
+local function GetConfiguredStackSources(spec)
+    return spec and (spec.stackSources or spec.stackId) or FancyActionBar.emptyStackList
+end
 
--- @param abilityId integer
--- @param mapType string|nil: "debuff" for debuffStackMap, nil or "regular" for stackMap (default: both)
-function FancyActionBar.GetConfiguredStackSources(abilityId, mapType)
-    local _
-    if not abilityId or abilityId == "" then
-        return EMPTY_STACK_LIST
+do
+    local function lookupInStackMap(mapTable, memberIndex, abilityId)
+        if not mapTable then
+            return nil, nil
+        end
+        if mapTable[abilityId] then
+            return mapTable[abilityId], abilityId
+        end
+        local memberEntry = memberIndex and memberIndex[abilityId]
+        if memberEntry then
+            return memberEntry.sources, memberEntry.sourceId
+        end
+        return nil, nil
     end
 
-    local cache = FancyActionBar.stackSourceConfig
-    local cacheKey = mapType and (abilityId .. ":" .. mapType) or abilityId
-    if cache[cacheKey] then
-        return cache[cacheKey]
-    end
-    local stackMap = FancyActionBar.stackMap or {}
-    local debuffStackMap = FancyActionBar.debuffStackMap or {}
-
-    local function findInStackMap(stackMapTable, key)
-        if not stackMapTable then return nil end
-        if stackMapTable[key] then return stackMapTable[key] end
-        for _, tbl in pairs(stackMapTable) do
-            for i = 1, #tbl do
-                if tbl[i] == key then
-                    return tbl
+    local function buildStackMapMemberIndex(stackMapTable)
+        local memberIndex = {}
+        if not stackMapTable then
+            return memberIndex
+        end
+        for sourceId, configuredSourceIds in pairs(stackMapTable) do
+            for i = 1, #configuredSourceIds do
+                local memberId = configuredSourceIds[i]
+                if not stackMapTable[memberId] and not memberIndex[memberId] then
+                    memberIndex[memberId] = { sources = configuredSourceIds, sourceId = sourceId }
                 end
             end
         end
-        return nil
+        return memberIndex
     end
 
-    local result = nil
-    if mapType == "debuff" then
-        result = findInStackMap(debuffStackMap, abilityId) or findInStackMap(stackMap, abilityId)
-    elseif mapType == "regular" then
-        result = findInStackMap(stackMap, abilityId) or findInStackMap(debuffStackMap, abilityId)
-    else
-        result = findInStackMap(stackMap, abilityId) or findInStackMap(debuffStackMap, abilityId)
+    local function resolveStackMapEntry(abilityId, mapType)
+        local stackMap = FancyActionBar.stackMap or {}
+        local debuffStackMap = FancyActionBar.debuffStackMap or {}
+        local primary = (mapType == "debuff") and debuffStackMap or stackMap
+        local secondary = (mapType == "debuff") and stackMap or debuffStackMap
+        local stackMapMemberIndex = FancyActionBar.stackMapMemberIndex
+        local debuffStackMapMemberIndex = FancyActionBar.debuffStackMapMemberIndex
+        local primaryMemberIndex = (mapType == "debuff") and debuffStackMapMemberIndex or stackMapMemberIndex
+        local secondaryMemberIndex = (mapType == "debuff") and stackMapMemberIndex or debuffStackMapMemberIndex
+
+        local configuredSourceIds, sourceId = lookupInStackMap(primary, primaryMemberIndex, abilityId)
+        if not configuredSourceIds then
+            configuredSourceIds, sourceId = lookupInStackMap(secondary, secondaryMemberIndex, abilityId)
+        end
+        if not configuredSourceIds then
+            configuredSourceIds = { abilityId }
+            sourceId = nil
+        end
+        local ownerId = sourceId or abilityId
+        return { sources = configuredSourceIds, sourceId = sourceId, ownerId = ownerId }
     end
 
-    if not result then
-        result = { abilityId }
-    end
-
-    cache[cacheKey] = result
-    return result
-end
-
-local function NormalizeStackSourceId(id)
-    if not id then
-        return nil
-    end
-
-    local mappedSourceId = sourceAbilities and sourceAbilities[id]
-    if mappedSourceId then
-        return mappedSourceId
-    end
-
-    local stackableBuff = FancyActionBar.stackableBuff
-    local normalizedId = (stackableBuff and stackableBuff[id]) or id
-    if FancyActionBar.fixedStacks[normalizedId] then
-        return normalizedId
-    end
-
-    local configuredSourceIds = FancyActionBar.GetConfiguredStackSources(id)
-    if #configuredSourceIds == 1 then
-        return configuredSourceIds[1]
-    end
-
-    local effects = FancyActionBar.effects
-    for i = 1, #configuredSourceIds do
-        local sourceId = configuredSourceIds[i]
-        local effect = effects and effects[sourceId]
-        if effect and (effect.slot1 or effect.slot2) then
-            return sourceId
+    local function collectStackMapIds(allIds, stackMapTable)
+        if not stackMapTable then
+            return
+        end
+        for sourceId, configuredSourceIds in pairs(stackMapTable) do
+            allIds[sourceId] = true
+            for i = 1, #configuredSourceIds do
+                allIds[configuredSourceIds[i]] = true
+            end
         end
     end
 
-    return normalizedId
+    function FancyActionBar.BuildStackMapLookups()
+        FancyActionBar.stackMapMemberIndex = buildStackMapMemberIndex(FancyActionBar.stackMap)
+        FancyActionBar.debuffStackMapMemberIndex = buildStackMapMemberIndex(FancyActionBar.debuffStackMap)
+
+        local cache = FancyActionBar.stackMapCache
+        for cacheKey in pairs(cache) do
+            cache[cacheKey] = nil
+        end
+
+        local allIds = {}
+        collectStackMapIds(allIds, FancyActionBar.stackMap)
+        collectStackMapIds(allIds, FancyActionBar.debuffStackMap)
+
+        for abilityId in pairs(allIds) do
+            cache[abilityId] = resolveStackMapEntry(abilityId, nil)
+            cache[abilityId .. ":debuff"] = resolveStackMapEntry(abilityId, "debuff")
+        end
+    end
+
+    function FancyActionBar.GetStackMap(abilityId, mapType)
+        if not abilityId or abilityId == 0 then
+            return { sources = FancyActionBar.emptyStackList, sourceId = nil, ownerId = abilityId }
+        end
+
+        local cache = FancyActionBar.stackMapCache
+        local cacheKey = mapType and (abilityId .. ":" .. mapType) or abilityId
+        local cached = cache[cacheKey]
+        if cached then
+            return cached
+        end
+
+        local entry = resolveStackMapEntry(abilityId, mapType)
+        cache[cacheKey] = entry
+        return entry
+    end
+end
+
+function FancyActionBar.GetStackOwnerId(abilityId, mapType)
+    return FancyActionBar.GetStackMap(abilityId, mapType).ownerId
+end
+
+function FancyActionBar.GetStackSourceId(abilityId, mapType)
+    return FancyActionBar.GetStackMap(abilityId, mapType).sourceId
+end
+
+function FancyActionBar.IsStackMapMember(abilityId)
+    if not abilityId or abilityId == 0 then return false end
+    if FancyActionBar.fixedStacks[abilityId] ~= nil then return true end
+    local stackMap = FancyActionBar.stackMap
+    local debuffStackMap = FancyActionBar.debuffStackMap
+    if (stackMap and stackMap[abilityId]) or (debuffStackMap and debuffStackMap[abilityId]) then
+        return true
+    end
+    local sourceId = FancyActionBar.GetStackSourceId(abilityId)
+    return sourceId ~= nil and sourceId ~= abilityId
+end
+
+function FancyActionBar.GetStacks(abilityId, currentTime, mapType)
+    if not abilityId or abilityId == 0 then
+        return 0
+    end
+
+    currentTime = currentTime or time()
+    local ownerId = FancyActionBar.GetStackOwnerId(abilityId, mapType)
+    local stackableBuff = FancyActionBar.stackableBuff
+    local trackedId = (stackableBuff and stackableBuff[ownerId]) or ownerId
+    local effects = FancyActionBar.effects
+    local trackedEffect = effects and effects[trackedId]
+    local fixedStacks = FancyActionBar.fixedStacks
+
+    if fixedStacks[trackedId] then
+        if trackedEffect and trackedEffect.stacks then
+            if type(trackedEffect.stacks) == "string" then
+                return trackedEffect.stacks ~= "" and fixedStacks[trackedId] or 0
+            elseif trackedEffect.stacks > 0 then
+                return fixedStacks[trackedId]
+            end
+        end
+        return 0
+    end
+
+    if trackedEffect then
+        if trackedEffect.sources and trackedEffect.sources.times and FancyActionBar.IsStackableBuff(trackedId) then
+            return FancyActionBar.RecomputeUnits(trackedId, currentTime, "sources") or 0
+        end
+        if trackedEffect.stacks ~= nil then
+            return trackedEffect.stacks
+        end
+    end
+
+    return 0
+end
+
+function FancyActionBar.SetStacks(abilityId, stacks, force, mapType)
+    if not abilityId then return end
+
+    local ownerId = FancyActionBar.GetStackOwnerId(abilityId, mapType)
+    local effects = FancyActionBar.effects
+    if not effects then return end
+    local eff = effects[ownerId] or FancyActionBar.GetEffect(ownerId)
+    if not eff then return end
+
+    local currentTime = time()
+    if type(stacks) == "string" and FancyActionBar.fixedStacks[ownerId] == nil then
+        stacks = 0
+    end
+    if stacks == nil and not force and eff.sources and eff.sources.times and FancyActionBar.IsStackableBuff(ownerId) then
+        stacks = FancyActionBar.RecomputeUnits(ownerId, currentTime, "sources") or 0
+    elseif stacks == nil and not force then
+        return
+    end
+    if eff.stacks == stacks and not force then return end
+    eff.stacks = stacks
+    effects[ownerId] = eff
+end
+
+local function AccumulateMaxStacks(maxStacks, sourceStacks)
+    if type(sourceStacks) == "string" then
+        return sourceStacks
+    end
+    if type(sourceStacks) == "number" and sourceStacks > maxStacks then
+        return sourceStacks
+    end
+    return maxStacks
+end
+
+function FancyActionBar.GetDisplayStacks(effect, currentTime)
+    if not effect then return 0 end
+    currentTime = currentTime or time()
+    local isDebuff = effect.isDebuff == true
+    local sourceIds = effect.stackSources
+    if not sourceIds or #sourceIds == 0 then
+        local entry = FancyActionBar.GetStackMap(effect.id, isDebuff and "debuff" or nil)
+        sourceIds = entry.sources
+    end
+    local count = #sourceIds
+    if count == 0 then return 0 end
+
+    if isDebuff then
+        local debuffStackMap = FancyActionBar.debuffStackMap
+        local maxStacks = 0
+        local ownerId = effect.stackOwnerId or effect.id
+        local ownerMapType = debuffStackMap and debuffStackMap[ownerId] and "debuff" or nil
+        if ownerMapType then
+            maxStacks = AccumulateMaxStacks(maxStacks, FancyActionBar.GetStacks(ownerId, currentTime, ownerMapType))
+            if type(maxStacks) == "string" then return maxStacks end
+        end
+        for i = 1, count do
+            local sourceId = sourceIds[i]
+            if sourceId ~= ownerId then
+                local sourceMapType = debuffStackMap and debuffStackMap[sourceId] and "debuff" or nil
+                local sourceStacks = FancyActionBar.GetStacks(sourceId, currentTime, sourceMapType)
+                maxStacks = AccumulateMaxStacks(maxStacks, sourceStacks)
+                if type(maxStacks) == "string" then return maxStacks end
+            end
+        end
+        return maxStacks
+    end
+
+    if count == 1 then
+        local sourceId = sourceIds[1]
+        local lookupId = effect.stackOwnerId
+        if not lookupId then
+            lookupId = FancyActionBar.GetStackOwnerId(sourceId)
+        end
+        return FancyActionBar.GetStacks(lookupId or sourceId, currentTime)
+    end
+
+    local commonOwner = effect.stackOwnerId
+    if not commonOwner then
+        commonOwner = FancyActionBar.GetStackOwnerId(sourceIds[1])
+    end
+    commonOwner = commonOwner or sourceIds[1]
+    local canUseOwnerShortcut = not FancyActionBar.IsStackableBuff(sourceIds[1])
+    local stackableBuff = FancyActionBar.stackableBuff
+    if canUseOwnerShortcut and stackableBuff and stackableBuff[sourceIds[1]] then
+        canUseOwnerShortcut = false
+    end
+    for i = 2, count do
+        local sourceId = sourceIds[i]
+        local owner = FancyActionBar.GetStackSourceId(sourceId)
+        owner = owner or sourceId
+        if owner ~= commonOwner
+            or FancyActionBar.IsStackableBuff(sourceId)
+            or (stackableBuff and stackableBuff[sourceId])
+        then
+            canUseOwnerShortcut = false
+            break
+        end
+    end
+    if canUseOwnerShortcut then
+        return FancyActionBar.GetStacks(commonOwner, currentTime)
+    end
+
+    local maxStacks = 0
+    for i = 1, count do
+        maxStacks = AccumulateMaxStacks(maxStacks, FancyActionBar.GetStacks(sourceIds[i], currentTime))
+        if type(maxStacks) == "string" then return maxStacks end
+    end
+    return maxStacks
 end
 
 function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
-    local nextStacks
-    local configuredSourceIds = FancyActionBar.GetConfiguredStackSources(abilityId)
+    local debuffStackMap = FancyActionBar.debuffStackMap
+    local debuffMapType = debuffStackMap and debuffStackMap[abilityId] and "debuff" or nil
+    local stackEntry = FancyActionBar.GetStackMap(abilityId, debuffMapType)
+    local configuredSourceIds = stackEntry.sources
+    local sourceId = stackEntry.sourceId
     local fixedDisplayId = nil
     local fixedDisplayCount = 0
     local effects = FancyActionBar.effects
+    local ownsStackStorage = not sourceId or sourceId == abilityId
 
     for i = 1, #configuredSourceIds do
         local configuredId = configuredSourceIds[i]
@@ -665,6 +670,13 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
                 fixedDisplayId = configuredId
                 break
             end
+            for _, slot in pairs(slots) do
+                if slot.abilityId == configuredId or slot.effectId == configuredId then
+                    fixedDisplayId = configuredId
+                    break
+                end
+            end
+            if fixedDisplayId then break end
             if not fixedDisplayId then
                 fixedDisplayId = configuredId
             end
@@ -675,62 +687,48 @@ function FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, isFade)
         return
     end
 
-    if fixedDisplayId and FancyActionBar.debuffStackMap[abilityId] and fixedDisplayId ~= abilityId and not FancyActionBar.fixedStacks[abilityId] then
+    if debuffMapType == nil and fixedDisplayId and debuffStackMap[abilityId] and fixedDisplayId ~= abilityId and not FancyActionBar.fixedStacks[abilityId] then
         return
     end
 
-    local stackTargetId = fixedDisplayId or NormalizeStackSourceId(abilityId) or abilityId
-    local fixedStackValue = FancyActionBar.fixedStacks[stackTargetId]
+    if not ownsStackStorage and not fixedDisplayId and not sourceId and debuffMapType == nil then
+        return
+    end
+
+    local stackSourceId
+    if debuffMapType and not FancyActionBar.fixedStacks[abilityId] then
+        stackSourceId = sourceId or abilityId
+    else
+        stackSourceId = fixedDisplayId or sourceId or abilityId
+    end
+    local fixedStackValue = FancyActionBar.fixedStacks[stackSourceId]
 
     if fixedStackValue then
         local val = isFade and 0 or fixedStackValue
-        FancyActionBar.SetStacks(stackTargetId, val, true)
-        if stackTargetId ~= abilityId then FancyActionBar.SetStacks(abilityId, val, true) end
+        FancyActionBar.SetStacks(stackSourceId, val, true, debuffMapType)
         return
     end
 
-    if stackCount then
-        nextStacks = stackCount
-        if isFade then
-            local currentStacks = FancyActionBar.GetActiveStacksForId(stackTargetId) or 0
+    if stackCount ~= nil then
+        local nextStacks = stackCount
+        if isFade and stackCount > 0 then
+            local currentStacks = FancyActionBar.GetStacks(stackSourceId, nil, debuffMapType) or 0
             nextStacks = zo_max(currentStacks - stackCount, 0)
         end
-        FancyActionBar.SetStacks(stackTargetId, nextStacks, isFade)
-        if stackTargetId ~= abilityId then FancyActionBar.SetStacks(abilityId, nextStacks, isFade) end
+        FancyActionBar.SetStacks(stackSourceId, nextStacks, true, debuffMapType)
         return
     end
 
     if isFade then
-        FancyActionBar.SetStacks(stackTargetId, 0, true)
-        if stackTargetId ~= abilityId then FancyActionBar.SetStacks(abilityId, 0, true) end
+        FancyActionBar.SetStacks(stackSourceId, 0, true, debuffMapType)
     end
-end
-
--- Return the active stacks for an id. Prefer stored effect.stacks if present,
--- otherwise fall back to scanning active buffs on the player.
-function FancyActionBar.GetActiveStacksForId(id)
-    if not id then return 0 end
-
-    local trackedId = NormalizeStackSourceId(id)
-    local effect = trackedId and FancyActionBar.effects and FancyActionBar.effects[trackedId]
-    if effect then
-        if effect.sources and effect.sources.times then
-            local activeCount = FancyActionBar.RecomputeUnits(trackedId, time(), "sources")
-            if activeCount and activeCount > 0 then
-                return activeCount
-            end
-        end
-
-        if effect.stacks then
-            return effect.stacks
-        end
-    end
-
-    local has, _, currentStacks = FancyActionBar.CheckForActiveEffect(id)
-    return currentStacks or 0
 end
 
 function FancyActionBar.IsStackableBuff(id)
+    local set = FancyActionBar.stackableBuffSet
+    if set then
+        return set[id] == true
+    end
     local sb = FancyActionBar.stackableBuff
     if not sb then return false end
     if sb[id] then return true end
@@ -760,142 +758,6 @@ local function WasEffectCastByPlayer(effect)
     return false
 end
 
-local function UsesExternalStackDisplay(effect)
-    return effect and effect.hasExternalStackSources or false
-end
-
--- Centralized stack setting.
--- If `force` is true, always set the stacks and refresh affected overlays.
--- If `force` is false, the setter will avoid overwriting a valid stack value
--- with zero when per-source data is not present.
-function FancyActionBar.SetStacks(id, stacks, force)
-    if not id then return end
-    local effects = FancyActionBar.effects
-    if not effects then return end
-    local eff = effects[id] or FancyActionBar.GetEffect(id, nil, nil, true)
-    if not eff then return end
-    
-    local currentTime = time()
-    if type(stacks) == "string" and FancyActionBar.fixedStacks[id] == nil then
-        stacks = 0
-    end
-    -- normalize nil to 0 only when forced
-    if stacks == nil and not force then return end
-    -- If not forcing, prefer per-source aggregation when available
-    -- Only aggregate from `sources` for effects configured in `stackableBuff`.
-    if not force and eff.sources and eff.sources.times and FancyActionBar.IsStackableBuff(id) then
-        local count = FancyActionBar.RecomputeUnits(id, currentTime, "sources")
-        if count then
-            stacks = count
-        end
-    end
-    if eff.stacks == stacks and not force then return end
-    eff.stacks = stacks
-    effects[id] = eff
-    
-end
-
-function FancyActionBar.ResolveStacksForEffect(effect, currentTime)
-    if not effect then return 0 end
-
-    currentTime = currentTime or time()
-
-    local maxStacks = 0
-    local sourceIds = effect.stackSources or effect.stackId or EMPTY_STACK_LIST
-    local fixedStacks = FancyActionBar.fixedStacks
-
-    if not effect.hasExternalStackSources then
-        local selfStacks = effect.stacks
-        if type(selfStacks) == "string" then
-            return selfStacks
-        elseif type(selfStacks) == "number" and selfStacks > maxStacks then
-            maxStacks = selfStacks
-        end
-    end
-
-    if #sourceIds == 0 then
-        return maxStacks
-    end
-
-    local stackableBuff = FancyActionBar.stackableBuff
-    local effects = FancyActionBar.effects
-    for i = 1, #sourceIds do
-        local trackedId = (stackableBuff and stackableBuff[sourceIds[i]]) or sourceIds[i]
-        local trackedEffect = effects and effects[trackedId]
-        local sourceStacks = 0
-
-        if fixedStacks[trackedId] then
-            if trackedEffect and trackedEffect.stacks then
-                if type(trackedEffect.stacks) == "string" then
-                    sourceStacks = trackedEffect.stacks ~= "" and fixedStacks[trackedId] or 0
-                elseif trackedEffect.stacks > 0 then
-                    sourceStacks = fixedStacks[trackedId]
-                end
-            end
-
-            if sourceStacks ~= 0 then
-                sourceStacks = fixedStacks[trackedId]
-            end
-        elseif trackedEffect then
-            if trackedEffect.sources and trackedEffect.sources.times then
-                local activeCount = FancyActionBar.RecomputeUnits(trackedId, currentTime, "sources")
-                if activeCount and activeCount > 0 then
-                    sourceStacks = activeCount
-                elseif trackedEffect.stacks then
-                    sourceStacks = trackedEffect.stacks
-                end
-            elseif trackedEffect.stacks then
-                sourceStacks = trackedEffect.stacks
-            end
-        end
-
-        if type(sourceStacks) == "string" then
-            return sourceStacks
-        elseif type(sourceStacks) == "number" and sourceStacks > maxStacks then
-            maxStacks = sourceStacks
-        end
-    end
-
-    return maxStacks
-end
-
-local function GetDisplayStackSources(effect, sourceAbilityId, currentTime)
-    local sourceIds = effect and (effect.stackSources or effect.stackId) or EMPTY_STACK_LIST
-    if not sourceAbilityId then
-        return sourceIds
-    end
-
-    -- Prefer configured mapping for the source ability when available; otherwise use effect's sources.
-    local configuredSourceIds = FancyActionBar.GetConfiguredStackSources(sourceAbilityId)
-    if configuredSourceIds and #configuredSourceIds > 0 then
-        -- If the effect already exposes external stackSources, prefer them.
-        if sourceIds and #sourceIds > 0 and effect and effect.hasExternalStackSources then
-            return sourceIds
-        end
-        return configuredSourceIds
-    end
-
-    return sourceIds
-end
-
-function FancyActionBar.ResolveStacksForSourceAbility(effect, sourceAbilityId, currentTime)
-    if not effect then
-        return 0
-    end
-
-    local displaySourceIds = GetDisplayStackSources(effect, sourceAbilityId, currentTime)
-    if displaySourceIds == (effect.stackSources or effect.stackId or EMPTY_STACK_LIST) then
-        return FancyActionBar.ResolveStacksForEffect(effect, currentTime)
-    end
-
-    return FancyActionBar.ResolveStacksForEffect(
-        {
-            stackSources = displaySourceIds,
-            stackId = displaySourceIds,
-            hasExternalStackSources = true,
-        }, currentTime)
-end
-
 ---
 --- @param index number
 --- @param bar HotBarCategory
@@ -920,14 +782,11 @@ function FancyActionBar.PostAbilityConfig()
         local v --- @type string
 
         if type(id) == "table" then
-            if id == {} or id[1] == nil
-            then
+            if id[1] == nil then
                 v = "{}"
             else
                 v = tostring(id[1])
             end
-        elseif type(id) == "boolean" then
-            v = "false"
         else
             v = tostring(id)
         end
@@ -1001,6 +860,14 @@ function FancyActionBar.GetScale()
     return scale
 end
 
+--- @return table style template for the active UI mode
+function FancyActionBar.GetConstants()
+    if not (FancyActionBar.constants and FancyActionBar.constants.style) then
+        FancyActionBar.UpdateStyle()
+    end
+    return FancyActionBar.constants.style
+end
+
 ---
 --- @return table
 function FancyActionBar.GetExternalBlacklist()
@@ -1023,9 +890,8 @@ end
 --- @return table var
 --- @return table def
 function FancyActionBar:GetMovableVarsForUI()
-    local var = FancyActionBar.constants.move
-    local def = (IsInGamepadPreferredMode() or FancyActionBar.useGamepadActionBar) and defaultSettings.abMove.gp or defaultSettings.abMove.kb
-    return var, def
+    local c = FancyActionBar.constants
+    return c.move, c.mode == 2 and defaultSettings.abMove.gp or defaultSettings.abMove.kb
 end
 
 ---
@@ -1063,6 +929,8 @@ end
 
 --- @class FancyActionBarConstants
 --- @field abScale table
+--- @field ultScale table
+--- @field qsScale table
 --- @field abilitySlot table
 --- @field duration table
 --- @field hideOnNoTargetGlobal {[integer]:boolean}
@@ -1073,28 +941,125 @@ end
 --- @field qs table
 --- @field stacks table
 --- @field style ActionBarConstants
+--- @field mode integer
+--- @field isGamepad boolean
+--- @field layout table
+--- @field scaled table
 --- @field targets table
 --- @field ult table
 --- @field update table
 
---- Gets the appropriate action bar constants based on current UI mode
---- Updates the constants if needed and returns the style-specific constants
---- @return ActionBarConstants constants The keyboard or gamepad constants table
-function FancyActionBar.GetConstants()
-    -- Check if UI update is needed or constants haven't been initialized
-    if FancyActionBar.updateUI or not (FancyActionBar.constants and FancyActionBar.constants.style) then
-        -- Determine style: 2 for gamepad, 1 for keyboard
-        FancyActionBar.style = FancyActionBar.useGamepadActionBar and 2 or 1
+local function GetBarEndOffset(c, style)
+    local slotOffsetX = c.abilitySlot.offsetX
+    local f1 = style.abilitySlotWidth + slotOffsetX
+    return (f1 * SLOT_COUNT) - 2
+end
 
-        -- Select appropriate constants based on style
-        --- @type ActionBarConstants
-        local selectedConstants = FancyActionBar.style == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
+local function GetEffectiveBarScale()
+    local c = FancyActionBar.constants
+    if c and c.abScale.enable and not SV.forceAzurahMover then
+        return c.abScale.scale / 100
+    end
+    return 1
+end
 
-        -- Update the style constants
-        FancyActionBar.constants.style = selectedConstants
+local function GetEffectiveUltScale()
+    local c = FancyActionBar.constants
+    if c and c.ultScale.enable then
+        return c.ultScale.scale / 100
+    end
+    return scale or 1
+end
+
+local function GetUltChildScale()
+    local barScale = scale or 1
+    return barScale == 0 and 1 or GetEffectiveUltScale() / barScale
+end
+
+local function GetEffectiveQsScale()
+    local c = FancyActionBar.constants
+    if c and c.qsScale and c.qsScale.enable then
+        return c.qsScale.scale / 100
+    end
+    return scale or 1
+end
+
+local function GetQsChildScale()
+    local barScale = scale or 1
+    return barScale == 0 and 1 or GetEffectiveQsScale() / barScale
+end
+
+function FancyActionBar.ApplyScaleToLayout(s)
+    local c = FancyActionBar.constants
+    local layout = c.layout
+    local style = c.style
+    local slotOffsetX = c.abilitySlot.offsetX
+    local qsAnchor = style.quickSlotAnchor
+    local slotSpan = qsAnchor.multiplySlotCount and (SLOT_COUNT * slotOffsetX) or slotOffsetX
+    local ultSpace = style.ultimateSpacing or {}
+    local ultS = GetEffectiveUltScale()
+
+    c.scaled =
+    {
+        quickSlot =
+        {
+            x = layout.quickSlot.x * s,
+            y = layout.quickSlot.y * s,
+            anchorX = -(qsAnchor.base + slotSpan + layout.quickSlot.x) * s,
+        },
+        ultimate =
+        {
+            anchorX = (style.ultimateSlotOffsetX + layout.ultimate.x) * s,
+            anchorY = layout.ultimate.y * s,
+            companionGap = (ultSpace.companionExtraX or style.ultimateSlotOffsetX) * ultS,
+            slotGap = style.ultimateSlotOffsetX * ultS,
+            trailing = ultSpace.trailing or 0,
+            barEndX = GetBarEndOffset(c, style),
+            ultWidth = (ultSpace.ultWidth or 65) * ultS,
+            baseX = (ultSpace.baseX or 10) * ultS,
+            baseGap = (ultSpace.baseGap or 10) * ultS,
+        },
+        bar =
+        {
+            x = layout.bar.halfX,
+            y = layout.bar.halfY,
+        },
+    }
+end
+
+function FancyActionBar.RefreshLayoutConstants()
+    local c = FancyActionBar.constants
+    c.layout = FancyActionBar.BuildLayout(SV, c.mode)
+    c.abilitySlot.offsetX = SV[FancyActionBar.SvKey("abilitySlotOffsetX", c.mode)]
+    FancyActionBar.ApplyScaleToLayout(scale)
+end
+
+function FancyActionBar.SetScale()
+    if not FancyActionBar.constants then
+        return
+    end
+    scale = GetEffectiveBarScale()
+    FancyActionBar.UpdateScale(scale)
+    FancyActionBar.ApplyScaleToLayout(scale)
+    FancyActionBar.SetUltScale()
+    FancyActionBar.SetQsScale()
+end
+
+function FancyActionBar.SyncMoveConstants(x, y, enable)
+    local c = FancyActionBar.constants
+    if not c or not c.move then
+        return
     end
 
-    return FancyActionBar.constants.style
+    if x ~= nil then
+        c.move.x = x
+    end
+    if y ~= nil then
+        c.move.y = y
+    end
+    if enable ~= nil then
+        c.move.enable = enable
+    end
 end
 
 ---
@@ -1102,8 +1067,6 @@ end
 function FancyActionBar.GetAbilityConfig()
     return FancyActionBar.abilityConfig
 end
-
-local DEFAULT_ABILITY_CONFIG_PROFILE_NAME = "Default"
 
 local function GetAbilityConfigSavedVars()
     if CV.useAccountWide then
@@ -1130,7 +1093,7 @@ local function GetUniqueAbilityConfigProfileName(savedVars, profileName, ignored
     local suffix = 2
 
     if trimmedName == "" then
-        trimmedName = DEFAULT_ABILITY_CONFIG_PROFILE_NAME
+        trimmedName = FancyActionBar.defaultAbilityConfigProfileName
     end
 
     candidateName = trimmedName
@@ -1172,12 +1135,12 @@ local function EnsureAbilityConfigProfiles(savedVars)
         if type(profile) ~= "table" then
             profiles[profileId] =
             {
-                name = DEFAULT_ABILITY_CONFIG_PROFILE_NAME .. " " .. tostring(profileId),
+                name = FancyActionBar.defaultAbilityConfigProfileName .. " " .. tostring(profileId),
                 changes = {},
             }
         else
             if type(profile.name) ~= "string" or profile.name == "" then
-                profile.name = profileId == 1 and DEFAULT_ABILITY_CONFIG_PROFILE_NAME or ("Profile " .. tostring(profileId))
+                profile.name = profileId == 1 and FancyActionBar.defaultAbilityConfigProfileName or ("Profile " .. tostring(profileId))
             end
             if type(profile.changes) ~= "table" then
                 profile.changes = {}
@@ -1194,7 +1157,7 @@ local function EnsureAbilityConfigProfiles(savedVars)
 
         profiles[1] =
         {
-            name = DEFAULT_ABILITY_CONFIG_PROFILE_NAME,
+            name = FancyActionBar.defaultAbilityConfigProfileName,
             changes = legacyChanges,
         }
         maxProfileId = 1
@@ -1207,6 +1170,25 @@ local function EnsureAbilityConfigProfiles(savedVars)
     maxProfileId = maxProfileId > 0 and maxProfileId or (GetFirstAbilityConfigProfileId(profiles) or 0)
     savedVars.nextConfigProfileId = math.max(tonumber(savedVars.nextConfigProfileId) or 1, maxProfileId + 1)
     savedVars.configChanges = {}
+end
+
+function FancyActionBar.EnsureUserUIPresetsStored(savedVars)
+    savedVars = savedVars or SV
+    local defaultPresets = FancyActionBar.defaultSettings.userUIPresets
+
+    if type(savedVars.userUIPresets) ~= "table" or savedVars.userUIPresets == defaultPresets then
+        if type(savedVars.userUIPresets) == "table" and next(savedVars.userUIPresets) ~= nil then
+            savedVars.userUIPresets = ZO_DeepTableCopy(savedVars.userUIPresets)
+        else
+            savedVars.userUIPresets = {}
+        end
+    end
+
+    if type(savedVars.nextUIPresetId) ~= "number" or savedVars.nextUIPresetId < 1 then
+        savedVars.nextUIPresetId = 1
+    end
+
+    return savedVars.userUIPresets
 end
 
 function FancyActionBar.GetAbilityConfigProfiles()
@@ -1322,7 +1304,7 @@ function FancyActionBar.DeleteAbilityConfigProfile(profileId)
     if next(savedVars.configProfiles) == nil then
         savedVars.configProfiles[1] =
         {
-            name = DEFAULT_ABILITY_CONFIG_PROFILE_NAME,
+            name = FancyActionBar.defaultAbilityConfigProfileName,
             changes = {},
         }
         savedVars.selectedConfigProfile = 1
@@ -1387,7 +1369,9 @@ function FancyActionBar.SetNoTargetFade(fade)
     else
         CV.noTargetFade = fade
     end
-    FancyActionBar.constants.noTargetFade = fade
+    if FancyActionBar.constants then
+        FancyActionBar.constants.noTargetFade = fade
+    end
 end
 
 function FancyActionBar.GetNoTargetAlpha()
@@ -1406,7 +1390,9 @@ function FancyActionBar.SetNoTargetAlpha(alpha)
     else
         CV.noTargetAlpha = alpha
     end
-    FancyActionBar.constants.noTargetAlpha = alpha / 100
+    if FancyActionBar.constants then
+        FancyActionBar.constants.noTargetAlpha = alpha / 100
+    end
 end
 
 function FancyActionBar.UpdateHideOnNoTargetForSkill(id, hide)
@@ -1423,41 +1409,12 @@ function FancyActionBar.UpdateHideOnNoTargetForSkill(id, hide)
             local effect = FancyActionBar.effects[effectId]
             if effect then
                 effect.hideOnNoTarget = hide
-                FancyActionBar.UpdateEffect(effect)
             end
         end
     end
 end
 
 function FancyActionBar.SlotCurrentAbilityConfiguration(id)
-    -- local cfg = abilityConfig[id];
-    -- local isToggled, noTarget = false, false;
-
-    -- if FancyActionBar.toggled[id] then
-    --   FancyActionBar.toggles[id] = false;
-    --   isToggled = true;
-    -- end;
-
-    -- -- if FancyActionBar.constants.hideOnNoTargetList[id] then
-    -- --   noTarget = FancyActionBar.constants.hideOnNoTargetList[id]
-    -- -- else
-    -- --   noTarget = FancyActionBar.GetHideOnNoTargetGlobalSetting()
-    -- -- end
-
-    -- local cI, rI = id, false;
-
-    -- if FancyActionBar.removeInstantly[id] then rI = true; end;
-
-    -- if type(cfg) == "table" then
-    --   abilityConfig[id] = { cfg[1], cfg[2], isToggled, rI };
-    -- elseif cfg then
-    --   abilityConfig[id] = { id, nil, isToggled, rI };
-    -- elseif cfg == false then
-    --   abilityConfig[id] = false;
-    -- else
-    --   abilityConfig[id] = { id };
-    -- end;
-
     local currentSlots = {}
 
     for i = MIN_INDEX, ULT_INDEX do
@@ -1472,58 +1429,346 @@ function FancyActionBar.SlotCurrentAbilityConfiguration(id)
     end
 
     for slot in pairs(currentSlots) do
-        if slot then
-            FancyActionBar.UnslotEffect(slot)
-        end
-        if slot then
-            FancyActionBar.SlotEffect(slot, id, nil, nil, true)
-        end
+        FancyActionBar.UnslotEffect(slot)
+        FancyActionBar.SlotEffect(slot, id, nil, nil, true)
     end
 end
 
-function FancyActionBar.GetActionButton(index) -- get actionbutton by index.
-    if index > SLOT_INDEX_OFFSET
-    then
-        return FancyActionBar.buttons[index]
-    else
-        return ZO_ActionBar_GetButton(index)
-    end
+-- Index conventions:
+--   data index  — hotbar-keyed slot id (3-7/8 primary, 23-27/28 backup); used by slots[], effects
+--   physical index — fixed UI row (3-7/8 front bar, 23-27/28 back bar); used by overlays[], paint
+
+local function GetOverlayIndex(slot, hotbarCategory)
+    return hotbarCategory == HOTBAR_CATEGORY_BACKUP and slot + SLOT_INDEX_OFFSET or slot
 end
 
-function FancyActionBar.SetActionButtonAbilityFxOverride(index)
-    local btn = FancyActionBar.GetActionButton(index)
-    if not btn then
+local function GetSlotFromOverlayIndex(overlayIndex)
+    return overlayIndex >= MIN_INDEX + SLOT_INDEX_OFFSET and overlayIndex - SLOT_INDEX_OFFSET or overlayIndex
+end
+
+local function GetHotbarCategoryForOverlayIndex(overlayIndex)
+    return overlayIndex >= MIN_INDEX + SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
+end
+
+local function GetBackbarButton(slot)
+    return FancyActionBar.buttons[slot + SLOT_INDEX_OFFSET]
+end
+
+local function IsPhysicalBackRow(physicalIndex)
+    return physicalIndex >= MIN_INDEX + SLOT_INDEX_OFFSET
+end
+
+local function GetPhysicalOverlayIndexForData(dataIndex, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        activeHotbar = HOTBAR_CATEGORY_PRIMARY
+    end
+    local slot = GetSlotFromOverlayIndex(dataIndex)
+    local dataHotbar = GetHotbarCategoryForOverlayIndex(dataIndex)
+    if dataHotbar == activeHotbar then
+        return slot
+    end
+    return slot + SLOT_INDEX_OFFSET
+end
+
+local function GetOverlayForData(dataIndex, activeHotbar)
+    if dataIndex == ULT_INDEX + COMPANION_INDEX_OFFSET then
+        return FancyActionBar.ultOverlays[dataIndex]
+    end
+    return FancyActionBar.GetOverlay(GetPhysicalOverlayIndexForData(dataIndex, activeHotbar))
+end
+
+local function IsInactiveSlotVisibilityHidden(slotNum, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local dataIndex = GetOverlayIndex(slotNum, GetInactiveHotbarCategory(activeHotbar))
+    return (SV.hideInactiveSlots and FancyActionBar.slotHidden[dataIndex])
+        or (SV.hideLockedBar and isWeaponSwapLocked)
+end
+
+local function ApplyActiveBarIconVisualState(button)
+    if not button or not button.icon then
         return
     end
-    local id = FancyActionBar.GetSlotBoundAbilityId(index)
-    if id > 0 then
-        local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
+
+    local usable = button.usable
+    local icon = button.icon
+
+    if SV.applyActiveBarTint then
+        local tintKey = usable and "tintUsable" or "tintUnusable"
+        local tint = SV[tintKey] or defaultSettings[tintKey]
+        local colorAlpha = SV.applyActiveBarAlpha and 1 or (tint[4] or 1)
+        icon:SetColor(tint[1], tint[2], tint[3], colorAlpha)
+    end
+
+    if SV.applyActiveBarAlpha then
+        local alphaKey = usable and "alphaUsable" or "alphaUnusable"
+        local alpha = SV[alphaKey]
+        if alpha == nil then
+            alpha = defaultSettings[alphaKey]
+        end
+        icon:SetAlpha(alpha / 100)
+    end
+
+    if SV.applyActiveBarDesaturation then
+        local desatKey = usable and "desatUsable" or "desatUnusable"
+        local desat = SV[desatKey]
+        if desat == nil then
+            desat = defaultSettings[desatKey]
+        end
+        icon:SetDesaturation(desat / 100)
+    end
+end
+
+local function GetBarSlotIcon(slot, hotbar)
+    local id = FancyActionBar.GetSlotBoundAbilityId(slot, hotbar)
+    if id <= 0 then
+        return nil
+    end
+    if FancyActionBar.barHighlightDestroFix[id] then
+        local weaponType = hotbar == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
+        id = FancyActionBar.GetCorrectedAbilityId(id, weaponType)
+    else
+        id = GetEffectiveAbilityIdForAbilityOnHotbar(id, hotbar)
+    end
+    if SV.applyActionBarSkillStyles then
+        return FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
+    end
+    return GetAbilityIcon(id)
+end
+
+--- Apply FAB icon policy and active-bar theme to one live action-bar button.
+local function applyActiveBarSlotAppearance(btn, slot, hotbar)
+    if not btn or not btn.icon or not IsSlotUsed(slot, hotbar) then
+        return
+    end
+
+    local needsTheme = SV.applyActiveBarAlpha or SV.applyActiveBarDesaturation or SV.applyActiveBarTint
+    local needsSkillStyle = SV.applyActionBarSkillStyles
+
+    if not needsTheme and not needsSkillStyle then
+        return
+    end
+
+    if needsSkillStyle then
+        local icon = GetBarSlotIcon(slot, hotbar)
         if icon then
             btn.icon:SetTexture(icon)
         end
     end
+
+    if needsTheme then
+        ApplyActiveBarIconVisualState(btn)
+    end
 end
 
-function FancyActionBar.ApplyAbilityFxOverrides(userPreferenceChanged)
-    if not userPreferenceChanged and not SV.applyActionBarSkillStyles then
+local function applyInactiveSlotVisibility(slot, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local inactiveHotbar = GetInactiveHotbarCategory(activeHotbar)
+    local hidden = IsInactiveSlotVisibilityHidden(slot, activeHotbar)
+    local overlay = slot == ULT_INDEX
+        and FancyActionBar.ultOverlays[slot + SLOT_INDEX_OFFSET]
+        or FancyActionBar.overlays[slot + SLOT_INDEX_OFFSET]
+    if overlay then
+        overlay:SetHidden(hidden)
+    end
+    local btn = GetBackbarButton(slot)
+    if not btn then
         return
     end
-    local currentHotbarCategory = GetActiveHotbarCategory()
-    local inactiveBar = currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
-    for i = MIN_INDEX, MAX_INDEX do
-        FancyActionBar.SetActionButtonAbilityFxOverride(i)
-        FancyActionBar.UpdateInactiveBarIcon(i, inactiveBar)
+    if btn.slot then
+        btn.slot:SetHidden(hidden)
     end
-    FancyActionBar.SetActionButtonAbilityFxOverride(ULT_INDEX)
+    if btn.bg then
+        btn.bg:SetHidden(hidden)
+    end
+    if btn.icon then
+        if hidden then
+            btn.icon:SetTexture("")
+            btn.icon:SetAlpha(0)
+            btn.icon:SetHidden(true)
+        elseif FancyActionBar.GetSlotBoundAbilityId(slot, inactiveHotbar) <= 0 then
+            btn.icon:SetTexture("")
+            btn.icon:SetHidden(true)
+        end
+    end
+end
+
+local function PaintAbilityOverlay(physicalIndex, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local slot = GetSlotFromOverlayIndex(physicalIndex)
+    local isActive = not IsPhysicalBackRow(physicalIndex)
+    local hotbar = isActive and activeHotbar or GetInactiveHotbarCategory(activeHotbar)
+    local overlay = FancyActionBar.GetOverlay(physicalIndex)
+    local btn = FancyActionBar.GetActionButton(physicalIndex)
+
+    if overlay then
+        local frame = overlay:GetNamedChild("Frame")
+        if frame then
+            local frameAlpha = isActive
+                and (SV.overlayFrameAlphaActive or defaultSettings.overlayFrameAlphaActive)
+                or (SV.overlayFrameAlphaInactive or defaultSettings.overlayFrameAlphaInactive)
+            frame:SetAlpha(frameAlpha / 100)
+        end
+    end
+
+    local bgAlpha = (isActive
+        and (SV.overlayBgAlphaActive or defaultSettings.overlayBgAlphaActive)
+        or (SV.overlayBgAlphaInactive or defaultSettings.overlayBgAlphaInactive)) / 100
+    if btn and btn.bg then
+        btn.bg:SetAlpha(bgAlpha)
+    end
+    local backdrop = btn and btn.slot and btn.slot:GetNamedChild("Backdrop")
+    if backdrop then
+        backdrop:SetAlpha(bgAlpha)
+    end
+    if overlay and overlay.bg then
+        overlay.bg:SetAlpha(bgAlpha)
+    end
+
+    if isActive then
+        applyActiveBarSlotAppearance(btn, slot, hotbar)
+    elseif btn and btn.icon and not IsInactiveSlotVisibilityHidden(slot, activeHotbar) then
+        local icon = GetBarSlotIcon(slot, hotbar)
+        if icon then
+            btn.icon:SetTexture(icon)
+            local tint = SV.tintInactive or defaultSettings.tintInactive
+            btn.icon:SetColor(tint[1], tint[2], tint[3], 1)
+            btn.icon:SetAlpha((SV.alphaInactive or defaultSettings.alphaInactive) / 100)
+            btn.icon:SetDesaturation((SV.desaturationInactive or defaultSettings.desaturationInactive) / 100)
+            btn.icon:SetHidden(false)
+        else
+            btn.icon:SetTexture("")
+            btn.icon:SetHidden(true)
+        end
+    end
+end
+
+local function PaintDataOverlay(dataIndex, activeHotbar)
+    PaintAbilityOverlay(GetPhysicalOverlayIndexForData(dataIndex, activeHotbar), activeHotbar)
+end
+
+-- hideInactiveSlots: track whether inactive row slot has nothing to show (timers/stacks).
+local function syncInactiveSlotEmptyVisibility(dataIndex, hasDisplay, activeHotbar)
+    if not SV.hideInactiveSlots then
+        return
+    end
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    if GetHotbarCategoryForOverlayIndex(dataIndex) ~= GetInactiveHotbarCategory(activeHotbar) then
+        return
+    end
+    local hideEmpty = not hasDisplay
+    if FancyActionBar.slotHidden[dataIndex] == hideEmpty then
+        return
+    end
+    FancyActionBar.slotHidden[dataIndex] = hideEmpty
+    local slot = GetSlotFromOverlayIndex(dataIndex)
+    applyInactiveSlotVisibility(slot, activeHotbar)
+    if not hideEmpty then
+        PaintDataOverlay(dataIndex, activeHotbar)
+    end
+end
+
+function FancyActionBar.RefreshActiveBarIconVisuals()
+    local hotbar = GetActiveHotbarCategory()
+    for slot = MIN_INDEX, ULT_INDEX do
+        local btn = ZO_ActionBar_GetButton(slot)
+        if btn then
+            btn.usable = nil
+            btn.useDesaturation = nil
+            if btn.UpdateUsable then
+                btn:UpdateUsable()
+            elseif btn.UpdateState then
+                btn:UpdateState()
+            end
+            applyActiveBarSlotAppearance(btn, slot, hotbar)
+        end
+    end
+end
+
+function FancyActionBar.PaintAbilityOverlays(hotbarCategory, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        activeHotbar = HOTBAR_CATEGORY_PRIMARY
+    end
+    local function paintPhysicalRow(isBackRow)
+        for slot = MIN_INDEX, MAX_INDEX do
+            local physicalIndex = isBackRow and (slot + SLOT_INDEX_OFFSET) or slot
+            PaintAbilityOverlay(physicalIndex, activeHotbar)
+        end
+        PaintAbilityOverlay(isBackRow and (ULT_INDEX + SLOT_INDEX_OFFSET) or ULT_INDEX, activeHotbar)
+    end
+    if not hotbarCategory or hotbarCategory == activeHotbar then
+        paintPhysicalRow(false)
+    end
+    if not hotbarCategory or hotbarCategory ~= activeHotbar then
+        paintPhysicalRow(true)
+    end
+end
+
+-- Physical overlay indices: front row 3-7/8, back row 23-27/28. Data indices stay hotbar-keyed.
+local function AnchorOverlayToSlot(overlay, slotControl)
+    if overlay and slotControl then
+        overlay:ClearAnchors()
+        overlay:SetAnchor(TOPLEFT, slotControl, TOPLEFT, 0, 0)
+        overlay:SetAnchor(BOTTOMRIGHT, slotControl, BOTTOMRIGHT, 0, 0)
+    end
+end
+
+function FancyActionBar.GetActionButton(index) -- get actionbutton by overlay/backbar index.
+    if index == ULT_INDEX or index == ULT_INDEX + SLOT_INDEX_OFFSET then
+        if index > SLOT_INDEX_OFFSET then
+            return FancyActionBar.buttons[index]
+        end
+        return ZO_ActionBar_GetButton(ULT_INDEX)
+    end
+    if index > SLOT_INDEX_OFFSET then
+        return FancyActionBar.buttons[index]
+    end
+    return ZO_ActionBar_GetButton(index)
+end
+
+local function GetFrontBarRootSlot()
+    local btn = ZO_ActionBar_GetButton(MIN_INDEX)
+    return btn and btn.slot or btn
+end
+
+local function GetBackbarRootSlot()
+    local btn = GetBackbarButton(MIN_INDEX)
+    return btn and btn.slot or btn
+end
+
+local function GetActiveBarButtonContext(self)
+    if not self or not self.GetSlot then
+        return
+    end
+    local slot = self:GetSlot()
+    if slot < MIN_INDEX or slot > ULT_INDEX or ZO_ActionBar_GetButton(slot) ~= self then
+        return
+    end
+    return slot, GetActiveHotbarCategory()
+end
+
+local function OnActiveActionButtonVisualUpdate(self)
+    local slot, hotbar = GetActiveBarButtonContext(self)
+    if not slot then
+        return
+    end
+    if SV.applyActionBarSkillStyles then
+        local icon = GetBarSlotIcon(slot, hotbar)
+        if icon and self.icon then
+            self.icon:SetTexture(icon)
+        end
+    end
+    if SV.applyActiveBarAlpha or SV.applyActiveBarDesaturation or SV.applyActiveBarTint then
+        ApplyActiveBarIconVisualState(self)
+    end
 end
 
 function FancyActionBar.GetOverlay(index)
-    if (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET)
-    then
+    if index == ULT_INDEX or index == ULT_INDEX + SLOT_INDEX_OFFSET then
         return FancyActionBar.ultOverlays[index]
-    else
-        return FancyActionBar.overlays[index]
     end
+    return FancyActionBar.overlays[index]
 end
 
 function FancyActionBar.ChanneledAbilityQueued(effectId, castDuration)
@@ -1532,138 +1777,400 @@ function FancyActionBar.ChanneledAbilityQueued(effectId, castDuration)
     channeledAbility.active = false
     channeledAbility.castDuration = castDuration
     channeledAbility.castEndTime = nil
-    -- channeledAbility.startTime = time()
 end
 
 function FancyActionBar.ChanneledAbilityBegin(effectId, castEndTime)
+    if channeledAbility.active and channeledAbility.id == effectId and channeledAbility.castEndTime == castEndTime then
+        return
+    end
     channeledAbility.id = effectId
     channeledAbility.pending = false
     channeledAbility.active = true
     channeledAbility.castEndTime = castEndTime
-    -- channeledAbility.startTime = channeledAbility.startTime or time()
+    local effect = FancyActionBar.effects[effectId]
+    if effect and castEndTime and castEndTime > time() then
+        effect.castEndTime = castEndTime
+        effect.endTime = -1
+    end
 end
 
 function FancyActionBar.ChanneledAbilityEnd(effectId)
-    if not channeledAbility.id then return end
+    if not channeledAbility.id then
+        return
+    end
     if (not effectId) or (channeledAbility.id == effectId) then
+        local id = channeledAbility.id
+        local effect = FancyActionBar.effects[id]
+        local currentTime = time()
         channeledAbility.id = nil
         channeledAbility.pending = false
         channeledAbility.active = false
         channeledAbility.castEndTime = nil
         channeledAbility.castDuration = nil
-        -- channeledAbility.startTime = nil
+        if effect and effect.castEndTime and effect.castEndTime > currentTime then
+            effect.castEndTime = 0
+            if not effect.endTime or effect.endTime < currentTime then
+                effect.endTime = currentTime
+            end
+        end
     end
+end
+
+-- castEndTime == 0 marks an early channel cancel; endTime anchors the post-cancel fade window.
+local function IsChannelCancelFade(effect, currentTime)
+    return effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > currentTime
+end
+
+local function IsChanneledRecast(effectId)
+    return channeledAbility.id == effectId and (channeledAbility.pending or channeledAbility.active)
+end
+
+local function GetChannelEndTime(effect)
+    if effect and effect.castEndTime and effect.castEndTime > 0 then
+        return effect.castEndTime
+    end
+    return nil
 end
 
 function FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
     currentTime = currentTime or time()
-    if not effect then return false end
-    if effect.castEndTime and effect.castEndTime > currentTime then return true end
-    if channeledAbility.id == effect.id then
-        if channeledAbility.pending then return true end
-        if channeledAbility.active and channeledAbility.castEndTime and channeledAbility.castEndTime > currentTime then return true end
+    if not effect then
+        return false
+    end
+    local channelEnd = GetChannelEndTime(effect)
+    if channelEnd and channelEnd > currentTime then
+        return true
+    end
+    if channeledAbility.id == effect.id and channeledAbility.pending then
+        return true
     end
     return false
 end
 
---- Retrieves or creates an effect based on the given parameters.
---- @param id integer The unique identifier for the effect.
---- @param sourceAbility table The table of ids that can create the given effect
---- @param stackId table The table of ids that can contribute stacks to the effect stack coutner
---- @param config boolean Optional flag to determine if a new effect should be created if it doesn't exist.
---- @param custom any Custom data associated with the effect.
---- @param toggled boolean Indicates if the effect is toggled on or off.
---- @param tickRate number The rate at which the effect ticks in seconds.
---- @param ignore boolean Flag to ignore certain conditions.
---- @param passive boolean Flag to indicate if the effect is passive.
---- @param instantFade boolean Flag to indicate if the effect should fade instantly.
---- @param dontFade boolean Flag to prevent fading of the effect.
---- @param isChanneled boolean Flag to indicate if the effect is channeled.
---- @param effectChanged boolean Flag to indicate if the effect is changed.
---- @param hasExternalStackSources boolean Optional flag to indicate whether stackSources are external.
---- @return effect table @The effect associated with the given id.
-function FancyActionBar.GetEffect(id, sourceAbility, stackId, config, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged, hasExternalStackSources)
-    --- @alias effect table
-    local effect = FancyActionBar.effects[id] or { id = id }
+local function UpdateChanneledAbilityCastState(effect, currentTime)
+    local isBlockActive = IsBlockActive()
+    -- Cancel only when block is newly pressed during an active channel. Holding block does
+    -- nothing; releasing block (e.g. because a channel started) must not cancel.
+    local blockCancelled = channeledAbility.active and isBlockActive and not channeledAbility.wasBlockActive
+    channeledAbility.wasBlockActive = isBlockActive
 
-    if effectChanged or not FancyActionBar.effects[id] then
-        effect.id = id
+    if blockCancelled then
+        FancyActionBar.ChanneledAbilityEnd(effect and effect.id or nil)
+        return false
+    end
+    if effect and channeledAbility.id == effect.id and channeledAbility.active
+        and effect.castEndTime and effect.castEndTime <= currentTime then
+        FancyActionBar.ChanneledAbilityEnd(effect.id)
+        return false
+    end
+    return true
+end
+
+local function IsAbilityConfigured(abilityId)
+    local cfg = abilityConfig[abilityId]
+    return cfg == false or (cfg ~= nil and cfg ~= false) or FancyActionBar.specialEffects[abilityId] ~= nil
+end
+
+local function ResolveStackSources(abilityId, effectId, effectEntry, abilityEntry)
+    effectEntry = effectEntry or FancyActionBar.GetStackMap(effectId)
+    if (effectEntry.sourceId and effectEntry.sourceId ~= effectId) or #effectEntry.sources > 1 then
+        return effectEntry.sources
+    end
+    abilityEntry = abilityEntry or FancyActionBar.GetStackMap(abilityId)
+    if abilityEntry.sourceId and abilityEntry.sourceId ~= abilityId then
+        return abilityEntry.sources
+    end
+    return effectEntry.sources
+end
+
+local function ApplyEffectBind(effect, abilityId, effectId, overrideRank, casterUnitTag)
+    local cfg = abilityConfig[abilityId]
+    local ignore = cfg == false
+    local configured = IsAbilityConfigured(abilityId)
+    local toggled, tickRate, passive, instantFade, dontFade
+
+    if ignore then
+        toggled = false
+        tickRate = 0
+        passive = false
+        instantFade = FancyActionBar.removeInstantly[effectId] or false
+    else
+        if FancyActionBar.bannerBearer[effectId] or FancyActionBar.bannerBearer[abilityId] then
+            toggled = true
+        elseif configured then
+            toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or FancyActionBar.toggled[abilityId] or false
+        else
+            toggled = FancyActionBar.toggled[effectId] or false
+        end
+        if configured then
+            tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
+            instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false
+        else
+            tickRate = ((FancyActionBar.toggleTickRate[effectId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
+            instantFade = FancyActionBar.removeInstantly[effectId] or false
+        end
+        passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false
+        dontFade = (not instantFade and FancyActionBar.dontFade[effectId]) or false
+    end
+
+    if configured and FancyActionBar.guard.ids[abilityId] then
+        ultCosts.guardId = abilityId
+    end
+
+    effect.ignore = ignore
+    effect.toggled = toggled
+    effect.tickRate = tickRate
+    effect.passive = passive
+    effect.instantFade = instantFade
+    effect.dontFade = dontFade
+    effect.isChanneled = GetAbilityCastInfo(abilityId, overrideRank, casterUnitTag)
+    local effectStackEntry = FancyActionBar.GetStackMap(effectId)
+    local abilityStackEntry = FancyActionBar.GetStackMap(abilityId)
+    effect.stackSources = ResolveStackSources(abilityId, effectId, effectStackEntry, abilityStackEntry)
+    effect.stackOwnerId = effectStackEntry.ownerId
+
+    local duration = -1
+    if toggled == false and not ignore then
+        duration = (FancyActionBar.GetAbilityDuration(effectId) or -1) / 1000
+        duration = duration > 0 and duration or -1
+    end
+    effect.duration = duration
+end
+
+function FancyActionBar.GetEffect(id, opts)
+    --- @alias effect table
+    opts = opts or {}
+    local effect = FancyActionBar.effects[id]
+    local isNew = not effect
+
+    if isNew then
+        effect =
+        {
+            id = id,
+            endTime = -1,
+            faded = true,
+            isDebuff = false,
+            activeOnTarget = false,
+            sources = FancyActionBar.EnsureUnits(nil, "sources"),
+            targets = FancyActionBar.EnsureUnits(nil, "targets"),
+        }
+    end
+
+    if opts.abilityId then
+        ApplyEffectBind(effect, opts.abilityId, id, opts.overrideRank, opts.casterUnitTag)
+    elseif opts.stackSources then
+        if effect.stackSources ~= opts.stackSources then
+            effect.stackSources = opts.stackSources
+        end
+    else
+        local stackEntry = FancyActionBar.GetStackMap(id)
+        if effect.stackSources ~= stackEntry.sources then
+            effect.stackSources = stackEntry.sources
+        end
+        if effect.stackSources then
+            effect.stackOwnerId = stackEntry.ownerId
+        end
+    end
+
+    if opts.reset or isNew then
         effect.endTime = -1
-        effect.custom = custom
-        effect.toggled = toggled
-        effect.tickRate = tickRate
-        effect.ignore = ignore
-        effect.passive = passive
+        effect.faded = true
         effect.isDebuff = false
         effect.activeOnTarget = false
-        effect.instantFade = instantFade
-        effect.dontFade = dontFade
-        effect.faded = true
-        effect.isChanneled = isChanneled
-        effect.sources = FancyActionBar.EnsureUnits(effect, "sources")
-        effect.targets = FancyActionBar.EnsureUnits(effect, "targets")
     end
 
-    if sourceAbility then
-        local sourceAbilites = effect.sourceAbilites or {}
-        for k, v in pairs(sourceAbility) do
-            sourceAbilites[k] = v
-        end
-        effect.sourceAbilites = sourceAbilites or {}
+    FancyActionBar.effects[id] = effect
+    if effect.dontFade == nil then
+        effect.dontFade = (not (effect.instantFade or FancyActionBar.removeInstantly[id]) and FancyActionBar.dontFade[id]) or false
+    end
+    return effect
+end
+
+function FancyActionBar.GetConfiguredEffectId(abilityId)
+    if not abilityId or abilityId == 0 then
+        return 0
     end
 
-    if stackId then
-        if effect.stackSources ~= stackId then
-            effect.stackSources = stackId
-            effect.stackId = stackId
-        end
-        effect.hasExternalStackSources = hasExternalStackSources or false
-    else
-        local cfgSources = FancyActionBar.GetConfiguredStackSources(id)
-        if effect.stackSources ~= cfgSources then
-            effect.stackSources = cfgSources
-            effect.stackId = cfgSources
-        end
-        effect.hasExternalStackSources = false
-    end
-    if effectChanged or config or not FancyActionBar.effects[id] then
-        FancyActionBar.effects[id] = effect
+    local cfg = abilityConfig[abilityId]
+    if cfg == false then
+        return abilityId
     end
 
-    return effect -- Always returns an effect
+    if abilityId == 81420 and ultCosts.guardId > 0 then
+        return ultCosts.guardId
+    end
+
+    local special = FancyActionBar.specialEffects[abilityId]
+    if cfg or special then
+        local craftedId = GetAbilityCraftedAbilityId(abilityId)
+        if craftedId ~= 0 then
+            local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) }
+            local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
+            return (cfg and ((cfg[2] and cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1]))
+                or (special and special.id)
+                or abilityId
+        end
+        return (cfg and cfg[1]) or (special and special.id) or abilityId
+    end
+
+    return abilityId
+end
+
+function FancyActionBar.GetTrackedEffectId(abilityId)
+    if not abilityId or abilityId == 0 then
+        return 0
+    end
+    return sourceAbilities[abilityId] or FancyActionBar.GetConfiguredEffectId(abilityId)
 end
 
 function FancyActionBar.GetSlottedEffect(index)
-    return slottedIds[index].effect, slottedIds[index].ability
+    local slot = slots[index]
+    if not slot then
+        return 0, 0
+    end
+    return slot.effectId, slot.abilityId
 end
 
 function FancyActionBar.SetSlottedEffect(index, abilityId, effectId)
-    if not slottedIds[index] then
-        slottedIds[index] = { ability = 0, effect = 0 }
+    local prev = slots[index]
+
+    if not abilityId or abilityId == 0 then
+        if prev and prev.abilityId then
+            sourceAbilities[prev.abilityId] = nil
+        end
+        slots[index] = nil
+        return
     end
-    slottedIds[index].ability = abilityId or 0
-    slottedIds[index].effect = effectId or 0
+
+    if prev and prev.abilityId ~= abilityId then
+        sourceAbilities[prev.abilityId] = nil
+        FancyActionBar.slotStateSpecialEffects[index] = nil
+    end
+
+    local showStacks = FancyActionBar.IsStackMapMember(abilityId)
+    if effectId ~= 0 then
+        local abilitySourceId = FancyActionBar.GetStackSourceId(abilityId)
+        local effectSourceId = FancyActionBar.GetStackSourceId(effectId)
+        showStacks = showStacks
+            or abilitySourceId ~= abilityId
+            or effectSourceId ~= effectId
+            or effectId == abilityId
+            or FancyActionBar.IsAbilityTaunt(effectId)
+            or FancyActionBar.IsAbilityTaunt(abilityId)
+            or (FancyActionBar.debuffStackSourceIds and FancyActionBar.debuffStackSourceIds[effectId])
+    end
+
+    slots[index] =
+    {
+        abilityId = abilityId,
+        effectId = effectId,
+        parentEndTime = nil,
+        showStacks = showStacks,
+    }
+    sourceAbilities[abilityId] = effectId
+
+    for k in pairs(slottedEffectIds) do
+        slottedEffectIds[k] = nil
+    end
+    for _, slot in pairs(slots) do
+        if slot.effectId and slot.effectId ~= 0 then
+            slottedEffectIds[slot.effectId] = true
+        end
+        if slot.abilityId and slot.abilityId ~= 0 then
+            local members = FancyActionBar.GetStackMap(slot.abilityId).sources
+            for i = 1, #members do
+                slottedEffectIds[members[i]] = true
+            end
+        end
+    end
 end
 
-function FancyActionBar.IsSameEffect(index, abilityId)
-    -- local ts      = tostring
-    local overlay = FancyActionBar.overlays[index]
-    if overlay.effect then
-        local e, a = FancyActionBar.GetSlottedEffect(index)
-        if overlay.effect.id == e and abilityId == a then
-            -- local o = e or 0
-            -- FancyActionBar.AddSystemMessage('overlay '..ts(index)..' effect '..ts(abilityId)..' already slotted ('..ts(o)..')')
+function FancyActionBar.IsEffectSlotted(effectId)
+    if not effectId or effectId == 0 then
+        return false
+    end
+    for _, slot in pairs(slots) do
+        if slot.effectId == effectId then
             return true
         end
     end
-    -- FancyActionBar.AddSystemMessage('overlay '..ts(index)..' new effect: '..ts(abilityId))
+    return false
+end
+
+local function GetWidgetEffectId(abilityId)
+    if abilityConfig[abilityId] == false then
+        return nil
+    end
+    return FancyActionBar.GetTrackedEffectId(abilityId)
+end
+
+function FancyActionBar.IsEffectWidgetTracked(effectId)
+    if not effectId or effectId == 0 then
+        return false
+    end
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
+    if not widgets then
+        return false
+    end
+    for abilityId, widget in pairs(widgets) do
+        if widget and widget.enabled ~= false then
+            if abilityId == effectId or GetWidgetEffectId(abilityId) == effectId then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function ShouldTrackEffectChange(abilityId)
+    local trackedId = FancyActionBar.GetTrackedEffectId(abilityId)
+    if trackedId ~= 0 and FancyActionBar.effects[trackedId] then
+        return true
+    end
+
+    if FancyActionBar.IsStackMapMember(abilityId) then
+        return true
+    end
+
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
+    if abilityConfig[abilityId]
+        or FancyActionBar.toggled[abilityId]
+        or FancyActionBar.passive[abilityId]
+        or FancyActionBar.specialEffects[abilityId]
+        or FancyActionBar.stackableBuff[abilityId]
+        or FancyActionBar.bannerBearer[abilityId]
+        or FancyActionBar.fixedStacks[abilityId]
+        or (SV.debuffTable and SV.debuffTable[abilityId])
+        or (widgets and widgets[abilityId])
+        or trackedId ~= abilityId
+    then
+        return true
+    end
+
+    return FancyActionBar.IsAbilitySlotted(abilityId)
+        or FancyActionBar.IsEffectSlotted(abilityId)
+        or FancyActionBar.IsEffectWidgetTracked(abilityId)
+end
+
+function FancyActionBar.IsAbilitySlotted(abilityId, excludeIndex)
+    if not abilityId or abilityId == 0 then
+        return false
+    end
+    for index, slot in pairs(slots) do
+        if index ~= excludeIndex and slot.abilityId == abilityId then
+            return true
+        end
+    end
     return false
 end
 
 function FancyActionBar.HandleCompanionUltimate()
     -- Get companion ultimate button and early validation
     local companionButton = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
-    if not companionButton then return end
+    if not companionButton then
+        companionOverlayActive = false
+        return
+    end
 
     local function updateVisuals(shouldShow, currentPower)
         if not CompanionUltimateButton then return end
@@ -1673,7 +2180,7 @@ function FancyActionBar.HandleCompanionUltimate()
 
         -- Update button text if it exists
         if companionButton.buttonText then
-            local shouldHideText = not shouldShow or FancyActionBar.style == 2 or not SV.showHotkeys
+            local shouldHideText = not shouldShow or FancyActionBar.constants.mode == 2 or not SV.showHotkeys
             companionButton.buttonText:SetHidden(shouldHideText)
         end
 
@@ -1683,7 +2190,8 @@ function FancyActionBar.HandleCompanionUltimate()
             if ultimateId then
                 local iconControl = CompanionUltimateButton:GetNamedChild("Icon")
                 if iconControl then
-                    iconControl:SetTexture(GetAbilityIcon(ultimateId))
+                    local icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(ultimateId) or GetAbilityIcon(ultimateId)
+                    iconControl:SetTexture(icon)
                 end
             end
 
@@ -1712,67 +2220,28 @@ function FancyActionBar.HandleCompanionUltimate()
     companionButton:SetupTimerSwapAnimation()
     companionButton:UpdateUltimateMeter()
 
-    -- Update visuals with final state
+    EM:UnregisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE)
+    if shouldShowUltimate and FancyActionBar.constants.ult.companion.show then
+        EM:RegisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, FancyActionBar.OnUltChangedCompanion)
+        EM:AddFilterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE,
+            REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
+            REGISTER_FILTER_UNIT_TAG, "companion")
+    end
+
     updateVisuals(shouldShowUltimate, currentPower)
-end
-
-function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
-    if (not SV.hideLockedBar) and (not userPreferenceChanged) then
-        return
-    end
-    if isLocked == wasLocked then
-        return
-    end
-    -- if (not isLocked) and (not wasLocked) then return; end;
-    local doLock
-    if userPreferenceChanged then
-        doLock = userPreferenceState and isLocked or false
-    else
-        doLock = isLocked
-    end
-    local currentHotbarCategory = GetActiveHotbarCategory()
-    isWeaponSwapLocked = doLock
-    local hideBar = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and HOTBAR_CATEGORY_PRIMARY or HOTBAR_CATEGORY_BACKUP
-    FancyActionBar.ToggleInactiveBar(hideBar, doLock)
-    FancyActionBar.AdjustQuickSlotSpacing(doLock)
-    FancyActionBar.UpdateWeaponSwapControlVisibility(doLock)
-    FancyActionBar.ApplyAlphaInactive(isWeaponSwapLocked and 0 or SV.alphaInactive or defaultSettings.alphaInactive)
-end
-
--- ZO_ActionButtons_ToggleShowGlobalCooldown()
-function FancyActionBar.OnPlayerActivated() -- status update after travel.
-    FancyActionBar.SetMarker()
-    FancyActionBar.ToggleUltimateValue()
-    FancyActionBar.SetUltFrameAlpha()
-    FancyActionBar.UpdateDebuffTracking()
-
-    FancyActionBar.RegisterClassEffects()
-
-    FancyActionBar.HandleCompanionUltimate()
-
-    local zone = GetZoneId(GetUnitZoneIndex("player"))
-    FancyActionBar.SyncEffectState()
-    FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT))
-    FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT))
-    FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
-    if SV.hideLockedBar then
-        if FancyActionBar.isWerewolf and not IsPlayerInWerewolfForm() then FancyActionBar.isWerewolf = false end
-        local locked = FancyActionBar.oakensoulEquipped or FancyActionBar.isWerewolf
-        FancyActionBar.OnWeaponSwapLocked(locked, nil, true, SV.hideLockedBar)
-    end
+    companionOverlayActive = shouldShowUltimate
 end
 
 -------------------------------------------------------------------------------
 -----------------------------[ 		UI Updates    ]------------------------------
 -------------------------------------------------------------------------------
 
-function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reload.
+function FancyActionBar.CheckForActiveEffect(id)
     if not id then return false, -1, 0, 0, 0, false end
     local now = time()
     local effects = FancyActionBar.effects
     local stackableBuff = FancyActionBar.stackableBuff
 
-    -- Prefer existing effect entries in the effects table (exact or canonical)
     local eff = effects and (effects[id] or (stackableBuff and stackableBuff[id] and effects[stackableBuff[id]]))
     if not eff then
         return false, -1, 0, 0, 0, false
@@ -1784,40 +2253,52 @@ function FancyActionBar.CheckForActiveEffect(id) -- update timer on load / reloa
     local finish = eff.endTime or 0
     local currentStacks = 0
     local wasCastByPlayer = eff.hasActiveCast or false
+    local sourceId = (stackableBuff and stackableBuff[id]) or eff.id
 
-    if eff.sources and eff.sources.times then
-        local activeCount, _, maxEnd = FancyActionBar.RecomputeUnits(eff.id, now, "sources")
-        if activeCount and activeCount > 0 then
-            currentStacks = activeCount
-            if SV.externalBuffs then
+    if FancyActionBar.IsStackableBuff(sourceId) then
+        local stackEff = effects and effects[sourceId]
+        if stackEff and stackEff.sources and stackEff.sources.times then
+            local activeCount, _, maxEnd = FancyActionBar.RecomputeUnits(sourceId, now, "sources")
+            if activeCount and activeCount > 0 then
+                currentStacks = activeCount
                 hasEffect = true
                 duration = maxEnd and (maxEnd - now) or -1
-                start = eff.beginTime or start
+                start = stackEff.beginTime or start
                 finish = maxEnd or finish
             end
         end
-    end
-
-    -- If not active via sources, fall back to endTime/passive checks
-    if not hasEffect then
-        local isToggled = FancyActionBar.bannerBearer[id] and FancyActionBar.toggles["banner"] or FancyActionBar.toggles[id]
-        local hasIndefiniteRuntimeState = wasCastByPlayer or isToggled or eff.toggled or eff.passive
-        if (finish == -1 and hasIndefiniteRuntimeState) or (finish and finish > now) then
+    elseif eff.sources and eff.sources.times then
+        local activeCount, _, maxEnd = FancyActionBar.RecomputeUnits(eff.id, now, "sources")
+        if activeCount and activeCount > 0 then
+            currentStacks = activeCount
             hasEffect = true
-            duration = (finish == -1) and -1 or (finish - now)
+            duration = maxEnd and (maxEnd - now) or -1
+            start = eff.beginTime or start
+            finish = maxEnd or finish
         end
     end
 
-    if eff.hasExternalStackSources then
-        local resolvedStacks = FancyActionBar.ResolveStacksForEffect(eff, now)
-        currentStacks = resolvedStacks == false and 0 or resolvedStacks
-    elseif currentStacks == 0 and hasEffect and FancyActionBar.fixedStacks[id] then
-        currentStacks = FancyActionBar.fixedStacks[id]
+    if not hasEffect then
+        local targetCount, _, maxEnd = FancyActionBar.RecomputeUnits(eff.id, now, "targets")
+        if targetCount and targetCount > 0 then
+            hasEffect = true
+            duration = maxEnd and (maxEnd - now) or -1
+            finish = maxEnd or finish
+        end
     end
 
-    if currentStacks == 0 and not eff.hasExternalStackSources then
-        local resolvedStacks = FancyActionBar.ResolveStacksForEffect(eff, now)
-        currentStacks = resolvedStacks == false and 0 or resolvedStacks
+    if not hasEffect and finish and finish > now and not eff.isDebuff then
+        if not eff.dontFade or not SV.externalBuffs then
+            hasEffect = true
+            duration = finish - now
+        end
+    end
+
+    local resolvedStacks = FancyActionBar.GetDisplayStacks(eff, now)
+    if resolvedStacks ~= 0 then
+        currentStacks = resolvedStacks
+    elseif currentStacks == 0 and hasEffect and FancyActionBar.fixedStacks[id] then
+        currentStacks = FancyActionBar.fixedStacks[id]
     end
 
     return hasEffect, duration, currentStacks or 0, start or 0, finish or 0, wasCastByPlayer
@@ -1848,14 +2329,19 @@ function FancyActionBar.PruneUnits(unitData, currentTime)
     end
     unitData.unitCount = activeCount
     unitData.maxEndTime = maxEnd
+    unitData.soonest = soonest
+    unitData.prunedAt = currentTime
     return activeCount, soonest, maxEnd
 end
 
--- Recompute and prune per-unit target times for an effect.
+-- Recompute unit counts and soonest expiry for an effect.
 function FancyActionBar.RecomputeUnits(id, currentTime, which)
     local effect = FancyActionBar.effects and FancyActionBar.effects[id]
     local unitData = effect and effect[which]
     if not unitData or not unitData.times then return nil, 0, 0 end
+    if unitData.prunedAt == currentTime then
+        return unitData.unitCount, unitData.soonest, unitData.maxEndTime
+    end
     local activeCount, soonest, maxEnd = FancyActionBar.PruneUnits(unitData, currentTime)
     if effect then
         effect[which] = unitData
@@ -1871,10 +2357,25 @@ function FancyActionBar.RecordUnit(id, effect, unitKey, currentTime, beginTime, 
     local unitData = FancyActionBar.EnsureUnits(effect, which)
     local setEnd = endTime or currentTime
     if setEnd <= currentTime then setEnd = currentTime + 0.01 end
-    local entry = { beginTime = beginTime or currentTime, endTime = setEnd }
+    local resolvedBegin = beginTime or currentTime
+    local existing = unitData.times[unitKey]
+    if existing and existing.beginTime == resolvedBegin and existing.endTime == setEnd then
+        if meta and type(meta) == "table" then
+            existing.meta = existing.meta or {}
+            for k, v in pairs(meta) do
+                existing.meta[k] = v
+            end
+        end
+        FancyActionBar.effects[id] = effect
+        return FancyActionBar.PruneUnits(unitData, currentTime)
+    end
+    local entry = existing or {}
+    entry.beginTime = resolvedBegin
+    entry.endTime = setEnd
     if meta and type(meta) == "table" then
         entry.meta = meta
     end
+    unitData.prunedAt = nil
     unitData.times[unitKey] = entry
     unitData.maxEndTime = zo_max(unitData.maxEndTime or 0, setEnd)
 
@@ -1887,6 +2388,7 @@ function FancyActionBar.RecordUnit(id, effect, unitKey, currentTime, beginTime, 
         end
     end
 
+    FancyActionBar.effects[id] = effect
     return activeCount, soonest, maxEnd
 end
 
@@ -1914,6 +2416,7 @@ function FancyActionBar.RemoveUnit(id, unitKey, currentTime, which)
     local effect = FancyActionBar.effects[id]
     local unitData = effect and effect[which]
     if unitData and unitData.times then
+        unitData.prunedAt = nil
         unitData.times[unitKey] = nil
         if effect then
             effect[which] = unitData
@@ -1936,113 +2439,42 @@ function FancyActionBar.RemoveUnit(id, unitKey, currentTime, which)
     return activeCount, soonest, maxEnd
 end
 
-function FancyActionBar.UpdateInactiveBarIcon(slotNum, hotbarCategory) -- for bar swapping.
-    if slotNum < MIN_INDEX or slotNum > MAX_INDEX then return end
-    local id = FancyActionBar.GetSlotBoundAbilityId(slotNum, hotbarCategory)
-    local btn = FancyActionBar.buttons[slotNum + SLOT_INDEX_OFFSET]
-    local icon = ""
-    local slotState = FancyActionBar.slotHidden[hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum]
-    local shouldHideSlot = SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked
-    if id > 0 --[[TODO: and bar == 0 or bar == 1]] then
-        if FancyActionBar.barHighlightDestroFix[id] then
-            local weaponType = hotbarCategory == HOTBAR_CATEGORY_BACKUP and FancyActionBar.weaponBack or FancyActionBar.weaponFront
-            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or
-                GetAbilityIcon(FancyActionBar.GetCorrectedAbilityId(id, weaponType))
-        else
-            id = GetEffectiveAbilityIdForAbilityOnHotbar(id, hotbarCategory)
-            icon = SV.applyActionBarSkillStyles and FancyActionBar.GetSkillStyleIconForAbilityId(id) or GetAbilityIcon(id)
-        end
-        btn.icon:SetTexture(shouldHideSlot and "" or icon)
-        btn.icon:SetAlpha(shouldHideSlot and 0 or SV.alphaInactive / 100)
-        btn.icon:SetDesaturation(SV.desaturationInactive / 100)
-        btn.icon:SetHidden(shouldHideSlot)
-        btn.bg:SetHidden(shouldHideSlot)
-        btn.slot:SetHidden(shouldHideSlot)
-    else
-        btn.icon:SetHidden(true)
-        btn.bg:SetHidden(shouldHideSlot)
-        btn.slot:SetHidden(shouldHideSlot)
-    end
-end
-
 --------------
 -- abilities
 --------------
+
 function FancyActionBar.ResetOverlayDuration(overlay)
-    if overlay then
-        local durationControl = overlay.timer
-        local bgControl = overlay.bg
-        local stacksControl = overlay.stack
-        local targetsControl = overlay.target
-
-        if durationControl then
-            durationControl:SetText("")
-        end
-        if bgControl then
-            bgControl:SetHidden(true)
-        end
-        if stacksControl then
-            stacksControl:SetText("")
-        end
-        if targetsControl then
-            targetsControl:SetText("")
-        end
-    end
-end
-
---[[ function FancyActionBar.FadeEffect(effect) -- reset effect variables and make sure overlay is cleared
-    if effect == nil then
+    if not overlay then
         return
     end
-
-    effect.endTime = time()
-
-    if effect.slot1 then
-        FancyActionBar.ResetOverlayDuration(FancyActionBar.overlays[effect.slot1])
-        effect.slot1 = nil
+    overlay.timer:SetText("")
+    overlay.bg:SetHidden(true)
+    overlay.target:SetText("")
+    if overlay.stack then
+        overlay.stack:SetText("")
     end
-    if effect.slot2 then
-        FancyActionBar.ResetOverlayDuration(FancyActionBar.overlays[effect.slot2])
-        effect.slot2 = nil
-    end
-    -- effect.faded = true
-
-    -- FancyActionBar.AddSystemMessage('Effect <' .. GetAbilityName(effect.id) .. '> (' .. effect.id .. ') faded')
-end
- ]]
-
-function FancyActionBar.UpdateTimerLabel(label, text, color)
-    label:SetText(text)
-    if color then
-        label:SetColor(unpack(color))
-    end
-
-    -- local a = 1
-    -- if alpha then a = alpha end
-    --
-    -- label:SetAlpha(a)
 end
 
-function FancyActionBar.GetHighlightColor(fading, isToggle, isToggled, isParentTime)
-    local color = nil
-    if isToggle then
-        if isToggled and SV.toggledHighlight then
-            color = SV.toggledColor
+function FancyActionBar.GetHighlightColor(fading, isToggle, isToggled, isParentTime, profile)
+    if isToggle and isToggled then
+        if profile.toggled then
+            return profile.toggledColor
+        elseif profile.show then
+            return profile.color
         end
     elseif fading or isParentTime then
-        if SV.highlightExpire then
-            color = SV.highlightExpireColor
-        elseif SV.showHighlight then
-            color = SV.highlightColor
+        if profile.expire then
+            return profile.expireColor
+        elseif profile.show then
+            return profile.color
         end
-    elseif SV.showHighlight then
-        color = SV.highlightColor
+    elseif profile.show then
+        return profile.color
     end
-    return color
+    return nil
 end
 
-local bgHidden = {}
-function FancyActionBar.UpdateBackgroundVisuals(background, color, index, isToggled)
+local function UpdateBackgroundVisuals(background, color, index)
     if color then
         background:SetHidden(false)
         background:SetColor(color[1], color[2], color[3], color[4])
@@ -2050,47 +2482,21 @@ function FancyActionBar.UpdateBackgroundVisuals(background, color, index, isTogg
         background:SetHidden(true)
     end
 
-    if index > 0 then
-        if bgHidden[index] then
-            local wasHidden = bgHidden[index]
-            if wasHidden ~= bgHidden[index] then
-                local isHidden = bgHidden[index] and "hidden" or "showing"
-                FancyActionBar.AddSystemMessage("[" .. index .. "] " .. isHidden)
-            end
-        end
-        bgHidden[index] = bgHidden[index]
-    else
+    if index <= 0 then
         FancyActionBar.AddSystemMessage("Index 0 Error!")
     end
 end
 
 function FancyActionBar.ShouldShowExpire(duration)
     local u = FancyActionBar.constants.update
-    if not u.showDecimal then
-        return false
-    end
-    if (duration > u.showDecimalStart) then
-        return false
-    end
-    return true
+    return u.showDecimal and duration <= u.showDecimalStart
 end
-
---[[ function FancyActionBar.ResolveLabelAlphaForDebuff(debuff)
-    local alpha = 1
-    if (debuff.activeOnTarget == false and debuff.hideOnNoTarget == false) then
-        if (FancyActionBar.constants.noTargetFade == true) then
-            alpha = FancyActionBar.constants.noTargetAlpha
-        end
-    end
-    return alpha
-end
- ]]
 
 function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effect, duration, currentTime)
     local timer, color = "", nil
     if duration <= 0 then
         local hadTimedEffect = effect.beginTime and effect.endTime and effect.endTime >= effect.beginTime
-        local isBlockCancelFade = effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > currentTime
+        local isBlockCancelFade = IsChannelCancelFade(effect, currentTime)
         local isWaitingForRefreshedEffect = effect.castTime and effect.endTime and effect.castTime >= effect.endTime
         local canDelayFade = (SV.delayFade and not effect.instantFade) or (effect.isDebuff and (effect.endTime > currentTime) and (SV.keepLastTarget == false))
         if (fading or hadTimedEffect or isBlockCancelFade) and canDelayFade then
@@ -2124,62 +2530,79 @@ function FancyActionBar.FormatTextForDurationOfActiveEffect(fading, toggle, effe
     return timer, color
 end
 
-function FancyActionBar.UpdateOverlay(index) -- timer label updates.
-    local overlay
-    local hasDuration = false
-    if (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET) then
-        FancyActionBar.UpdateUltOverlay(index)
+local function refreshPlayerUltTimer(currentTime)
+    if playerUltTimer.lastTime == currentTime then
         return
     end
-    local currentHotbarCategory = GetActiveHotbarCategory()
-    overlay = FancyActionBar.overlays[index]
-    if overlay then
-        local effect = overlay.effect
-        local allowStacks = overlay.allowStacks
-        local durationControl = overlay.timer
-        local bgControl = overlay.bg
-        local stacksControl = overlay.stack
-        local targetsControl = overlay.target
-        local sourceEndTime
+    playerUltTimer.lastTime = currentTime
 
-        if effect and effect.id > 0 and not effect.ignore then
-            local sourceId = effect.sourceAbilites and effect.sourceAbilites[index]
-            if sourceId and sourceId ~= effect.id then
-                local sourceEffect = FancyActionBar.effects[sourceId]
-                if sourceEffect then
-                    sourceEndTime = sourceEffect.endTime
-                end
+    local ultFadeDelay = (SV.delayFade and SV.fadeDelay or 0)
+    local pickSoonest = SV.showSoonestExpire
+    local bestEnd, bestInstantFade, bestBeginTime, bestIsParentTime
+
+    for idx = ULT_INDEX, ULT_INDEX + SLOT_INDEX_OFFSET, SLOT_INDEX_OFFSET do
+        local effectId = FancyActionBar.GetSlottedEffect(idx)
+        local effect = effectId ~= 0 and FancyActionBar.effects[effectId]
+        local slot = slots[idx]
+        local slotEnd, slotInstantFade, slotBeginTime, slotIsParentTime
+
+        if effect and effect.endTime and not effect.toggled and not effect.passive then
+            local fadeThreshold = currentTime - ((not effect.instantFade and ultFadeDelay) or 0)
+            if effect.endTime > fadeThreshold then
+                slotEnd = effect.endTime
+                slotInstantFade = effect.instantFade
+                slotBeginTime = effect.beginTime
+                slotIsParentTime = false
             end
-            local isToggled = nil
-            if FancyActionBar.bannerBearer[effect.id] then
-                isToggled = FancyActionBar.toggles["banner"] or false
-            else
-                isToggled = FancyActionBar.toggles[effect.id]
-            end
-            hasDuration = FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index,
-                allowStacks, isToggled, sourceEndTime, sourceId)
-        else
-            FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
         end
-        if (index > SLOT_INDEX_OFFSET and currentHotbarCategory ~= HOTBAR_CATEGORY_BACKUP) or
-            (index < SLOT_INDEX_OFFSET and currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
-            local shouldHideSlot = SV.hideLockedBar and isWeaponSwapLocked or SV.hideInactiveSlots and (not hasDuration)
-            local doHideSlot = FancyActionBar.slotHidden[index] ~= shouldHideSlot
-            FancyActionBar.slotHidden[index] = shouldHideSlot
-            if doHideSlot then
-                overlay:SetHidden(shouldHideSlot)
-                FancyActionBar.UpdateInactiveBarIcon(index > SLOT_INDEX_OFFSET and index - SLOT_INDEX_OFFSET or index, index > SLOT_INDEX_OFFSET and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
+
+        if not slotEnd and SV.allowParentTime and slot and slot.parentEndTime and slot.parentEndTime > currentTime then
+            slotEnd = slot.parentEndTime
+            slotInstantFade = effect and effect.instantFade
+            slotIsParentTime = true
+        end
+
+        if slotEnd then
+            if not bestEnd
+                or (pickSoonest and slotEnd < bestEnd)
+                or (not pickSoonest and slotEnd > bestEnd) then
+                bestEnd = slotEnd
+                bestInstantFade = slotInstantFade
+                bestBeginTime = slotBeginTime
+                bestIsParentTime = slotIsParentTime
             end
         end
     end
+
+    playerUltTimer.endTime = bestEnd
+    playerUltTimer.instantFade = bestInstantFade
+    playerUltTimer.beginTime = bestBeginTime
+    playerUltTimer.isParentTime = bestIsParentTime
 end
 
-function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl, stacksControl, targetsControl, index, allowStacks, isToggled, sourceEndTime, sourceAbilityId)
-    local currentTime = time()
-    local fadeDelay = SV.showExpire and SV.fadeDelay or 0
-    local hasDuration, duration = true, 0
-    local isCastTime, isParentTime, isFading = false, false, false
-    local hasActiveCastWindow = FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
+function FancyActionBar.UpdateEffectDuration(index, updateTime, overlay, stacksOnly)
+    local isUlt = (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET) or (index == ULT_INDEX + COMPANION_INDEX_OFFSET)
+    local isPlayerUlt = isUlt and index ~= ULT_INDEX + COMPANION_INDEX_OFFSET
+    local useUltDisplay = isUlt and not stacksOnly and FancyActionBar.constants.ult.duration.show
+    local slot = slots[index]
+    local effectId, abilityId = FancyActionBar.GetSlottedEffect(index)
+    local effect = effectId ~= 0 and FancyActionBar.effects[effectId]
+    if not effect and isUlt then
+        effect = ULT_STUB_EFFECT
+    end
+
+    if not isUlt then
+        if not slot or abilityConfig[slot.abilityId] == false or not slot.effectId or slot.effectId == 0 then
+            FancyActionBar.ResetOverlayDuration(overlay)
+            return false
+        end
+        if not effect or effect.ignore or not effect.id or effect.id == 0 then
+            FancyActionBar.ResetOverlayDuration(overlay)
+            return false
+        end
+    end
+
+    local currentTime = updateTime or time()
     if effect.slotStateEndTime and effect.slotStateEndTime <= currentTime then
         effect.slotStateEndTime = nil
         effect.slotStateBeginTime = nil
@@ -2195,137 +2618,272 @@ function FancyActionBar.UpdateEffectDuration(effect, durationControl, bgControl,
         if effect.origStackSources then
             effect.stackSources = effect.origStackSources
             effect.origStackSources = nil
-        end
-        if effect.origHasExternalStackSources then
-            effect.hasExternalStackSources = effect.origHasExternalStackSources
-            effect.origHasExternalStackSources = nil
+            effect.stackOwnerId = FancyActionBar.GetStackOwnerId(effect.id)
         end
     end
 
-    -- Handle cast/channel time overrides
+    local fadeDelay = SV.showExpire and SV.fadeDelay or 0
+    local hasDuration, duration = true, 0
+    local isCastTime, isParentTime, isFading = false, false, false
+    local targetsActiveCount = nil
+    local parentEndTime = slot and SV.allowParentTime and slot.parentEndTime and slot.parentEndTime > currentTime and slot.parentEndTime or nil
+    local ultEndTime, instantFade, timerColor
+    local hasActiveCastWindow = FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
+
     if SV.showCastDuration and hasActiveCastWindow then
-        isCastTime = true
-        local isBlockActive = IsBlockActive()
-        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not channeledAbility.active)
-        wasBlockActive = isBlockActive
-
-        if blockCancelled or not channeledAbility.active then
-            effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
-            if blockCancelled and (not effect.endTime or effect.endTime < currentTime) then
-                effect.endTime = currentTime
-            end
-            FancyActionBar.ChanneledAbilityEnd(effect.id)
-        end
-
+        UpdateChanneledAbilityCastState(effect, currentTime)
         if effect.castEndTime and effect.castEndTime >= currentTime then
             duration = effect.castEndTime - currentTime
-        elseif effect.endTime and effect.endTime + fadeDelay > currentTime then
-            duration = effect.endTime - currentTime
-        else
-            effect.endTime = -1
-            hasDuration = false
-        end
-
-        if channeledAbility.id == effect.id and effect.castEndTime and effect.castEndTime >= currentTime then
-            FancyActionBar.ChanneledAbilityBegin(effect.id, effect.castEndTime)
-        end
-    elseif effect.slotStateEndTime and effect.slotStateEndTime + fadeDelay > currentTime then
-        duration = effect.slotStateEndTime - currentTime
-        isParentTime = true
-    else
-        if effect.endTime and (effect.endTime + fadeDelay > currentTime) then
-            duration = effect.endTime - currentTime
-        else
-            effect.endTime = -1
-            hasDuration = false
-        end
-
-        local targets = FancyActionBar.GetUnits(effect.id, "targets")
-        local activeCount, soonest, maxEnd = nil, -1, -1
-        if targets and targets.times and not (SV.advancedDebuff and effect.isDebuff) then
-            activeCount, soonest, maxEnd = FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets")
-            if maxEnd and maxEnd + fadeDelay > currentTime then
-                duration = SV.showSoonestExpire and (soonest + fadeDelay > currentTime) and (soonest - currentTime) or (maxEnd + fadeDelay > currentTime) and (maxEnd - currentTime)
-                hasDuration = true
-            end
-        elseif SV.externalBuffs and effect.sources and effect.sources.times then
-            activeCount, soonest, maxEnd = FancyActionBar.RecomputeUnits(effect.id, currentTime, "sources")
-            if maxEnd and maxEnd + fadeDelay > currentTime then
-                duration = SV.showSoonestExpire and (soonest + fadeDelay > currentTime) and (soonest - currentTime) or (maxEnd + fadeDelay > currentTime) and (maxEnd - currentTime)
-                hasDuration = true
-            end
+            isCastTime = true
         end
     end
 
-    if SV.allowParentTime and not isCastTime and duration <= 0 and sourceEndTime and sourceEndTime > currentTime then
-        duration = sourceEndTime - currentTime
-        isParentTime = true
+    if not isCastTime then
+        local skipSharedDuration = useUltDisplay and isPlayerUlt
+
+        if not skipSharedDuration then
+            if isUlt and not stacksOnly and not FancyActionBar.constants.ult.duration.show then
+                if overlay then
+                    overlay.timer:SetText("")
+                end
+                hasDuration = false
+            else
+                if effect.slotStateEndTime and effect.slotStateEndTime + fadeDelay > currentTime then
+                    duration = effect.slotStateEndTime - currentTime
+                    isParentTime = true
+                elseif effect.endTime and (effect.endTime + fadeDelay > currentTime) then
+                    duration = effect.endTime - currentTime
+                else
+                    hasDuration = false
+                end
+
+                local targets = FancyActionBar.GetUnits(effect.id, "targets")
+                local activeCount, soonest, maxEnd = nil, -1, -1
+                if targets and targets.times and not (SV.advancedDebuff and effect.isDebuff) then
+                    activeCount, soonest, maxEnd = FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets")
+                    targetsActiveCount = activeCount
+                    if maxEnd and maxEnd + fadeDelay > currentTime then
+                        duration = SV.showSoonestExpire and (soonest + fadeDelay > currentTime) and (soonest - currentTime) or (maxEnd + fadeDelay > currentTime) and (maxEnd - currentTime)
+                        hasDuration = true
+                    end
+                elseif SV.externalBuffs and effect.sources and effect.sources.times then
+                    activeCount, soonest, maxEnd = FancyActionBar.RecomputeUnits(effect.id, currentTime, "sources")
+                    if maxEnd and maxEnd + fadeDelay > currentTime then
+                        duration = SV.showSoonestExpire and (soonest + fadeDelay > currentTime) and (soonest - currentTime) or (maxEnd + fadeDelay > currentTime) and (maxEnd - currentTime)
+                        hasDuration = true
+                    end
+                end
+
+                if SV.allowParentTime and duration <= 0 and parentEndTime then
+                    duration = parentEndTime - currentTime
+                    isParentTime = true
+                end
+            end
+        end
+
+        if useUltDisplay then
+            timerColor = FancyActionBar.constants.ult.duration.color
+            if isPlayerUlt then
+                ultEndTime = playerUltTimer.endTime
+                instantFade = playerUltTimer.instantFade
+                isParentTime = playerUltTimer.isParentTime
+                hasDuration = ultEndTime ~= nil
+            else
+                ultEndTime = (duration > 0 or isParentTime) and (currentTime + duration) or nil
+                instantFade = effect.instantFade
+            end
+            duration = ultEndTime and (ultEndTime - currentTime) or -999
+        end
     end
 
+    local toggleKey = (FancyActionBar.bannerBearer[effect.id] or FancyActionBar.bannerBearer[abilityId]) and "banner" or effect.id
+    local isToggled = FancyActionBar.toggles[toggleKey]
     if effect.toggled then
+        local activeHotbar = GetActiveHotbarCategory()
+        if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
+            activeHotbar = HOTBAR_CATEGORY_PRIMARY
+        end
+        if GetHotbarCategoryForOverlayIndex(index) == activeHotbar then
+            isToggled = IsSlotToggled(GetSlotFromOverlayIndex(index), activeHotbar)
+            FancyActionBar.toggles[toggleKey] = isToggled
+        end
         local tickRate = isToggled and SV.showToggleTicks and effect.tickRate or 0
-        if tickRate ~= 0 then
-            duration = effect.beginTime and (tickRate - ((currentTime - effect.beginTime) % tickRate)) or tickRate
+        if tickRate ~= 0 and effect.beginTime then
+            duration = tickRate - ((currentTime - effect.beginTime) % tickRate)
             isFading = duration <= SV.showTickStart and SV.showTickExpire or false
         end
         hasDuration = isToggled or hasDuration
-    else
-        isFading = hasDuration and (duration <= SV.showExpireStart) and SV.showExpire or false
+    elseif hasDuration and SV.showExpire and duration <= SV.showExpireStart then
+        isFading = true
     end
 
-    local lt, lc = "", nil
-    local bc = nil
-    if hasDuration or isToggled or isFading or isParentTime then
-        lt, lc = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
-        bc = FancyActionBar.GetHighlightColor(isFading, effect.toggled, isToggled, isParentTime)
+    local highlightOn = hasDuration or isFading or isParentTime or isToggled or effect.passive
+    local highlightToggled = isToggled or effect.passive
+    local highlightProfile = isUlt and highlights.ult or highlights.regular
+
+    local labelText, labelColor = "", nil
+    local bgColor = nil
+    if useUltDisplay then
+        timerColor = timerColor or FancyActionBar.constants.ult.duration.color
+        local durationControl = overlay.timer
+        local displayThreshold = -((SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)
+        if duration > displayThreshold then
+            if duration > 0 then
+                if (FancyActionBar.constants.update.showDecimal and (duration <= FancyActionBar.constants.update.showDecimalStart)) then
+                    durationControl:SetText(strformat("%0.1f", duration))
+                else
+                    durationControl:SetText(zo_ceil(duration))
+                end
+                if (duration <= SV.showExpireStart) and SV.showExpire then
+                    durationControl:SetColor(unpack(SV.expireColor))
+                else
+                    durationControl:SetColor(unpack(timerColor))
+                end
+            else
+                local timerBeginTime = (isPlayerUlt and playerUltTimer.endTime and playerUltTimer.beginTime) or effect.beginTime
+                local hadTimedEffect = timerBeginTime and ultEndTime and ultEndTime >= timerBeginTime
+                local isBlockCancelFade = IsChannelCancelFade(effect, currentTime)
+                if (hadTimedEffect or isBlockCancelFade) and not isCastTime and SV.delayFade and not instantFade then
+                    local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime
+                    if delayEnd > 0 then
+                        durationControl:SetText(0)
+                        if SV.showExpire then durationControl:SetColor(unpack(SV.expireColor)) else durationControl:SetColor(unpack(timerColor)) end
+                    else
+                        durationControl:SetText("")
+                    end
+                else
+                    durationControl:SetText("")
+                end
+            end
+            hasDuration = true
+        else
+            durationControl:SetText("")
+        end
+    elseif not stacksOnly then
+        if hasDuration or isToggled or isFading or isParentTime then
+            labelText, labelColor = FancyActionBar.FormatTextForDurationOfActiveEffect(isFading, isToggled, effect, duration, currentTime)
+        end
     end
 
-    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime)
-    FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
-    FancyActionBar.UpdateTimerLabel(durationControl, lt, lc)
-    FancyActionBar.UpdateBackgroundVisuals(bgControl, bc, index)
+    if not stacksOnly and highlightOn then
+        bgColor = FancyActionBar.GetHighlightColor(isFading, effect.toggled or effect.passive or isToggled, highlightToggled, isParentTime, highlightProfile)
+    end
 
-    return hasDuration or isToggled or isFading or isParentTime
+    local hasDisplay = useUltDisplay and (duration > -((SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)) or hasDuration or isToggled or isFading or isParentTime
+    local hasStacks = false
+    if overlay then
+        hasStacks = FancyActionBar.UpdateStacksControl(slot, overlay.stack, currentTime, index)
+        FancyActionBar.UpdateTargetsControl(effect, overlay.target, currentTime, targetsActiveCount)
+        if not stacksOnly then
+            if not isUlt then
+                overlay.timer:SetText(labelText)
+                if labelColor then
+                    overlay.timer:SetColor(unpack(labelColor))
+                end
+            end
+            UpdateBackgroundVisuals(overlay.bg, bgColor, index)
+        end
+    end
+
+    return hasDisplay or hasStacks
 end
 
-function FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime, sourceAbilityId, sourceEndTime)
+function FancyActionBar.UpdateStacksControl(slot, stacksControl, currentTime, index)
+    if not slot or not slot.effectId or slot.effectId == 0 then
+        stacksControl:SetText("")
+        return false
+    end
+
+    if not SV.showStackCount or not slot.showStacks then
+        stacksControl:SetText("")
+        return false
+    end
+
+    local effect = FancyActionBar.effects[slot.effectId]
+    if (not effect or effect.ignore) and slot.abilityId and FancyActionBar.debuffStackSourceIds and FancyActionBar.debuffStackSourceIds[slot.effectId] then
+        local debuffStackEntry = FancyActionBar.GetStackMap(slot.effectId, "debuff")
+        effect =
+        {
+            id = slot.effectId,
+            isDebuff = true,
+            stackSources = debuffStackEntry.sources,
+            stackOwnerId = debuffStackEntry.ownerId,
+        }
+    elseif slot.abilityId and FancyActionBar.IsStackMapMember(slot.abilityId) then
+        local stackEntry = FancyActionBar.GetStackMap(slot.abilityId)
+        effect =
+        {
+            id = stackEntry.ownerId,
+            stackSources = stackEntry.sources,
+            stackOwnerId = stackEntry.ownerId,
+        }
+    elseif not effect or effect.ignore then
+        stacksControl:SetText("")
+        return false
+    end
+
     local activeEndTime = (effect.slotStateEndTime and effect.slotStateEndTime > currentTime and effect.slotStateEndTime) or effect.endTime
     if effect.forceExpireStacks and (activeEndTime <= currentTime) then
         stacksControl:SetText("")
-        return
+        return false
     end
 
-    if not SV.showStackCount then
-        stacksControl:SetText("")
-        return
-    end
-
-    if allowStacks then
-        local resolvedStacks = FancyActionBar.ResolveStacksForSourceAbility(effect, sourceAbilityId, currentTime)
+    if index and index == ULT_INDEX and IsPlayerInWerewolfForm() then
+        local fury = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_WEREWOLF)
         stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
-        stacksControl:SetText(resolvedStacks and resolvedStacks ~= 0 and resolvedStacks or "")
-        return
+        stacksControl:SetText(fury > 0 and fury or "")
+        return fury > 0
     end
 
-    stacksControl:SetText("")
+    local resolvedStacks = FancyActionBar.GetDisplayStacks(effect, currentTime)
+    stacksControl:SetColor(unpack(FancyActionBar.constants.stacks.color))
+    stacksControl:SetText(resolvedStacks and resolvedStacks ~= 0 and resolvedStacks or "")
+    return resolvedStacks ~= nil and resolvedStacks ~= 0 and resolvedStacks ~= ""
+end
+
+function FancyActionBar.UpdateOverlay(index, updateTime, activeHotbarCategory, inactiveHotbarCategory) -- timer label updates.
+    activeHotbarCategory = activeHotbarCategory or layoutHotbarCategory
+    inactiveHotbarCategory = inactiveHotbarCategory or GetInactiveHotbarCategory(activeHotbarCategory)
+    local isUlt = (index == ULT_INDEX) or (index == ULT_INDEX + SLOT_INDEX_OFFSET) or (index == ULT_INDEX + COMPANION_INDEX_OFFSET)
+    local overlay = GetOverlayForData(index, activeHotbarCategory)
+    if not overlay then
+        return
+    end
+    if isUlt then
+        if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET and FancyActionBar.constants.ult.duration.show then
+            refreshPlayerUltTimer(updateTime or time())
+        end
+        local hasDisplay = FancyActionBar.UpdateEffectDuration(index, updateTime, overlay)
+        if index == ULT_INDEX + COMPANION_INDEX_OFFSET then
+            overlay:SetHidden(SV.hideCompanionUlt)
+        end
+        return
+    end
+    local hasDisplay = FancyActionBar.UpdateEffectDuration(index, updateTime, overlay)
+    if GetHotbarCategoryForOverlayIndex(index) == inactiveHotbarCategory then
+        syncInactiveSlotEmptyVisibility(index, hasDisplay, activeHotbarCategory)
+    end
 end
 
 function FancyActionBar.ShouldShowTargetCount(effect, activeCount)
-	if not (SV.showTargetCount and activeCount and activeCount ~= 0) then return nil end
+    if not (SV.showTargetCount and activeCount and activeCount ~= 0) then return nil end
 
-	if activeCount > 1
-		or (effect and effect.isDebuff and (SV.showSingleTargetInstance or SV.advancedDebuff)) then
-		return activeCount
-	end
+    if activeCount > 1
+        or (effect and effect.isDebuff and (SV.showSingleTargetInstance or SV.advancedDebuff)) then
+        return activeCount
+    end
 end
 
-function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
+function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime, precomputedActiveCount)
     local targetData = FancyActionBar.GetUnits(effect.id, "targets")
     if not targetData or not targetData.times then
         targetsControl:SetText("")
         return
     end
-    local activeCount = FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets")
+    local activeCount = precomputedActiveCount
+    if activeCount == nil then
+        activeCount = FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets")
+    end
     if not activeCount or activeCount == 0 then
         targetsControl:SetText("")
         return
@@ -2339,286 +2897,43 @@ function FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime
     targetsControl:SetText("")
 end
 
-function FancyActionBar.ClearOverlayControls(durationControl, bgControl, stacksControl, targetsControl)
-    durationControl:SetText("")
-    bgControl:SetHidden(true)
-    stacksControl:SetText("")
-    targetsControl:SetText("")
-end
-
-function FancyActionBar.UpdateStacks(index) -- stacks label.
-    local overlay
-    if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
-        overlay = FancyActionBar.ultOverlays[index]
-    else
-        overlay = FancyActionBar.overlays[index]
-    end
-    if overlay then
-        local stacksControl = overlay.stack
-        if overlay.effect and overlay.allowStacks then
-            local sourceAbilityId = overlay.effect.sourceAbilites and overlay.effect.sourceAbilites[index]
-            local sourceEndTime
-            if sourceAbilityId and sourceAbilityId ~= overlay.effect.id then
-                local sourceEffect = FancyActionBar.effects[sourceAbilityId]
-                if sourceEffect then
-                    sourceEndTime = sourceEffect.endTime
-                end
-            end
-            FancyActionBar.UpdateStacksControl(overlay.effect, stacksControl, overlay.allowStacks, time(), sourceAbilityId, sourceEndTime)
-        end
-    end
-end
-
-function FancyActionBar.UpdateTargets(index) -- targets label.
-    local overlay
-    if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
-        overlay = FancyActionBar.ultOverlays[index]
-    else
-        overlay = FancyActionBar.overlays[index]
-    end
-    if overlay then
-        local effect = overlay.effect
-        local targetsControl = overlay.target
-        if effect and effect.id then
-            FancyActionBar.UpdateTargetsControl(effect, targetsControl, time())
-            return
-        end
-        targetsControl:SetText("")
-    end
-end
-
-function FancyActionBar.UpdateUltOverlay(index) -- update ultimate labels.
-    local overlay = FancyActionBar.ultOverlays[index]
-    if not overlay then return end              -- Added check for nil overlay
-
-    local effect = overlay.effect or { id = 0, endTime = -1 }
-    local allowStacks = overlay.allowStacks
-    local durationControl = overlay.timer
-    local stacksControl = overlay.stack
-    local targetsControl = overlay.target
-    local timerColor = FancyActionBar.constants.ult.duration.color
-
-    if not FancyActionBar.constants.ult.duration.show then
-        durationControl:SetText("")
-        -- Clear stack/target controls as well if duration is hidden
-        if stacksControl then stacksControl:SetText("") end
-        if targetsControl then targetsControl:SetText("") end
-        return
-    end
-
-    local currentTime = time()
-    local duration, ultEndTime, instantFade
-    local isCastTime = false -- Flag to know if we are using cast time
-    local hasActiveCastWindow = FancyActionBar.IsChanneledAbilityActive(effect, currentTime)
-
-    -- Check if channeling logic should apply BEFORE standard duration calculation
-    if SV.showCastDuration and hasActiveCastWindow then
-        local isBlockActive = IsBlockActive()
-        local blockCancelled = (isBlockActive and not wasBlockActive) or (wasBlockActive and not isBlockActive and not channeledAbility.active)
-        wasBlockActive = isBlockActive
-
-        if blockCancelled or not channeledAbility.active then
-            effect.castEndTime = blockCancelled and 0 or (effect.castEndTime and effect.castEndTime > currentTime and effect.castEndTime or 0)
-            if blockCancelled and (not effect.endTime or effect.endTime < currentTime) then
-                effect.endTime = currentTime
-            end
-            FancyActionBar.ChanneledAbilityEnd(effect.id)
-        end
-
-        if effect.castEndTime and effect.castEndTime >= currentTime then
-            -- Currently channeling: Calculate duration based on cast time
-            duration = effect.castEndTime - currentTime
-            isCastTime = true -- Set flag
-        end
-
-        -- Reset Channeling state if this effect was the one being tracked and cast has ended
-        if channeledAbility.id == effect.id and (not effect.castEndTime or effect.castEndTime < currentTime) then
-            FancyActionBar.ChanneledAbilityEnd(effect.id)
-        end
-    end
-    if not isCastTime then
-        local fadeDelay = (SV.delayFade and SV.fadeDelay or 0) -- Calculate fadeDelay only if needed
-
-        if index ~= ULT_INDEX + COMPANION_INDEX_OFFSET then
-            -- Update activeUlt table if new effect is longer
-            -- Ensure effect exists and has an endTime before comparing
-            if effect.endTime and (not effect.toggled) and (not effect.passive) and (activeUlt.endTime < effect.endTime) then
-                activeUlt.id = effect.id
-                activeUlt.endTime = effect.endTime
-                activeUlt.instantFade = effect.instantFade
-            end
-
-            if effect.id == activeUlt.id then
-                ultEndTime = effect.endTime
-                instantFade = effect.instantFade
-            elseif effect.endTime and (not effect.toggled) and (not effect.passive) and (effect.endTime > currentTime - (fadeDelay and not (effect.instantFade) and fadeDelay or 0)) then
-                ultEndTime = effect.endTime
-                instantFade = effect.instantFade
-            else
-                ultEndTime = activeUlt.endTime
-                instantFade = activeUlt.instantFade
-            end
+function FancyActionBar.UpdateToggledAbility(id, active)
+    FancyActionBar.toggles[FancyActionBar.bannerBearer[id] and "banner" or id] = active
+    for index, slot in pairs(slots) do
+        local match
+        if FancyActionBar.bannerBearer[id] then
+            match = FancyActionBar.bannerBearer[slot.effectId] or FancyActionBar.bannerBearer[slot.abilityId]
         else
-            ultEndTime = effect.endTime
-            instantFade = effect.instantFade
+            match = slot.effectId == id or slot.abilityId == id
         end
-
-        if ultEndTime then
-            duration = ultEndTime - currentTime
-        else
-            duration = -999
+        if match then
+            FancyActionBar.UpdateOverlay(index)
         end
-    end
-
-    -- Use a slightly larger negative threshold to account for fade delay correctly
-    local displayThreshold = -((SV.delayFade and not instantFade and not isCastTime) and SV.fadeDelay or 0.1)
-
-    if duration > displayThreshold then
-        if duration > 0 then
-            -- Format positive duration (either channeled or standard)
-            if (FancyActionBar.constants.update.showDecimal and (duration <= FancyActionBar.constants.update.showDecimalStart)) then
-                durationControl:SetText(strformat("%0.1f", duration))
-            else
-                durationControl:SetText(zo_ceil(duration)) -- Use zo_ceil for consistency with original non-decimal display
-            end
-
-            -- Apply color based on expiration or channel state
-            -- (Note: isCastTime could be used here for a specific channel color if desired)
-            if (duration <= SV.showExpireStart) and SV.showExpire then
-                durationControl:SetColor(unpack(SV.expireColor))
-                -- elseif isCastTime and SV.channelColor then -- Optional channel color?
-                --     durationControl:SetColor(unpack(SV.channelColor))
-            else
-                durationControl:SetColor(unpack(timerColor))
-            end
-        else
-            -- Handle fade delay display (only applies if NOT channeling)
-            local hadTimedEffect = effect.beginTime and ultEndTime and ultEndTime >= effect.beginTime
-            local isBlockCancelFade = effect.castEndTime == 0 and ultEndTime and ultEndTime + SV.fadeDelay > currentTime
-            if (hadTimedEffect or isBlockCancelFade) and not isCastTime and SV.delayFade and not instantFade then
-                local delayEnd = (ultEndTime + SV.fadeDelay) - currentTime
-                if delayEnd > 0 then
-                    -- Still in fade delay, show 0 (or ceiling of negative duration)
-                    durationControl:SetText(0) -- Shows '0'
-                    -- Could set a specific fade color here if needed
-                    if SV.showExpire then durationControl:SetColor(unpack(SV.expireColor)) else durationControl:SetColor(unpack(timerColor)) end
-                else
-                    -- Fade delay ended
-                    durationControl:SetText("")
-                end
-            else
-                -- No fade delay or instant fade, clear text immediately
-                durationControl:SetText("")
-            end
-        end
-    else
-        -- Duration is too old (below display threshold)
-        durationControl:SetText("")
-        -- Reset activeUlt if its time is being used and it expired
-        if not isCastTime and ultEndTime == activeUlt.endTime and activeUlt.endTime and activeUlt.endTime <= currentTime then
-            activeUlt.id = 0
-            activeUlt.endTime = -1
-        end
-    end
-
-    FancyActionBar.UpdateStacksControl(effect, stacksControl, allowStacks, currentTime)
-    FancyActionBar.UpdateTargetsControl(effect, targetsControl, currentTime)
-
-    if index == ULT_INDEX + COMPANION_INDEX_OFFSET then
-        overlay:SetHidden(SV.hideCompanionUlt)
-    end
-
-    if SV.applyActionBarSkillStyles then
-        FancyActionBar.SetActionButtonAbilityFxOverride(index)
     end
 end
 
-function FancyActionBar.IsValidStackId(effectStackIds, abilityStackIds)
-    local found = false
-    for _, aStackId in ipairs(abilityStackIds) do
-        for _, eStackId in ipairs(effectStackIds) do
-            if aStackId == eStackId then
-                found = true
-                break
-            end
-        end
-        if found then
-            break
-        end
-    end
-    return found
-end
-
-function FancyActionBar.HasDebuffStacks(effectId)
-    local hasStacks = false
-    local debuffStackMap = FancyActionBar.debuffStackMap
-    for stackId, abilityIds in pairs(debuffStackMap) do
-        if abilityIds and #abilityIds > 0 then
-            for i = 1, #abilityIds do
-                if abilityIds[i] == effectId then
-                    hasStacks = true
-                    break
-                end
-            end
-        end
-    end
-    return hasStacks
-end
-
-function FancyActionBar.UpdateToggledAbility(id, active) -- toggled effect highligh update.
+function FancyActionBar.UpdatePassiveEffect(id, active)
     local effect = FancyActionBar.effects[id]
     if effect then
-        if FancyActionBar.bannerBearer[effect.id] then
-            FancyActionBar.toggles["banner"] = active
-        else
-            if not FancyActionBar.toggles[effect.id] then
-                FancyActionBar.toggles[effect.id] = false
-            end
-            FancyActionBar.toggles[effect.id] = active
-        end
-
-        if effect.slot1 then
-            FancyActionBar.UpdateHighlight(effect.slot1)
-        end
-        if effect.slot2 then
-            FancyActionBar.UpdateHighlight(effect.slot2)
-        end
-    end
-end
-
-function FancyActionBar.UpdatePassiveEffect(id, active) -- passive effect highligh update.
-    for i, overlay in pairs(FancyActionBar.overlays) do
-        local effect = overlay.effect
-        if effect then
-            if effect.id == id then
-                effect.passive = active
-                FancyActionBar.UpdateHighlight(i)
-            end
-        end
+        effect.passive = active
     end
 end
 
 function FancyActionBar.UnslotEffect(index) -- Remove effect from overlay index.
-    local overlay
-
     if (index == ULT_INDEX) or (index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
-        overlay = FancyActionBar.ultOverlays[index]
         if index == ULT_INDEX then
-            cost1 = 0
-        elseif index == (ULT_INDEX + SLOT_INDEX_OFFSET)
-        then
-            cost2 = 0
+            ultCosts.cost1 = 0
+        elseif index == (ULT_INDEX + SLOT_INDEX_OFFSET) then
+            ultCosts.cost2 = 0
         end
-    else
-        overlay = FancyActionBar.overlays[index]
     end
 
+    local overlay = GetOverlayForData(index)
     if overlay then
-        local e, a = FancyActionBar.GetSlottedEffect(index)
-        sourceAbilities[a] = nil
-        overlay.effect = nil
         FancyActionBar.ResetOverlayDuration(overlay)
     end
+    FancyActionBar.slotStateSpecialEffects[index] = nil
+    FancyActionBar.SetSlottedEffect(index, 0, 0)
 end
 
 function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag, effectChanged) -- assign effect and instructions to overlay index.
@@ -2626,164 +2941,68 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
         FancyActionBar.UnslotEffect(index)
         return
     end
-    local isChanneled, castDuration = GetAbilityCastInfo(abilityId, overrideRank, casterUnitTag)
-    -- if (isChanneled and not FancyActionBar.allowedChanneled[abilityId]) then
-    --   FancyActionBar.UnslotEffect(index);
-    --   return;
-    -- end;
 
-    local overlay = FancyActionBar.GetOverlay(index)
+    local overlay = GetOverlayForData(index)
     if not overlay then
         return
     end
 
-    local effectId, stackId, duration, custom, toggled, tickRate, passive, instantFade, dontFade
-    local sourceAbility = {}
-
-    local cfg = abilityConfig[abilityId]
-    local ignore = false
-    if cfg == false and stackId == nil then
-        ignore = true
+    if not effectChanged then
+        local existing = slots[index]
+        if existing and existing.abilityId == abilityId and existing.effectId then
+            local existingEffect = FancyActionBar.effects[existing.effectId]
+            if existingEffect then
+                return existingEffect
+            end
+            return FancyActionBar.GetEffect(existing.effectId,
+                {
+                    abilityId = abilityId,
+                    overrideRank = overrideRank,
+                    casterUnitTag = casterUnitTag,
+                })
+        end
     end
 
-    if cfg or FancyActionBar.specialEffects[abilityId] then
-        if ignore then
-            effectId = abilityId
-            custom = true
-            toggled = false
-            tickRate = 0
-            passive = false
-            instantFade = FancyActionBar.removeInstantly[effectId] or false
-            sourceAbility[index] = abilityId
-            sourceAbilities[abilityId] = effectId
-        else
-            if abilityId == 81420 then -- guard slot id while active for all morphs
-                if guardId > 0 then
-                    effectId = guardId
-                end
-            else
-                local craftedId = GetAbilityCraftedAbilityId(abilityId)
-                if craftedId ~= 0 then
-                    local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) }
-                    local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
-                    effectId = (cfg and ((cfg[2] and cfg[2][scriptKey] and cfg[2][scriptKey][1]) or cfg[1])) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId
-                else
-                    effectId = (cfg and cfg[1]) or (FancyActionBar.specialEffects[abilityId] and FancyActionBar.specialEffects[abilityId].id) or abilityId
-                end
-                if FancyActionBar.guard.ids[abilityId] then
-                    guardId = abilityId
-                end
+    for idx, slot in pairs(slots) do
+        if idx ~= index and slot.abilityId == abilityId then
+            local slotNum = GetSlotFromOverlayIndex(idx)
+            local hotbar = GetHotbarCategoryForOverlayIndex(idx)
+            if FancyActionBar.GetSlotBoundAbilityId(slotNum, hotbar) ~= abilityId then
+                FancyActionBar.UnslotEffect(idx)
             end
-            custom = true
-            if FancyActionBar.bannerBearer[effectId] or FancyActionBar.bannerBearer[abilityId] then
-                toggled = true
-                tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
-            else
-                toggled = cfg and cfg[3] or FancyActionBar.toggled[effectId] or FancyActionBar.toggled[abilityId] or false
-                tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
-            end
-            passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false
-            instantFade = cfg and cfg[4] or FancyActionBar.removeInstantly[effectId] or false
-            dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false
-            sourceAbility[index] = abilityId
-            sourceAbilities[abilityId] = effectId
         end
-    else
-        effectId = abilityId
-        custom = false
-        if FancyActionBar.bannerBearer[effectId] or FancyActionBar.bannerBearer[abilityId] then
-            toggled = true
-            tickRate = ((FancyActionBar.toggleTickRate[effectId] or FancyActionBar.toggleTickRate[abilityId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
-        else
-            toggled = FancyActionBar.toggled[effectId] or false
-            tickRate = ((FancyActionBar.toggleTickRate[effectId] or GetAbilityFrequencyMS(effectId, "player") or 0) / 1000)
-        end
-        passive = FancyActionBar.passive[effectId] or FancyActionBar.passive[abilityId] or false
-        instantFade = FancyActionBar.removeInstantly[effectId] or false
-        dontFade = ((not instantFade == true) and FancyActionBar.dontFade[effectId]) or false
-        sourceAbility[index] = abilityId
-        sourceAbilities[abilityId] = effectId
     end
 
+    local effectId = FancyActionBar.GetConfiguredEffectId(abilityId)
     FancyActionBar.SetSlottedEffect(index, abilityId, effectId)
 
-    if (toggled == false and ignore == false)
-    then
-        duration = (GetAbilityDuration(effectId) or -1) / 1000
-    else
-        duration = -1
-    end
-
-    local configuredStackSourceIds = FancyActionBar.GetConfiguredStackSources(abilityId)
-    local effectStackSourceIds = FancyActionBar.GetConfiguredStackSources(effectId)
-    local hasExternalStacks = false
-    local function isExternalList(tbl, baseId)
-        return tbl and (#tbl > 1 or (#tbl == 1 and tbl[1] ~= baseId))
-    end
-
-    if isExternalList(effectStackSourceIds, effectId) then
-        stackId = effectStackSourceIds
-        hasExternalStacks = true
-    elseif isExternalList(configuredStackSourceIds, effectId) then
-        stackId = configuredStackSourceIds
-        hasExternalStacks = true
-    elseif effectStackSourceIds and #effectStackSourceIds > 0 then
-        stackId = effectStackSourceIds
-    elseif configuredStackSourceIds and #configuredStackSourceIds > 0 then
-        stackId = configuredStackSourceIds
-    else
-        stackId = FancyActionBar.GetConfiguredStackSources(effectId)
-    end
-
-    local effect = FancyActionBar.GetEffect(effectId, sourceAbility, stackId, true, custom, toggled, tickRate, ignore, passive, instantFade, dontFade, isChanneled, effectChanged, hasExternalStacks)
-
-
-    if not ignore then
-        effect.duration = duration and duration > 0 and duration or -1
-    end
+    local effect = FancyActionBar.GetEffect(effectId,
+        {
+            abilityId = abilityId,
+            overrideRank = overrideRank,
+            casterUnitTag = casterUnitTag,
+            reset = effectChanged,
+        })
 
     if not SV.advancedDebuff and effect.isDebuff then
         effect.isDebuff = false
     end
 
     if not effect.isDebuff then
-        local hasActiveEffect, activeDuration, activeStacks = FancyActionBar.CheckForActiveEffect(effectId)
+        local ownerId = FancyActionBar.GetStackOwnerId(abilityId)
+        if ownerId == abilityId then
+            ownerId = FancyActionBar.GetStackOwnerId(effectId)
+        end
+        local hasActiveEffect, activeDuration, activeStacks = FancyActionBar.CheckForActiveEffect(ownerId)
         if hasActiveEffect then
             effect.endTime = activeDuration == -1 and -1 or (time() + activeDuration)
         else
             effect.endTime = -1
         end
-        if not effect.hasExternalStackSources then
-            effect.stacks = activeStacks
-        end
+        FancyActionBar.SetStacks(ownerId, activeStacks, true)
     end
 
     local isFrontBar = index < SLOT_INDEX_OFFSET
-
-    if (index == ULT_INDEX or index == (ULT_INDEX + SLOT_INDEX_OFFSET)) then
-        if isFrontBar then
-            effect.slot1 = index
-            if abilityId == 113105 then
-                cost1 = 70
-            else
-                cost1 = GetAbilityCost(abilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag)
-            end
-        elseif index == (ULT_INDEX + SLOT_INDEX_OFFSET) then
-            effect.slot2 = index
-            if abilityId == 113105 then
-                cost2 = 70
-            else
-                cost2 = GetAbilityCost(abilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag)
-            end
-        end
-
-        local ultOverlay = FancyActionBar.ultOverlays[index]
-        if ultOverlay then
-            ultOverlay.effect = effect
-        end
-        return effect
-    end
-
     if isFrontBar then
         effect.slot1 = index
         if FancyActionBar.guard.ids[effect.id] then
@@ -2795,35 +3014,16 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
             FancyActionBar.guard.slot2 = index
         end
     end
-    -- Assign effect to overlay.
-    overlay["effect"] = effect
-    overlay["allowStacks"] = effectId == abilityId or hasExternalStacks or #configuredStackSourceIds > 0 or FancyActionBar.IsAbilityTaunt(effectId) or FancyActionBar.IsAbilityTaunt(abilityId) or FancyActionBar.HasDebuffStacks(effectId)
 
-
-    if SV.showTargetCount and FancyActionBar.GetUnits(effect.id, "targets") then
-        FancyActionBar.UpdateTargets(index)
-    end
-
-    if overlay.allowStacks then
-        local resolved = FancyActionBar.ResolveStacksForSourceAbility(effect, abilityId)
-        if resolved and resolved ~= 0 then
-            FancyActionBar.UpdateOverlay(index)
-            FancyActionBar.UpdateStacks(index)
+    if index == ULT_INDEX or index == (ULT_INDEX + SLOT_INDEX_OFFSET) then
+        if isFrontBar then
+            ultCosts.cost1 = (abilityId == 113105) and 70 or GetAbilityCost(abilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag)
+        else
+            ultCosts.cost2 = (abilityId == 113105) and 70 or GetAbilityCost(abilityId, COMBAT_MECHANIC_FLAGS_ULTIMATE, overrideRank, casterUnitTag)
         end
     end
 
     return effect
-end
-
-local function ResolveEffectWidgetEffectId(abilityId)
-    local cfg = abilityConfig[abilityId]
-    if cfg == false then
-        return nil
-    end
-    if type(cfg) == "table" then
-        return cfg[1] or abilityId
-    end
-    return sourceAbilities[abilityId] or abilityId
 end
 
 function FancyActionBar.SlotEffects() -- slot effects for primary and backup bars.
@@ -2842,62 +3042,6 @@ function FancyActionBar.SlotEffects() -- slot effects for primary and backup bar
         end
     end
     FancyActionBar.UpdateUltimateCost()
-end
-
-function FancyActionBar.UpdateEffect(effect) -- update overlays linked to the effect.
-    if effect and effect.id then
-        FancyActionBar.effects[effect.id] = effect
-    end
-end
-
--- Special Effects can fail to have their values updated properly on Rezone/Death, this implements recheck handling for these scenarios
-function FancyActionBar.ReCheckSpecialEffect(effect)
-    local checkTime = time()
-    local specialEffects = FancyActionBar.specialEffects
-    local effects = FancyActionBar.effects
-    local CheckForActiveEffect = FancyActionBar.CheckForActiveEffect
-    local UpdateEffect = FancyActionBar.UpdateEffect
-
-    if not specialEffects[effect.id] then
-        return
-    end
-
-    local specialEffect = ZO_DeepTableCopy(specialEffects[effect.id])
-    if specialEffect and (specialEffect.isReflect or (SV.advancedDebuff and specialEffect.isSpecialDebuff)) then
-        return
-    end
-
-    local hasEffect, duration, stacks, beginTime = CheckForActiveEffect(effect.id)
-    stacks = stacks ~= 0 and stacks or 0
-    if stacks ~= 0 or (specialEffect.stacks and specialEffect.stacks ~= 0) then
-        if UsesExternalStackDisplay(effect) then
-            FancyActionBar.SetStacks(effect.id, 0, true)
-        else
-            FancyActionBar.SetStacks(effect.id, stacks)
-        end
-        effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (checkTime + duration) or -1)
-    end
-
-    local stackDisplayAbilities = FancyActionBar.GetConfiguredStackSources(effect.id)
-    if #stackDisplayAbilities > 0 then
-        for id, stackEffect in pairs(effects) do
-            for i = 1, #stackDisplayAbilities do
-                local currentStackId = stackDisplayAbilities[i]
-                if currentStackId ~= effect.id and currentStackId == stackEffect.id then
-                    if not stackEffect.processed then
-                        stackEffect.processed = true
-                        FancyActionBar.ReCheckSpecialEffect(stackEffect)
-                        stackEffect.processed = false
-                    end
-                end
-            end
-        end
-    end
-    if FancyActionBar.toggled[effect.id] then -- update the highlight of toggled abilities.
-        local toggleAbility = sourceAbilities[effect.id] and sourceAbilities[effect.id] or effect.id
-        FancyActionBar.toggles[toggleAbility] = hasEffect
-    end
-    UpdateEffect(effect)
 end
 
 --------------
@@ -2981,21 +3125,19 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
     local modeC = FancyActionBar.constants.ult.companion.mode
     local alpha = (value < 10) and 0 or 1
     local currentHotbarCategory = GetActiveHotbarCategory()
-    local cost = ((currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY) or (currentHotbarCategory == HOTBAR_CATEGORY_BACKUP)) and cost1 or costAlt
     if (player and FancyActionBar.constants.ult.value.show) then
         ActionButton8LeadingEdge:SetAlpha(alpha)
         -- ActionButton8UltimateBar:SetHidden(false)
 
-        local o1 = FancyActionBar.ultOverlays[ULT_INDEX]
-        local o2 = FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
+        local activeOverlay = FancyActionBar.ultOverlays[ULT_INDEX]
+        local inactiveOverlay = FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
 
-        if o1 and o1.value then
-            o1.value:SetText(FancyActionBar.GetValueString(modeP, value, cost))
-            o1.value:SetColor(unpack(FancyActionBar.GetUltimateValueColor(value, HOTBAR_CATEGORY_PRIMARY)))
+        if activeOverlay and activeOverlay.value then
+            activeOverlay.value:SetText(FancyActionBar.GetValueString(modeP, value, ultCosts.costAlt))
+            activeOverlay.value:SetColor(unpack(FancyActionBar.GetUltimateValueColor(value, currentHotbarCategory)))
         end
-        if o2 and o2.value then
-            o2.value:SetText(FancyActionBar.GetValueString(modeP, value, cost2))
-            o2.value:SetColor(unpack(FancyActionBar.GetUltimateValueColor(value, HOTBAR_CATEGORY_BACKUP)))
+        if inactiveOverlay and inactiveOverlay.value then
+            inactiveOverlay.value:SetText("")
         end
     else
         local o3 = FancyActionBar.ultOverlays[ULT_INDEX + COMPANION_INDEX_OFFSET]
@@ -3006,7 +3148,7 @@ function FancyActionBar.UpdateUltimateValueLabels(player, value) -- update ultim
             CompanionUltimateButton:SetHidden(SV.hideCompanionUlt)
         end
         if o3 and o3.value then
-            o3.value:SetText(SV.hideCompanionUlt and "" or FancyActionBar.GetValueString(modeC, value, cost3))
+            o3.value:SetText(SV.hideCompanionUlt and "" or FancyActionBar.GetValueString(modeC, value, ultCosts.cost3))
         end
     end
 end
@@ -3045,9 +3187,9 @@ function FancyActionBar.UpdateUltimateCost() -- manual ultimate value update
         return cost
     end
     local currentHotbarCategory = GetActiveHotbarCategory()
-    cost1 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY))
-    cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP))
-    costAlt = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, currentHotbarCategory))
+    ultCosts.cost1 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_PRIMARY))
+    ultCosts.cost2 = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, HOTBAR_CATEGORY_BACKUP))
+    ultCosts.costAlt = ResolveUltCost(FancyActionBar.GetSlotBoundAbilityId(ULT_INDEX, currentHotbarCategory))
 
     local current, _, _ = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
     FancyActionBar.UpdateUltimateValueLabels(true, current)
@@ -3107,6 +3249,22 @@ function FancyActionBar.RefreshUpdateConfiguration() -- set overlays refresh rat
     return update
 end
 
+function FancyActionBar.RefreshHighlightConfiguration()
+    highlights.regular.show = SV.showHighlight
+    highlights.regular.color = SV.highlightColor
+    highlights.regular.expire = SV.highlightExpire
+    highlights.regular.expireColor = SV.highlightExpireColor
+    highlights.regular.toggled = SV.toggledHighlight
+    highlights.regular.toggledColor = SV.toggledColor
+
+    highlights.ult.show = SV.showUltHighlight
+    highlights.ult.color = SV.ultHighlightColor
+    highlights.ult.expire = SV.ultHighlightExpire
+    highlights.ult.expireColor = SV.ultHighlightExpireColor
+    highlights.ult.toggled = SV.ultToggledHighlight
+    highlights.ult.toggledColor = SV.ultToggledColor
+end
+
 --  ---------------------------------
 --  Load Saved Ability Configuration
 --  ---------------------------------
@@ -3133,7 +3291,7 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
 
         if FancyActionBar.toggled[id] then
             toggled = true
-            FancyActionBar.toggles[id] = false
+            FancyActionBar.toggles[FancyActionBar.bannerBearer[id] and "banner" or id] = false
         end
 
         local cI, rI = id, false
@@ -3170,18 +3328,14 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
             cfg = customConfig[id]
             if FancyActionBar.toggled[id] then
                 toggled = true
-                if FancyActionBar.bannerBearer[id] then
-                    FancyActionBar.toggles["banner"] = false
-                else
-                    FancyActionBar.toggles[id] = false
-                end
+                FancyActionBar.toggles[FancyActionBar.bannerBearer[id] and "banner" or id] = false
             end
             if FancyActionBar.removeInstantly[cI] then
                 rI = true
             end
             if cfg == false then
                 abilityConfig[id] = false
-            elseif cfg and cfg[1] or cfg[2] then
+            elseif (cfg and cfg[1]) or cfg[2] then
                 if craftedId ~= 0 then
                     if cfg[1] and cfg[2] and not cfg[2]["0_0_0"] then
                         cfg[2]["0_0_0"] = cfg[1]
@@ -3209,6 +3363,32 @@ function FancyActionBar.BuildAbilityConfig() -- Parse FancyActionBar.abilityConf
     --     FancyActionBar.toggles[id]   = false
     --   end
     -- end
+
+    local debuffStackSourceIds = {}
+    local debuffStackMap = FancyActionBar.debuffStackMap
+    if debuffStackMap then
+        for ownerId, abilityIds in pairs(debuffStackMap) do
+            debuffStackSourceIds[ownerId] = true
+            if abilityIds then
+                for i = 1, #abilityIds do
+                    debuffStackSourceIds[abilityIds[i]] = true
+                end
+            end
+        end
+    end
+    FancyActionBar.debuffStackSourceIds = debuffStackSourceIds
+
+    local stackableBuffSet = {}
+    local stackableBuff = FancyActionBar.stackableBuff
+    if stackableBuff then
+        for key, value in pairs(stackableBuff) do
+            stackableBuffSet[key] = true
+            if value ~= key then
+                stackableBuffSet[value] = true
+            end
+        end
+    end
+    FancyActionBar.stackableBuffSet = stackableBuffSet
 end
 
 function FancyActionBar.DebugConfig(abilityId)
@@ -3218,7 +3398,6 @@ end
 --  ---------------------------------
 --  Buffs gained by player from others
 --  ---------------------------------
-local BUFF_EFFECT_TYPE_DEBUFF = BUFF_EFFECT_TYPE_DEBUFF
 function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
     if sourceType == COMBAT_UNIT_TYPE_PLAYER then
         return
@@ -3227,34 +3406,36 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
         return
     end
     local t = time()
+    local fadeHasEffect, fadeDuration
     local doFullUpdate = true
     local trackExternalForWidgets = FancyActionBar.IsEffectWidgetExternalAllowed(abilityId)
     local allowExternalTracking = SV.externalBuffs or trackExternalForWidgets
     local stackableBuff = FancyActionBar.stackableBuff[abilityId]
     local didSourceAction = false
+    local sourceCount
     if stackableBuff then
         if (change == EFFECT_RESULT_GAINED or (change == EFFECT_RESULT_UPDATED and buffType ~= BUFF_EFFECT_TYPE_DEBUFF)) then
             if beginTime ~= endTime and (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
                 if unitId and unitId ~= 0 then
-                    FancyActionBar.RecordUnit(stackableBuff, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
+                    sourceCount = select(1, FancyActionBar.RecordUnit(stackableBuff, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) }))
                 end
             end
         elseif (change == EFFECT_RESULT_FADED) then
-            FancyActionBar.RemoveUnit(stackableBuff, effectSlot, t, "sources")
+            sourceCount = select(1, FancyActionBar.RemoveUnit(stackableBuff, effectSlot, t, "sources"))
         end
         didSourceAction = true
     end
 
     if not allowExternalTracking then
         if didSourceAction then
-            local stackCountLocal, _, _ = FancyActionBar.RecomputeUnits(stackableBuff, t, "sources")
-            FancyActionBar.SetStacks(stackableBuff, stackCountLocal)
+            FancyActionBar.SetStacks(stackableBuff, sourceCount, sourceCount ~= nil)
         end
         return
     end
 
     if SV.externalBuffs then
-        local effect = FancyActionBar.effects[abilityId]
+        local effectId = abilityId
+        local effect = FancyActionBar.effects[effectId]
         if effect then
             if SV.externalBlackList[abilityId] then
                 if not stackableBuff then
@@ -3266,7 +3447,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
 
             if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED and buffType ~= BUFF_EFFECT_TYPE_DEBUFF) then
                 if beginTime == endTime and doFullUpdate then
-                    FancyActionBar.UpdatePassiveEffect(abilityId, true)
+                    FancyActionBar.UpdatePassiveEffect(effectId, true)
                     return
                 end
 
@@ -3274,23 +3455,17 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
                     -- per-source `sources` already handled above for stackableBuff
                     if doFullUpdate then
                         effect.endTime = endTime
-                        FancyActionBar.UpdateEffect(effect)
                     end
                 end
             elseif (change == EFFECT_RESULT_FADED) then
-                if doFullUpdate then
-                    if effect.dontFade and effect.endTime > t then
-                        FancyActionBar.UpdateEffect(effect)
+                if doFullUpdate and not (effect.dontFade and effect.endTime > t) then
+                    fadeHasEffect, fadeDuration = FancyActionBar.CheckForActiveEffect(abilityId)
+                    if fadeHasEffect then
+                        effect.endTime = fadeDuration == -1 and -1 or ((fadeDuration and fadeDuration ~= 0) and (t + fadeDuration) or -1)
                     else
-                        local hasEffect, duration, currentStacks = FancyActionBar.CheckForActiveEffect(abilityId)
-                        if hasEffect then
-                            effect.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (t + duration) or -1)
-                            FancyActionBar.UpdateEffect(effect)
-                        else
-                            effect.endTime = t
-                            if beginTime == endTime then
-                                FancyActionBar.UpdatePassiveEffect(abilityId, false)
-                            end
+                        effect.endTime = t
+                        if beginTime == endTime then
+                            FancyActionBar.UpdatePassiveEffect(effectId, false)
                         end
                     end
                 end
@@ -3302,34 +3477,38 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
     -- Widget-level external tracking: keep a dedicated table so widgets can reliably
     -- resolve external-only timing without depending on shared effect state.
     if trackExternalForWidgets then
-        local widgetStateId = ResolveEffectWidgetEffectId(abilityId) or abilityId
-        local we = FancyActionBar.widgetEffects[widgetStateId] or { endTime = 0, stacks = 0 }
-        if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED and buffType ~= BUFF_EFFECT_TYPE_DEBUFF) then
-            if beginTime ~= endTime
-                and endTime > t + FancyActionBar.durationMin
-                and endTime < t + FancyActionBar.durationMax
-            then
-                if endTime > we.endTime then
-                    we.endTime = endTime
+        local slotMapped = sourceAbilities[abilityId]
+        if not slotMapped or slotMapped == abilityId then
+            local widgetStateId = abilityId
+            local we = FancyActionBar.widgetEffects[widgetStateId] or { endTime = 0, stacks = 0 }
+            if (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED and buffType ~= BUFF_EFFECT_TYPE_DEBUFF) then
+                if beginTime ~= endTime
+                    and endTime > t + FancyActionBar.durationMin
+                    and endTime < t + FancyActionBar.durationMax
+                then
+                    if endTime > we.endTime then
+                        we.endTime = endTime
+                    end
                 end
+
+                we.stacks = stackCount or we.stacks
+            elseif change == EFFECT_RESULT_FADED then
+                if fadeHasEffect == nil then
+                    fadeHasEffect, fadeDuration = FancyActionBar.CheckForActiveEffect(abilityId)
+                end
+                if fadeHasEffect then
+                    we.endTime = fadeDuration == -1 and -1 or ((fadeDuration and fadeDuration ~= 0) and (t + fadeDuration) or -1)
+                else
+                    we.endTime = t
+                end
+                we.stacks = stackCount or (fadeHasEffect and we.stacks or 0)
             end
 
-            we.stacks = stackCount or we.stacks
-        elseif change == EFFECT_RESULT_FADED then
-            local hasEffect, duration = FancyActionBar.CheckForActiveEffect(abilityId)
-            if hasEffect then
-                we.endTime = duration == -1 and -1 or ((duration and duration ~= 0) and (t + duration) or -1)
-            else
-                we.endTime = t
-            end
-            we.stacks = stackCount or (hasEffect and we.stacks or 0)
+            FancyActionBar.widgetEffects[widgetStateId] = we
         end
-
-        FancyActionBar.widgetEffects[widgetStateId] = we
     end
     if stackableBuff then
-        stackCount, _, _ = FancyActionBar.RecomputeUnits(stackableBuff, t, "sources")
-        FancyActionBar.SetStacks(stackableBuff, stackCount)
+        FancyActionBar.SetStacks(stackableBuff, sourceCount, sourceCount ~= nil)
     end
 
     -- local ts = tostring
@@ -3352,11 +3531,11 @@ function FancyActionBar.SetExternalBuffTracking() -- buffs gained from others
             trackedExternalIds[id] = true
         end
 
-        local widgets = SV.effectWidgets
+        local widgets = GetAbilityConfigSavedVars().effectWidgets
         for abilityId, widget in pairs(widgets) do
             if widget and widget.enabled ~= false and widget.allowExternal then
                 trackedExternalIds[abilityId] = true
-                local trackedEffectId = ResolveEffectWidgetEffectId(abilityId)
+                local trackedEffectId = GetWidgetEffectId(abilityId)
                 if trackedEffectId and trackedEffectId ~= abilityId then
                     trackedExternalIds[trackedEffectId] = true
                 end
@@ -3384,16 +3563,11 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
     FAB_ActionBarFakeQS:ClearAnchors()
     FAB_ActionBarFakeQS:SetAnchor(LEFT, ACTION_BAR, LEFT, 0, -5, FAB_ActionBarFakeQS:GetResizeToFitConstrains())
 
-    local style = FancyActionBar.GetConstants()
-    if not style or not next(style) then
-        style = IsInGamepadPreferredMode() and GAMEPAD_CONSTANTS or KEYBOARD_CONSTANTS
-    end
+    local style = FancyActionBar.constants.style
     local anchor = style.anchor
-    if FancyActionBar.updateUI then
-        anchor:SetFromControlAnchor(ACTION_BAR)
-        anchor:SetOffsets(nil, style.actionBarOffset)
-        anchor:Set(ACTION_BAR)
-    end
+    anchor:SetFromControlAnchor(ACTION_BAR)
+    anchor:SetOffsets(nil, style.actionBarOffset)
+    anchor:Set(ACTION_BAR)
     anchor:SetFromControlAnchor(ZO_PlayerAttribute)
     anchor:SetOffsets(nil, style.attributesOffset)
     anchor:Set(ZO_PlayerAttribute)
@@ -3404,11 +3578,10 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock)
         lock = lock or isWeaponSwapLocked
     end
 
-    local abilitySlotOffsetX = FancyActionBar.constants.abilitySlot.offsetX
+    local c = FancyActionBar.constants
+    local scaled = c.scaled.quickSlot
     local QSB = GetControl("QuickslotButton")
-    local xOffset = (FancyActionBar.style == 1 and SV.quickSlotCustomXOffsetKB) or SV.quickSlotCustomXOffsetGP or 0
-    local yOffset = (FancyActionBar.style == 1 and SV.quickSlotCustomYOffsetKB) or SV.quickSlotCustomYOffsetGP or 0
-    local anchorOffsetY = yOffset * scale
+    local anchorOffsetY = scaled.y
     local anchorControl, anchorPoint, relPoint, anchorX
 
     if not SV.showArrow or lock then
@@ -3416,22 +3589,18 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock)
             anchorControl = weaponSwapControl
             anchorPoint = RIGHT
             relPoint = RIGHT
-            if FancyActionBar.style == 2 then
-                anchorX = -(2 + (SLOT_COUNT * abilitySlotOffsetX) + xOffset) * scale
-            else
-                anchorX = -(5 + abilitySlotOffsetX + xOffset) * scale
-            end
+            anchorX = scaled.anchorX
         else
             anchorControl = FAB_ActionBarFakeQS
             anchorPoint = LEFT
             relPoint = LEFT
-            anchorX = xOffset
+            anchorX = scaled.x
         end
     else
         anchorControl = FAB_ActionBarFakeQS
         anchorPoint = LEFT
         relPoint = LEFT
-        anchorX = xOffset
+        anchorX = scaled.x
         if (not SV.useDefaultWeaponSwap) and FAB_ActionBarArrow then
             FAB_ActionBarArrow:SetColor(unpack(SV.arrowColor))
         end
@@ -3443,52 +3612,46 @@ function FancyActionBar.AdjustQuickSlotSpacing(lock)
 end
 
 function FancyActionBar.AdjustUltimateSpacing() -- place the ultimate button according to variables
-    if FancyActionBar.style == 1 then
+    if FancyActionBar.constants.mode == 1 then
         return
     end
-    local style = FancyActionBar.GetConstants()
+
+    local ult = FancyActionBar.constants.scaled.ultimate
+    local ultSpace = FancyActionBar.constants.style.ultimateSpacing or {}
 
     ActionButton8:ClearAnchors()
     CompanionUltimateButton:ClearAnchors()
 
-    local ultX = 10 + SV.ultimateSlotCustomXOffsetGP + (10 * scale)
-    local ultY = 0 + SV.ultimateSlotCustomYOffsetGP
-    local ultCX = 20 + (10 * scale)
+    local ultCX = ult.companionGap
     local ultCY = 0
-    local u = 65 * scale
-    local f1 = (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX)
-    local f2 = f1 * SLOT_COUNT
+    local u = ult.ultWidth
+    local f2 = ult.barEndX
 
     if SV.showHotkeysUltGP then
-        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffsetGP, 0 + SV.ultimateSlotCustomYOffsetGP, ActionButton8:GetResizeToFitConstrains())
+        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + ult.anchorX, ult.anchorY, ActionButton8:GetResizeToFitConstrains())
         CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains())
         return
     end
 
-    if SV.moveQS == true then
-        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + ultX, ultY, ActionButton8:GetResizeToFitConstrains())
-        CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, 10 + ultCX, 0, CompanionUltimateButton:GetResizeToFitConstrains())
+    if SV.moveQS then
+        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + ult.baseX + ult.anchorX, ult.anchorY, ActionButton8:GetResizeToFitConstrains())
+        CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, ult.baseGap + ultCX, 0, CompanionUltimateButton:GetResizeToFitConstrains())
     else
-        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + SV.ultimateSlotCustomXOffsetGP, 0 + SV.ultimateSlotCustomYOffsetGP, ActionButton8:GetResizeToFitConstrains())
-        -- ActionButton8:SetAnchor(RIGHT, ZO_ActionBar1, RIGHT, 40 * scale, 0)
+        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + u + ult.anchorX, ult.anchorY, ActionButton8:GetResizeToFitConstrains())
         CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, u + ultCX, ultCY, CompanionUltimateButton:GetResizeToFitConstrains())
     end
 end
 
-function FancyActionBar:ApplySettings() -- apply all UI settings for current UI mode
-    self.AdjustQuickSlotSpacing()
-
+function FancyActionBar:ApplySettings() -- overlay fonts, frames, and timers (layout scopes handle position/spacing)
     self.ConfigureFrames()
     self.ApplyTimerFont()
     self.AdjustTimerY()
 
     self.ApplyStackFont()
-    self.AdjustStackX()
-    self.AdjustStackY()
+    self.ApplyStackPosition()
 
     self.ApplyTargetFont()
-    self.AdjustTargetX()
-    self.AdjustTargetY()
+    self.ApplyTargetPosition()
 
     self.AdjustUltTimer(false)
     self.ApplyUltFont(false)
@@ -3497,15 +3660,12 @@ function FancyActionBar:ApplySettings() -- apply all UI settings for current UI 
     self.ApplyUltValueColor()
     self.AdjustCompanionUltValue()
     self.ApplyUltValueFont()
-    self.UpdateUltimateCost()
 
     self:AdjustQuickSlotTimer()
     self.ApplyQuickSlotFont()
     self.ToggleQuickSlotDuration()
 
     self.ToggleGCD()
-
-    self.ApplyPosition()
 end
 
 function FancyActionBar.ToggleQuickSlotDuration() -- enable / disable quickslot timer
@@ -3516,6 +3676,15 @@ function FancyActionBar.ToggleQuickSlotDuration() -- enable / disable quickslot 
         EM:RegisterForUpdate(NAME .. "UpdateQuickSlot", 500, FancyActionBar.UpdateQuickSlotOverlay)
     else
         FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetText("")
+    end
+end
+
+local function hideUltimateNumberIfNeeded()
+    if ZO_IsConsoleOrGameCoreUI() then
+        return
+    end
+    if FancyActionBar.constants.ult.value.show then
+        SetSetting(SETTING_TYPE_UI, UI_SETTING_ULTIMATE_NUMBER, "false")
     end
 end
 
@@ -3533,7 +3702,6 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
         if showValue then
             local current = GetUnitPower("player", COMBAT_MECHANIC_FLAGS_ULTIMATE)
             FancyActionBar.UpdateUltimateValueLabels(true, current)
-
             EM:RegisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE, FancyActionBar.OnUltChanged)
             EM:AddFilterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE,
                 REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
@@ -3541,90 +3709,54 @@ function FancyActionBar.ToggleUltimateValue() -- enable / disable ultimate value
         end
     end
 
-    local function setupCompanionUltimate(showValue)
-        local companionCost = GetSlotAbilityCost(ULT_INDEX, COMBAT_MECHANIC_FLAGS_ULTIMATE, HOTBAR_CATEGORY_COMPANION)
-
-        -- Hide companion ultimate if conditions aren't met
-        if not DoesUnitExist("companion") or
-            not HasActiveCompanion() or
-            not companionCost or
-            companionCost == 0 then
-            CompanionUltimateButton:SetHidden(true)
-            return
-        end
-
-        if showValue then
-            local current = GetUnitPower("companion", COMBAT_MECHANIC_FLAGS_ULTIMATE)
-            FancyActionBar.UpdateUltimateValueLabels(false, current)
-
-            EM:RegisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE, FancyActionBar.OnUltChangedCompanion)
-            EM:AddFilterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE,
-                REGISTER_FILTER_POWER_TYPE, COMBAT_MECHANIC_FLAGS_ULTIMATE,
-                REGISTER_FILTER_UNIT_TAG, "companion")
-        end
-    end
-
-    -- Unregister existing events
     EM:UnregisterForEvent(NAME .. "UltValue", EVENT_POWER_UPDATE)
-    EM:UnregisterForEvent(NAME .. "UltValueCompanion", EVENT_POWER_UPDATE)
-
-    -- Clear all ultimate overlays
     clearUltimateOverlays()
 
-    -- Setup player and companion ultimates based on settings
-    local showUltValue = FancyActionBar.constants.ult.value.show
-    local showCompanionUlt = FancyActionBar.constants.ult.companion.show
-
-    setupPlayerUltimate(showUltValue)
-    setupCompanionUltimate(showCompanionUlt)
+    setupPlayerUltimate(FancyActionBar.constants.ult.value.show)
+    hideUltimateNumberIfNeeded()
+    FancyActionBar.HandleCompanionUltimate()
 end
 
---  ---------------------------------
---  UI Prep before initial
---  ---------------------------------
----
---- This is now directly handled in the ui.xml OnInitialized
--- @param control TopLevelWindow
--- function FancyActionBar.OnActionBarInitialized(control) -- backbar control initialized.
---     ULTIMATE_BUTTON_STYLE.parentBar = control
+local function initializeOverlayControls(overlayControl, includeValue)
+    overlayControl.timer = overlayControl:GetNamedChild("Duration")
+    overlayControl.bg = overlayControl:GetNamedChild("BG")
+    overlayControl.stack = overlayControl:GetNamedChild("Stacks")
+    overlayControl.target = overlayControl:GetNamedChild("Targets")
+    if includeValue then
+        overlayControl.value = overlayControl:GetNamedChild("Value")
+    end
+end
 
---     -- Set active bar as a parent to make inactive bar show/hide automatically.
---     control:SetParent(ACTION_BAR)
+local overlayTemplatesApplied = {}
 
---     -- Need to adjust it here instead of in ApplyStyle(), otherwise it won't properly work with Azurah.
---     FancyActionBar.AdjustControlsPositions()
-
---     -- Create inactive bar buttons.
---     for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
---         --- @class ActionButton
---         local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, control, "ZO_ActionButton")
---         button:SetShowBindingText(false)
---         button.icon:SetHidden(true)
---         button:SetupBounceAnimation()
---         FancyActionBar.buttons[i] = button
---     end
--- end
+local function applyOverlayTemplate(overlay, template)
+    if overlayTemplatesApplied[overlay] == template then
+        return false
+    end
+    WM:ApplyTemplateToControl(overlay, template)
+    overlayTemplatesApplied[overlay] = template
+    return true
+end
 
 ---
 --- @param index integer
 --- @return Control|FAB_ActionButtonOverlay_Gamepad_Template|FAB_ActionButtonOverlay_Keyboard_Template
 function FancyActionBar.CreateOverlay(index) -- create normal skill button overlay.
-    -- local template = ZO_GetPlatformTemplate('FAB_ActionButtonOverlay')
     local template = FancyActionBar.constants.style.overlayTemplate
     --- @type Control
     local overlay = FancyActionBar.overlays[index]
     if overlay then
-        WM:ApplyTemplateToControl(overlay, template)
+        local templateChanged = applyOverlayTemplate(overlay, template)
         overlay:ClearAnchors()
-        overlay.activeEffects = {}
+        if templateChanged then
+            overlay.activeEffects = {}
+        end
     else
         overlay = WM:CreateControlFromVirtual("ActionButtonOverlay", ACTION_BAR, template, index)
-        overlay.timer = overlay:GetNamedChild("Duration")
-        overlay.bg = overlay:GetNamedChild("BG")
-        overlay.stack = overlay:GetNamedChild("Stacks")
-        overlay.target = overlay:GetNamedChild("Targets")
+        overlayTemplatesApplied[overlay] = template
         FancyActionBar.overlays[index] = overlay
     end
+    initializeOverlayControls(overlay)
     return overlay
 end
 
@@ -3640,31 +3772,24 @@ function FancyActionBar.CreateUltOverlay(index)
         return ZO_ActionBar_GetButton(ULT_INDEX)
     end
 
-    local function initializeOverlayControls(overlayControl)
-        overlayControl.timer = overlayControl:GetNamedChild("Duration")
-        overlayControl.value = overlayControl:GetNamedChild("Value")
-        overlayControl.bg = overlayControl:GetNamedChild("BG")
-        overlayControl.stack = overlayControl:GetNamedChild("Stacks")
-        overlayControl.target = overlayControl:GetNamedChild("Targets")
-    end
-
     -- Get the template for the overlay
     local template = FancyActionBar.constants.style.ultOverlayTemplate
     local overlay = FancyActionBar.ultOverlays[index]
 
     -- Update existing overlay if it exists
     if overlay then
-        WM:ApplyTemplateToControl(overlay, template)
+        applyOverlayTemplate(overlay, template)
         overlay:ClearAnchors()
+        initializeOverlayControls(overlay, true)
         return overlay
     end
 
     -- Create new overlay
     local parent = getParentButton(index)
     overlay = WM:CreateControlFromVirtual("UltimateButtonOverlay", parent.slot, template, index)
+    overlayTemplatesApplied[overlay] = template
 
-    -- Initialize overlay controls
-    initializeOverlayControls(overlay)
+    initializeOverlayControls(overlay, true)
 
     -- Store the overlay
     FancyActionBar.ultOverlays[index] = overlay
@@ -3676,21 +3801,21 @@ end
 --- @param index integer
 --- @return FAB_QuickSlotOverlay_Gamepad_Template|FAB_QuickSlotOverlay_Keyboard_Template
 function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button overlay.
-    -- local template = ZO_GetPlatformTemplate('FAB_QuickSlotOverlay')
     local template = FancyActionBar.constants.style.qsOverlayTemplate
     local overlay = FancyActionBar.qsOverlay
     if overlay then
-        WM:ApplyTemplateToControl(overlay, template)
+        applyOverlayTemplate(overlay, template)
         overlay:ClearAnchors()
     else
         overlay = WM:CreateControlFromVirtual("QuickSlotOverlay", ACTION_BAR, template, index)
+        overlayTemplatesApplied[overlay] = template
         FancyActionBar.qsOverlay = overlay
     end
     return overlay
 end
 
 function FancyActionBar.SaveEffectWidgetPosition(abilityId)
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     local widget = widgets[abilityId]
     local control = FancyActionBar.effectWidgetControls[abilityId]
     if not widget or not control then
@@ -3761,7 +3886,7 @@ local function CreateEffectWidgetControl(abilityId, widget)
     control:ClearAnchors()
     control:SetAnchor(CENTER, GuiRoot, TOPLEFT, x, y, control:GetResizeToFitConstrains())
     control:SetScale(tonumber(widget and widget.scale) or 1)
-    local locked = SV.effectWidgetsLocked ~= false
+    local locked = GetAbilityConfigSavedVars().effectWidgetsLocked ~= false
     control:SetMovable(not locked)
     control:SetMouseEnabled(not locked)
     control:SetClampedToScreen(true)
@@ -3866,13 +3991,14 @@ local function ResolveWidgetDuration(effect, currentTime, allowExternal, externa
     return duration, playerOnlyEnd, externalOnlyEnd, activeSources
 end
 
-function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
-    local showForMove = SV.effectWidgetsLocked == false
-    local activeAlpha = zo_clamp(tonumber(widget.activeAlpha) or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
-    local inactiveAlpha = zo_clamp(tonumber(widget.inactiveAlpha) or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
+function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control, updateTime)
+    local widgetVars = GetAbilityConfigSavedVars()
+    local showForMove = widgetVars.effectWidgetsLocked == false
+    local activeAlpha = zo_clamp(tonumber(widget.activeAlpha) or widgetVars.effectWidgetActiveAlphaDefault or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
+    local inactiveAlpha = zo_clamp(tonumber(widget.inactiveAlpha) or widgetVars.effectWidgetInactiveAlphaDefault or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
     local showWhenInactive = not showForMove and inactiveAlpha > 0
-    local effectId = ResolveEffectWidgetEffectId(abilityId)
-    local effect = effectId and (FancyActionBar.effects[effectId] or FancyActionBar.GetEffect(effectId, nil, nil, true)) or nil
+    local effectId = GetWidgetEffectId(abilityId)
+    local effect = effectId and FancyActionBar.effects[effectId] or nil
     if not effect then
         control:SetHidden(not (showForMove or showWhenInactive))
         if showForMove or showWhenInactive then
@@ -3884,7 +4010,7 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
         return
     end
 
-    local currentTime = time()
+    local currentTime = updateTime or time()
     local duration, playerOnlyEnd, externalOnlyEnd, activeSources = ResolveWidgetDuration(effect, currentTime, widget.allowExternal, widget.externalOnly)
     if effect.endTime and effect.endTime > currentTime and not (effect.instantFade or FancyActionBar.removeInstantly[effect.id]) then
         local we = FancyActionBar.widgetEffects[effect.id] or {}
@@ -3892,17 +4018,12 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
         FancyActionBar.widgetEffects[effect.id] = we
     end
     local hasDuration = duration > 0
-    local isToggled = FancyActionBar.toggles[effect.id] == true
+    local isToggled = FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id]
 
-    if widget.externalOnly then
-        if externalOnlyEnd then
-            hasDuration = true
-        elseif activeSources > 0 and not effect.hasActiveCast and not isToggled then
-            hasDuration = false
-            duration = 0
-        end
-    elseif not widget.allowExternal then
-        if playerOnlyEnd then
+    local restrictSources = widget.externalOnly or not widget.allowExternal
+    if restrictSources then
+        local trackingEnd = widget.externalOnly and externalOnlyEnd or playerOnlyEnd
+        if trackingEnd then
             hasDuration = true
         elseif activeSources > 0 and not effect.hasActiveCast and not isToggled then
             hasDuration = false
@@ -3930,7 +4051,14 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
         control.timer:SetText(FormatEffectWidgetDurationText(duration))
     end
 
-    local resolvedStacks = FancyActionBar.ResolveStacksForSourceAbility(effect, abilityId, currentTime)
+    if not effect.stackSources then
+        local effectStackEntry = FancyActionBar.GetStackMap(effect.id)
+        local abilityStackEntry = FancyActionBar.GetStackMap(abilityId)
+        effect.stackSources = ResolveStackSources(abilityId, effect.id, effectStackEntry, abilityStackEntry)
+        effect.stackOwnerId = effectStackEntry.ownerId
+    end
+
+    local resolvedStacks = FancyActionBar.GetDisplayStacks(effect, currentTime)
     if (not resolvedStacks or resolvedStacks == 0) and widget.allowExternal then
         local we = FancyActionBar.widgetEffects[effect.id]
         if we and we.stacks and we.stacks ~= 0 then
@@ -3950,10 +4078,10 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
 end
 
 function FancyActionBar.IsEffectWidgetExternalAllowed(abilityId)
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     for widgetAbilityId, widget in pairs(widgets) do
         if widget and widget.enabled ~= false and widget.allowExternal then
-            local trackedEffectId = ResolveEffectWidgetEffectId(widgetAbilityId)
+            local trackedEffectId = GetWidgetEffectId(widgetAbilityId)
             if widgetAbilityId == abilityId or trackedEffectId == abilityId then
                 return true
             end
@@ -3962,25 +4090,13 @@ function FancyActionBar.IsEffectWidgetExternalAllowed(abilityId)
     return false
 end
 
-function FancyActionBar.IsEffectWidgetTracked(abilityId)
-    local widgets = SV.effectWidgets
-    for widgetAbilityId, widget in pairs(widgets) do
-        if widget and widget.enabled ~= false then
-            local trackedEffectId = ResolveEffectWidgetEffectId(widgetAbilityId)
-            if widgetAbilityId == abilityId or trackedEffectId == abilityId then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-function FancyActionBar.AddEffectWidget(abilityId, allowExternal, scaleOffset, activeAlpha, inactiveAlpha)
+function FancyActionBar.AddEffectWidget(abilityId, allowExternal, scaleOffset, activeAlpha, inactiveAlpha, externalOnly)
     if not abilityId then
         return false
     end
 
-    local widgets = SV.effectWidgets
+    local widgetVars = GetAbilityConfigSavedVars()
+    local widgets = widgetVars.effectWidgets
     local widget = widgets[abilityId] or {}
     local resolvedScale = tonumber(scaleOffset)
     if resolvedScale == nil then
@@ -3990,17 +4106,22 @@ function FancyActionBar.AddEffectWidget(abilityId, allowExternal, scaleOffset, a
     if resolvedActiveAlpha == nil then
         resolvedActiveAlpha = widget.activeAlpha
     end
-    resolvedActiveAlpha = zo_clamp(tonumber(resolvedActiveAlpha) or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
+    resolvedActiveAlpha = zo_clamp(tonumber(resolvedActiveAlpha) or widgetVars.effectWidgetActiveAlphaDefault or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
 
     local resolvedInactiveAlpha = inactiveAlpha
     if resolvedInactiveAlpha == nil then
         resolvedInactiveAlpha = widget.inactiveAlpha
     end
-    resolvedInactiveAlpha = zo_clamp(tonumber(resolvedInactiveAlpha) or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
+    resolvedInactiveAlpha = zo_clamp(tonumber(resolvedInactiveAlpha) or widgetVars.effectWidgetInactiveAlphaDefault or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
+
+    local resolvedExternalOnly = externalOnly
+    if resolvedExternalOnly == nil then
+        resolvedExternalOnly = widget.externalOnly == true
+    end
 
     widget.enabled = true
     widget.allowExternal = allowExternal == true
-    widget.externalOnly = widget.allowExternal and widget.externalOnly == true
+    widget.externalOnly = widget.allowExternal and resolvedExternalOnly == true
     widget.scale = resolvedScale
     widget.activeAlpha = resolvedActiveAlpha
     widget.inactiveAlpha = resolvedInactiveAlpha
@@ -4019,10 +4140,10 @@ function FancyActionBar.RemoveEffectWidget(abilityId)
         return
     end
 
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     widgets[abilityId] = nil
     FancyActionBar.widgetEffects[abilityId] = nil
-    local trackedEffectId = ResolveEffectWidgetEffectId(abilityId)
+    local trackedEffectId = GetWidgetEffectId(abilityId)
     if trackedEffectId and trackedEffectId ~= abilityId then
         FancyActionBar.widgetEffects[trackedEffectId] = nil
     end
@@ -4031,180 +4152,130 @@ function FancyActionBar.RemoveEffectWidget(abilityId)
 end
 
 function FancyActionBar.RefreshEffectWidgets()
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
+    hasEnabledEffectWidgets = false
 
     for abilityId in pairs(FancyActionBar.effectWidgetControls) do
         local widget = widgets[abilityId]
         if not widget or widget.enabled == false then
             RemoveEffectWidgetControl(abilityId)
         else
+            hasEnabledEffectWidgets = true
             CreateEffectWidgetControl(abilityId, widget)
         end
     end
 
-    for abilityId, widget in pairs(widgets) do
-        if widget and widget.enabled ~= false and not FancyActionBar.effectWidgetControls[abilityId] then
-            CreateEffectWidgetControl(abilityId, widget)
-        end
-    end
-end
-
-function FancyActionBar.UpdateEffectWidgets()
-    local widgets = SV.effectWidgets
     for abilityId, widget in pairs(widgets) do
         if widget and widget.enabled ~= false then
-            local control = FancyActionBar.effectWidgetControls[abilityId]
-            if not control then
-                control = CreateEffectWidgetControl(abilityId, widget)
+            hasEnabledEffectWidgets = true
+            if not FancyActionBar.effectWidgetControls[abilityId] then
+                CreateEffectWidgetControl(abilityId, widget)
             end
-            FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control)
         end
     end
 end
 
-local applyButtonStyles = function (style)
-    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
-    local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
-    local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)
-    ultButton:ApplyStyle(style.ultButtonTemplate)
-    ultButtonC:ApplyStyle(style.ultButtonTemplate)
-    QSButton:ApplyStyle(style.buttonTemplate)
+function FancyActionBar.UpdateEffectWidgets(updateTime)
+    for abilityId, widget in pairs(GetAbilityConfigSavedVars().effectWidgets) do
+        if widget and widget.enabled ~= false then
+            local control = FancyActionBar.effectWidgetControls[abilityId]
+            if control then
+                FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control, updateTime)
+            end
+        end
+    end
 end
 
-local repositionUltimateSlot = function (style)
-    if FancyActionBar.style == 2 then
+local function positionUltimateSlots()
+    if FancyActionBar.constants.mode == 2 then
         FancyActionBar.AdjustUltimateSpacing()
-    else
-        ActionButton8:ClearAnchors()
-        CompanionUltimateButton:ClearAnchors()
-        local uX = (style.ultimateSlotOffsetX + SV.ultimateSlotCustomXOffsetKB) * scale
-        local uY = (0 + SV.ultimateSlotCustomYOffsetKB) * scale
-        local uC = style.ultimateSlotOffsetX * scale
-        local f1 = (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX)
-        local f2 = (f1 * SLOT_COUNT) - 2
-        ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, f2 + uX, uY, ActionButton8:GetResizeToFitConstrains())
-        CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, uC, 0, CompanionUltimateButton:GetResizeToFitConstrains())
-    end
-end
-
-local setFlipCardDimensions = function (style)
-    local c8 = GetControl("ActionButton8FlipCard")
-    local c9 = GetControl("ActionButton9FlipCard")
-    local c38 = GetControl("CompanionUltimateButtonFlipCard")
-    local flipCardSize = style.flipCardSize
-    local ultFlipCardSize = style.ultFlipCardSize
-
-    if c8 then
-        c8:ClearDimensions()
-        c8:SetDimensions(ultFlipCardSize, ultFlipCardSize)
-    end
-    if c9 then
-        c9:ClearDimensions()
-        c9:SetDimensions(flipCardSize, flipCardSize)
-    end
-    if c38 then
-        c38:ClearDimensions()
-        c38:SetDimensions(ultFlipCardSize, ultFlipCardSize)
-    end
-end
-
-local hideUltimateNumberIfNeeded = function ()
-    local hideUltNumber = FancyActionBar.constants.ult.value.show
-    if hideUltNumber and not ZO_IsConsoleOrGameCoreUI() then
-        SetSetting(SETTING_TYPE_UI, UI_SETTING_ULTIMATE_NUMBER, "false")
-    end
-end
-
----
---- @param fill Control
---- @param backdrop Control
---- @param offset1 integer
---- @param offset2 integer
-local configureFillAnimation = function (fill, backdrop, offset1, offset2)
-    if fill then
-        fill:ClearDimensions()
-        fill:ClearAnchors()
-        fill:SetAnchor(TOPRIGHT, backdrop, TOP, 0, offset1, fill:GetResizeToFitConstrains())
-        fill:SetAnchor(BOTTOMLEFT, backdrop, BOTTOMLEFT, offset1, offset2, fill:GetResizeToFitConstrains())
-        fill:SetHidden(false)
-    end
-end
-
----
---- @param fill Control
-local hideFillAnimation = function (fill)
-    if fill then
-        fill:ClearAnchors()
-        fill:SetHidden(true)
-    end
-end
-
-local configureFillAnimationsAndFrames = function (style)
-    local leftFill = GetControl("ActionButton8FillAnimationLeft")
-    local rightFill = GetControl("ActionButton8FillAnimationRight")
-    local leftFillC = GetControl("CompanionUltimateButtonPartialFillAnimationLeft")
-    local rightFillC = GetControl("CompanionUltimateButtonFillAnimationRight")
-    local gpFrame = GetControl("ActionButton8Frame")
-    local gpFrameC = GetControl("CompanionUltimateButtonFrame")
-    local actionbutton8backdrop = GetControl("ActionButton8Backdrop")
-    local companionultimatebuttonbackdrop = GetControl("CompanionUltimateButtonBackdrop")
-    local ultFlipCardSize = style.ultFlipCardSize
-    local halfUltFlipCardSize = ultFlipCardSize / 2
-    -- Check if controls are retrieved successfully
-    if not leftFill or not rightFill or not leftFillC or not rightFillC or not gpFrame or not gpFrameC then
-        -- FancyActionBar.AddSystemMessage("One or more controls are nil");
         return
     end
-    local currentHotbarCategory = GetActiveHotbarCategory()
-    local isSlotUsed = IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, currentHotbarCategory)
-    local isGamepad = FancyActionBar.useGamepadActionBar
+    local ult = FancyActionBar.constants.scaled.ultimate
+    ActionButton8:ClearAnchors()
+    CompanionUltimateButton:ClearAnchors()
+    ActionButton8:SetAnchor(LEFT, weaponSwapControl, RIGHT, ult.barEndX + ult.anchorX, ult.anchorY, ActionButton8:GetResizeToFitConstrains())
+    CompanionUltimateButton:SetAnchor(LEFT, ActionButton8, RIGHT, ult.slotGap + ult.trailing, 0, CompanionUltimateButton:GetResizeToFitConstrains())
+end
 
-    if FancyActionBar.style == 2 and isSlotUsed then
-        -- Show fill bar if platform appropriate
-        gpFrame:SetHidden(false)
-        gpFrameC:SetHidden(false)
-        leftFill:SetHidden(not isGamepad)
-        rightFill:SetHidden(not isGamepad)
-        leftFillC:SetHidden(not isGamepad)
-        rightFillC:SetHidden(not isGamepad)
+local GP_ULT_FILL_TEXTURE = "FancyActionBar+/texture/gp_ultimatefill_512.dds"
 
-        -- Set textures for gamepad mode
-        if isGamepad then
-            leftFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            rightFill:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            leftFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            rightFillC:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
+local function configureGamepadUltVisuals(frame, leftFill, rightFill, flipCard, ultFlipCardSize)
+    if not flipCard then
+        return
+    end
+
+    local s = ultFlipCardSize / FancyActionBar.gamepadConstants.ultFlipCardSize
+    local inset, offsetY, fillWidth = zo_floor(12 * s), zo_floor(36 * s), zo_floor(70 * s)
+
+    if frame then
+        frame:ClearAnchors()
+        frame:SetAnchor(TOPLEFT, flipCard, TOPLEFT, -inset, -inset)
+        frame:SetAnchor(BOTTOMRIGHT, flipCard, BOTTOMRIGHT, inset, inset)
+        frame:SetHidden(false)
+    end
+
+    for _, entry in ipairs({ { leftFill, zo_floor(-37 * s) }, { rightFill, zo_floor(33 * s) } }) do
+        local fill, offsetX = entry[1], entry[2]
+        if fill then
+            fill:ClearDimensions()
+            fill:SetWidth(fillWidth)
+            fill:ClearAnchors()
+            fill:SetAnchor(TOPLEFT, flipCard, TOPLEFT, offsetX, -offsetY)
+            fill:SetAnchor(BOTTOMLEFT, flipCard, BOTTOMLEFT, offsetX, offsetY)
+            fill:SetHidden(false)
         end
-
-        -- Set fill animations
-        configureFillAnimation(leftFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
-        configureFillAnimation(rightFill, actionbutton8backdrop, -ultFlipCardSize, ultFlipCardSize)
-        configureFillAnimation(leftFillC, companionultimatebuttonbackdrop, -ultFlipCardSize, ultFlipCardSize)
-        configureFillAnimation(rightFillC, companionultimatebuttonbackdrop, -ultFlipCardSize, ultFlipCardSize)
-    else
-        -- Hide fill animations and frames
-        hideFillAnimation(leftFill)
-        hideFillAnimation(rightFill)
-        hideFillAnimation(leftFillC)
-        hideFillAnimation(rightFillC)
-        gpFrame:SetHidden(true)
-        gpFrameC:SetHidden(true)
     end
 end
 
-function FancyActionBar.ToggleFillAnimationsAndFrames(state)
-    GetControl("ActionButton8Frame"):SetHidden(not state)
-    GetControl("ActionButton8FillAnimationLeft"):SetHidden(not state)
-    GetControl("ActionButton8FillAnimationRight"):SetHidden(not state)
-    if AreCompanionSkillsInitialized() then
-        GetControl("CompanionUltimateButtonFrame"):SetHidden(not state)
-        GetControl("CompanionUltimateButtonFillAnimationLeft"):SetHidden(not state)
-        GetControl("CompanionUltimateButtonFillAnimationRight"):SetHidden(not state)
+local function configureFillAnimationsAndFrames(style)
+    local c = FancyActionBar.constants
+    local ultFlipCardSize = style.ultFlipCardSize
+    local gpUltVisuals =
+    {
+        {
+            frame = GetControl("ActionButton8Frame"),
+            leftFill = GetControl("ActionButton8FillAnimationLeft"),
+            rightFill = GetControl("ActionButton8FillAnimationRight"),
+            flipCard = GetControl("ActionButton8FlipCard"),
+        },
+        {
+            frame = GetControl("CompanionUltimateButtonFrame"),
+            leftFill = GetControl("CompanionUltimateButtonFillAnimationLeft"),
+            rightFill = GetControl("CompanionUltimateButtonFillAnimationRight"),
+            flipCard = GetControl("CompanionUltimateButtonFlipCard"),
+        },
+    }
+
+    if not gpUltVisuals[1].frame or not gpUltVisuals[2].frame then
+        return
     end
-    FancyActionBar.SetUltFrameAlpha()
-    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
-    if ultButton then
-        ultButton:UpdateUltimateMeter()
+
+    local showGamepadUlt = c.mode == 2 and IsSlotUsed(ACTION_BAR_ULTIMATE_SLOT_INDEX + 1, GetActiveHotbarCategory())
+    for _, visual in ipairs(gpUltVisuals) do
+        if showGamepadUlt then
+            if visual.leftFill then
+                visual.leftFill:SetTexture(GP_ULT_FILL_TEXTURE)
+            end
+            if visual.rightFill then
+                visual.rightFill:SetTexture(GP_ULT_FILL_TEXTURE)
+            end
+            configureGamepadUltVisuals(visual.frame, visual.leftFill, visual.rightFill, visual.flipCard, ultFlipCardSize)
+        else
+            if visual.frame then
+                visual.frame:SetHidden(true)
+            end
+            for _, fill in ipairs({ visual.leftFill, visual.rightFill }) do
+                if fill then
+                    fill:ClearAnchors()
+                    fill:SetHidden(true)
+                end
+            end
+        end
+    end
+
+    if showGamepadUlt then
+        FancyActionBar.SetUltFrameAlpha()
     end
 end
 
@@ -4219,31 +4290,23 @@ function FancyActionBar.SetUltFrameAlpha()
     end
 end
 
-local function createOverlays(style, QSB)
-    local function setupOverlay(overlay, anchorControl)
-        overlay:SetAnchor(TOPLEFT, anchorControl, TOPLEFT, 0, 0)
-        overlay:SetAnchor(BOTTOMRIGHT, anchorControl, BOTTOMRIGHT, 0, 0)
-        overlay.value = overlay:GetNamedChild("Value")
-    end
+local function SetupUltAndQuickslotOverlays()
     local actionbutton8 = GetControl("ActionButton8")
     local companionultimatebutton = GetControl("CompanionUltimateButton")
-    -- Front bar ultimate overlay
-    local u1 = FancyActionBar.CreateUltOverlay(ULT_INDEX)
-    setupOverlay(u1, actionbutton8)
+    local QSB = QuickslotButton
 
-    -- Back bar ultimate overlay
-    local u2 = FancyActionBar.CreateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET)
-    setupOverlay(u2, actionbutton8)
+    AnchorOverlayToSlot(FancyActionBar.CreateUltOverlay(ULT_INDEX), actionbutton8)
+    local backUltBtn = FancyActionBar.buttons[ULT_INDEX + SLOT_INDEX_OFFSET]
+    AnchorOverlayToSlot(
+        FancyActionBar.CreateUltOverlay(ULT_INDEX + SLOT_INDEX_OFFSET),
+        backUltBtn and backUltBtn.slot or actionbutton8
+    )
+    AnchorOverlayToSlot(FancyActionBar.CreateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET), companionultimatebutton)
 
-    -- Companion ultimate overlay
-    local u3 = FancyActionBar.CreateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET)
-    setupOverlay(u3, companionultimatebutton)
-
-    -- Quickslot overlay
     local QO = FancyActionBar.CreateQuickSlotOverlay(QUICK_SLOT)
-    setupOverlay(QO, QSB)
+    AnchorOverlayToSlot(QO, QSB)
     QO.timer = QO:GetNamedChild("Duration")
-    QO.timer:SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsColorGP or SV.qsColorKB))
+    QO.timer:SetColor(unpack(FancyActionBar.constants.qs.color))
 
     local qsFrame = FancyActionBar.qsOverlay:GetNamedChild("Frame")
     if qsFrame then
@@ -4251,48 +4314,121 @@ local function createOverlays(style, QSB)
     end
 end
 
-function FancyActionBar.ApplyQuickSlotAndUltimateStyle() -- make sure UI is adjusted to settings
-    local style = FancyActionBar.GetConstants()
-    local QSB = QuickslotButton
-
-    -- Apply styles to buttons
-    applyButtonStyles(style)
-
-    -- Ensure scale is initialized
-    scale = scale or 1
-
-    -- Reposition ultimate slot
-    repositionUltimateSlot(style)
-
-    -- Set dimensions for flip cards
-    setFlipCardDimensions(style)
-
-    -- Hide ultimate number if needed
-    hideUltimateNumberIfNeeded()
-
-    -- Configure fill animations and frames
-    configureFillAnimationsAndFrames(style)
-
-    -- Create overlays
-    createOverlays(style, QSB)
+local function applyButtonStyles(style)
+    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
+    local ultButtonC = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
+    local QSButton = ZO_ActionBar_GetButton(QUICK_SLOT, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)
+    ultButton:ApplyStyle(style.ultButtonTemplate)
+    ultButtonC:ApplyStyle(style.ultButtonTemplate)
+    QSButton:ApplyStyle(style.buttonTemplate)
 end
 
---- Apply style to action bars depending on keyboard/gamepad mode.
-function FancyActionBar.ApplyStyle()
-    FancyActionBar.UpdateStyle()
-    local style = FancyActionBar.GetConstants()
+local function setFlipCardDimensions(style)
+    local flipCardSize = style.flipCardSize
+    local ultFlipCardSize = style.ultFlipCardSize
 
-    FancyActionBar.SetupActionBar(style)
-    FancyActionBar.SetupButtons(style)
-    FancyActionBar.SetupOverlays(style)
+    for i = MIN_INDEX, MAX_INDEX do
+        local btn = ZO_ActionBar_GetButton(i)
+        local flip = btn and (btn.flipCard or (btn.slot and btn.slot:GetNamedChild("FlipCard")))
+        if flip then
+            flip:ClearDimensions()
+            flip:SetDimensions(flipCardSize, flipCardSize)
+        end
+        local back = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET]
+        flip = back and (back.flipCard or (back.slot and back.slot:GetNamedChild("FlipCard")))
+        if flip then
+            flip:ClearDimensions()
+            flip:SetDimensions(flipCardSize, flipCardSize)
+        end
+    end
 
-    FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-    FancyActionBar:ApplySettings()
+    local c8 = GetControl("ActionButton8FlipCard")
+    local c9 = GetControl("ActionButton9FlipCard")
+    local c38 = GetControl("CompanionUltimateButtonFlipCard")
+    if c8 then
+        c8:ClearDimensions()
+        c8:SetDimensions(ultFlipCardSize, ultFlipCardSize)
+    end
+    if c9 then
+        c9:ClearDimensions()
+        c9:SetDimensions(flipCardSize, flipCardSize)
+    end
+    if c38 then
+        c38:ClearDimensions()
+        c38:SetDimensions(ultFlipCardSize, ultFlipCardSize)
+    end
+end
+
+local function applyUltimateStyle(style)
+    applyButtonStyles(style)
+    setFlipCardDimensions(style)
+    configureFillAnimationsAndFrames(style)
+    FancyActionBar.SetUltScale()
+    FancyActionBar.SetQsScale()
+end
+
+function FancyActionBar.SetUltScale()
+    local childScale = GetUltChildScale()
+    if ActionButton8 then
+        ActionButton8:SetScale(childScale)
+    end
+    if CompanionUltimateButton then
+        CompanionUltimateButton:SetScale(childScale)
+    end
+    local backUlt = FancyActionBar.buttons[ULT_INDEX + SLOT_INDEX_OFFSET]
+    if backUlt and backUlt.slot then
+        backUlt.slot:SetScale(childScale)
+    end
+end
+
+function FancyActionBar.SetQsScale()
+    local QSB = GetControl("QuickslotButton")
+    if QSB then
+        QSB:SetScale(GetQsChildScale())
+    end
+end
+
+function FancyActionBar.ApplyQsScalingSettings()
+    local c = FancyActionBar.constants
+    if not c or not SV.qsScaling then
+        return
+    end
+    local qs = SV.qsScaling[c.mode == 2 and "gp" or "kb"]
+    c.qsScale.enable = qs.enable
+    c.qsScale.scale = qs.scale
+    FancyActionBar.SetQsScale()
+    local _, locked = GetActiveWeaponPairInfo()
+    FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
+end
+
+function FancyActionBar.ApplyUltScalingSettings()
+    local c = FancyActionBar.constants
+    if not c or not SV.ultScaling then
+        return
+    end
+    local ult = SV.ultScaling[c.mode == 2 and "gp" or "kb"]
+    c.ultScale.enable = ult.enable
+    c.ultScale.scale = ult.scale
+    FancyActionBar.ApplyScaleToLayout(scale)
+    applyUltimateStyle(c.style)
+    positionUltimateSlots()
+    for _, button in ipairs(
+        {
+            ZO_ActionBar_GetButton(ULT_INDEX),
+            AreCompanionSkillsInitialized() and ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION) or nil,
+        }) do
+        if button and button.UpdateUltimateMeter then
+            button:UpdateUltimateMeter()
+        end
+    end
 end
 
 --- Setup the action bar with the given style.
 --- @param style table
 function FancyActionBar.SetupActionBar(style)
+    if not FAB_ActionBarFakeQS then
+        FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
+    end
     ACTION_BAR:SetWidth(style.width)
     ACTION_BAR:GetNamedChild("KeybindBG"):SetHidden(true)
 
@@ -4331,39 +4467,30 @@ function FancyActionBar.UpdateWeaponSwapControlVisibility(lock)
     end
 end
 
-function FancyActionBar.ApplyActiveHotbarStyle()
-    local style = FancyActionBar.GetConstants()
-    for i = MIN_INDEX, MAX_INDEX do
-        local button = ZO_ActionBar_GetButton(i)
-        button:ApplyStyle(style.buttonTemplate)
-        FancyActionBar.SetupButtonText(button, style, i)
-        FancyActionBar.SetupButtonStatus(button)
-    end
-    local ult = ZO_ActionBar_GetButton(ULT_INDEX, GetActiveHotbarCategory())
-    if ult and ult.hasAction then
-        ult:UpdateUltimateMeter()
-    end
-end
-
---- Setup the buttons with the given style.
+--- Chain active and backbar slot rows from weapon swap.
 --- @param style table
 function FancyActionBar.SetupButtons(style)
     local lastButton = nil
-
     for i = MIN_INDEX, MAX_INDEX do
         local button = ZO_ActionBar_GetButton(i)
         if lastButton then
             button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX)
-        elseif i == MIN_INDEX then
-            button.slot:ClearAnchors()
-            button.slot:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4)
         else
             button.slot:ClearAnchors()
-            button.slot:SetAnchor(LEFT, ZO_ActionBar_GetButton(i - 1).slot, RIGHT, 0, 0)
+            button.slot:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4)
         end
         lastButton = button
-        FancyActionBar.SetupButtonText(button, style, i)
-        FancyActionBar.SetupButtonStatus(button)
+    end
+    lastButton = nil
+    for i = MIN_INDEX, MAX_INDEX do
+        local button = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET]
+        if i == MIN_INDEX then
+            button.slot:ClearAnchors()
+            button.slot:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0)
+        else
+            button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX)
+        end
+        lastButton = button
     end
 end
 
@@ -4372,9 +4499,10 @@ end
 --- @param style table
 --- @param index number
 function FancyActionBar.SetupButtonText(button, style, index)
-    local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + FancyActionBar.constants.abilitySlot.offsetX)
+    local c = FancyActionBar.constants
+    local overlayOffsetX = (index - MIN_INDEX) * (style.abilitySlotWidth + c.abilitySlot.offsetX)
     local barYOffset = SV.hideLockedBar and SV.repositionActiveBar and isWeaponSwapLocked and (style.dimensions + style.buttonTextOffsetY) / 3 or
-        style.buttonTextOffsetY + ((FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2)
+        style.buttonTextOffsetY + c.layout.bar.halfY
     button.buttonText:ClearAnchors()
     button.buttonText:SetAnchor(CENTER, weaponSwapControl, RIGHT, (overlayOffsetX + style.abilitySlotWidth / 2), barYOffset)
     button.buttonText:SetHidden(not SV.showHotkeys)
@@ -4383,66 +4511,35 @@ end
 --- Setup the button status.
 --- @param button {status:TextureControl}
 function FancyActionBar.SetupButtonStatus(button)
-    if SV.toggledHighlight or SV.showHighlight then
+    if highlights.regular.toggled or highlights.regular.show then
         button.status:SetTexture("FancyActionBar+/texture/blank.dds")
     else
         button.status:SetTexture("EsoUI/Art/ActionBar/ActionSlot_toggledon.dds")
     end
 end
 
---- Setup the overlays with the given style.
+--- Create FAB_ActionBar, overlays, and style backbar buttons.
 --- @param style table
 function FancyActionBar.SetupOverlays(style)
-    local lastButton = nil
+    if not GetControl("FAB_ActionBar") then
+        WM:CreateControlFromVirtual("FAB_ActionBar", ACTION_BAR, "FAB_ActionBar")
+    end
     for i = MIN_INDEX, MAX_INDEX do
-        local overlay = FancyActionBar.CreateOverlay(i)
-
-        if i == MIN_INDEX then
-            overlay:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0, -4)
-        else
-            overlay:SetAnchor(LEFT, FancyActionBar.overlays[i - 1], RIGHT, FancyActionBar.constants.abilitySlot.offsetX, 0)
+        FancyActionBar.CreateOverlay(i)
+        FancyActionBar.CreateOverlay(i + SLOT_INDEX_OFFSET)
+        local frontBtn = ZO_ActionBar_GetButton(i)
+        if frontBtn and frontBtn.slot and FancyActionBar.overlays[i] then
+            AnchorOverlayToSlot(FancyActionBar.overlays[i], frontBtn.slot)
         end
-
-        lastButton = FancyActionBar.SetupBackbarButton(style, lastButton, i)
-        FancyActionBar.SetupBackbarOverlay(style, i)
+        local button = FancyActionBar.buttons[i + SLOT_INDEX_OFFSET]
+        if button and button.slot and FancyActionBar.overlays[i + SLOT_INDEX_OFFSET] then
+            AnchorOverlayToSlot(FancyActionBar.overlays[i + SLOT_INDEX_OFFSET], button.slot)
+        end
+        button:ApplyStyle(style.buttonTemplate)
+        FancyActionBar.SetupBackbarDragDropHandlers(button)
+        FancyActionBar.SetupButtonStatus(button)
     end
-end
-
---- Setup the backbar button with the given style.
---- @param style table
---- @param lastButton ActionButton
---- @param index number
---- @return ActionButton
-function FancyActionBar.SetupBackbarButton(style, lastButton, index)
-    --- @type ActionButton
-    local button = FancyActionBar.buttons[index + SLOT_INDEX_OFFSET]
-    button:ApplyStyle(style.buttonTemplate)
-    FancyActionBar.SetupBackbarDragDropHandlers(button)
-    button.icon:SetDesaturation(SV.desaturationInactive / 100)
-    button.icon:SetAlpha(SV.alphaInactive / 100)
-
-    FancyActionBar.SetupButtonStatus(button)
-
-    if index == MIN_INDEX then
-        button.slot:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0)
-    else
-        button:ApplyAnchor(lastButton.slot, FancyActionBar.constants.abilitySlot.offsetX)
-    end
-
-    return button
-end
-
---- Setup the backbar overlay with the given style.
---- @param style table
---- @param index number
-function FancyActionBar.SetupBackbarOverlay(style, index)
-    local overlay = FancyActionBar.CreateOverlay(index + SLOT_INDEX_OFFSET)
-
-    if index == MIN_INDEX then
-        overlay:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0, 0)
-    else
-        overlay:SetAnchor(LEFT, FancyActionBar.overlays[index + SLOT_INDEX_OFFSET - 1], RIGHT, FancyActionBar.constants.abilitySlot.offsetX, 0)
-    end
+    SetupUltAndQuickslotOverlays()
 end
 
 ---
@@ -4450,17 +4547,16 @@ end
 --- @param inactive userdata
 --- @param firstTop boolean
 --- @param locked boolean
---- @param inactiveHotbarCategory HotBarCategory
-local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotbarCategory)
-    local barYOffset = (FancyActionBar.style == 2 and SV.barYOffsetGP or SV.barYOffsetKB or 0) / 2
-    local barXOffset = (FancyActionBar.style == 2 and SV.barXOffsetGP or SV.barXOffsetKB or 0) / 2
-    if locked == true and SV.repositionActiveBar then
+local function ApplyBarPosition(active, inactive, firstTop, locked)
+    local bar = FancyActionBar.constants.scaled.bar
+    local barYOffset = bar.y
+    local barXOffset = bar.x
+    if locked and SV.repositionActiveBar then
         if active then
             active:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, active:GetResizeToFitConstrains())
         end
         if inactive then
             inactive:SetAnchor(LEFT, weaponSwapControl, RIGHT, 0, 0, inactive:GetResizeToFitConstrains())
-            FancyActionBar.ToggleOverlays(inactiveHotbarCategory)
         end
     elseif firstTop then
         if active then
@@ -4470,7 +4566,6 @@ local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotb
         if inactive then
             inactive:SetAnchor(TOPLEFT, weaponSwapControl, RIGHT, 0 + barXOffset,
                 2 + barYOffset, inactive:GetResizeToFitConstrains())
-            FancyActionBar.ToggleOverlays(inactiveHotbarCategory)
         end
     else
         if active then
@@ -4480,33 +4575,20 @@ local function ApplyBarPosition(active, inactive, firstTop, locked, inactiveHotb
         if inactive then
             inactive:SetAnchor(BOTTOMLEFT, weaponSwapControl, RIGHT, 0 - barXOffset,
                 -2 - barYOffset, inactive:GetResizeToFitConstrains())
-            FancyActionBar.ToggleOverlays(inactiveHotbarCategory)
         end
     end
 end
 
-function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
-    local hide, activeBar, inactiveBar
-
-    FancyActionBar.ClearAnchors()
-    activeBar, inactiveBar, hide = FancyActionBar.DetermineBarAndHide(locked)
-
-    FancyActionBar.SetBarPositions(inactiveBar)
-    FancyActionBar.ToggleOverlays(inactiveBar)
-    FancyActionBar.ToggleUltimateOverlays(hide)
-
-    FancyActionBar.UpdateActiveBarIcons(activeBar)
-    FancyActionBar.UpdateInactiveBarIcons(inactiveBar)
-    -- Update default weapon swap TransformOffsetY so it follows the active bar when enabled.
+local function UpdateWeaponSwapTransformOffset()
     if weaponSwapControl and weaponSwapControl.SetTransformOffsetY then
         if (not SV.useDefaultWeaponSwap) or SV.centerDefaultWeaponSwap then
             weaponSwapControl:SetTransformOffsetY(0)
         else
             local anchorButton = ZO_ActionBar_GetButton(MIN_INDEX)
             local anchorControl = (anchorButton and anchorButton.slot) or _G["ActionButton3"] or ACTION_BAR
-            local ax, ay = 0, 0
+            local _, ay = 0, 0
             if anchorControl and anchorControl.GetCenter then
-                ax, ay = anchorControl:GetCenter()
+                _, ay = anchorControl:GetCenter()
             end
             local sx, sy = 0, 0
             if weaponSwapControl and weaponSwapControl.GetCenter then
@@ -4521,119 +4603,193 @@ function FancyActionBar.SwapControls(locked) -- refresh action bars positions.
     end
 end
 
-function FancyActionBar.ClearAnchors()
-    if _G["ActionButton3"] then
-        _G["ActionButton3"]:ClearAnchors()
+local function syncActionButton(button, hotbarCategory, overlay)
+    if not button then
+        return
     end
-    if _G["ActionButton23"] then
-        _G["ActionButton23"]:ClearAnchors()
+    button.hotbarSwapAnimation = nil
+    button.showTimer = false
+    if button.stackCountText then button.stackCountText:SetHidden(true) end
+    if button.timerText then button.timerText:SetHidden(true) end
+    if button.timerOverlay then button.timerOverlay:SetHidden(true) end
+    button:HandleSlotChanged(hotbarCategory)
+    if overlay and button.slot then
+        AnchorOverlayToSlot(overlay, button.slot)
     end
-    if _G["ActionButtonOverlay3"] then
-        _G["ActionButtonOverlay3"]:ClearAnchors()
-    end
-    if _G["ActionButtonOverlay23"] then
-        _G["ActionButtonOverlay23"]:ClearAnchors()
+    if button.buttonText then
+        button.buttonText:SetHidden(not SV.showHotkeys)
     end
 end
 
-function FancyActionBar.DetermineBarAndHide(locked)
-    local currentHotbarCategory = GetActiveHotbarCategory()
+--------------------------------------------------------------------------------
+-- Hotbar slot sync and presentation (dependency order: sync → paint → timers → lock)
+--------------------------------------------------------------------------------
+
+local function syncInactiveSlotButton(slotNum, hotbarCategory)
+    local altbutton = ZO_ActionBar_GetButton(slotNum, hotbarCategory)
+    if altbutton then
+        altbutton.noUpdates = true
+        altbutton.showBackRowSlot = false
+        syncActionButton(altbutton, hotbarCategory)
+    end
+    local dataIndex = GetOverlayIndex(slotNum, hotbarCategory)
+    local physicalIndex = GetPhysicalOverlayIndexForData(dataIndex, GetActiveHotbarCategory())
+    if IsPhysicalBackRow(physicalIndex) then
+        local fabButton = FancyActionBar.GetActionButton(physicalIndex)
+        if fabButton then
+            fabButton.noUpdates = true
+            local overlay = slotNum == ULT_INDEX
+                and FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
+                or FancyActionBar.overlays[physicalIndex]
+            syncActionButton(fabButton, hotbarCategory, overlay)
+        end
+    end
+end
+
+function FancyActionBar.RefreshActiveBarSlots(hotbar, cleanup)
+    hotbar = hotbar or GetActiveHotbarCategory()
+    for i = MIN_INDEX, MAX_INDEX do
+        syncActionButton(ZO_ActionBar_GetButton(i), hotbar, FancyActionBar.overlays[i])
+    end
+    local ult = ZO_ActionBar_GetButton(ULT_INDEX, hotbar)
+    if ult then
+        ult.showTimer = false
+        ult:HandleSlotChanged(hotbar)
+        local ultOverlay = FancyActionBar.ultOverlays[ULT_INDEX]
+        if ultOverlay and ult.slot then
+            AnchorOverlayToSlot(ultOverlay, ult.slot)
+        end
+        if ult.buttonText then
+            local isFakeGamepadMode = SV.forceGamepadStyle and not IsInGamepadPreferredMode()
+            local hideUltimateButtonText = (not SV.showHotkeys) or (FancyActionBar.style ~= 1 and not isFakeGamepadMode)
+            ult.buttonText:SetHidden(hideUltimateButtonText)
+        end
+        ult:ApplySwapAnimationStyle()
+        if not cleanup and ult.hasAction then
+            ult:UpdateUltimateMeter()
+        end
+    end
+end
+
+local function refreshBackupBarButtons()
+    local hotbar = GetActiveHotbarCategory()
+    if hotbar ~= HOTBAR_CATEGORY_PRIMARY and hotbar ~= HOTBAR_CATEGORY_BACKUP then
+        return
+    end
+    local altCategory = hotbar == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
+    for i = MIN_INDEX, MAX_INDEX do
+        syncInactiveSlotButton(i, altCategory)
+    end
+    syncInactiveSlotButton(ULT_INDEX, altCategory)
+end
+
+local function syncAllHotbarSlots()
+    FancyActionBar.RefreshActiveBarSlots(nil, true)
+    refreshBackupBarButtons()
+end
+
+local function tickOverlayTimers(currentTime, activeHotbar)
+    activeHotbar = activeHotbar or layoutHotbarCategory
+    local inactiveHotbar = GetInactiveHotbarCategory(activeHotbar)
+    for i = MIN_INDEX, ULT_INDEX do
+        FancyActionBar.UpdateOverlay(i, currentTime, activeHotbar, inactiveHotbar)
+        FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET, currentTime, activeHotbar, inactiveHotbar)
+    end
+end
+
+function FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, reconcileSlotEffects)
+    if reconcileSlotEffects then
+        FancyActionBar.SlotEffects()
+        FancyActionBar.SyncEffectState("slotted")
+    end
+    syncAllHotbarSlots()
+    FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, false)
+    tickOverlayTimers(time(), (activeHotbarCategory == HOTBAR_CATEGORY_PRIMARY or activeHotbarCategory == HOTBAR_CATEGORY_BACKUP) and activeHotbarCategory or layoutHotbarCategory)
+end
+
+function FancyActionBar.RefreshHotbarPresentation(activeHotbar, syncSlots)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local presentationHotbar = activeHotbar
+    if presentationHotbar ~= HOTBAR_CATEGORY_PRIMARY and presentationHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        presentationHotbar = HOTBAR_CATEGORY_PRIMARY
+    end
+    if syncSlots then
+        FancyActionBar.RefreshActiveBarSlots(activeHotbar)
+    end
+    FancyActionBar.PaintAbilityOverlays(nil, presentationHotbar)
+end
+
+function FancyActionBar.ResetActiveBarSkillStyles()
+    FancyActionBar.RefreshHotbarPresentation(GetActiveHotbarCategory(), true)
+end
+
+function FancyActionBar.ClearAnchors()
+    local frontSlot = GetFrontBarRootSlot()
+    if frontSlot then
+        frontSlot:ClearAnchors()
+    end
+    local backSlot = GetBackbarRootSlot()
+    if backSlot then
+        backSlot:ClearAnchors()
+    end
+end
+
+function FancyActionBar.ApplyBarStackLayout(locked, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local frontRoot = GetFrontBarRootSlot()
+    local backRoot = GetBackbarRootSlot()
+    local currentHotbarCategory = activeHotbar
     if currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         if SV.staticBars then
-            ApplyBarPosition(_G["ActionButton23"], _G["ActionButton3"], SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
-            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(backRoot, frontRoot, SV.frontBarTop, locked)
         else
-            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
-            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], SV.activeBarTop, locked, HOTBAR_CATEGORY_PRIMARY)
+            ApplyBarPosition(frontRoot, backRoot, SV.activeBarTop, locked)
         end
-        return HOTBAR_CATEGORY_BACKUP, HOTBAR_CATEGORY_PRIMARY, true
+        return
+    end
+    if SV.staticBars then
+        ApplyBarPosition(frontRoot, backRoot, SV.frontBarTop, locked)
     else
-        if SV.staticBars then
-            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-            ApplyBarPosition(_G["ActionButtonOverlay23"], _G["ActionButtonOverlay3"], not SV.frontBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-        else
-            ApplyBarPosition(_G["ActionButton3"], _G["ActionButton23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-            ApplyBarPosition(_G["ActionButtonOverlay3"], _G["ActionButtonOverlay23"], SV.activeBarTop, locked, HOTBAR_CATEGORY_BACKUP)
-        end
-        return HOTBAR_CATEGORY_PRIMARY, HOTBAR_CATEGORY_BACKUP, false
+        ApplyBarPosition(frontRoot, backRoot, SV.activeBarTop, locked)
     end
 end
 
-function FancyActionBar.SetBarPositions(bar)
-    local style = FancyActionBar.GetConstants()
-    bar = bar or GetActiveHotbarCategory()
+local function applyActiveBarButtonStyles()
+    local style = FancyActionBar.constants.style
     for i = MIN_INDEX, MAX_INDEX do
-        FancyActionBar.UpdateInactiveBarIcon(i, bar)
-        local btnMain = ZO_ActionBar_GetButton(i)
-        btnMain:HandleSlotChanged()
-        FancyActionBar.SetupButtonText(btnMain, style, i)
+        local button = ZO_ActionBar_GetButton(i)
+        button:ApplyStyle(style.buttonTemplate)
+        FancyActionBar.SetupButtonText(button, style, i)
+        FancyActionBar.SetupButtonStatus(button)
     end
+    applyUltimateStyle(style)
 end
 
-function FancyActionBar.ToggleInactiveBar(bar, hide)
-    local showOffset = bar == HOTBAR_CATEGORY_PRIMARY and SLOT_INDEX_OFFSET or 0
-    local hideOffset = bar == HOTBAR_CATEGORY_PRIMARY and 0 or SLOT_INDEX_OFFSET
-    for i = MIN_INDEX, MAX_INDEX do
-        local hideOverlay = FancyActionBar.overlays[i + hideOffset]
-        local hideSlotHidden = FancyActionBar.slotHidden[i + hideOffset]
-        if hideOverlay then
-            hideOverlay:SetHidden(SV.hideInactiveSlots and hideSlotHidden or hide)
-        end
-        -- bar to hide
-        local hideButton = FancyActionBar.GetActionButton(i + hideOffset)
-        if hideButton then
-            hideButton.slot:SetHidden(SV.hideInactiveSlots and hideSlotHidden or hide)
-        end
-        if not hide then
-            local showOverlay = FancyActionBar.overlays[i + showOffset]
-            local showSlotHidden = FancyActionBar.slotHidden[i + showOffset]
-            if showOverlay then
-                showOverlay:SetHidden(SV.hideInactiveSlots and showSlotHidden or hide)
-            end
-            local showButton = FancyActionBar.GetActionButton(i + showOffset)
-            if showButton then
-                showButton.slot:SetHidden(SV.hideInactiveSlots and showSlotHidden or hide)
-            end
-        end
-    end
-    FancyActionBar.SwapControls(hide)
-end
+function FancyActionBar.ApplyActiveHotbarGeometry(activeHotbar, locked)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    FancyActionBar.ClearAnchors()
+    FancyActionBar.ApplyBarStackLayout(locked, activeHotbar)
 
-function FancyActionBar.ToggleUltimateOverlays(hide)
-    local ultOverlay = FancyActionBar.ultOverlays[ULT_INDEX]
-    if ultOverlay then
-        ultOverlay:SetHidden(hide)
-    end
-    local ultOverlayBackup = FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
-    if ultOverlayBackup then
-        ultOverlayBackup:SetHidden(not hide)
-    end
-end
-
-function FancyActionBar.ToggleOverlays(bar)
-    for i = MIN_INDEX, MAX_INDEX do
-        local index = bar == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
-        local overlay = FancyActionBar.overlays[index]
-        local slotState = FancyActionBar.slotHidden[index]
-        if overlay then
-            overlay:SetHidden(SV.hideInactiveSlots and slotState or SV.hideLockedBar and isWeaponSwapLocked)
+    for slot = MIN_INDEX, MAX_INDEX do
+        local frontOverlay = FancyActionBar.overlays[slot]
+        if frontOverlay then
+            frontOverlay:SetHidden(false)
         end
+        applyInactiveSlotVisibility(slot, activeHotbar)
     end
-end
-
-function FancyActionBar.UpdateActiveBarIcons(currentHotbarCategory)
-    for i = MIN_INDEX, MAX_INDEX do
-        local index = currentHotbarCategory == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i
-        local overlay = FancyActionBar.overlays[index]
-        if overlay then
-            overlay:SetHidden(false)
-        end
+    local frontUlt = FancyActionBar.ultOverlays[ULT_INDEX]
+    if frontUlt then
+        frontUlt:SetHidden(false)
     end
-end
+    applyInactiveSlotVisibility(ULT_INDEX, activeHotbar)
 
-function FancyActionBar.UpdateInactiveBarIcons(bar)
-    for i = MIN_INDEX, MAX_INDEX do
-        FancyActionBar.UpdateInactiveBarIcon(bar == HOTBAR_CATEGORY_BACKUP and i + SLOT_INDEX_OFFSET or i, bar)
+    UpdateWeaponSwapTransformOffset()
+    FancyActionBar.UpdateBackbarButtonActionIds(nil, activeHotbar)
+    FancyActionBar.UpdateWeaponSwapControlVisibility(locked)
+    if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        layoutHotbarCategory = HOTBAR_CATEGORY_PRIMARY
+    else
+        layoutHotbarCategory = activeHotbar
     end
 end
 
@@ -4647,45 +4803,150 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
     end
 end
 
-function FancyActionBar.UpdateBarSettings(locked) -- run all UI visual updates when UI mode is changed.
-    FancyActionBar.UpdateStyle()
-    FancyActionBar.SetScale()
-    -- FancyActionBar.SetMoved(false)
-    FancyActionBar.ApplyStyle()
-    FancyActionBar.SwapControls(locked)
+function FancyActionBar.RefreshBarPosition(refreshLayout)
+    if refreshLayout and not FancyActionBar.IsUnlocked() then
+        FancyActionBar.SetupButtons(FancyActionBar.constants.style)
+        FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
+    end
     FancyActionBar:AdjustControlsPositions()
-    FancyActionBar.ApplyPosition()
-    FancyActionBar.ApplyAbilityFxOverrides()
+    FancyActionBar:ApplyPosition()
 end
 
-function FancyActionBar.SetScale() -- resize and check for other addons with same function
-    local enable = FancyActionBar.constants.abScale.enable
-    local s
+function FancyActionBar.RefreshActiveBarStyles()
+    applyActiveBarButtonStyles()
+    FancyActionBar.RefreshActiveBarSlots()
+end
 
-    if enable and not SV.forceAzurahMover then
-        local S = FancyActionBar.constants.abScale.scale
-        s = S / 100
+function FancyActionBar.UpdateBarSettings(locked, opts)
+    opts = opts or {}
+    locked = locked ~= nil and locked or isWeaponSwapLocked
+
+    FancyActionBar.ApplyBarFoundation()
+
+    local style = FancyActionBar.constants.style
+    FancyActionBar.SetupActionBar(style)
+    FancyActionBar.SetupButtons(style)
+    FancyActionBar.SetupOverlays(style)
+    if opts.skipSlots then
+        applyActiveBarButtonStyles()
     else
-        s = 1
+        FancyActionBar.RefreshActiveBarStyles()
+    end
+    FancyActionBar:ApplySettings()
+    FancyActionBar.RefreshBounceAnimations()
+    FancyActionBar.ApplyActiveHotbarGeometry(opts.activeHotbar, locked)
+    FancyActionBar.AdjustQuickSlotSpacing(locked)
+    positionUltimateSlots()
+    FancyActionBar:AdjustControlsPositions()
+    FancyActionBar:ApplyPosition()
+    if not opts.skipSlots then
+        FancyActionBar.RefreshHotbarPresentation(nil, false)
+    end
+end
+
+function FancyActionBar.RefreshAdjacentSlots(locked)
+    locked = locked ~= nil and locked or isWeaponSwapLocked
+    FancyActionBar.AdjustQuickSlotSpacing(locked)
+    positionUltimateSlots()
+end
+
+local function applyWeaponLockPresentation(locked)
+    if isWeaponSwapLocked == locked then
+        return
+    end
+    isWeaponSwapLocked = locked
+    FancyActionBar.ApplyActiveHotbarGeometry(nil, locked)
+    FancyActionBar.RefreshAdjacentSlots(locked)
+    FancyActionBar.RefreshHotbarPresentation(nil, true)
+end
+
+function FancyActionBar.OnWeaponSwapLocked(isLocked, wasLocked, userPreferenceChanged, userPreferenceState)
+    if (not SV.hideLockedBar) and (not userPreferenceChanged) then
+        return
+    end
+    local doLock
+    if userPreferenceChanged then
+        doLock = userPreferenceState and isLocked or false
+    else
+        wasLocked = wasLocked ~= nil and wasLocked or isWeaponSwapLocked
+        if isLocked == wasLocked then
+            return
+        end
+        doLock = isLocked
+    end
+    applyWeaponLockPresentation(doLock)
+end
+
+--- Resolve UI mode constants and scale once before structure/layout/appearance.
+function FancyActionBar.ApplyBarFoundation()
+    FancyActionBar.UpdateStyle()
+    FancyActionBar.UpdateScale(scale)
+end
+
+function FancyActionBar.RefreshSlottedAbilityConfigurations()
+    local refreshedIds = {}
+
+    for slot = MIN_INDEX, ULT_INDEX do
+        local frontAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_PRIMARY)
+        local backAbilityId = FancyActionBar.GetSlotBoundAbilityId(slot, HOTBAR_CATEGORY_BACKUP)
+
+        if frontAbilityId and frontAbilityId ~= 0 and not refreshedIds[frontAbilityId] then
+            refreshedIds[frontAbilityId] = true
+            FancyActionBar.SlotCurrentAbilityConfiguration(frontAbilityId)
+        end
+
+        if backAbilityId and backAbilityId ~= 0 and not refreshedIds[backAbilityId] then
+            refreshedIds[backAbilityId] = true
+            FancyActionBar.SlotCurrentAbilityConfiguration(backAbilityId)
+        end
+    end
+end
+
+function FancyActionBar.RefreshAfterPresetApply(abilityDataApplied)
+    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+    FancyActionBar.RefreshHighlightConfiguration()
+    FancyActionBar.UpdateDurationLimits()
+    debug = SV.debug
+
+    if abilityDataApplied then
+        FancyActionBar.BuildAbilityConfig()
+        FancyActionBar.SetExternalBuffTracking()
     end
 
-    scale = s
-    FancyActionBar.UpdateScale(s)
+    FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
+    FancyActionBar.RefreshActiveBarSlots()
+    FancyActionBar.SlotEffects()
+    FancyActionBar.SyncEffectState("slotted")
+    FancyActionBar.RefreshHotbarPresentation(nil, false)
+
+    if abilityDataApplied then
+        FancyActionBar.RefreshSlottedAbilityConfigurations()
+        FancyActionBar.RefreshEffectWidgets()
+    end
+    FancyActionBar.ToggleUltimateValue()
+    FancyActionBar.SetUltFrameAlpha()
+    FancyActionBar.ApplyDeathStateOption()
+end
+
+function FancyActionBar.OnUIModeChanged()
+    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+    FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
+    FancyActionBar.RefreshActiveBarSlots()
+    FancyActionBar.SlotEffects()
+    FancyActionBar.SyncEffectState("slotted")
+    FancyActionBar.RefreshHotbarPresentation(nil, false)
 end
 
 --------------------------------------------------------------------------------
 -------------------------------[    Hooks   ]-----------------------------------
 --------------------------------------------------------------------------------
-local origApplySwapAnimationStyle = ActionButton["ApplySwapAnimationStyle"]
-local swapSize
 local function ApplySwapAnimationStyle(button)
+    local constants = FancyActionBar.constants
     local timeline = button.hotbarSwapAnimation
+    local isUltimateSlot = button.GetSlot and ZO_ActionBar_IsUltimateSlot(button:GetSlot(), button:GetHotbarCategory())
+    local swapSize = isUltimateSlot and constants.style.ultFlipCardSize or constants.style.flipCardSize
 
-    if (timeline) then
-        -- local size = FancyActionBar.style == 2 and 67 or 47
-        -- local size = function() return GetUltimateFlipCardSize() end
-        -- local size, _ = button.flipCard:GetDimensions()
-
+    if timeline then
         local firstAnimation = timeline:GetFirstAnimation()
         local lastAnimation = timeline:GetLastAnimation()
 
@@ -4696,28 +4957,28 @@ local function ApplySwapAnimationStyle(button)
     end
 end
 
-local origHideKeys = ActionButton["HideKeys"]
 local function FancyHideKeys(self, hide)
-    if SV and (not SV.showHotkeysUltGP) then
+    if not SV.showHotkeysUltGP then
         hide = true
     end
-    self.leftKey:SetHidden(hide)
-    self.rightKey:SetHidden(hide)
+    if self.leftKey then
+        self.leftKey:SetHidden(hide)
+    end
+    if self.rightKey then
+        self.rightKey:SetHidden(hide)
+    end
 end
 
-ActionButton["HideKeys"] = FancyHideKeys
-
-local origSetShowBindingText = ActionButton["SetShowBindingText"]
 local function FancySetShowBindingText(self, visible)
-    if SV and (not SV.showHotkeys) then
+    if not SV.showHotkeys then
         visible = false
+    end
+    if not self.buttonText then
+        return
     end
     self.buttonText:SetHidden(not visible)
 end
 
-ActionButton["SetShowBindingText"] = FancySetShowBindingText
-
-local origSetUltimateMeter = ActionButton["SetUltimateMeter"]
 local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     -- Seems to fix issues with basegame ult glow animation desync
     if self.UpdateCurrentUltimateMax then self:UpdateCurrentUltimateMax() end
@@ -4736,20 +4997,14 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     local ultimateFillRightTexture = GetControl(self.slot, "FillAnimationRight")
     local ultimateFillFrame = GetControl(self.slot, "Frame")
 
-    local isGamepad = FancyActionBar.useGamepadActionBar
+    local constants = FancyActionBar.constants
+    local isGamepad = constants.mode == 2
 
     if isSlotUsed then
         -- Show fill bar if platform appropriate
         ultimateFillFrame:SetHidden(not isGamepad)
         ultimateFillLeftTexture:SetHidden(not isGamepad)
         ultimateFillRightTexture:SetHidden(not isGamepad)
-
-        if isGamepad then
-            ultimateFillLeftTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            ultimateFillRightTexture:SetTexture("FancyActionBar+/texture/gp_ultimatefill_512.dds")
-            ultimateFillLeftTexture:SetWidth(70)
-            ultimateFillRightTexture:SetWidth(70)
-        end
 
         -- Only consider ready state when we have a positive max
         local max = self.currentUltimateMax or 0
@@ -4772,8 +5027,8 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
             leadingEdge:SetHidden(isGamepad)
 
             if max > 0 then
-                -- update both platforms progress bars
-                local slotHeight = FancyActionBar.constants.style.ultSize or self.slot:GetHeight()
+                local style = constants.style
+                local slotHeight = style.ultFlipCardSize or style.ultSize or self.slot:GetHeight()
                 local percentComplete = zo_clamp(ultimateCount / max, 0, 1)
                 local yOffset = zo_floor(slotHeight * (0.97 - percentComplete))
                 barTexture:SetHeight(yOffset)
@@ -4811,11 +5066,14 @@ local function FancySetUltimateMeter(self, ultimateCount, setProgressNoAnim)
     end
 end
 
-ActionButton["SetUltimateMeter"] = FancySetUltimateMeter
+local SHRINK_SCALE = 0.9
+local ICON_SHRINK_SCALE = 0.8
+local GROW_SCALE = 1.1
+local FRAME_RESET_TIME_MS = 167
+local ICON_RESET_TIME_MS = 100
 
 local function SetAnimationParameters(timeline, control, shrinkScale, resetTime, isUltimateSlot)
-    local style = FancyActionBar.GetConstants()
-    local GROW_SCALE = 1.1
+    local style = FancyActionBar.constants.style
     local shrink = timeline:GetAnimation(1)
     local grow = timeline:GetAnimation(2)
     local reset = timeline:GetAnimation(3)
@@ -4832,49 +5090,233 @@ local function SetAnimationParameters(timeline, control, shrinkScale, resetTime,
     reset:SetDuration(resetTime)
 end
 
+local PRESS_BOUNCE_VIRTUAL = "FAB_ActionSlotPressAnimation"
+local RELEASE_BOUNCE_VIRTUAL = "FAB_ActionSlotReleaseAnimation"
+local pressBounceByButton = {}
+
+local function IsKeyboardPressBounceEnabled()
+    return SV.keyboardBounceAnimation and not SV.forceGamepadStyle and not IsInGamepadPreferredMode()
+end
+
+local function GetBounceControls(button)
+    return button.flipCard or button.slot:GetNamedChild("FlipCard"),
+        button.icon or button.slot:GetNamedChild("Icon")
+end
+
+local function GetBounceConfiguredSize(button)
+    local style = FancyActionBar.constants.style
+    local isUltimateSlot = button.GetSlot and ZO_ActionBar_IsUltimateSlot(button:GetSlot(), button:GetHotbarCategory())
+    return isUltimateSlot and style.ultFlipCardSize or style.flipCardSize
+end
+
+local function SetPressReleaseBounceParams(pressTimeline, releaseTimeline, size, shrinkScale, resetTime)
+    local shrink = pressTimeline:GetAnimation(1)
+    shrink:SetStartAndEndWidth(size, size * shrinkScale)
+    shrink:SetStartAndEndHeight(size, size * shrinkScale)
+    local grow = releaseTimeline:GetAnimation(1)
+    local reset = releaseTimeline:GetAnimation(2)
+    grow:SetStartAndEndWidth(size * shrinkScale, size * GROW_SCALE)
+    grow:SetStartAndEndHeight(size * shrinkScale, size * GROW_SCALE)
+    reset:SetStartAndEndWidth(size * GROW_SCALE, size)
+    reset:SetStartAndEndHeight(size * GROW_SCALE, size)
+    reset:SetDuration(resetTime)
+end
+
+local function BounceSize(button, data)
+    return (data and data.restSize) or GetBounceConfiguredSize(button)
+end
+
+local function ResetBounceControls(flipCard, icon, size)
+    if flipCard then
+        flipCard:SetDimensions(size, size)
+    end
+    if icon then
+        icon:ClearDimensions()
+    end
+end
+
+local function InvalidatePressBounceData(button)
+    local data = pressBounceByButton[button]
+    if not data then
+        return
+    end
+    data.framePress:Stop()
+    data.frameRelease:Stop()
+    ResetBounceControls(data.flipCard, data.icon, BounceSize(button, data))
+    pressBounceByButton[button] = nil
+end
+
+local function EnsurePressBounceData(button)
+    local flipCard, icon = GetBounceControls(button)
+    local data = pressBounceByButton[button]
+    if data and (data.flipCard ~= flipCard or data.icon ~= icon) then
+        InvalidatePressBounceData(button)
+        data = nil
+    end
+    if not data then
+        data =
+        {
+            flipCard = flipCard,
+            icon = icon,
+            framePress = ANIMATION_MANAGER:CreateTimelineFromVirtual(PRESS_BOUNCE_VIRTUAL, flipCard),
+            frameRelease = ANIMATION_MANAGER:CreateTimelineFromVirtual(RELEASE_BOUNCE_VIRTUAL, flipCard),
+        }
+        pressBounceByButton[button] = data
+    end
+    SetPressReleaseBounceParams(data.framePress, data.frameRelease, BounceSize(button, data), SHRINK_SCALE, FRAME_RESET_TIME_MS)
+    return data
+end
+
+function FancyActionBar.ClearPressBounceAnimations()
+    for button in pairs(pressBounceByButton) do
+        InvalidatePressBounceData(button)
+    end
+end
+
+local function PlayPressBounce(button)
+    if not IsKeyboardPressBounceEnabled() or button:GetSlot() < MIN_INDEX or button:GetSlot() > MAX_INDEX then
+        return
+    end
+    local data = EnsurePressBounceData(button)
+    data.framePress:Stop()
+    data.frameRelease:Stop()
+    data.restSize = GetBounceConfiguredSize(button)
+    ResetBounceControls(data.flipCard, data.icon, data.restSize)
+    SetPressReleaseBounceParams(data.framePress, data.frameRelease, data.restSize, SHRINK_SCALE, FRAME_RESET_TIME_MS)
+    data.framePress:PlayFromStart()
+end
+
+local function PlayReleaseBounce(button)
+    if not IsKeyboardPressBounceEnabled() or button:GetSlot() < MIN_INDEX or button:GetSlot() > MAX_INDEX then
+        return
+    end
+    local data = pressBounceByButton[button]
+    if not data then
+        return
+    end
+    data.frameRelease:Stop()
+    SetPressReleaseBounceParams(data.framePress, data.frameRelease, BounceSize(button, data), SHRINK_SCALE, FRAME_RESET_TIME_MS)
+    if data.framePress:IsPlaying() then
+        data.framePress:PlayInstantlyToEnd(true)
+    end
+    data.frameRelease:PlayFromStart()
+end
+
+local function OnActionButtonPress(slotNum, hotbarCategory, release)
+    if not IsKeyboardPressBounceEnabled() or slotNum < MIN_INDEX or slotNum > MAX_INDEX then
+        return
+    end
+    local button = ZO_ActionBar_GetButton(slotNum, hotbarCategory)
+    if button then
+        if release then
+            PlayReleaseBounce(button)
+        else
+            PlayPressBounce(button)
+        end
+    end
+end
+
+local actionButtonHooksInstalled = false
+local function InstallActionButtonHooks()
+    if actionButtonHooksInstalled then
+        return
+    end
+    actionButtonHooksInstalled = true
+
+    ActionButton["HideKeys"] = FancyHideKeys
+    ActionButton["SetShowBindingText"] = FancySetShowBindingText
+    ActionButton["SetUltimateMeter"] = FancySetUltimateMeter
+
+    SecurePostHook(ActionButton, "ApplyStyle", function (self)
+        local style = FancyActionBar.constants.style
+        ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
+        InvalidatePressBounceData(self)
+        local slot = GetActiveBarButtonContext(self)
+        if slot and slot >= MIN_INDEX and slot <= MAX_INDEX then
+            FancyActionBar.SetupButtonText(self, style, slot)
+        end
+    end)
+
+    ZO_PreHook(ActionButton, "UpdateState", function (self)
+        if GetActiveBarButtonContext(self) and self.slot then
+            self.slot.hotbarCategory = GetActiveHotbarCategory()
+        end
+    end)
+    ZO_PreHook(ActionButton, "UpdateUsable", function (self)
+        if not GetActiveBarButtonContext(self) then
+            return
+        end
+        if self.UpdateUseFailure then
+            self:UpdateUseFailure()
+        end
+    end)
+    SecurePostHook(ActionButton, "UpdateUsable", OnActiveActionButtonVisualUpdate)
+
+    ZO_PostHook("ZO_ActionBar_OnActionButtonDown", function (slotNum, hotbarCategory)
+        OnActionButtonPress(slotNum, hotbarCategory, false)
+    end)
+    ZO_PostHook("ZO_ActionBar_OnActionButtonUp", function (slotNum, hotbarCategory)
+        OnActionButtonPress(slotNum, hotbarCategory, true)
+    end)
+end
+
 local origSetBounceAnimationParameters = ActionButton["SetBounceAnimationParameters"]
 local function FancySetBounceAnimationParameters(self, cooldownTime)
-    local SHRINK_SCALE = 0.9
-    local ICON_SHRINK_SCALE = 0.8
-    local FRAME_RESET_TIME_MS = 167
-    local ICON_RESET_TIME_MS = 100
     local isUltimateSlot = ZO_ActionBar_IsUltimateSlot(self:GetSlot(), self:GetHotbarCategory())
     SetAnimationParameters(self.bounceAnimation, self.flipCard, SHRINK_SCALE, FRAME_RESET_TIME_MS, isUltimateSlot)
     SetAnimationParameters(self.iconBounceAnimation, self.icon, ICON_SHRINK_SCALE, ICON_RESET_TIME_MS, isUltimateSlot)
 end
 
-function FancyActionBar.UpdateStyle()
-    local style = {}
-    local mode
-
-    if FancyActionBar.updateUI then
-        mode = FancyActionBar.useGamepadActionBar and 2 or 1
-    else
-        if ADCUI then
-            if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
-                if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
-                    mode = 2
-                else
-                    mode = ADCUI:shouldUseGamepadActionBar() or SV.forceGamepadStyle and 2 or 1
-                end
-            else
-                mode = 1
-            end
-        else
-            mode = FancyActionBar.useGamepadActionBar and 2 or 1
+function FancyActionBar.RefreshBounceAnimations()
+    if IsKeyboardPressBounceEnabled() then
+        for i = MIN_INDEX, MAX_INDEX do
+            EnsurePressBounceData(ZO_ActionBar_GetButton(i))
         end
+        return
     end
 
-    if mode == 1 then
-        style = KEYBOARD_CONSTANTS
-        swapSize = 47
-    else
-        style = GAMEPAD_CONSTANTS
-        swapSize = 67
+    FancyActionBar.ClearPressBounceAnimations()
+
+    if not SV.forceGamepadStyle and FancyActionBar.constants.mode == 1 then
+        return
     end
-    -- style = mode == 1 and KEYBOARD_CONSTANTS or GAMEPAD_CONSTANTS
+
+    for i = MIN_INDEX, MAX_INDEX do
+        local button = ZO_ActionBar_GetButton(i)
+        button:SetupBounceAnimation()
+        button:SetBounceAnimationParameters()
+    end
+
+    for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
+        local button = FancyActionBar.buttons[i]
+        button:SetupBounceAnimation()
+        button:SetBounceAnimationParameters()
+    end
+end
+
+function FancyActionBar.GetUIMode()
+    if ADCUI then
+        if ADCUI:originalIsInGamepadPreferredMode() or SV.forceGamepadStyle then
+            if ADCUI:shouldUseGamepadUI() or SV.forceGamepadStyle then
+                return 2
+            end
+            return ADCUI:shouldUseGamepadActionBar() or SV.forceGamepadStyle and 2 or 1
+        end
+        return 1
+    end
+
+    return (IsInGamepadPreferredMode() or SV.forceGamepadStyle) and 2 or 1
+end
+
+function FancyActionBar.UpdateStyle()
+    local mode = FancyActionBar.GetUIMode()
+    local style = mode == 1 and FancyActionBar.keyboardConstants or FancyActionBar.gamepadConstants
+
     FancyActionBar.style = mode
-    FancyActionBar.constants = FancyActionBar:UpdateContants(mode, SV, style)
+    FancyActionBar.constants = FancyActionBar.UpdateConstants(mode, SV, style)
+    hideUltimateNumberIfNeeded()
+    scale = GetEffectiveBarScale()
+    FancyActionBar.ApplyScaleToLayout(scale)
 
     FAB_Default_Bar_Position:ClearAnchors()
     FAB_Default_Bar_Position:SetAnchor(BOTTOM, GuiRoot, BOTTOM, FancyActionBar.constants.move.x, FancyActionBar.constants.move.y)
@@ -4887,87 +5329,27 @@ end
 -------------------------------------------------------------------------------
 -----------------------------[  Helper & Debugging  ]--------------------------
 -------------------------------------------------------------------------------
-function FancyActionBar.IdentifyIndex(number, bar)
-    local index
-    if bar == HOTBAR_CATEGORY_BACKUP then
-        if number == 8
-        then
-            index = ULT_INDEX + SLOT_INDEX_OFFSET
-        else
-            index = number + SLOT_INDEX_OFFSET
-        end
-    else
-        index = number
-    end
-    return index
+function FancyActionBar.IdentifyIndex(number, bar) -- public data-index API; internal callers use GetOverlayIndex
+    return GetOverlayIndex(number, bar)
 end
 
-function FancyActionBar.IdCheck(index, id)
+function FancyActionBar.IdCheck(_index, id)
+    local cfg = abilityConfig[id]
+    if cfg == false then
+        return false
+    end
+
     local craftedId = GetAbilityCraftedAbilityId(id)
-    if craftedId ~= 0 then
+    if craftedId ~= 0 and type(cfg) == "table" then
         local scripts = { GetCraftedAbilityActiveScriptIds(craftedId) }
         local scriptKey = (scripts[1] or 0) .. "_" .. (scripts[2] or 0) .. "_" .. (scripts[3] or 0)
-        if abilityConfig[id] and ((abilityConfig[id] == false) or (abilityConfig[id][scriptKey] and abilityConfig[id][scriptKey][1] == false)) then
-            return false
-        end
-    else
-        if abilityConfig[id] and abilityConfig[id] == false then
+        local scriptCfg = cfg[2] and cfg[2][scriptKey]
+        if scriptCfg and scriptCfg[1] == false then
             return false
         end
     end
 
-
-    if slottedIds[index] and slottedIds[index].ability ~= slottedIds[index].effect then
-        if FancyActionBar.toggled[id] then
-            return true
-        end
-        if FancyActionBar.specialEffects[id] then
-            return true
-        end
-    end
     return true
-end
-
-function FancyActionBar.PostEffectUpdate(name, id, change, duration, stacks, when)
-    if id == 61744 then
-        return
-    end
-    if duration == 0 then
-        if not FancyActionBar.toggled[id] then
-            return
-        end
-    end
-    local type
-    if change == EFFECT_RESULT_GAINED then
-        type = "Gained"
-    elseif change == EFFECT_RESULT_UPDATED then
-        type = "Updated"
-    end
-    local stack = "."
-    if (stacks and stacks ~= 0) then
-        stack = " (x" .. stacks .. ")."
-    end
-    FancyActionBar.AddSystemMessage("[<<2>> (<<3>>)] <<1>>: <<4>><<5>>", type, name, id, strformat("%0.1fs", duration), stack)
-end
-
-function FancyActionBar.PostEffectFade(name, id, tag)
-    if tag then
-        if string.find(tag, "companion") then
-            return
-        end
-    end
-    local eff = FancyActionBar.effects and FancyActionBar.effects[id]
-    if not eff or not eff.hasActiveCast then return end
-    local uptime = strformat("%0.3fs", (eff.endTime or 0) - (eff.beginTime or 0))
-    local delay = "."
-    if eff.castTime and eff.castTime > 0 then
-        delay = strformat(" (%0.3fs).", (eff.endTime or 0) - eff.castTime)
-    end
-    FancyActionBar.AddSystemMessage("[<<1>> (<<2>>)] faded after <<3>><<4>>", name, id, uptime, delay)
-    if FancyActionBar.effects and FancyActionBar.effects[id] then
-        FancyActionBar.effects[id].hasActiveCast = nil
-        FancyActionBar.effects[id].castTime = nil
-    end
 end
 
 function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade, stacks, icon, bType, eType, aType, seType, uName, unitId, aId, sType, timestamp)
@@ -5022,18 +5404,6 @@ function FancyActionBar.PostAllChanges(e, change, eSlot, eName, tag, gain, fade,
     end
 end
 
-function FancyActionBar.UnitCheck(unitTag, unitId)
-    if unitId then
-        if (not AreUnitsEqual("player", unitTag)) then
-            return true
-        end
-        if unitTag == "" then
-            return true
-        end
-    end
-    return false
-end
-
 function FancyActionBar.ShouldTrackAsDebuff(id, tag)
     if not SV.advancedDebuff then
         return false
@@ -5049,17 +5419,6 @@ function FancyActionBar.ShouldTrackAsDebuff(id, tag)
     return true
 end
 
-function FancyActionBar.ShouldHideIfNotOnTarget(Id) -- a setting I didn't finish making yet.
-    local hide
-    if FancyActionBar.constants.hideOnNoTargetList[Id]
-    then
-        hide = FancyActionBar.constants.hideOnNoTargetList[Id]
-    else
-        hide = FancyActionBar.constants.hideOnNoTargetGlobal
-    end
-    return hide
-end
-
 function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
     local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id])
     if specialEffect.handler then
@@ -5069,12 +5428,9 @@ function FancyActionBar.HandleSpecialEffect(id, change, updateTime, beginTime, e
         return
     end
 
-    for effectId, effect in pairs(FancyActionBar.effects) do
-        if effect.id == specialEffect.id then
-            FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
-            FancyActionBar.UpdateEffect(effect)
-        end
-    end
+    local effect = FancyActionBar.effects[specialEffect.id]
+        or FancyActionBar.GetEffect(specialEffect.id)
+    FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
 end
 
 function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
@@ -5097,21 +5453,23 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     effect.endTime = (specialEffect.setTime and (duration + updateTime)) or endTime
 
     for k, v in pairs(specialEffect) do
-        effect[k] = v
+        if k ~= "stackId" and k ~= "stackSources" then
+            effect[k] = v
+        end
     end
-    if specialEffect.stackId then
-        effect.stackId = specialEffect.stackId
-    elseif not effect.stackId then
-        effect.stackId = EMPTY_STACK_LIST
+    local stackSources = GetConfiguredStackSources(specialEffect)
+    if #stackSources > 0 then
+        effect.stackSources = stackSources
+    elseif not effect.stackSources then
+        effect.stackSources = FancyActionBar.emptyStackList
     end
+    effect.stackOwnerId = FancyActionBar.GetStackOwnerId(effect.id)
 
     if specialEffect.stacks then
-        effect.stacks = specialEffect.stacks
         FancyActionBar.SetStacks(effect.id, specialEffect.stacks, true)
-    elseif effect.stackId and #effect.stackId > 0 and stackCount then
-        local sid = specialEffect.stackId and specialEffect.stackId[1]
-        if sid then
-            effect.stacks = stackCount
+    elseif #stackSources > 0 and stackCount then
+        local sourceId = stackSources[1]
+        if sourceId then
             FancyActionBar.SetStacks(effect.id, stackCount, true)
         end
     end
@@ -5120,7 +5478,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
         effect.beginTime = updateTime
     end
 
-    if abilityType ~= GROUND_EFFECT then
+    if abilityType ~= ABILITY_TYPE_AREAEFFECT then
         local isMultiTargetValid = specialEffect.isMultiTarget and not SV.multiTargetBlacklist[effect.id] and GetAbilityTargetDescription(effect.id, nil, unitTag) ~= "Self"
 
         local isActiveCastValid = effect.hasActiveCast and unitId and unitId > 0
@@ -5129,12 +5487,9 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
             FancyActionBar.RecordUnit(effect.id, effect, unitKey, updateTime, effect.beginTime, effect.endTime, "targets")
         end
     end
-
-    FancyActionBar.effects[effect.id] = effect
 end
 
 function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, beginTime, endTime, unitTag, stackCount, abilityType, unitId, effectSlot)
-    -- Early return if effect was too recent
     if effect.beginTime and (updateTime - effect.beginTime < 0.3) then
         return
     end
@@ -5158,14 +5513,16 @@ function FancyActionBar.HandleEffectFade(effect, specialEffect, updateTime, begi
         if not success then
             -- If proc update fails, just update the end time
             effect.endTime = endTime
-            FancyActionBar.UpdateEffect(effect)
             return
         end
     end
 
+    if effect.dontFade and effect.endTime and effect.endTime > updateTime then
+        return
+    end
+
     -- Update effect end time and trigger update
     effect.endTime = endTime
-    FancyActionBar.UpdateEffect(effect)
 end
 
 -- function to handle multi-target fade
@@ -5195,20 +5552,20 @@ function FancyActionBar.UpdateEffectProcs(effect, specialEffect, change, stackCo
     end
 
     -- Handle stacks
-    if effect.stackId and #effect.stackId > 0 then
-        local stackId = effect.stackId[1]
+    local stackSources = effect.stackSources
+    if stackSources and #stackSources > 0 then
+        local stackSourceId = stackSources[1]
         if effect.stacks then
-            FancyActionBar.SetStacks(stackId, effect.stacks, true)
+            FancyActionBar.SetStacks(stackSourceId, effect.stacks, true)
         elseif stackCount then
             local nextStacks = stackCount
             if change == EFFECT_RESULT_FADED then
-                nextStacks = zo_max((FancyActionBar.GetActiveStacksForId(stackId) or 0) - stackCount, 0)
+                nextStacks = zo_max((FancyActionBar.GetStacks(stackSourceId) or 0) - stackCount, 0)
             end
-            FancyActionBar.SetStacks(stackId, nextStacks, true)
+            FancyActionBar.SetStacks(stackSourceId, nextStacks, true)
         end
     end
 
-    FancyActionBar.effects[effect.id] = effect
     return true
 end
 
@@ -5306,28 +5663,11 @@ function FancyActionBar.HandleDevice(id, specialEffect, change, updateTime, begi
 
     parentEffect.endTime = effectiveEndTime
     FancyActionBar.SetStacks(parentId, stackCount, true)
-    FancyActionBar.UpdateEffect(parentEffect)
 end
-
--- local groundString    = GetString(SI_ABILITY_TOOLTIP_TARGET_TYPE_GROUND)
--- local groundAbilities = {}
--- local LAST_ABILITY    = 0
--- local LAST_BUTTON     = 0
---
--- local function CheckGroundAbility(id)
--- 	local result = groundAbilities[id]
--- 	if result == nil then
--- 		result = GetAbilityTargetDescription(id) == groundString
--- 		groundAbilities[id] = result
--- 	end
--- 	return result
--- end
 
 -------------------------------------------------------------------------------
 -----------------------------[      Initialize      ]--------------------------
 -------------------------------------------------------------------------------
-local noget = false
-
 local function SetAbilityBarTimersEnabled()
     if tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS)) == 0 then
         SetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_ACTION_BAR_TIMERS, "true")
@@ -5397,8 +5737,18 @@ function FancyActionBar.SetupBackbarDragDropHandlers(button)
 end
 
 -- Update actionId for backbar buttons
-function FancyActionBar.UpdateBackbarButtonActionIds()
-    local inactiveHotbarCategory = GetInactiveHotbarCategory(GetActiveHotbarCategory())
+function FancyActionBar.UpdateBackbarButtonActionIds(slotNum, activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local inactiveHotbarCategory = GetInactiveHotbarCategory(activeHotbar)
+    if slotNum then
+        local index = slotNum + SLOT_INDEX_OFFSET
+        local button = FancyActionBar.buttons[index]
+        if button and button.button then
+            button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(slotNum, inactiveHotbarCategory)
+            button.button.hotbarCategory = inactiveHotbarCategory
+        end
+        return
+    end
     for i = MIN_INDEX + SLOT_INDEX_OFFSET, MAX_INDEX + SLOT_INDEX_OFFSET do
         local button = FancyActionBar.buttons[i]
         if button and button.button then
@@ -5411,168 +5761,197 @@ end
 -- Call this function after slot changes or bar swap
 local function OnSlotChanged(_, slotNum, hotbarCategory)
     if slotNum < MIN_INDEX or slotNum > ULT_INDEX then return end
-    -- local style = FancyActionBar.GetConstants()
     local currentHotbarCategory = GetActiveHotbarCategory()
-    local slotIndex = hotbarCategory == HOTBAR_CATEGORY_BACKUP and slotNum + SLOT_INDEX_OFFSET or slotNum
+    local slotIndex = GetOverlayIndex(slotNum, hotbarCategory)
+    local boundId = FancyActionBar.GetSlotBoundAbilityId(slotNum, hotbarCategory)
+    local prevEffectId, prevAbilityId = FancyActionBar.GetSlottedEffect(slotIndex)
+    local bindingChanged = prevAbilityId ~= boundId
+
     if hotbarCategory == currentHotbarCategory then
         local btn = FancyActionBar.GetActionButton(slotNum)
         if btn then
-            btn:HandleSlotChanged()
+            syncActionButton(btn, hotbarCategory)
         end
-        if SV.applyActionBarSkillStyles then
-            FancyActionBar.SetActionButtonAbilityFxOverride(slotNum)
-        end
-        -- FancyActionBar.SetupButtonText(btn, style, slotIndex)
-    else
-        FancyActionBar.UpdateInactiveBarIcon(slotNum, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
+    elseif slotNum <= MAX_INDEX or slotNum == ULT_INDEX then
+        PaintDataOverlay(slotIndex)
     end
 
-    if (slotIndex == ULT_INDEX or slotIndex == ULT_INDEX + SLOT_INDEX_OFFSET) then
-        FancyActionBar.UpdateUltimateCost()
-    end
-    FancyActionBar.UpdateSlottedSkillsDecriptions()
-    FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
+    FancyActionBar.SlotEffect(slotIndex, boundId)
 
-    -- FancyActionBar.AddSystemMessage('Slot ' .. tostring(slotNum) .. ' changed')
+    local inactiveHotbar = GetInactiveHotbarCategory(currentHotbarCategory)
+    FancyActionBar.UpdateOverlay(slotIndex, time(), currentHotbarCategory, inactiveHotbar)
+
+    if bindingChanged then
+        if (slotIndex == ULT_INDEX or slotIndex == ULT_INDEX + SLOT_INDEX_OFFSET) then
+            FancyActionBar.UpdateUltimateCost()
+        end
+        FancyActionBar.UpdateSlottedSkillsDecriptions()
+    end
+    FancyActionBar.UpdateBackbarButtonActionIds(slotNum <= MAX_INDEX and slotNum or nil)
+
+    if hotbarCategory == HOTBAR_CATEGORY_COMPANION and slotNum == ULT_INDEX then
+        FancyActionBar.HandleCompanionUltimate()
+    end
 end
+
+local groundTargetMode = { active = false, pending = {} }
 
 -- Button (usable) state changed.
 local function OnHotbarSlotStateUpdated(_, slot, hotbar)
-    if IsPlayerGroundTargeting() then
-        zo_callLater(function ()
-            OnHotbarSlotStateUpdated(_, slot, hotbar)
-        end, 1)
+    if groundTargetMode.active then
+        tableInsert(groundTargetMode.pending, { slot, hotbar })
         return
     end
-    local isBlockActive = IsBlockActive()
-    local blockCancelled = (isBlockActive and (wasBlockActive == false)) or (wasBlockActive and (isBlockActive == false) and (not channeledAbility.active))
-    if blockCancelled then
-        FancyActionBar.ChanneledAbilityEnd()
-    end
 
-    local btn = ZO_ActionBar_GetButton(slot)
-    if btn then
-        btn:UpdateState()
-        -- FancyActionBar.SetActionButtonAbilityFxOverride(n);
-        if channeledAbility.pending and channeledAbility.id then
+    local effect = channeledAbility.id and FancyActionBar.effects[channeledAbility.id] or nil
+    UpdateChanneledAbilityCastState(effect, time())
+
+    if hotbar ~= GetActiveHotbarCategory() then
+        return
+    end
+    local btn = ZO_ActionBar_GetButton(slot, hotbar)
+    if btn and channeledAbility.pending and channeledAbility.id then
+        local index = GetOverlayIndex(slot, hotbar)
+        local barSlot = slots[index]
+        if barSlot and barSlot.effectId == channeledAbility.id then
             local currentTime = time()
             local latencyAdjust = zo_max(GetLatency(), 150) + 200
-            local effect = FancyActionBar.effects[channeledAbility.id]
+            effect = FancyActionBar.effects[channeledAbility.id]
             if not effect then
                 FancyActionBar.ChanneledAbilityEnd(channeledAbility.id)
                 return
             end
             if effect.castEndTime and (effect.castEndTime > (currentTime + latencyAdjust)) then
                 effect.castEndTime = 0
-                wasBlockActive = isBlockActive
                 FancyActionBar.ChanneledAbilityEnd(channeledAbility.id)
                 return
             end
-            local adjustFatecarver = (effect.channeledId == 183122 or effect.channeledId == 193397)
-            local stackIds = effect.stackId
+            local adjustFatecarver = (effect.id == 183122 or effect.id == 193397)
+            local stackSources = effect.stackSources
             local stacks = 0
-            if stackIds and #stackIds > 0 then
-                for i = 1, #stackIds do
-                    if stackIds[i] == 184220 then
-                        stacks = FancyActionBar.GetActiveStacksForId(184220) or 0
+            if stackSources and #stackSources > 0 then
+                for i = 1, #stackSources do
+                    if stackSources[i] == 184220 then
+                        stacks = FancyActionBar.GetStacks(184220) or 0
                         break
                     end
                 end
             end
             local adjust = adjustFatecarver and (stacks * .338) or 0
             effect.castEndTime = effect.castDuration and (effect.castDuration + adjust + time()) or 0
-            wasBlockActive = isBlockActive
             FancyActionBar.ChanneledAbilityBegin(channeledAbility.id, effect.castEndTime)
         end
     end
 end
 
--- Set Bar Settings for hideLockedBar mode and/or apply AbilityFxOverrides
-local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbilityAssignments, activeHotbarCategory)
-    if specialHotbar[activeHotbarCategory] then
-        specialHotbarActive = true
-        if SV.hideLockedBar == true then
-            FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
-        end
-        FancyActionBar.SlotEffects()
-    elseif didActiveHotbarChange and specialHotbarActive and not specialHotbar[activeHotbarCategory] then
-        specialHotbarActive = false
-        if FancyActionBar.oakensoulEquipped then
-            FancyActionBar.SlotEffects()
-            return
-        end
-        if SV.hideLockedBar == true then
-            FancyActionBar.OnWeaponSwapLocked(specialHotbarActive, isWeaponSwapLocked)
-        else
-            isWeaponSwapLocked = false
-        end
-        FancyActionBar.SwapControls(specialHotbarActive)
-        FancyActionBar.SlotEffects()
+local function OnGroundTargetModeEvent(eventCode)
+    if eventCode == EVENT_ENTER_GROUND_TARGET_MODE then
+        groundTargetMode.pending = {}
+        groundTargetMode.active = true
+        return
     end
-    FancyActionBar.SyncEffectState()
-    FancyActionBar.UpdateUltimateCost()
-    FancyActionBar.ApplyAbilityFxOverrides()
+
+    groundTargetMode.active = false
+    local pending = groundTargetMode.pending
+    groundTargetMode.pending = {}
+    for i = 1, #pending do
+        local update = pending[i]
+        OnHotbarSlotStateUpdated(nil, update[1], update[2])
+    end
 end
 
--- Any skill swapped. Setup buttons and slot effects.
+local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbilityAssignments, activeHotbarCategory)
+    if FancyActionBar.specialHotbar[activeHotbarCategory] then
+        specialHotbarActive = true
+        if SV.hideLockedBar then
+            applyWeaponLockPresentation(specialHotbarActive)
+        else
+            FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
+        end
+        FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, shouldUpdateAbilityAssignments ~= false)
+    elseif didActiveHotbarChange and specialHotbarActive and not FancyActionBar.specialHotbar[activeHotbarCategory] then
+        specialHotbarActive = false
+        if not SV.hideLockedBar then
+            isWeaponSwapLocked = false
+        end
+        if SV.hideLockedBar then
+            applyWeaponLockPresentation(specialHotbarActive)
+        else
+            FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
+            FancyActionBar.RefreshAdjacentSlots(isWeaponSwapLocked)
+        end
+        FancyActionBar.SyncSpecialHotbarState(activeHotbarCategory, true)
+    elseif didActiveHotbarChange
+        and (activeHotbarCategory == HOTBAR_CATEGORY_PRIMARY or activeHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
+        if layoutHotbarCategory ~= activeHotbarCategory then
+            FancyActionBar.ApplyActiveHotbarGeometry(activeHotbarCategory, isWeaponSwapLocked)
+            FancyActionBar.RefreshHotbarPresentation(activeHotbarCategory, true)
+        end
+        refreshBackupBarButtons()
+        FancyActionBar.PaintAbilityOverlays(nil, activeHotbarCategory)
+        tickOverlayTimers(time(), activeHotbarCategory)
+        FancyActionBar.UpdateUltimateCost()
+    end
+end
+
+local function SyncWeaponTypes()
+    FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT))
+    FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT))
+end
+
+local function PrepareWeaponLockState()
+    FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul)
+        or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
+    if SV.hideLockedBar then
+        if FancyActionBar.isWerewolf and not IsPlayerInWerewolfForm() then
+            FancyActionBar.isWerewolf = false
+        end
+        isWeaponSwapLocked = FancyActionBar.oakensoulEquipped or FancyActionBar.isWerewolf
+    end
+end
+
 local function OnAllHotbarsUpdated()
-    local style = FancyActionBar.GetConstants()
-    local currentHotbarCategory = GetActiveHotbarCategory()
-    local ultButton = ZO_ActionBar_GetButton(ULT_INDEX)
-    if ultButton then
-        ultButton.showTimer = false
+    local activeHotbar = GetActiveHotbarCategory()
+    if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        activeHotbar = HOTBAR_CATEGORY_PRIMARY
     end
-    for i = MIN_INDEX, MAX_INDEX do -- ULT_INDEX do
-        local button = ZO_ActionBar_GetButton(i)
-        if button then
-            button.hotbarSwapAnimation = nil -- delete default animation
-            button.noUpdates = true          -- disable animation updates
-            button.showTimer = false
-            button.stackCountText:SetHidden(true)
-            button.timerText:SetHidden(true)
-            button.timerOverlay:SetHidden(true)
-            button:HandleSlotChanged() -- update slot manually
-            button.buttonText:SetHidden(not SV.showHotkeys)
-        end
-        if (currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP) then
-            local altbutton = ZO_ActionBar_GetButton(i, currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY)
-            if altbutton then
-                altbutton.noUpdates = true
-                altbutton.showTimer = false
-                altbutton.showBackRowSlot = false
-            end
-        end
-    end
+    local layoutCurrent = layoutHotbarCategory == activeHotbar
+
     FancyActionBar.SlotEffects()
+
+    if not layoutCurrent then
+        FancyActionBar.ApplyActiveHotbarGeometry(nil, isWeaponSwapLocked)
+        FancyActionBar.RefreshAdjacentSlots(isWeaponSwapLocked)
+        syncAllHotbarSlots()
+        FancyActionBar.RefreshHotbarPresentation(nil, false)
+    else
+        refreshBackupBarButtons()
+        FancyActionBar.PaintAbilityOverlays(nil, activeHotbar)
+    end
+    tickOverlayTimers(time(), activeHotbar)
     FancyActionBar.RefreshEffectWidgets()
-    FancyActionBar.ToggleUltimateValue()
-    FancyActionBar.SetUltFrameAlpha()
     FancyActionBar.UpdateSlottedSkillsDecriptions()
-    FancyActionBar.SyncEffectState()
-    FancyActionBar.ApplyAbilityFxOverrides()
-    FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds
     HideAllAbilityActionButtonDropCallouts()
 end
 
 local function OnArmory()
-    FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT))
-    FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT))
+    SyncWeaponTypes()
     local wasOakensoulEquipped = FancyActionBar.oakensoulEquipped
-    local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or
-        (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
+    local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul)
+        or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
     FancyActionBar.oakensoulEquipped = isOakensoulEquipped
-    if SV.hideLockedBar and isOakensoulEquipped or wasOakensoulEquipped then
-        FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked)
+    if SV.hideLockedBar and (isOakensoulEquipped or wasOakensoulEquipped) then
+        isWeaponSwapLocked = FancyActionBar.oakensoulEquipped or FancyActionBar.isWerewolf
     end
+    FancyActionBar.SlotEffects()
+    FancyActionBar.SyncEffectState("slotted")
     OnAllHotbarsUpdated()
 end
 
 local function OnActiveWeaponPairChanged(eventCode, activeWeaponPair)
     if activeWeaponPair ~= currentWeaponPair then
         FancyActionBar.ChanneledAbilityEnd()
-        FancyActionBar.SwapControls(isWeaponSwapLocked)
         currentWeaponPair = activeWeaponPair
-        FancyActionBar.UpdateBackbarButtonActionIds() -- Update backbar button actionIds after weapon swap
     end
 end
 
@@ -5581,18 +5960,19 @@ local function OnAbilityUsed(_, n)
     if n < MIN_INDEX or n > ULT_INDEX then return end
     local currentHotbarCategory = GetActiveHotbarCategory()
     local id = FancyActionBar.GetSlotBoundAbilityId(n, currentHotbarCategory)
-    local index = FancyActionBar.IdentifyIndex(n, currentHotbarCategory)
+    local index = GetOverlayIndex(n, currentHotbarCategory)
     local name = GetAbilityName(id)
     local t = time()
     local slotStateSpecialEffect = FancyActionBar.specialEffects[id]
     if slotStateSpecialEffect and slotStateSpecialEffect.useSlotStateChange then
         return
     end
-    local effect = FancyActionBar.SlotEffect(index, id)
-    local i, a = FancyActionBar.GetSlottedEffect(index)
+    local slot = slots[index]
+    local i = slot and slot.effectId
+    local effect = i and FancyActionBar.effects[i]
     local idCheck = FancyActionBar.IdCheck(index, id)
 
-    if SV.forceGamepadStyle and n ~= ULT_INDEX then
+    if n ~= ULT_INDEX and SV.forceGamepadStyle then
         local btn = ZO_ActionBar_GetButton(n)
         if btn then
             btn:PlayAbilityUsedBounce()
@@ -5600,11 +5980,11 @@ local function OnAbilityUsed(_, n)
         end
     end
 
-    if i and not FancyActionBar.ignore[id] and idCheck ~= false then
+    if i and not FancyActionBar.ignore[id] and idCheck then
         local eff = FancyActionBar.effects and FancyActionBar.effects[i]
         if eff then
+            eff.hasActiveCast = true
             eff.castTime = t
-            FancyActionBar.effects[i] = eff
         end
     end
 
@@ -5614,22 +5994,40 @@ local function OnAbilityUsed(_, n)
             if E.hasActiveCast then
                 E.castTime = t
             end
-            local D = E.toggled == true and "-1" or tostring((GetAbilityDuration(i) or -1) / 1000)
+            local D = E.toggled and "-1" or tostring((FancyActionBar.GetAbilityDuration(i) or -1) / 1000)
             FancyActionBar.AddSystemMessage("4 [ActionButton%d]<%s> #%d: " .. D, index, name, E.id)
         end
     end
 
     if effect and FancyActionBar.toggled[effect.id] then
-        local isToggled = FancyActionBar.bannerBearer[effect.id] and FancyActionBar.toggles["banner"] or FancyActionBar.toggles[effect.id]
+        local isToggled = FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id]
         local O = (not isToggled) and "On" or "Off"
         FancyActionBar.AddSystemMessage("3 [ActionButton%d]<%s> #%d: " .. O .. ".", index, name, effect.id)
     end
 
+    if SV.showCastDuration and slot and slot.abilityId == id and slot.effectId then
+        effect = effect or FancyActionBar.effects[slot.effectId] or FancyActionBar.SlotEffect(index, id)
+        if effect then
+            channeledAbility.wasBlockActive = IsBlockActive()
+            local _, castDuration = GetAbilityCastInfo(slot.effectId, nil, "player")
+            castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil
+            if castDuration then
+                effect.castDuration = castDuration
+                FancyActionBar.ChanneledAbilityQueued(effect.id, castDuration)
+            elseif not channeledAbility.id
+                or effect.id == channeledAbility.id
+                or (not channeledAbility.active and not channeledAbility.pending) then
+                effect.castDuration = nil
+                FancyActionBar.ChanneledAbilityEnd()
+            end
+        end
+    end
+
     if not effect then
         if FancyActionBar.effects[i] then
-            FancyActionBar.AddSystemMessage("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (GetAbilityDuration(FancyActionBar.effects[i].id) or -1) / 1000)
+            FancyActionBar.AddSystemMessage("? [ActionButton%d]<%s> #%d: %0.1fs", index, name, FancyActionBar.effects[i].id, (FancyActionBar.GetAbilityDuration(FancyActionBar.effects[i].id) or -1) / 1000)
         else
-            FancyActionBar.AddSystemMessage("[ActionButton%d] #%d: %0.1fs", index, id, GetAbilityDuration(id))
+            FancyActionBar.AddSystemMessage("[ActionButton%d] #%d: %0.1fs", index, id, FancyActionBar.GetAbilityDuration(id))
         end
         return
     end
@@ -5637,65 +6035,49 @@ local function OnAbilityUsed(_, n)
     if effect.id ~= id then
         local e = FancyActionBar.effects[i]
         if e then
-            FancyActionBar.AddSystemMessage("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled == true and -1 or (GetAbilityDuration(e.id) or -1) / 1000)
+            FancyActionBar.AddSystemMessage("2 [ActionButton%d]<%s> #%d: %0.1fs", index, name, i, e.toggled and -1 or (FancyActionBar.GetAbilityDuration(e.id) or -1) / 1000)
         end
         return
     end
 
     -- effect.id == id
-    if effect.duration and not effect.custom then
-        FancyActionBar.AddSystemMessage("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or -1) / 1000)
+    if effect.duration and slot and not IsAbilityConfigured(slot.abilityId) then
+        FancyActionBar.AddSystemMessage("1 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (FancyActionBar.GetAbilityDuration(effect.id) or -1) / 1000)
     elseif FancyActionBar.specialEffects[id] then
         local specialEffect = ZO_DeepTableCopy(FancyActionBar.specialEffects[id])
         local duration = (specialEffect.setTime and specialEffect.duration) or effect.duration or -1
         if not specialEffect.onAbilityUsed then return end
         if FancyActionBar.traps[id] and SV.ignoreTrapPlacement then return end
         for k, v in pairs(specialEffect) do
-            if type(v) == "table" then
-                effect[k] = ZO_DeepTableCopy(v)
-            else
-                effect[k] = v
+            if k ~= "stackId" and k ~= "stackSources" then
+                if type(v) == "table" then
+                    effect[k] = ZO_DeepTableCopy(v)
+                else
+                    effect[k] = v
+                end
             end
         end
-        effect.beginTime = t
         effect.endTime = duration > 0 and (duration + t) or -1
-        FancyActionBar.UpdateEffect(effect)
         if specialEffect.stacks then
-            local sid = specialEffect.stackId and (specialEffect.stackId[1] or specialEffect.id) or specialEffect.id
-            if sid then FancyActionBar.SetStacks(sid, specialEffect.stacks, true) end
+            local sourceId = GetConfiguredStackSources(specialEffect)[1] or specialEffect.id
+            if sourceId then FancyActionBar.SetStacks(sourceId, specialEffect.stacks, true) end
         end
-        FancyActionBar.AddSystemMessage("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (GetAbilityDuration(effect.id) or -1) / 1000)
-    end
-
-    if SV.showCastDuration then
-        wasBlockActive = IsBlockActive()
-        local _, castDuration = GetAbilityCastInfo(effect.id, nil, "player")
-        castDuration = castDuration and (castDuration > 1000) and (castDuration / 1000) or nil
-        if castDuration then
-            effect.castDuration = castDuration
-            effect.channeledId = effect.id
-            FancyActionBar.ChanneledAbilityQueued(effect.id, castDuration)
-        else
-            effect.castDuration = nil
-            effect.channeledId = nil
-            FancyActionBar.ChanneledAbilityEnd()
-        end
+        FancyActionBar.AddSystemMessage("0 [ActionButton%d]<%s> #%d: %0.1fs", index, name, effect.id, (FancyActionBar.GetAbilityDuration(effect.id) or -1) / 1000)
     end
 end
 
 local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
-    local _, stackCount = nil, 0
     local t = time()
     local abilityId = FancyActionBar.GetSlotBoundAbilityId(actionSlotIndex, hotbarCategory)
-    local index = FancyActionBar.IdentifyIndex(actionSlotIndex, hotbarCategory)
+    local index = GetOverlayIndex(actionSlotIndex, hotbarCategory)
+    local slot = slots[index]
     local slotStateEffect = FancyActionBar.slotStateSpecialEffects[index]
     local specialEffect = FancyActionBar.specialEffects[abilityId]
 
     if specialEffect and specialEffect.useSlotStateChange then
         local effectId, slottedAbilityId = FancyActionBar.GetSlottedEffect(index)
-        local overlay = FancyActionBar.GetOverlay(index)
-        local effect = (overlay and overlay.effect) or (effectId and FancyActionBar.effects[effectId]) or FancyActionBar.effects[specialEffect.id]
-        local stackTargetId = specialEffect.stackId and (specialEffect.stackId[1] or specialEffect.id) or specialEffect.id
+        local effect = (effectId and effectId ~= 0 and FancyActionBar.effects[effectId]) or FancyActionBar.effects[specialEffect.id]
+        local stackSourceId = GetConfiguredStackSources(specialEffect)[1] or specialEffect.id
 
         if not effect then
             return
@@ -5714,14 +6096,14 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         local isNewSlotStateEffect = (not slotStateEffect) or slotStateEffect.specialAbilityId ~= abilityId or slotStateEffect.effectId ~= effect.id
         local nextStacks = specialEffect.stacks
 
-        if slotStateEffect and slotStateEffect.stackTargetId and slotStateEffect.stackTargetId ~= stackTargetId then
-            FancyActionBar.SetStacks(slotStateEffect.stackTargetId, 0, true)
+        if slotStateEffect and slotStateEffect.stackSourceId and slotStateEffect.stackSourceId ~= stackSourceId then
+            FancyActionBar.SetStacks(slotStateEffect.stackSourceId, 0, true)
         end
 
         if not isNewSlotStateEffect then
             local currentStacks = slotStateEffect.stacks
             if currentStacks == nil then
-                currentStacks = FancyActionBar.GetActiveStacksForId(stackTargetId) or specialEffect.stacks or 0
+                currentStacks = FancyActionBar.GetStacks(stackSourceId) or specialEffect.stacks or 0
             end
             nextStacks = zo_max(currentStacks - 1, 0)
         end
@@ -5745,22 +6127,23 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             if not effect.origStackSources then
                 effect.origStackSources = effect.stackSources
             end
-            if not effect.origHasExternalStackSources then
-                effect.origHasExternalStackSources = effect.hasExternalStackSources
+            local newSources = GetConfiguredStackSources(specialEffect)
+            if #newSources == 0 then
+                newSources = FancyActionBar.GetStackMap(stackSourceId).sources
+            else
+                newSources = ZO_DeepTableCopy(newSources)
             end
-            local newSources = specialEffect.stackId and ZO_DeepTableCopy(specialEffect.stackId) or FancyActionBar.GetConfiguredStackSources(stackTargetId)
             if effect.stackSources ~= newSources then
                 effect.stackSources = newSources
-                effect.stackId = newSources
+                effect.stackOwnerId = FancyActionBar.GetStackOwnerId(effect.id)
             end
-            effect.hasExternalStackSources = false
             effect.slotStateBeginTime = beginTime
             effect.slotStateEndTime = endTime
             effect.slotStateAbilityId = abilityId
         end
 
         if nextStacks then
-            FancyActionBar.SetStacks(stackTargetId, nextStacks, true)
+            FancyActionBar.SetStacks(stackSourceId, nextStacks, true)
         end
 
         FancyActionBar.slotStateSpecialEffects[index] =
@@ -5769,26 +6152,22 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
             specialAbilityId = abilityId,
             sourceAbilityId = slottedAbilityId,
             specialEffectId = specialEffect.id,
-            stackTargetId = stackTargetId,
+            stackSourceId = stackSourceId,
             stacks = nextStacks,
         }
 
-        FancyActionBar.UpdateEffect(effect)
         return
     end
 
     if slotStateEffect then
-        local effect = FancyActionBar.effects[slotStateEffect.effectId]
-        local stackTargetId = slotStateEffect.stackTargetId or slotStateEffect.specialEffectId or slotStateEffect.effectId
-        if effect then
-            FancyActionBar.SetStacks(stackTargetId, 0, true)
-            if effect.origStackSources then
-                effect.stackSources = effect.origStackSources
-                effect.origStackSources = nil
-            end
-            if effect.origHasExternalStackSources then
-                effect.hasExternalStackSources = effect.origHasExternalStackSources
-                effect.origHasExternalStackSources = nil
+        local trackedEffect = FancyActionBar.effects[slotStateEffect.effectId]
+        local stackSourceId = slotStateEffect.stackSourceId or slotStateEffect.specialEffectId or slotStateEffect.effectId
+        if trackedEffect then
+            FancyActionBar.SetStacks(stackSourceId, 0, true)
+            if trackedEffect.origStackSources then
+                trackedEffect.stackSources = trackedEffect.origStackSources
+                trackedEffect.origStackSources = nil
+                trackedEffect.stackOwnerId = FancyActionBar.GetStackOwnerId(trackedEffect.id)
             end
         end
         FancyActionBar.slotStateSpecialEffects[index] = nil
@@ -5798,67 +6177,92 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         return
     end
 
-    local effect = FancyActionBar.effects[abilityId]
-    -- Effect must be slotted and not have custom duration specified in config.lua
-    if effect and (not effect.custom) or SV.allowParentTime then
+    local effectId = (slot and slot.effectId) or FancyActionBar.GetTrackedEffectId(abilityId)
+    if effectId == 0 then
+        return
+    end
+    local effect = FancyActionBar.effects[effectId]
+    if not effect then
+        if slot and slot.abilityId == abilityId then
+            effect = FancyActionBar.SlotEffect(index, abilityId)
+            effectId = slot.effectId
+        else
+            effect = FancyActionBar.GetEffect(effectId, { abilityId = abilityId })
+        end
+    end
+    local usesConfiguredTracking = IsAbilityConfigured(abilityId) and effectId ~= abilityId
+    local allowSlotTimerUpdate = (not IsAbilityConfigured(abilityId)) or SV.allowParentTime
+
+    if not allowSlotTimerUpdate then
+        return
+    end
+
+    local duration = (GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) or -1) / 1000
+    duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1
+
+    local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
+    local hasValidSlotEffect = duration > 0 and remain > 0
+
+    if not hasValidSlotEffect then
+        if slot and (hotbarCategory == GetActiveHotbarCategory() or not (slot.parentEndTime and slot.parentEndTime > t)) then
+            slot.parentEndTime = nil
+        end
         if not effect then
-            if SV.allowParentTime then
-                effect = { id = abilityId }
-                FancyActionBar.effects[abilityId] = effect
-            else
+            FancyActionBar.UpdateOverlay(index)
+            return
+        end
+        if effect.isChanneled and FancyActionBar.IsChanneledAbilityActive(effect, t) then
+            return
+        end
+        if effect.isChanneled then
+            effect.castEndTime = 0
+        end
+        FancyActionBar.ChanneledAbilityEnd(effect.id)
+        FancyActionBar.UpdateOverlay(index)
+        return
+    end
+
+    if (usesConfiguredTracking or not effect) and SV.allowParentTime then
+        if slot then
+            slot.parentEndTime = t + remain
+        end
+        return
+    end
+
+    if not effect then
+        return
+    end
+
+    if slot then
+        slot.parentEndTime = nil
+    end
+    if effect.isChanneled then
+        if not IsChannelCancelFade(effect, t) or IsChanneledRecast(effect.id) then
+            effect.castEndTime = t + remain
+            FancyActionBar.ChanneledAbilityBegin(effect.id, effect.castEndTime)
+        end
+    else
+        if effect.castDuration then
+            effect.castDuration = nil
+        end
+        if SV.potlfix and remain > 6 and effect.id == 21763 then
+            remain = 6
+        end
+
+        if effect.dontFade then
+            local effectDuration = (FancyActionBar.GetAbilityDuration(abilityId) or -1) / 1000
+            if duration ~= effectDuration or remain < FancyActionBar.durationMin then
                 return
             end
         end
-        effect.slotEffecTime = SV.allowParentTime
-        local duration = (GetActionSlotEffectDuration(actionSlotIndex, hotbarCategory) or -1) / 1000
-        local effectDuration = (GetAbilityDuration(abilityId) or -1) / 1000
-        if duration ~= effectDuration then
-            effect.ignoreFadeTime = true
-        else
-            effect.ignoreFadeTime = false
-        end
-        duration = duration > FancyActionBar.durationMin and duration < FancyActionBar.durationMax and duration or -1
 
-        local remain = GetActionSlotEffectTimeRemaining(actionSlotIndex, hotbarCategory) / 1000
-        local hasValidSlotEffect = duration > 0 and remain > 0
-        if not hasValidSlotEffect then
-            FancyActionBar.ChanneledAbilityEnd()
-            return
-        end
-        -- remain = remain > FancyActionBar.durationMin and remain < FancyActionBar.durationMax and remain or -1
-        if effect.isChanneled --[[ and effect.castDuration and isChanneling ]] then
-            if not (effect.castEndTime == 0 and effect.endTime and effect.endTime + SV.fadeDelay > t) then
-                effect.castEndTime = t + remain
-                FancyActionBar.ChanneledAbilityBegin(effect.id, effect.castEndTime)
-            end
-        else
-            if effect.castDuration then
-                effect.castDuration = nil
-            end
-            -- Adjustment for Power of the Light.
-            -- TODO: find a better place to do it.
-            if SV.potlfix and remain > 6 and effect.id == 21763 then
-                remain = 6
-            end
-
-            if FancyActionBar.dontFade[effect.id] and remain < FancyActionBar.durationMin then return end
-
-            effect.duration = duration
-            effect.beginTime = t - (duration - remain)
-            effect.endTime = t + remain
-            FancyActionBar.UpdateEffect(effect)
-
-            -- else
-            -- effect.endTime = 0
-        end
-        local stackableBuff = FancyActionBar.stackableBuff[abilityId]
-        if stackableBuff then
-            stackCount = FancyActionBar.RecomputeUnits(stackableBuff, time(), "sources")
-            local sEff = FancyActionBar.effects and FancyActionBar.effects[stackableBuff]
-            if sEff and sEff.sources and sEff.sources.times then
-                FancyActionBar.SetStacks(stackableBuff, stackCount)
-            end
-        end
+        effect.beginTime = t - (duration - remain)
+        effect.endTime = t + remain
+        effect.duration = duration
+    end
+    local stackableBuff = FancyActionBar.stackableBuff[abilityId]
+    if stackableBuff then
+        FancyActionBar.SetStacks(stackableBuff)
     end
 end
 
@@ -5868,10 +6272,6 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     local isGain = (change == EFFECT_RESULT_GAINED or change == EFFECT_RESULT_UPDATED)
     local isFade = (change == EFFECT_RESULT_FADED)
     local isTargetPlayer = AreUnitsEqual("player", unitTag)
-    local isTargetPlayerOrCompanion = isTargetPlayer or (HasActiveCompanion() and unitTag == "companion")
-    local hasExternalStackTargets = #FancyActionBar.GetConfiguredStackSources(abilityId) > 0
-    local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] and true or false
-    local targetUnitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
 
     if SV.debugAll then
         FancyActionBar.PostAllChanges(eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType, t)
@@ -5892,7 +6292,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
     if abilityId == 143808 and isGain then
         if FancyActionBar.effects[46331] and (t - lastCW > 0.5) then
             lastCW = t
-            local cwStacks = FancyActionBar.GetActiveStacksForId(46331) or 0
+            local cwStacks = FancyActionBar.GetStacks(46331) or 0
             if cwStacks > 0 then
                 FancyActionBar.SetStacks(46331, cwStacks - 1, true)
             end
@@ -5900,48 +6300,70 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
         end
     end
 
-    local effect = FancyActionBar.GetEffect(abilityId, nil, nil, true)
-    if sourceAbilities[abilityId] and not FancyActionBar.effects[abilityId] then FancyActionBar.effects[abilityId] = effect end
-
-    if FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and isTargetPlayerOrCompanion then
-        local bannerActive = false
-        local numBuffs = GetNumBuffs("player")
-        for i = 1, numBuffs do
-            local _, _, _, _, _, _, _, _, _, _, activeAbilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
-            if FancyActionBar.bannerBearer[activeAbilityId] and (castByPlayer or SV.externalBuffs) then
-                bannerActive = true
-                break
-            end
-        end
-        FancyActionBar.toggles["banner"] = bannerActive
-    elseif FancyActionBar.toggled[abilityId] then
-        effect.beginTime = (beginTime ~= 0) and beginTime or t
-        FancyActionBar.toggles[sourceAbilities[abilityId] or abilityId] = not isFade
+    if not ShouldTrackEffectChange(abilityId) then
+        return
     end
 
-    if (effectType == DEBUFF or useSpecialDebuff) then
+    local hasFixedStacks = FancyActionBar.fixedStacks[abilityId] ~= nil
+    local targetUnitKey = FancyActionBar.ResolveUnitKey("targets", unitTag, unitId, effectSlot)
+    local stackEntry = FancyActionBar.GetStackMap(abilityId)
+    local sourceId = stackEntry.sourceId
+    local ownerId = stackEntry.ownerId
+    local ownsStackStorage = not sourceId or sourceId == abilityId
+
+    local effectId = abilityId
+    if not ownsStackStorage then
+        local trackedId = FancyActionBar.GetTrackedEffectId(abilityId)
+        effectId = trackedId ~= 0 and trackedId or ownerId
+    end
+    local effect = FancyActionBar.effects[effectId]
+    if not effect then
+        effect = FancyActionBar.GetEffect(effectId, { abilityId = abilityId })
+    end
+
+    if FancyActionBar.bannerBearer[abilityId] and sourceType == COMBAT_UNIT_TYPE_PLAYER and isTargetPlayer then
+        if isGain then
+            local resolvedBegin = (beginTime ~= 0) and beginTime or t
+            for k in pairs(FancyActionBar.bannerBearer) do
+                local slottedId = sourceAbilities[k]
+                local slottedEffect = slottedId and FancyActionBar.effects[slottedId]
+                if slottedEffect then
+                    slottedEffect.beginTime = resolvedBegin
+                end
+            end
+        end
+        FancyActionBar.UpdateToggledAbility(abilityId, isGain)
+    elseif effect.toggled then
+        effect.beginTime = (beginTime ~= 0) and beginTime or t
+        FancyActionBar.UpdateToggledAbility(effect.id, not isFade)
+    end
+
+    if (effectType == BUFF_EFFECT_TYPE_DEBUFF or useSpecialDebuff) then
         if FancyActionBar.ShouldTrackAsDebuff(abilityId, unitTag or "") or useSpecialDebuff then
             effect.isDebuff = true
-            FancyActionBar.effects[abilityId] = effect
             FancyActionBar.OnDebuffChanged(effect, t, eventCode, change, effectSlot, effectName, unitTag, beginTime, endTime, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, unitName, unitId, abilityId, sourceType)
-            if noget and SV.debuffTable[effect.id] == nil then SV.debuffTable[effect.id] = true end
             return
         end
     end
 
     if SV.ignoreUngroupedAliies and IsUnitGrouped("player") then
-        if abilityType ~= GROUND_EFFECT and not (FancyActionBar.IsLocalPlayerOrEnemy(unitTag) or ZO_Group_IsGroupUnitTag(unitTag) or FancyActionBar.IsPlayerPet(unitTag) or IsGroupCompanionUnitTag(unitTag) or unitTag == "companion") then
+        if abilityType ~= ABILITY_TYPE_AREAEFFECT and not (FancyActionBar.IsLocalPlayerOrEnemy(unitTag) or ZO_Group_IsGroupUnitTag(unitTag) or FancyActionBar.IsPlayerPet(unitTag) or IsGroupCompanionUnitTag(unitTag) or unitTag == "companion") then
             return
         end
     end
 
     if isGain then
         local isSelf = GetAbilityTargetDescription(effect.id, nil, unitTag) == "Self"
-        local willRecord = (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= GROUND_EFFECT) and not isSelf
+        local willRecord = (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= ABILITY_TYPE_AREAEFFECT) and not isSelf
 
         if effect.hasActiveCast then
-            if not FancyActionBar.GetUnits(effect.id, "targets") then effect.beginTime = beginTime end
-            if unitId and unitId > 0 and abilityType ~= GROUND_EFFECT then willRecord = true end
+            local targetData = FancyActionBar.GetUnits(effect.id, "targets")
+            if not targetData or not next(targetData.times or {}) then
+                effect.beginTime = beginTime
+            end
+            if unitId and unitId > 0 and abilityType ~= ABILITY_TYPE_AREAEFFECT then
+                willRecord = true
+            end
         end
 
         if willRecord then
@@ -5955,39 +6377,41 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
             end
         end
 
+        local sourceCount
         if isTargetPlayer then
             local sbId = FancyActionBar.stackableBuff[abilityId]
-            if sbId then
-                FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) })
-                local sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
-                FancyActionBar.SetStacks(sbId, sc)
+            if sbId and beginTime ~= endTime and endTime > t then
+                sourceCount = select(1, FancyActionBar.RecordUnit(sbId, nil, effectSlot, t, beginTime, endTime, "sources", { castByPlayer = (sourceType == COMBAT_UNIT_TYPE_PLAYER) }))
             end
         end
 
         if endTime ~= beginTime and effect.passive then FancyActionBar.UpdatePassiveEffect(effect.id, false) end
 
-        if stackCount or hasFixedStacks or hasExternalStackTargets then
+        if isTargetPlayer and FancyActionBar.stackableBuff[abilityId] then
+            FancyActionBar.SetStacks(FancyActionBar.stackableBuff[abilityId], sourceCount, sourceCount ~= nil)
+        elseif hasFixedStacks or ownsStackStorage then
             FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, false)
         end
 
         if (endTime > t + FancyActionBar.durationMin and endTime < t + FancyActionBar.durationMax) then
             effect.duration = (beginTime and endTime and (endTime - beginTime) > 0) and (endTime - beginTime) or effect.duration
             effect.endTime = endTime
-            if abilityType == GROUND_EFFECT then
+            if abilityType == ABILITY_TYPE_AREAEFFECT then
                 lastAreaTargets[abilityId] = unitId
                 if abilityId == 117805 then
                     effect.endTime = t + 10
-                    FancyActionBar.UpdateEffect(effect)
                     return
                 end
             end
-        else
-            effect.endTime = -1
         end
-        FancyActionBar.UpdateEffect(effect)
     elseif isFade then
-        if effect.ignoreFadeTime then return end
-        if effect.dontFade and effect.endTime > t then return end
+        if isTargetPlayer then
+            local sbId = FancyActionBar.stackableBuff[abilityId]
+            if sbId then
+                local sourceCount = select(1, FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources"))
+                FancyActionBar.SetStacks(sbId, sourceCount, true)
+            end
+        end
 
         local td = FancyActionBar.GetUnits(effect.id, "targets")
         local hasActiveTargets = false
@@ -5996,50 +6420,36 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 local activeTargets, soonest, maxEnd = FancyActionBar.RemoveUnit(effect.id, targetUnitKey, t, "targets")
                 if activeTargets >= 1 and maxEnd and maxEnd > 0 then
                     effect.endTime = maxEnd
-                else
+                elseif not effect.dontFade then
                     effect.endTime = t
                 end
                 hasActiveTargets = (activeTargets >= 1)
-
-                if isTargetPlayer then
-                    local sbId = FancyActionBar.stackableBuff[abilityId]
-                    if sbId then
-                        FancyActionBar.RemoveUnit(sbId, effectSlot, t, "sources")
-                        local sc = FancyActionBar.RecomputeUnits(sbId, t, "sources")
-                        FancyActionBar.SetStacks(sbId, sc)
-                    end
-                end
             end
         end
 
         if FancyActionBar.IsGroupUnit(unitTag) then return end
-        local sbPending = FancyActionBar.stackableBuff[abilityId]
-        if sbPending then
-            FancyActionBar.GetEffect(sbPending, nil, nil, true)
-            local sc = FancyActionBar.RecomputeUnits(sbPending, t, "sources")
-            FancyActionBar.SetStacks(sbPending, sc)
-        end
 
         if hasActiveTargets then return end
-        if stackCount or hasFixedStacks or hasExternalStackTargets then
+        if hasFixedStacks or ownsStackStorage then
             FancyActionBar.UpdateStacksFromEvent(abilityId, stackCount, true)
         end
+
+        if isTargetPlayer and effect.dontFade then
+            if not SV.externalBuffs and effect.endTime > t then return end
+            if (not SV.externalBuffs) or SV.externalBlackList[effect.id] then
+                if FancyActionBar.RecomputeUnits(effect.id, t, "sources") > 0 then return end
+            end
+        end
+
         if effect.instantFade or FancyActionBar.removeInstantly[effect.id] then
             effect.endTime = t
-            FancyActionBar.UpdateEffect(effect)
             return
         end
 
-        if effectType == DEBUFF or abilityId == 38791 then return end
+        if effectType == BUFF_EFFECT_TYPE_DEBUFF or abilityId == 38791 then return end
 
-        if ((not SV.externalBuffs) or SV.externalBlackList[effect.id]) and effect.dontFade then
-            local active = FancyActionBar.RecomputeUnits(effect.id, t, "sources")
-            if active > 0 then return end
-        end
-
-        -- Active Cast Persistence
         if effect.hasActiveCast then
-            if abilityType == GROUND_EFFECT and lastAreaTargets[abilityId] then
+            if abilityType == ABILITY_TYPE_AREAEFFECT and lastAreaTargets[abilityId] then
                 if lastAreaTargets[abilityId] ~= unitId then return end
                 lastAreaTargets[abilityId] = nil
             end
@@ -6057,6 +6467,7 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                     local wasPlayer = WasEffectCastByPlayer(effect)
                     if active > 0 and (wasPlayer or SV.externalBuffs) then return end
                 end
+                return
             end
 
             local noTargets = true
@@ -6069,60 +6480,218 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
                 end
             end
 
-            if noTargets then
+            if noTargets and not effect.dontFade then
                 effect.endTime = t
-                if effect.passive then FancyActionBar.UpdateToggledAbility(abilityId, false) end
+                if effect.passive then FancyActionBar.UpdateToggledAbility(effect.id, false) end
             end
         end
-        FancyActionBar.UpdateEffect(effect)
     end
 end
 
-function FancyActionBar.SyncEffectState()
-    local activeAbility = {}
-    local numBuffs = GetNumBuffs("player")
-    local externalBuffs = SV.externalBuffs
-    local stackableBuff = FancyActionBar.stackableBuff
-    local specialEffects = FancyActionBar.specialEffects
-    local currentTime = time()
-    local bannerActive = false
+local function SyncFadedEffect(effect)
+    effect.endTime = -1
+    effect.slotStateEndTime = nil
+    if effect.isChanneled then
+        FancyActionBar.ChanneledAbilityEnd(effect.id)
+        effect.castEndTime = -1
+    end
+    for _, slot in pairs(slots) do
+        if slot.effectId == effect.id then
+            slot.parentEndTime = nil
+        end
+    end
+    if effect.toggled then
+        FancyActionBar.UpdateToggledAbility(effect.id, false)
+    end
+    if effect.passive then
+        FancyActionBar.UpdatePassiveEffect(effect.id, false)
+    end
+end
 
-    for i = 1, numBuffs do
-        local unitBuffName, beginTime, endTime, buffSlot, stackCount, iconName, buffType, effectType, abilityType, statusEffectType, abilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
-        local isValid = (castByPlayer or externalBuffs or stackableBuff[abilityId]) ~= nil
-        activeAbility[abilityId] = isValid and stackCount
-        if isValid then
-            FancyActionBar.GetEffect(abilityId, nil, nil, true)
-            if FancyActionBar.bannerBearer[abilityId] then
-                bannerActive = true
+-- Drop a cached effect entry when it has no widget, active timer, or specialEffect active and is not a debuff
+function FancyActionBar.ReleaseEffect(id, fade)
+    if not id or id == 0 then
+        return
+    end
+    local effect = FancyActionBar.effects[id]
+    if not effect then
+        return
+    end
+    if effect.isDebuff or FancyActionBar.specialEffects[effect.id] then
+        return
+    end
+    if FancyActionBar.IsEffectWidgetTracked(id) then
+        return
+    end
+    if slottedEffectIds[id] then
+        return
+    end
+    for _, slot in pairs(slots) do
+        if slot.effectId == id then
+            return
+        end
+        if slot.abilityId and slot.abilityId ~= 0 then
+            local configured = FancyActionBar.GetStackMap(slot.abilityId).sources
+            for i = 1, #configured do
+                if configured[i] == id then
+                    return
+                end
             end
         end
     end
+
+    if fade then
+        OnEffectChanged(
+            nil,
+            EFFECT_RESULT_FADED,
+            nil, nil, "player",
+            effect.beginTime or -1, effect.endTime or -1, effect.stacks, nil, nil, nil, nil, nil, nil, nil,
+            id,
+            COMBAT_UNIT_TYPE_PLAYER
+        )
+    end
+    for abilityId, trackedId in pairs(sourceAbilities) do
+        if trackedId == id then
+            sourceAbilities[abilityId] = nil
+        end
+    end
+    FancyActionBar.effects[id] = nil
+end
+
+-- Full effect reconcile: buff scan plus release of stale entries via ReleaseEffect.
+function FancyActionBar.SyncEffectState(scope)
+    local slottedOnly = scope == "slotted"
+    local reconcileFilter = nil
+    if slottedOnly then
+        reconcileFilter = {}
+        for _, slot in pairs(slots) do
+            if slot.effectId and slot.effectId ~= 0 then
+                reconcileFilter[slot.effectId] = true
+            end
+            if slot.abilityId and slot.abilityId ~= 0 then
+                local members = FancyActionBar.GetStackMap(slot.abilityId).sources
+                for i = 1, #members do
+                    reconcileFilter[members[i]] = true
+                end
+            end
+        end
+    end
+
+    local activeAbility = {}
+    local scannedSourceSlots = {}
+    local currentTime = time()
+    local externalBuffs = SV.externalBuffs
+    local stackableBuff = FancyActionBar.stackableBuff
+    local specialEffects = FancyActionBar.specialEffects
+    local bannerActive = false
+
+    for id in pairs(FancyActionBar.toggles) do
+        FancyActionBar.toggles[id] = false
+    end
+
+    for i = 1, GetNumBuffs("player") do
+        local _, beginTime, endTime, buffSlot, stackCount, _, _, _, _, _, abilityId, _, castByPlayer = GetUnitBuffInfo("player", i)
+        if castByPlayer or externalBuffs or FancyActionBar.IsStackableBuff(abilityId) then
+            activeAbility[abilityId] = stackCount
+            local trackedId = sourceAbilities[abilityId] or abilityId
+            activeAbility[trackedId] = stackCount
+            local sbId = stackableBuff[abilityId]
+            if sbId and beginTime ~= endTime and endTime > currentTime then
+                FancyActionBar.RecordUnit(sbId, nil, buffSlot, currentTime, beginTime, endTime, "sources", { castByPlayer = castByPlayer })
+                scannedSourceSlots[sbId] = scannedSourceSlots[sbId] or {}
+                scannedSourceSlots[sbId][buffSlot] = true
+            end
+            if FancyActionBar.bannerBearer[abilityId] and (castByPlayer or externalBuffs) then
+                bannerActive = true
+                local resolvedBegin = (beginTime ~= 0) and beginTime or currentTime
+                for k in pairs(FancyActionBar.bannerBearer) do
+                    local slottedId = sourceAbilities[k]
+                    local slottedEffect = slottedId and FancyActionBar.effects[slottedId]
+                    if slottedEffect then
+                        slottedEffect.beginTime = resolvedBegin
+                    end
+                end
+            elseif FancyActionBar.toggled[abilityId] or FancyActionBar.toggled[trackedId] then
+                FancyActionBar.toggles[FancyActionBar.bannerBearer[trackedId] and "banner" or trackedId] = true
+                local toggleEffect = FancyActionBar.effects[trackedId]
+                if toggleEffect then
+                    toggleEffect.beginTime = (beginTime ~= 0) and beginTime or currentTime
+                end
+            end
+        end
+    end
+
     FancyActionBar.toggles["banner"] = bannerActive
 
+    if not slottedOnly then
+        for abilityId, spec in pairs(specialEffects) do
+            if activeAbility[abilityId] ~= nil then
+                activeAbility[spec.id] = activeAbility[abilityId]
+            end
+        end
+    end
+
     for id, effect in pairs(FancyActionBar.effects) do
-        if not effect.isDebuff and not specialEffects[effect.id] then
-            local buffStacks = activeAbility[effect.id]
-            if buffStacks ~= nil then
-                if not FancyActionBar.IsStackableBuff(effect.id) then
-                    effect.stacks = FancyActionBar.fixedStacks[effect.id] or buffStacks
+        if (not reconcileFilter or reconcileFilter[id]) and not effect.isDebuff and not specialEffects[effect.id] then
+            local stackEntry = FancyActionBar.GetStackMap(id)
+            local configuredSourceIds = stackEntry.sources
+            local ownerId = stackEntry.ownerId
+            local isStackable = FancyActionBar.IsStackableBuff(effect.id)
+            local canonicalId = isStackable and ((stackableBuff and stackableBuff[effect.id]) or effect.id) or effect.id
+            local buffStacks = nil
+            for i = 1, #configuredSourceIds do
+                local count = activeAbility[configuredSourceIds[i]]
+                if count ~= nil and (buffStacks == nil or count > buffStacks) then
+                    buffStacks = count
                 end
-            elseif not (effect.dontFade and effect.endTime > currentTime) then
-                if effect.toggled or effect.passive then
-                    OnEffectChanged(
-                        nil,
-                        EFFECT_RESULT_FADED,
-                        nil, nil, "player",
-                        effect.beginTime or -1, effect.endTime or -1, effect.stacks, nil, nil, nil, nil, nil, nil, nil,
-                        effect.id,
-                        COMBAT_UNIT_TYPE_PLAYER
-                    )
+            end
+            if isStackable then
+                local sourceSlots = scannedSourceSlots[canonicalId]
+                local stackEff = FancyActionBar.effects[canonicalId]
+                local sources = stackEff and stackEff.sources and stackEff.sources.times
+                if sources then
+                    for slotKey in pairs(sources) do
+                        if not sourceSlots or not sourceSlots[slotKey] then
+                            FancyActionBar.RemoveUnit(canonicalId, slotKey, currentTime, "sources")
+                        end
+                    end
                 end
-                if effect.isChanneled and not channeledAbility.active then
-                    FancyActionBar.ChanneledAbilityEnd(effect.id)
-                    effect.castEndTime = effect.castEndTime and effect.castEndTime > currentTime and currentTime or effect.castEndTime or -1
-                    effect.endTime = effect.endTime and effect.endTime > currentTime and currentTime or effect.endTime or -1
+                local sourceCount = FancyActionBar.RecomputeUnits(canonicalId, currentTime, "sources") or 0
+                if sourceCount > 0 then
+                    FancyActionBar.SetStacks(canonicalId)
+                elseif buffStacks ~= nil then
+                    FancyActionBar.SetStacks(canonicalId, buffStacks, true)
+                else
+                    FancyActionBar.SetStacks(canonicalId, 0, true)
                 end
+            elseif id == ownerId then
+                if buffStacks ~= nil then
+                    FancyActionBar.SetStacks(ownerId, FancyActionBar.fixedStacks[ownerId] or buffStacks, true)
+                else
+                    FancyActionBar.SetStacks(ownerId, 0, true)
+                end
+            end
+
+            local stacks = (isStackable and FancyActionBar.effects[canonicalId] and FancyActionBar.effects[canonicalId].stacks) or effect.stacks or 0
+            local isToggleActive = FancyActionBar.toggles[FancyActionBar.bannerBearer[effect.id] and "banner" or effect.id]
+            local stillActive = buffStacks ~= nil or (isStackable and stacks > 0) or isToggleActive
+            if slottedOnly then
+                stillActive = stillActive or (FancyActionBar.RecomputeUnits(effect.id, currentTime, "targets") or 0) > 0
+            end
+
+            if not stillActive then
+                if not slottedOnly then
+                    local targets = effect.targets
+                    if targets and targets.times then
+                        for unitKey in pairs(targets.times) do
+                            targets.times[unitKey] = nil
+                        end
+                        targets.unitCount = 0
+                        targets.maxEndTime = 0
+                    end
+                end
+                SyncFadedEffect(effect)
+                FancyActionBar.ReleaseEffect(id, false)
             end
         end
     end
@@ -6130,17 +6699,46 @@ end
 
 -- Update overlays.
 local function Update()
-    for i = MIN_INDEX, ULT_INDEX do
-        FancyActionBar.UpdateOverlay(i)
-        FancyActionBar.UpdateOverlay(i + SLOT_INDEX_OFFSET)
+    local currentTime = time()
+    tickOverlayTimers(currentTime)
+    if hasEnabledEffectWidgets then
+        FancyActionBar.UpdateEffectWidgets(currentTime)
     end
-    FancyActionBar.UpdateEffectWidgets()
-    if AreCompanionSkillsInitialized() and HasActiveCompanion() and DoesUnitExist("companion") then
-        local companionUlt = ZO_ActionBar_GetButton(ULT_INDEX, HOTBAR_CATEGORY_COMPANION)
-        if (not companionUlt) or (not companionUlt.hasAction) then
-            return
+    if companionOverlayActive then
+        FancyActionBar.UpdateOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET, currentTime)
+    end
+end
+
+local function OnPlayerActivated(_eventId, _initial)
+    FancyActionBar.SetMarker()
+    FancyActionBar.UpdateDebuffTracking()
+    FancyActionBar.RegisterClassEffects()
+    SyncWeaponTypes()
+    PrepareWeaponLockState()
+
+    local firstZone = not doneInitialHotbarSetup
+    if firstZone then
+        if not ZO_IsConsoleOrGameCoreUI() then
+            SetAbilityBarTimersEnabled()
         end
-        FancyActionBar.UpdateUltOverlay(ULT_INDEX + COMPANION_INDEX_OFFSET)
+        FancyActionBar.InitializeScreenResizeHandler()
+        FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
+        FancyActionBar.RefreshActiveBarSlots()
+        FancyActionBar.SlotEffects()
+        refreshBackupBarButtons()
+        FancyActionBar.ToggleUltimateValue()
+        FancyActionBar.SetUltFrameAlpha()
+        EM:UnregisterForUpdate(NAME .. "Update")
+        EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
+        doneInitialHotbarSetup = true
+    elseif not FancyActionBar.wasStopped and not ACTION_BAR:IsHidden() then
+        FancyActionBar.RefreshBarPosition(true)
+    end
+
+    FancyActionBar.SyncEffectState()
+    OnAllHotbarsUpdated()
+    if not firstZone then
+        FancyActionBar.HandleCompanionUltimate()
     end
 end
 
@@ -6164,8 +6762,11 @@ local function OnEquippedGearChanged(eventId, bagId, slotIndex, isNewItem, itemS
 
     -- Handle weapon slot changes
     if slotIndex == EQUIP_SLOT_MAIN_HAND or slotIndex == EQUIP_SLOT_BACKUP_MAIN then
-        FancyActionBar.weaponFront = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_MAIN_HAND, LINK_STYLE_DEFAULT))
-        FancyActionBar.weaponBack = GetItemLinkWeaponType(GetItemLink(BAG_WORN, EQUIP_SLOT_BACKUP_MAIN, LINK_STYLE_DEFAULT))
+        local prevFront, prevBack = FancyActionBar.weaponFront, FancyActionBar.weaponBack
+        SyncWeaponTypes()
+        if FancyActionBar.weaponFront ~= prevFront or FancyActionBar.weaponBack ~= prevBack then
+            FancyActionBar.RefreshHotbarPresentation(nil, false)
+        end
     end
 
     -- Handle ring slot changes for Oakensoul
@@ -6174,10 +6775,11 @@ local function OnEquippedGearChanged(eventId, bagId, slotIndex, isNewItem, itemS
         local isOakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul) or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
         FancyActionBar.oakensoulEquipped = isOakensoulEquipped
 
-        if SV.hideLockedBar and isOakensoulEquipped or wasOakensoulEquipped then
-            FancyActionBar.OnWeaponSwapLocked(isOakensoulEquipped, isWeaponSwapLocked)
+        if SV.hideLockedBar and (isOakensoulEquipped or wasOakensoulEquipped) then
+            applyWeaponLockPresentation(isOakensoulEquipped or FancyActionBar.isWerewolf)
+        elseif isOakensoulEquipped ~= wasOakensoulEquipped then
+            FancyActionBar.RefreshHotbarPresentation(nil, true)
         end
-        FancyActionBar.ApplyAbilityFxOverrides()
     end
 end
 
@@ -6234,21 +6836,16 @@ local function OnCombatEvent(eventId, result, isError, abilityName, abilityGraph
     local useSpecialDebuffTracking = SV.advancedDebuff and specialEffect and specialEffect.isSpecialDebuff
 
     if specialEffect and not useSpecialDebuffTracking then
-        FancyActionBar.HandleSpecialEffect(abilityId, result, currentTime, currentTime, currentTime + GetAbilityDuration(abilityId), nil, nil, nil, targetUnitId, nil)
+        FancyActionBar.HandleSpecialEffect(abilityId, result, currentTime, currentTime, currentTime + FancyActionBar.GetAbilityDuration(abilityId), nil, nil, nil, targetUnitId, nil)
         return
     end
 
     -- Handle needed combat events
     if FancyActionBar.needCombatEvent[abilityId] and result == FancyActionBar.needCombatEvent[abilityId].result then
-        effect = FancyActionBar.effects[abilityId]
+        local effectId = FancyActionBar.GetTrackedEffectId(abilityId)
+        effect = FancyActionBar.effects[effectId]
         if effect then
             effect.endTime = currentTime + FancyActionBar.needCombatEvent[abilityId].duration
-            -- Debug logging for needed combat events
-            -- local ts = tostring
-            -- FancyActionBar.AddSystemMessage('===================')
-            -- FancyActionBar.AddSystemMessage(abilityName..' ('..ts(abilityId)..') || result: '..ts(result)..' || hit: '..ts(hitValue))
-            -- FancyActionBar.AddSystemMessage('===================')
-            FancyActionBar.UpdateEffect(effect)
             return
         end
     end
@@ -6258,7 +6855,6 @@ local function OnCombatEvent(eventId, result, isError, abilityName, abilityGraph
         effect = FancyActionBar.effects[FancyActionBar.graveLordSacrifice.id]
         if effect then
             effect.endTime = currentTime + FancyActionBar.graveLordSacrifice.duration
-            FancyActionBar.UpdateEffect(effect)
         end
     end
 end
@@ -6297,7 +6893,7 @@ local function OnReflect(eventId, result, isError, abilityName, abilityGraphic, 
     end
 
     local specialEffect = FancyActionBar.specialEffects[abilityId]
-    local reflectStacks = specialEffect.stackId[1]
+    local reflectSourceId = GetConfiguredStackSources(specialEffect)[1] or specialEffect.id
     local effect = FancyActionBar.effects[specialEffect.id]
 
     -- Prevent rapid updates
@@ -6307,35 +6903,20 @@ local function OnReflect(eventId, result, isError, abilityName, abilityGraphic, 
 
     -- Handle effect gain
     if result == ACTION_RESULT_BEGIN or result == ACTION_RESULT_EFFECT_GAINED or result == ACTION_RESULT_EFFECT_GAINED_DURATION then
-        FancyActionBar.SetStacks(reflectStacks, specialEffect.stacks, true)
+        FancyActionBar.SetStacks(reflectSourceId, specialEffect.stacks, true)
     end
 
     -- Handle damage shield
     if result == ACTION_RESULT_DAMAGE_SHIELDED then
-        local cur = FancyActionBar.GetActiveStacksForId(reflectStacks) or 0
+        local cur = FancyActionBar.GetStacks(reflectSourceId) or 0
         if cur and cur > 0 then
-            FancyActionBar.SetStacks(reflectStacks, cur - 1, true)
+            FancyActionBar.SetStacks(reflectSourceId, cur - 1, true)
         end
     end
 
     -- Handle effect fade
     if (result == ACTION_RESULT_EFFECT_FADED) then
-        FancyActionBar.SetStacks(reflectStacks, 0, true)
-    end
-end
-
-local function ActionBarActivated(eventCode, initial)
-    if not initial then
-        -- OnAllHotbarsUpdated()
-        FancyActionBar.SyncEffectState()
-    end
-    if not rebuildHotbar then
-        rebuildHotbar = zo_callLater(function ()
-            FancyActionBar.OnPlayerActivated()
-            FancyActionBar.ApplyAbilityFxOverrides()
-            FancyActionBar.ApplyActiveHotbarStyle()
-            rebuildHotbar = nil
-        end, 750)
+        FancyActionBar.SetStacks(reflectSourceId, 0, true)
     end
 end
 
@@ -6417,7 +6998,6 @@ function FancyActionBar.OnSkillLineAdded(eventCode, skillType, skillLineIndex, a
 end
 
 function FancyActionBar.Initialize()
-    -- defaultSettings = FancyActionBar.defaultSettings
     SV = ZO_SavedVars:NewAccountWide("FancyActionBarSV", FancyActionBar.variableVersion, nil, defaultSettings, GetWorldName())
     CV = ZO_SavedVars:NewCharacterIdSettings("FancyActionBarSV", FancyActionBar.variableVersion, nil, FancyActionBar.defaultCharacter, GetWorldName())
     -- Initialize saved variables
@@ -6435,23 +7015,27 @@ function FancyActionBar.Initialize()
     if type(SV.effectWidgets) ~= "table" then
         SV.effectWidgets = {}
     end
-    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
-    for i = MIN_INDEX, ULT_INDEX do
-        FancyActionBar.SetSlottedEffect(i, 0, 0)
-        FancyActionBar.SetSlottedEffect(i + SLOT_INDEX_OFFSET, 0, 0)
+    if type(CV.effectWidgets) ~= "table" then
+        CV.effectWidgets = {}
+    end
+
+    if SV.qsScaling == nil then
+        SV.qsScaling = defaultSettings.qsScaling
     end
 
     FancyActionBar.ValidateVariables()
-    FancyActionBar.UpdateStyle()
+    FancyActionBar.BuildStackMapLookups()
 
-    FancyActionBar.updateUI = true
+    FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
+    FancyActionBar.ApplyBarFoundation()
+    FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
+    FancyActionBar.RefreshHighlightConfiguration()
+    InstallActionButtonHooks()
 
     FancyActionBar.UpdateTextures()
 
     SLASH_COMMANDS[slashCommand] = FancyActionBar.SlashCommand
 
-    FancyActionBar.SetScale()
-    FancyActionBar.constants.update = FancyActionBar.RefreshUpdateConfiguration()
     FancyActionBar.UpdateDurationLimits()
     FancyActionBar:InitializeDebuffs(NAME, SV)
     FancyActionBar.BuildMenu(SV, CV, defaultSettings)
@@ -6462,9 +7046,6 @@ function FancyActionBar.Initialize()
     debug = SV.debug
 
     FancyActionBar.player.name = zo_strformat("<<!aC:1>>", GetUnitName("player"))
-
-    -- ANTIQUITY_DIGGING_SCENE = 'antiquityDigging'
-    -- LOCK_PICK_SCENE = 'lockpickKeyboard'
 
     local function LockSkillsOnTrade()
         if TRADE_WINDOW.state == 3 then
@@ -6492,8 +7073,11 @@ function FancyActionBar.Initialize()
     EM:UnregisterForEvent("ZO_ActionBar", EVENT_ACTIVE_COMPANION_STATE_CHANGED)
     EM:RegisterForEvent(NAME, EVENT_ACTIVE_COMPANION_STATE_CHANGED, FancyActionBar.HandleCompanionUltimate)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_ABILITY_USED, OnAbilityUsed)
+    EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
     EM:RegisterForEvent(NAME, EVENT_HOTBAR_SLOT_UPDATED, OnSlotChanged)
     EM:RegisterForEvent(NAME, EVENT_HOTBAR_SLOT_STATE_UPDATED, OnHotbarSlotStateUpdated)
+    EM:RegisterForEvent(NAME .. "GroundTargetEnter", EVENT_ENTER_GROUND_TARGET_MODE, OnGroundTargetModeEvent)
+    EM:RegisterForEvent(NAME .. "GroundTargetCancel", EVENT_CANCEL_GROUND_TARGET_MODE, OnGroundTargetModeEvent)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOT_EFFECT_UPDATE, OnActionSlotEffectUpdated)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, OnActiveHotbarUpdated)
     EM:RegisterForEvent(NAME, EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED, OnAllHotbarsUpdated)
@@ -6503,56 +7087,32 @@ function FancyActionBar.Initialize()
     EM:RegisterForEvent(NAME, EVENT_GAME_CAMERA_UI_MODE_CHANGED, function ()
         FancyActionBar.ChanneledAbilityEnd()
     end)
-    EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function ()
-        FancyActionBar.updateUI = true
-        FancyActionBar.useGamepadActionBar = IsInGamepadPreferredMode() or SV.forceGamepadStyle
-        local _, locked = GetActiveWeaponPairInfo()
-        FancyActionBar.UpdateBarSettings(SV.hideLockedBar and locked)
-        FancyActionBar.AdjustQuickSlotSpacing(SV.hideLockedBar and locked)
-        FancyActionBar.ApplyActiveHotbarStyle()
-        FancyActionBar.ApplyQuickSlotAndUltimateStyle()
-        FancyActionBar:ApplySettings()
-        FancyActionBar.ToggleFillAnimationsAndFrames(FancyActionBar.useGamepadActionBar)
-        FancyActionBar.updateUI = false
-        -- ReloadUI("ingame");
-    end)
+    EM:RegisterForEvent(NAME, EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, FancyActionBar.OnUIModeChanged)
 
     EM:RegisterForEvent(NAME, EVENT_WEREWOLF_STATE_CHANGED, function (_, value)
         FancyActionBar.isWerewolf = value
         if SV.hideLockedBar then
-            FancyActionBar.OnWeaponSwapLocked(value, isWeaponSwapLocked)
+            applyWeaponLockPresentation(FancyActionBar.oakensoulEquipped or value)
         end
         FancyActionBar.SlotEffects()
+        FancyActionBar.SyncEffectState("slotted")
     end)
 
-    EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, function ()
-        if not ZO_IsConsoleOrGameCoreUI() then
-            SetAbilityBarTimersEnabled()
-        end
-        EM:RegisterForEvent(NAME, EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
-        FancyActionBar.ApplyStyle()
-        FancyActionBar.InitializeScreenResizeHandler()
-        OnAllHotbarsUpdated()
-        FancyActionBar.SwapControls()
-        FancyActionBar.ApplyAbilityFxOverrides()
-        EM:UnregisterForUpdate(NAME .. "Update")
-        EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
-        EM:UnregisterForEvent(NAME, EVENT_PLAYER_ACTIVATED)
-    end)
-
-    EM:RegisterForEvent(NAME .. "_Activated", EVENT_PLAYER_ACTIVATED, ActionBarActivated)
+    EM:RegisterForEvent(NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
     EM:RegisterForEvent(NAME, EVENT_COLLECTIBLE_UPDATED, FancyActionBar.SkillStyleCollectibleUpdated)
     EM:RegisterForEvent(NAME, EVENT_EFFECT_CHANGED, OnEffectChanged)
     EM:AddFilterForEvent(NAME, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
 
     FancyActionBar.SetExternalBuffTracking()
 
-    EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.UpdateUltimateCost)
-    EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, FancyActionBar.HandleCompanionUltimate)
+    EM:RegisterForEvent(NAME, EVENT_ULTIMATE_ABILITY_COST_CHANGED, function ()
+        FancyActionBar.UpdateUltimateCost()
+        FancyActionBar.HandleCompanionUltimate()
+    end)
     EM:RegisterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnEquippedGearChanged)
     EM:AddFilterForEvent(NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN)
     EM:RegisterForEvent(NAME .. "CursorPickup", EVENT_CURSOR_PICKUP, function (_, cursorType, actionType, _, actionValue)
-        if cursorType == MOUSE_CONTENT_ACTION and DROP_CALLOUT_VALIDITY_BY_ACTION_TYPE[actionType] then
+        if cursorType == MOUSE_CONTENT_ACTION and FancyActionBar.dropCalloutValidityByActionType[actionType] then
             ShowAppropriateAbilityActionButtonDropCallouts(actionType, actionValue)
         end
     end)
@@ -6563,7 +7123,6 @@ function FancyActionBar.Initialize()
     end)
 
     ZO_PreHookHandler(ACTION_BAR, "OnHide", function ()
-        -- if ZO_ActionBar1:IsHidden() and not wasStopped then
         if not FancyActionBar.wasStopped then
             EM:UnregisterForUpdate(NAME .. "Update")
             FancyActionBar.wasStopped = true
@@ -6575,19 +7134,13 @@ function FancyActionBar.Initialize()
             return
         end
 
-        FancyActionBar.ApplyPosition()
+        FancyActionBar.RefreshBarPosition(FancyActionBar.wasStopped)
 
         if FancyActionBar.wasStopped then
             Update()
             EM:RegisterForUpdate(NAME .. "Update", updateRate, Update)
+            FancyActionBar.wasStopped = false
         end
-    end)
-
-    SecurePostHook(ActionButton, "ApplyStyle", function (self)
-        local style = FancyActionBar.GetConstants()
-        ApplyTemplateToControl(self.slot, self.ultimateReadyBurstTimeline and style.ultButtonTemplate or style.buttonTemplate)
-        setFlipCardDimensions(style)
-        FancyActionBar.ApplyQuickSlotFont()
     end)
 
     ZO_PreHookHandler(CompanionUltimateButton, "OnShow", function ()
@@ -6642,12 +7195,11 @@ function FancyActionBar.OnAddOnLoaded(event, addonName)
     if addonName == NAME then
         EM:UnregisterForEvent(NAME, EVENT_ADD_ON_LOADED)
         FancyActionBar.Initialize()
-        FancyActionBar.updateUI = false
     end
 end
 
-local function ValidateBasicSettings(sv, d)
-    sv = SV
+local function ValidateSavedVariables(d)
+    local sv = SV
     d = d or defaultSettings
 
     local settings =
@@ -6657,6 +7209,20 @@ local function ValidateBasicSettings(sv, d)
         "showDecimal",
         "alphaInactive",
         "desaturationInactive",
+        "tintInactive",
+        "applyActiveBarAlpha",
+        "applyActiveBarDesaturation",
+        "applyActiveBarTint",
+        "alphaUsable",
+        "alphaUnusable",
+        "desatUsable",
+        "desatUnusable",
+        "tintUsable",
+        "tintUnusable",
+        "overlayFrameAlphaActive",
+        "overlayBgAlphaActive",
+        "overlayFrameAlphaInactive",
+        "overlayBgAlphaInactive",
         "showDecimalStart",
         "showExpire",
         "showExpireStart",
@@ -6666,6 +7232,7 @@ local function ValidateBasicSettings(sv, d)
         "tickColor",
         "allowParentTime",
         "forceGamepadStyle",
+        "keyboardBounceAnimation",
         "useThinFrames",
         "showFrames",
         "frameColor",
@@ -6673,6 +7240,10 @@ local function ValidateBasicSettings(sv, d)
         "markerSize",
         "showHighlight",
         "highlightColor",
+        "highlightExpire",
+        "highlightExpireColor",
+        "toggledHighlight",
+        "toggledColor",
         "showArrow",
         "arrowColor",
         "moveQS",
@@ -6706,10 +7277,24 @@ local function ValidateBasicSettings(sv, d)
             sv[setting] = d[setting]
         end
     end
-end
 
-local function ValidateBlacklists(sv)
-    sv = SV
+    FancyActionBar.EnsureUserUIPresetsStored(sv)
+
+    local ultHighlightDefaults =
+    {
+        showUltHighlight = "showHighlight",
+        ultHighlightColor = "highlightColor",
+        ultHighlightExpire = "highlightExpire",
+        ultHighlightExpireColor = "highlightExpireColor",
+        ultToggledHighlight = "toggledHighlight",
+        ultToggledColor = "toggledColor",
+    }
+
+    for ultKey, sourceKey in pairs(ultHighlightDefaults) do
+        if sv[ultKey] == nil then
+            sv[ultKey] = sv[sourceKey] ~= nil and sv[sourceKey] or d[sourceKey]
+        end
+    end
 
     -- External blacklist validation
     if not sv.externalBlackListRun then
@@ -6824,14 +7409,8 @@ local function ValidateBlacklists(sv)
             sv.parentTimeBlacklist[abilityId] = nil
         end
     end
-end
-
-local function ValidateGamepadSettings(sv, d)
-    sv = SV
-    d = d or defaultSettings
 
     if IsInGamepadPreferredMode() or sv.forceGamepadStyle then
-        -- Migrate old settings
         local oldToNewMappings =
         {
             fontName = "fontNameGP",
@@ -6887,11 +7466,6 @@ local function ValidateGamepadSettings(sv, d)
             end
         end
     end
-end
-
-local function ValidateKeyboardSettings(sv, d)
-    sv = SV
-    d = d or defaultSettings
 
     if not (IsInGamepadPreferredMode() or sv.forceGamepadStyle) then
         -- Migrate old settings
@@ -6950,14 +7524,17 @@ local function ValidateKeyboardSettings(sv, d)
             end
         end
     end
-end
-
-local function ValidateScalingSettings(sv, d)
-    sv = SV
-    d = d or defaultSettings
 
     if sv.abScaling == nil then
         sv.abScaling = d.abScaling
+    end
+
+    if sv.ultScaling == nil then
+        sv.ultScaling = d.ultScaling
+    end
+
+    if sv.qsScaling == nil then
+        sv.qsScaling = d.qsScaling
     end
 
     -- Migrate old scaling settings
@@ -6999,11 +7576,7 @@ function FancyActionBar.ValidateVariables() -- all about safety checks these day
 
     -- Main validation flow
     if sv.variablesValidated == false or sv.addonVersion ~= FancyActionBar.GetVersion() then
-        ValidateBasicSettings(sv, d)
-        ValidateBlacklists(sv)
-        ValidateScalingSettings(sv, d)
-        ValidateGamepadSettings(sv, d)
-        ValidateKeyboardSettings(sv, d)
+        ValidateSavedVariables(d)
 
         -- Update validation status
         sv.variablesValidated = true

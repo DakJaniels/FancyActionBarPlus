@@ -15,6 +15,7 @@ local strings =
     FANCYAB_SUBMENU_TARGETKB_DESC = "Configuración de visualización del contador de objetivos para la interfaz de teclado",
 
     -- Categories
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Visibilidad de la barra delantera|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Visibilidad de la barra trasera|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Texto de teclas rápidas|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Marcos de botones|r ]",
@@ -32,9 +33,44 @@ local strings =
     FANCYAB_ALPHA_NAME = "Transparencia de barra inactiva",
     FANCYAB_ALPHA_TT = "Valor más alto = más sólido.\nValor más bajo = más transparente.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Aplicar transparencia de la barra activa",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Permite anular la transparencia de la barra activa. Ten en cuenta que esto entra en conflicto con la forma en que el juego base indica que las habilidades dirigidas se pueden lanzar.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Aplicar desaturación de la barra activa",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Permite anular la saturación/escala de grises de la barra activa. Ten en cuenta que esto entra en conflicto con la forma en que el juego base indica que las habilidades dirigidas se pueden lanzar.",
+
+    FANCYAB_ALPHA_USABLE_NAME = "Transparencia de habilidades usables",
+    FANCYAB_ALPHA_USABLE_TT = "Opacidad del icono cuando la habilidad se puede usar.\n100 coincide con el juego base.",
+
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Desaturación de barra inactiva",
     FANCYAB_DESAT_TT = "Valor más alto = más gris.\nValor más bajo = más colores.",
+
+    FANCYAB_TINT_INACTIVE_NAME = "Tinte de barra inactiva",
+    FANCYAB_TINT_INACTIVE_TT = "Tinte de color del icono de la barra inactiva (trasera).\nEl blanco deja el tono sin cambios.",
+
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Transparencia de habilidades no usables",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Opacidad del icono cuando la habilidad no se puede usar.\n57 coincide con el juego base.",
+
+    FANCYAB_DESAT_USABLE_NAME = "Desaturación de habilidades usables",
+    FANCYAB_DESAT_USABLE_TT = "Escala de grises cuando la habilidad se puede usar.\n0 coincide con el juego base.",
+
+    FANCYAB_DESAT_UNUSABLE_NAME = "Desaturación de habilidades no usables",
+    FANCYAB_DESAT_UNUSABLE_TT = "Escala de grises cuando la habilidad no se puede usar.\n100 coincide con el juego base para reutilización.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Aplicar tinte de icono de barra activa",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Permite reemplazar el tinte de color del icono. El juego base usa un gris oscuro (no desaturación) para muchas habilidades no usables.",
+    FANCYAB_TINT_USABLE_NAME = "Tinte de habilidades usables",
+    FANCYAB_TINT_USABLE_TT = "Color del icono cuando la habilidad se puede usar.\nEl blanco coincide con el juego base.",
+    FANCYAB_TINT_UNUSABLE_NAME = "Tinte de habilidades no usables",
+    FANCYAB_TINT_UNUSABLE_TT = "Color del icono cuando la habilidad no se puede usar.\nEl gris oscuro (30 %) coincide con el juego base para fallos de coste.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparencia del marco (barra activa)",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparencia del fondo del botón (barra activa)",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Transparencia del marco (barra inactiva)",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Transparencia del fondo del botón (barra inactiva)",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Opacidad del fondo detrás del icono de la habilidad.\nValor más alto = más sólido.\nValor más bajo = más transparente.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Opacidad del marco del botón.\nSolo aplica cuando Marcos personalizados está activado.\nValor más alto = más sólido.\nValor más bajo = más transparente.",
 
     -- Hotkey settings
     FANCYAB_HOTKEY_NAME = "Mostrar teclas rápidas",

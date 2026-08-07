@@ -15,6 +15,7 @@ local strings =
     FANCYAB_SUBMENU_TARGETKB_DESC = "Tastatur-UI Zielzähler-Anzeigeeinstellungen",
 
     -- Categories
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Vorderleisten-Sichtbarkeit|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Rückleisten-Sichtbarkeit|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Tastenkürzel-Text|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Schaltflächen-Rahmen|r ]",
@@ -32,9 +33,44 @@ local strings =
     FANCYAB_ALPHA_NAME = "Inaktive Leisten-Transparenz",
     FANCYAB_ALPHA_TT = "Höherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Aktive Leisten-Transparenz anwenden",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Ermöglicht das Überschreiben der Transparenz der aktiven Leiste. Hinweis: Dies steht in Konflikt damit, wie das Basisspiel anzeigt, dass zielgerichtete Fähigkeiten wirksam eingesetzt werden können.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Aktive Leisten-Entsättigung anwenden",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Ermöglicht das Überschreiben der Sättigung/Graustufe der aktiven Leiste. Hinweis: Dies steht in Konflikt damit, wie das Basisspiel anzeigt, dass zielgerichtete Fähigkeiten wirksam eingesetzt werden können.",
+
+    FANCYAB_ALPHA_USABLE_NAME = "Transparenz nutzbarer Fähigkeiten",
+    FANCYAB_ALPHA_USABLE_TT = "Symboldeckkraft, wenn die Fähigkeit genutzt werden kann.\n100 entspricht dem Basisspiel-Standard.",
+
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Inaktive Leisten-Entsättigung",
     FANCYAB_DESAT_TT = "Höherer Wert = grauer.\nNiedriger Wert = farbiger.",
+
+    FANCYAB_TINT_INACTIVE_NAME = "Inaktive Leisten-Farbe",
+    FANCYAB_TINT_INACTIVE_TT = "Icon-Farbtönung für die inaktive (Hinter-)Leiste.\nWeiß lässt den Farbton unverändert.",
+
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Transparenz nicht nutzbarer Fähigkeiten",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Symboldeckkraft, wenn die Fähigkeit nicht genutzt werden kann.\n57 entspricht dem Basisspiel-Standard.",
+
+    FANCYAB_DESAT_USABLE_NAME = "Entsättigung nutzbarer Fähigkeiten",
+    FANCYAB_DESAT_USABLE_TT = "Graustufe, wenn die Fähigkeit genutzt werden kann.\n0 entspricht dem Basisspiel-Standard.",
+
+    FANCYAB_DESAT_UNUSABLE_NAME = "Entsättigung nicht nutzbarer Fähigkeiten",
+    FANCYAB_DESAT_UNUSABLE_TT = "Graustufe, wenn die Fähigkeit nicht genutzt werden kann.\n100 entspricht dem Basisspiel-Standard für Abklingzeit.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Aktive Leisten-Icon-Farbe anwenden",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Ermöglicht das Überschreiben der Icon-Farbtönung. Das Basisspiel nutzt für viele nicht nutzbare Fähigkeiten ein dunkles Grau (keine Entsättigung).",
+    FANCYAB_TINT_USABLE_NAME = "Farbe nutzbarer Fähigkeiten",
+    FANCYAB_TINT_USABLE_TT = "Icon-Farbe, wenn die Fähigkeit genutzt werden kann.\nWeiß entspricht dem Basisspiel-Standard.",
+    FANCYAB_TINT_UNUSABLE_NAME = "Farbe nicht nutzbarer Fähigkeiten",
+    FANCYAB_TINT_UNUSABLE_TT = "Icon-Farbe, wenn die Fähigkeit nicht genutzt werden kann.\nDunkelgrau (30 %) entspricht dem Basisspiel-Standard für Ressourcenmangel.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Aktive Leiste: Rahmen-Transparenz",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Aktive Leiste: Schaltflächen-Hintergrund-Transparenz",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Inaktive Leiste: Rahmen-Transparenz",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Inaktive Leiste: Schaltflächen-Hintergrund-Transparenz",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Deckkraft des Hintergrunds hinter dem Fähigkeitensymbol.\nHöherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Deckkraft des Schaltflächen-Rahmens.\nGilt nur, wenn Benutzerdefinierte Rahmen aktiviert ist.\nHöherer Wert = undurchsichtiger.\nNiedriger Wert = durchsichtiger.",
 
     -- Hotkey settings
     FANCYAB_HOTKEY_NAME = "Tastenkürzel anzeigen",

@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/DakJaniels/esoui_gui_xsd/main/esoui_gui_xml.xsd">
+  <Animations>
+    <AnimationTimeline name="FAB_ActionSlotPressAnimation">
+      <Animations>
+        <SizeAnimation duration="133"
+                       delay="33">
+          <EasingFunction>
+            return ZO_EaseInQuadratic(progress)
+          </EasingFunction>
+        </SizeAnimation>
+      </Animations>
+    </AnimationTimeline>
+    <AnimationTimeline name="FAB_ActionSlotReleaseAnimation">
+      <Animations>
+        <SizeAnimation duration="167">
+          <EasingFunction>
+            return ZO_EaseInQuadratic(progress)
+          </EasingFunction>
+        </SizeAnimation>
+        <SizeAnimation duration="167"
+                       delay="167">
+          <EasingFunction>
+            return ZO_EaseOutQuadratic(progress)
+          </EasingFunction>
+        </SizeAnimation>
+      </Animations>
+    </AnimationTimeline>
+  </Animations>
   <Controls>
     <!-- Misc Templates -->
     <Control name="FAB_ActionButton_FlipCardControl"

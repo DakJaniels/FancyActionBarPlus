@@ -15,6 +15,7 @@ local strings =
     FANCYAB_SUBMENU_TARGETKB_DESC = "Paramètres d'affichage du compteur de cibles pour l'interface clavier",
 
     -- Categories
+    FANCYAB_CAT_FBVISUAL = "[ |cffdf80Visibilité de la barre avant|r ]",
     FANCYAB_CAT_BBVISUAL = "[ |cffdf80Visibilité de la barre arrière|r ]",
     FANCYAB_CAT_HOTKEY = "[ |cffdf80Texte des raccourcis|r ]",
     FANCYAB_CAT_FRAMES = "[ |cffdf80Cadres des boutons|r ]",
@@ -32,9 +33,44 @@ local strings =
     FANCYAB_ALPHA_NAME = "Transparence de la barre inactive",
     FANCYAB_ALPHA_TT = "Valeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
 
+    FANCYAB_APPLY_ACTIVE_ALPHA_NAME = "Appliquer la transparence de la barre active",
+    FANCYAB_APPLY_ACTIVE_ALPHA_TT = "Permet de remplacer la transparence de la barre active. Notez que cela entre en conflit avec la façon dont le jeu de base indique que les capacités ciblées peuvent être lancées.",
+
+    FANCYAB_APPLY_ACTIVE_DESAT_NAME = "Appliquer la désaturation de la barre active",
+    FANCYAB_APPLY_ACTIVE_DESAT_TT = "Permet de remplacer la saturation/niveau de gris de la barre active. Notez que cela entre en conflit avec la façon dont le jeu de base indique que les capacités ciblées peuvent être lancées.",
+
+    FANCYAB_ALPHA_USABLE_NAME = "Transparence des capacités utilisables",
+    FANCYAB_ALPHA_USABLE_TT = "Opacité de l'icône lorsque la capacité peut être utilisée.\n100 correspond au jeu de base.",
+
     -- Desaturation settings
     FANCYAB_DESAT_NAME = "Désaturation de la barre inactive",
     FANCYAB_DESAT_TT = "Valeur plus élevée = plus gris.\nValeur plus basse = plus de couleurs.",
+
+    FANCYAB_TINT_INACTIVE_NAME = "Teinte de la barre inactive",
+    FANCYAB_TINT_INACTIVE_TT = "Teinte de couleur des icônes de la barre inactive (arrière).\nLe blanc conserve la teinte d'origine.",
+
+    FANCYAB_ALPHA_UNUSABLE_NAME = "Transparence des capacités inutilisables",
+    FANCYAB_ALPHA_UNUSABLE_TT = "Opacité de l'icône lorsque la capacité ne peut pas être utilisée.\n57 correspond au jeu de base.",
+
+    FANCYAB_DESAT_USABLE_NAME = "Désaturation des capacités utilisables",
+    FANCYAB_DESAT_USABLE_TT = "Niveau de gris lorsque la capacité peut être utilisée.\n0 correspond au jeu de base.",
+
+    FANCYAB_DESAT_UNUSABLE_NAME = "Désaturation des capacités inutilisables",
+    FANCYAB_DESAT_UNUSABLE_TT = "Niveau de gris lorsque la capacité ne peut pas être utilisée.\n100 correspond au jeu de base pour la recharge.",
+
+    FANCYAB_APPLY_ACTIVE_TINT_NAME = "Appliquer la teinte d'icône de la barre active",
+    FANCYAB_APPLY_ACTIVE_TINT_TT = "Permet de remplacer la teinte de couleur de l'icône. Le jeu de base utilise un gris foncé (pas la désaturation) pour de nombreuses capacités inutilisables.",
+    FANCYAB_TINT_USABLE_NAME = "Teinte des capacités utilisables",
+    FANCYAB_TINT_USABLE_TT = "Couleur de l'icône lorsque la capacité peut être utilisée.\nLe blanc correspond au jeu de base.",
+    FANCYAB_TINT_UNUSABLE_NAME = "Teinte des capacités inutilisables",
+    FANCYAB_TINT_UNUSABLE_TT = "Couleur de l'icône lorsque la capacité ne peut pas être utilisée.\nLe gris foncé (30 %) correspond au jeu de base pour les échecs de coût.",
+
+    FANCYAB_OVERLAY_FRAME_ACTIVE_NAME = "Transparence du cadre (barre active)",
+    FANCYAB_OVERLAY_BG_ACTIVE_NAME = "Transparence de l'arrière-plan du bouton (barre active)",
+    FANCYAB_OVERLAY_FRAME_INACTIVE_NAME = "Transparence du cadre (barre inactive)",
+    FANCYAB_OVERLAY_BG_INACTIVE_NAME = "Transparence de l'arrière-plan du bouton (barre inactive)",
+    FANCYAB_BUTTON_BACKDROP_ALPHA_TT = "Opacité de l'arrière-plan derrière l'icône de la capacité.\nValeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
+    FANCYAB_FRAME_BORDER_ALPHA_TT = "Opacité du cadre du bouton.\nS'applique uniquement lorsque Cadres personnalisés est activé.\nValeur plus élevée = plus solide.\nValeur plus basse = plus transparent.",
 
     -- Hotkey settings
     FANCYAB_HOTKEY_NAME = "Afficher les raccourcis",

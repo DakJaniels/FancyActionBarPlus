@@ -2,10 +2,9 @@
 local FancyActionBar = FancyActionBar
 local GetAbilityDuration = FancyActionBar.GetAbilityDuration
 
---- @param summonShade integer
 --- @return integer
-local function GetSummonShade(summonShade)
-    summonShade = 38517
+local function GetSummonShade()
+    local summonShade = 38517
     local raceId = GetUnitRaceId("player")
     if raceId == 9 then
         summonShade = 88662 -- khajiit
@@ -15,13 +14,9 @@ local function GetSummonShade(summonShade)
     return summonShade
 end
 
---- @type integer
-local summonShade
-
---- @param shadowImage integer
 --- @return integer
-local function GetShadowImage(shadowImage)
-    shadowImage = 38528
+local function GetShadowImage()
+    local shadowImage = 38528
     local raceId = GetUnitRaceId("player")
     if raceId == 9 then
         shadowImage = 88696 -- khajiit
@@ -31,13 +26,9 @@ local function GetShadowImage(shadowImage)
     return shadowImage
 end
 
---- @type integer
-local shadowImage
-
---- @param darkShade integer
 --- @return integer
-local function GetDarkShade(darkShade)
-    darkShade = 35438
+local function GetDarkShade()
+    local darkShade = 35438
     local raceId = GetUnitRaceId("player")
     if raceId == 9 then
         darkShade = 88677 -- khajiit
@@ -46,9 +37,6 @@ local function GetDarkShade(darkShade)
     end
     return darkShade
 end
-
---- @type integer
-local darkShade
 
 FancyActionBar.abilityConfig =
 {
@@ -164,7 +152,7 @@ FancyActionBar.abilityConfig =
     [32632] = { 137156 }, -- punce (carnage bleed)
     [39105] = { 137184 }, -- brutal pounce (brutal carnage bleed)
     [39104] = { 137164 }, -- feral pounce (brutal carnage bleed)
-    [58317] = { 137206 },  -- hircine's rage
+    [58317] = { 137206 }, -- hircine's rage
     [58325] = { 61704 },  -- hircine's fortitude (minor fortitude)
     [32633] = { 137257 }, -- roar (off-balance)
     [39113] = { 45834 },  -- ferocious roar (off-balance); 137287 is heavy attack speed buff
@@ -349,6 +337,7 @@ FancyActionBar.abilityConfig =
     [86041] = { 177289 }, -- deceptive predator
     [86045] = { 177290 }, -- bird of prey
     [85862] = { 61704 },  -- enchanted growth (minor endurance)
+    [85922] = { 85840 },  -- Budding Seeds (Proc)
     [85564] = { 90266 },  -- nature's grasp healing
     [85858] = { 88726 },  -- nature's embrace healing
     [86122] = { 61694 },  -- frost cloak
@@ -366,52 +355,52 @@ FancyActionBar.abilityConfig =
     [86113] = { 132429 }, -- northern storm
 
     -- Nightblade
-    [33386] = false,                           -- assassin's blade
-    [34843] = false,                           -- killer's blade
-    [34851] = false,                           -- impale
-    [25484] = { 79717 },                       -- ambush (minor vulnerability)
-    [18342] = { 79717 },                       -- teleport strike (minor vulnerability)
-    [25493] = { 79717 },                       -- lotus fan (minor vulnerability)
-    [33375] = { 61716 },                       -- blur (major evasion)
-    [35414] = { 61716 },                       -- mirage (major evasion)
-    [35419] = { 61716 },                       -- phantasmal escape (125314 = 2.5 sec snare immune)
-    [61902] = {},                              -- grim focus (ingame timer is bugged)
-    [61907] = { 61902 },                       --  false  ; -- grim focus proc
-    [61919] = {},                              -- merciless resolve (ingame timer is bugged)
-    [61930] = { 61919 },                       -- false  ; -- merciless resolve proc
-    [61927] = {},                              -- relentless focus (ingame timer is bugged)
-    [61932] = { 61927 },                       -- false  ; -- relentless focus proc
-    [33398] = { 61389 },                       -- death stroke
-    [36508] = { 61393 },                       -- incap (70 ult)
-    [113105] = { 113107 },                     -- incap (120 ult)
-    [36514] = { 61400 },                       -- soul harvest
-    [25255] = { 25256 },                       -- veiled strike (off-balance)
-    [25267] = { 34739 },                       -- concealed weapon
-    [25260] = { 34733 },                       -- surprise attack (off-balance)
-    [25375] = { 234617 },                      -- shadow cloak (born from shadow)
-    [25380] = { 234617 },                      -- shadowy disguise (born from shadow)
-    [25352] = { 147643 },                      -- aspect of terror
-    [37470] = { 147643 },                      -- mass hysteria
-    [37475] = {},                              -- manifestation of terror
-    [33211] = { GetSummonShade(summonShade) }, -- summon shade
-    [35434] = { GetDarkShade(darkShade) },     -- dark shade
-    [35441] = { GetShadowImage(shadowImage) }, -- shadow image
-    [35445] = false,                           -- shadow image proc
-    [33291] = { 33292 },                       -- strife heal
-    [34838] = { 34841 },                       -- funnel health heal
-    [34835] = { 34836 },                       -- swallow soul heal
-    [33308] = { 108925 },                      -- melevolent offering
-    [34721] = { 108927 },                      -- shrewd offering
-    [34727] = { 108932 },                      -- healthy offering
-    [33326] = { 33333 },                       -- cripple
-    [36943] = { 36947 },                       -- debilitate
-    [36957] = { 36960 },                       -- crippling grasp
-    [36908] = { 215672 },                      -- leeching strikes
-    [33316] = { 61665 },                       -- drain power
-    [36901] = { 61665 },                       -- power extraction
-    [36891] = { 61665 },                       -- sap essence
-    [25091] = { 25093 },                       -- soul shred
-    [35460] = { 35462 },                       -- soul tether
+    [33386] = false,                -- assassin's blade
+    [34843] = false,                -- killer's blade
+    [34851] = false,                -- impale
+    [25484] = { 79717 },            -- ambush (minor vulnerability)
+    [18342] = { 79717 },            -- teleport strike (minor vulnerability)
+    [25493] = { 79717 },            -- lotus fan (minor vulnerability)
+    [33375] = { 61716 },            -- blur (major evasion)
+    [35414] = { 61716 },            -- mirage (major evasion)
+    [35419] = { 61716 },            -- phantasmal escape (125314 = 2.5 sec snare immune)
+    [61902] = {},                   -- grim focus (ingame timer is bugged)
+    [61907] = { 61902 },            --  false  ; -- grim focus proc
+    [61919] = {},                   -- merciless resolve (ingame timer is bugged)
+    [61930] = { 61919 },            -- false  ; -- merciless resolve proc
+    [61927] = {},                   -- relentless focus (ingame timer is bugged)
+    [61932] = { 61927 },            -- false  ; -- relentless focus proc
+    [33398] = { 61389 },            -- death stroke
+    [36508] = { 61393 },            -- incap (70 ult)
+    [113105] = { 113107 },          -- incap (120 ult)
+    [36514] = { 61400 },            -- soul harvest
+    [25255] = { 25256 },            -- veiled strike (off-balance)
+    [25267] = { 34739 },            -- concealed weapon
+    [25260] = { 34733 },            -- surprise attack (off-balance)
+    [25375] = { 234617 },           -- shadow cloak (born from shadow)
+    [25380] = { 234617 },           -- shadowy disguise (born from shadow)
+    [25352] = { 147643 },           -- aspect of terror
+    [37470] = { 147643 },           -- mass hysteria
+    [37475] = {},                   -- manifestation of terror
+    [33211] = { GetSummonShade() }, -- summon shade
+    [35434] = { GetDarkShade() },   -- dark shade
+    [35441] = { GetShadowImage() }, -- shadow image
+    [35445] = false,                -- shadow image proc
+    [33291] = { 33292 },            -- strife heal
+    [34838] = { 34841 },            -- funnel health heal
+    [34835] = { 34836 },            -- swallow soul heal
+    [33308] = { 108925 },           -- melevolent offering
+    [34721] = { 108927 },           -- shrewd offering
+    [34727] = { 108932 },           -- healthy offering
+    [33326] = { 33333 },            -- cripple
+    [36943] = { 36947 },            -- debilitate
+    [36957] = { 36960 },            -- crippling grasp
+    [36908] = { 215672 },           -- leeching strikes
+    [33316] = { 61665 },            -- drain power
+    [36901] = { 61665 },            -- power extraction
+    [36891] = { 61665 },            -- sap essence
+    [25091] = { 25093 },            -- soul shred
+    [35460] = { 35462 },            -- soul tether
 
     -- Necromancer
     [117637] = { 117638 }, -- ricochet skull: base (0 stacks)
@@ -696,7 +685,7 @@ FancyActionBar.stackMap =
 
     [117638] = { 117638, 117637, 123718, 123719 }, -- Ricochet Skull
     [117625] = { 117625, 117624, 123699, 123704 }, -- venom skull
-    [125749] = { 125749, 125750 },                         -- ruinous scythe
+    [125749] = { 125749, 125750 },                 -- ruinous scythe
 
     -- Crux
     [184220] =
@@ -807,7 +796,7 @@ FancyActionBar.stackMap =
         137184,
         39105
     },
-    
+
 }
 
 FancyActionBar.fixedStacks =
@@ -1017,13 +1006,13 @@ FancyActionBar.specialClassEffects =
 
     -- Warden
     [127] =
-    {                                                                                                                       -- Animal Companions
-        [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 },  -- Scorch, first proc
-        [178020] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Scorch, second proc
-        [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, altDuration = 6, procs = 1, hasProced = 0 },  -- Sub Assault, first proc
-        [146919] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 1, procs = 1, hasProced = 1 }, -- Sub Assault, second proc
-        [86015] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 },  -- Deep Fissure, first proc
-        [178028] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 }, -- Deep Fissure, second proc
+    {                                                                                                                                       -- Animal Companions
+        [86009] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 }, -- Scorch, first proc
+        [178020] = { id = 86009, stackId = { 86009 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 },                 -- Scorch, second proc
+        [86019] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 2, altDuration = 6, procs = 1, hasProced = 0 }, -- Sub Assault, first proc
+        [146919] = { id = 86019, stackId = { 86019 }, setTime = true, duration = 3, stacks = 1, procs = 1, hasProced = 1 },                 -- Sub Assault, second proc
+        [86015] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 3, altDuration = 9, stacks = 2, procs = 1, hasProced = 0 }, -- Deep Fissure, first proc
+        [178028] = { id = 86015, stackId = { 86015 }, setTime = true, duration = 6, stacks = 1, procs = 1, hasProced = 1 },                 -- Deep Fissure, second proc
     },
     -- [128] = {}, -- Green Balance
     [129] =
@@ -1173,11 +1162,11 @@ FancyActionBar.toggled =
     -- [39076] = true; -- Werewolf Berserker
 
     -- Vampire
-    --[132141] = true, -- Blood Frenzy
+    -- [132141] = true, -- Blood Frenzy
     [172418] = true, -- Blood Frenzy (Stacks)
-    --[134160] = true, -- Simmering Frenzy
+    -- [134160] = true, -- Simmering Frenzy
     [134166] = true, -- Simmering Frenzy (Stacks)
-    --[135841] = true, -- Sated Fury
+    -- [135841] = true, -- Sated Fury
     [172648] = true, -- Sated Fury (Stacks)
 
     -- Psijic Order
@@ -1195,11 +1184,10 @@ FancyActionBar.toggled =
     [78338] = true, -- active: Guard (Guard)
     [81415] = true, -- active: Mystic Guard (Mystic Guard)
 
-    -- [80923] = true; -- guard (on self)
-    -- [80947] = true; -- mystic guard (on self)
-    -- [80983] = true; -- stalwart guard (on self) 80984 = minor force on target. 80986 = minor force on self
+    [80923] = true; -- guard (on self)
+    [80947] = true; -- mystic guard (on self)
+    [80983] = true; -- stalwart guard (on self) 80984 = minor force on target. 80986 = minor force on self
 
-    -- [78338] = true; -- guard (inactive)
     [81420] = true, -- Link active
 
     -- Sorcerer
@@ -1343,8 +1331,6 @@ FancyActionBar.guard =
 {
     -- to help identify and update overlays as the slotted id changes depending on link state.
     link = 81420,
-    slot1 = nil,
-    slot2 = nil,
     ids =
     {
         [61511] = true, -- guard
@@ -1549,6 +1535,8 @@ FancyActionBar.removeInstantly =
     -- [256798] = true, -- Volcanic Whip
     -- [20824] = true,  -- Power Lash
     [267744] = true, -- Gnash (Blood Hunger)
+    [85840] = true,  -- Budding Seeds (Main)
+    [85922] = true,  -- Budding Seeds (Proc)
 }
 
 FancyActionBar.allowedChanneled =
@@ -1581,7 +1569,7 @@ FancyActionBar.allowedChanneled =
     [186200] = true, -- curative surge
     [198537] = true, -- curative surge
 
-    [58864] = true, -- Claw Fury
+    [58864] = true,  -- Claw Fury
 }
 
 FancyActionBar.soloTarget =

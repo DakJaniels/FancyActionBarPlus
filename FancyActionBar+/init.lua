@@ -1,9 +1,6 @@
 --- @class (partial) FancyActionBar
 --- @field __index FancyActionBar
---- @field style integer # 1 for keyboard, 2 for gamepad
---- @field updateUI boolean # Flag to determine if UI needs updating
 --- @field constants FancyActionBarConstants
---- @field useGamepadActionBar boolean # Force enable gamepad actionbar style
 FancyActionBar = {}
 FancyActionBar.__index = FancyActionBar
 
@@ -23,6 +20,11 @@ FancyActionBar.defaultCharacter =
     nextConfigProfileId = 1,
     dynamicAbilityConfig = false,
 
+    effectWidgets = {},
+    effectWidgetActiveAlphaDefault = 1,
+    effectWidgetInactiveAlphaDefault = 0,
+    effectWidgetsLocked = true,
+
     hideOnNoTargetGlobal = false,
     hideOnNoTargetList = {},
 
@@ -41,6 +43,7 @@ FancyActionBar.defaultSettings =
     nextConfigProfileId = 1,
     dynamicAbilityConfig = false,
     forceGamepadStyle = false,
+    keyboardBounceAnimation = false,
 
     externalBuffs = false,
     externalBlackListRun = false,
@@ -107,9 +110,24 @@ FancyActionBar.defaultSettings =
     forceReposition = false,
     forceAzurahMover = false,
 
-    -- back bar visibility
+    -- inactive bar visibility
     alphaInactive = 20,
     desaturationInactive = 50,
+    tintInactive = { 1, 1, 1, 1 },
+    overlayFrameAlphaInactive = 100,
+    overlayBgAlphaInactive = 100,
+    -- active bar visibility
+    applyActiveBarAlpha = false,
+    applyActiveBarDesaturation = false,
+    applyActiveBarTint = false,
+    alphaUsable = 100,
+    alphaUnusable = 57,
+    desatUsable = 0,
+    desatUnusable = 100,
+    tintUsable = { 1, 1, 1, 1 },
+    tintUnusable = { 0.3, 0.3, 0.3, 1 },
+    overlayFrameAlphaActive = 100,
+    overlayBgAlphaActive = 100,
     -- timer display settings
     delayFade = true,
     fadeDelay = 2,
@@ -288,6 +306,16 @@ FancyActionBar.defaultSettings =
         kb = { enable = false, scale = 100 },
         gp = { enable = false, scale = 100 },
     },
+    ultScaling =
+    {
+        kb = { enable = false, scale = 100 },
+        gp = { enable = false, scale = 100 },
+    },
+    qsScaling =
+    {
+        kb = { enable = false, scale = 100 },
+        gp = { enable = false, scale = 100 },
+    },
     abMove =
     {                                                                    -- y = -(default + adjusted) anchor offset
         kb = { enable = false, x = 0, y = -22, prevX = 0, prevY = -22 }, -- y =      -( 0 + 22)
@@ -304,7 +332,7 @@ FancyActionBar.defaultSettings =
 }
 FancyActionBar.strings =
 {
-    -- outdated and mostly unused. will make settings more managable eventually.
+    -- outdated and mostly unused. will make settings more manageable eventually.
 
     -- submenu names
     subGeneral = GetString(FANCYAB_SUBMENU_GENERAL),
@@ -322,6 +350,7 @@ FancyActionBar.strings =
 
     -- submenu category titles
     catBBVisual = GetString(FANCYAB_CAT_BBVISUAL),
+    catFBVisual = GetString(FANCYAB_CAT_FBVISUAL),
     catHotkey = GetString(FANCYAB_CAT_HOTKEY),
     catFrames = GetString(FANCYAB_CAT_FRAMES),
     catHighlight = GetString(FANCYAB_CAT_HIGHLIGHT),
@@ -335,13 +364,39 @@ FancyActionBar.strings =
     catMarkerDesc = GetString(FANCYAB_CAT_MARKER_DESC),
 
     -- settings names and tooltips
-    -- back bar alpha
+    -- inactive bar
     alphaName = GetString(FANCYAB_ALPHA_NAME),
     alphaTT = GetString(FANCYAB_ALPHA_TT),
-
-    -- backbar desaturation
     desatName = GetString(FANCYAB_DESAT_NAME),
     desatTT = GetString(FANCYAB_DESAT_TT),
+    tintInactiveName = GetString(FANCYAB_TINT_INACTIVE_NAME),
+    tintInactiveTT = GetString(FANCYAB_TINT_INACTIVE_TT),
+
+    -- active bar
+    applyActiveBarAlphaName = GetString(FANCYAB_APPLY_ACTIVE_ALPHA_NAME),
+    applyActiveBarAlphaTT = GetString(FANCYAB_APPLY_ACTIVE_ALPHA_TT),
+    applyActiveBarDesaturationName = GetString(FANCYAB_APPLY_ACTIVE_DESAT_NAME),
+    applyActiveBarDesaturationTT = GetString(FANCYAB_APPLY_ACTIVE_DESAT_TT),
+    alphaUsableName = GetString(FANCYAB_ALPHA_USABLE_NAME),
+    alphaUsableTT = GetString(FANCYAB_ALPHA_USABLE_TT),
+    alphaUnusableName = GetString(FANCYAB_ALPHA_UNUSABLE_NAME),
+    alphaUnusableTT = GetString(FANCYAB_ALPHA_UNUSABLE_TT),
+    desatUsableName = GetString(FANCYAB_DESAT_USABLE_NAME),
+    desatUsableTT = GetString(FANCYAB_DESAT_USABLE_TT),
+    desatUnusableName = GetString(FANCYAB_DESAT_UNUSABLE_NAME),
+    desatUnusableTT = GetString(FANCYAB_DESAT_UNUSABLE_TT),
+    applyActiveBarTintName = GetString(FANCYAB_APPLY_ACTIVE_TINT_NAME),
+    applyActiveBarTintTT = GetString(FANCYAB_APPLY_ACTIVE_TINT_TT),
+    tintUsableName = GetString(FANCYAB_TINT_USABLE_NAME),
+    tintUsableTT = GetString(FANCYAB_TINT_USABLE_TT),
+    tintUnusableName = GetString(FANCYAB_TINT_UNUSABLE_NAME),
+    tintUnusableTT = GetString(FANCYAB_TINT_UNUSABLE_TT),
+    overlayFrameActiveName = GetString(FANCYAB_OVERLAY_FRAME_ACTIVE_NAME),
+    overlayBgActiveName = GetString(FANCYAB_OVERLAY_BG_ACTIVE_NAME),
+    overlayFrameInactiveName = GetString(FANCYAB_OVERLAY_FRAME_INACTIVE_NAME),
+    overlayBgInactiveName = GetString(FANCYAB_OVERLAY_BG_INACTIVE_NAME),
+    buttonBackdropAlphaTT = GetString(FANCYAB_BUTTON_BACKDROP_ALPHA_TT),
+    frameBorderAlphaTT = GetString(FANCYAB_FRAME_BORDER_ALPHA_TT),
 
     -- keybinds
     hotkeyName = GetString(FANCYAB_HOTKEY_NAME),
@@ -426,214 +481,197 @@ FancyActionBar.strings =
     disclaimer = GetString(FANCYAB_DISCLAIMER),
 }
 
---- Returns a table with the configuration for the given mode and style
+FancyActionBar.defaultAbilityConfigProfileName = "Default"
+FancyActionBar.emptyStackList = {}
+
+FancyActionBar.specialHotbar =
+{
+    [HOTBAR_CATEGORY_TEMPORARY] = true,
+    [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = true,
+}
+
+FancyActionBar.dropCalloutValidityByActionType =
+{
+    [ACTION_TYPE_ABILITY] = IsValidAbilityForSlot,
+    [ACTION_TYPE_CRAFTED_ABILITY] = IsValidCraftedAbilityForSlot,
+}
+
+FancyActionBar.gamepadConstants =
+{
+    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, -25),
+    dimensions = 64,
+    flipCardSize = 61,
+    ultFlipCardSize = 67,
+    abilitySlotWidth = 64,
+    buttonTextOffsetY = 80,
+    actionBarOffset = -52,
+    attributesOffset = -152,
+    width = 606,
+    anchorOffsetY = -25,
+    ultimateSlotOffsetX = 12, -- 65,
+    ultSize = 70,
+    quickslotOffsetX = 0,
+    bindingTextOnUlt = false,
+    showKeybindBG = false,
+    buttonTemplate = "FAB_ActionButton_Gamepad_Template",
+    ultButtonTemplate = "FAB_UltimateActionButton_Gamepad_Template",
+    overlayTemplate = "FAB_ActionButtonOverlay_Gamepad_Template",
+    ultOverlayTemplate = "FAB_UltimateButtonOverlay_Gamepad_Template",
+    qsOverlayTemplate = "FAB_QuickSlotOverlay_Gamepad_Template",
+    swapAnimationSize = 61,
+    quickSlotAnchor = { base = 2, multiplySlotCount = true },
+    ultimateSpacing = { baseX = 10, baseGap = 10, companionExtraX = 20, ultWidth = 65 },
+}
+
+FancyActionBar.keyboardConstants =
+{
+    anchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, 0, 0),
+    dimensions = 50,
+    flipCardSize = 47,
+    ultFlipCardSize = 47,
+    abilitySlotWidth = 50,
+    buttonTextOffsetY = 62,
+    actionBarOffset = -22,
+    attributesOffset = -112,
+    width = 483,
+    anchorOffsetY = 0,
+    ultimateSlotOffsetX = 8, -- 12,
+    ultSize = 50,
+    quickslotOffsetX = 0,
+    bindingTextOnUlt = false,
+    showKeybindBG = false,
+    buttonTemplate = "FAB_ActionButton_Keyboard_Template",
+    ultButtonTemplate = "FAB_UltimateActionButton_Keyboard_Template",
+    overlayTemplate = "FAB_ActionButtonOverlay_Keyboard_Template",
+    ultOverlayTemplate = "FAB_UltimateButtonOverlay_Keyboard_Template",
+    qsOverlayTemplate = "FAB_QuickSlotOverlay_Keyboard_Template",
+    swapAnimationSize = 47,
+    quickSlotAnchor = { base = 5, multiplySlotCount = false },
+    ultimateSpacing = { trailing = -2 },
+}
+
+FancyActionBar.ultimateButtonStyle =
+{ -- TODO make back bar ult button to display duration.
+    type = ACTION_BUTTON_TYPE_VISIBLE,
+    template = "ZO_UltimateActionButton",
+    showBinds = false,
+    parentBar = "",
+}
+
+-- UI mode: 1 = keyboard, 2 = gamepad.
+-- SV stores persisted settings with per-mode keys (SvKey, e.g. fontNameKB).
+-- constants is the runtime snapshot for the active mode; menu setFuncs write SV
+-- always and patch constants when constants.mode matches the panel being edited.
+local modeSuffix = { [1] = "KB", [2] = "GP" }
+local modeScaleKey = { [1] = "kb", [2] = "gp" }
+
+function FancyActionBar.SvKey(base, mode)
+    return base .. modeSuffix[mode]
+end
+
+function FancyActionBar.CurrentMode()
+    local c = FancyActionBar.constants
+    if c then
+        return c.mode
+    end
+    return FancyActionBar.GetUIMode()
+end
+
+local function mapSection(sv, mode, fields)
+    local section = {}
+    for key, base in pairs(fields) do
+        section[key] = sv[FancyActionBar.SvKey(base, mode)]
+    end
+    return section
+end
+
+local durationFields = { font = "fontName", size = "fontSize", outline = "fontType", y = "timeY", color = "timeColor" }
+local stackFields = { font = "fontNameStack", size = "fontSizeStack", outline = "fontTypeStack", x = "stackX", y = "stackY", color = "stackColor" }
+local targetFields = { font = "fontNameTarget", size = "fontSizeTarget", outline = "fontTypeTarget", x = "targetX", y = "targetY", color = "targetColor" }
+local ultDurationFields = { show = "ultShow", font = "ultName", size = "ultSize", outline = "ultType", x = "ultX", y = "ultY", color = "ultColor" }
+local ultValueFields =
+{
+    show = "ultValueEnable",
+    mode = "ultValueMode",
+    font = "ultValueName",
+    size = "ultValueSize",
+    outline = "ultValueType",
+    x = "ultValueX",
+    y = "ultValueY",
+    color = "ultValueColor",
+    threshold = "ultValueThreshold",
+    usableThresholdColor = "ultUsableThresholdColor",
+    usableColor = "ultUsableValueColor",
+    maxColor = "ultMaxValueColor",
+}
+local ultCompanionFields = { show = "ultValueEnableCompanion", mode = "ultValueModeCompanion", x = "ultValueCompanionX", y = "ultValueCompanionY" }
+local qsFields =
+{
+    show = "qsTimerEnable",
+    font = "qsName",
+    size = "qsSize",
+    outline = "qsType",
+    x = "qsX",
+    y = "qsY",
+    color = "qsColor",
+    stackFont = "qsStackName",
+    stackSize = "qsStackSize",
+    stackOutline = "qsStackType",
+    stackColor = "qsStackColor",
+}
+
+--- User layout offsets for the active UI mode.
+--- @param vars table
+--- @param mode integer
+--- @return table
+function FancyActionBar.BuildLayout(vars, mode)
+    local barX = vars[FancyActionBar.SvKey("barXOffset", mode)] or 0
+    local barY = vars[FancyActionBar.SvKey("barYOffset", mode)] or 0
+    return
+    {
+        quickSlot = { x = vars[FancyActionBar.SvKey("quickSlotCustomXOffset", mode)] or 0, y = vars[FancyActionBar.SvKey("quickSlotCustomYOffset", mode)] or 0 },
+        ultimate = { x = vars[FancyActionBar.SvKey("ultimateSlotCustomXOffset", mode)] or 0, y = vars[FancyActionBar.SvKey("ultimateSlotCustomYOffset", mode)] or 0 },
+        bar = { x = barX, y = barY, halfX = barX / 2, halfY = barY / 2 },
+    }
+end
+
+--- Returns runtime constants for the given mode and style template.
 --- @param mode number 1 for keyboard, 2 for gamepad
 --- @param vars table the saved variables
 --- @param style table the style table
 --- @return table
-function FancyActionBar:UpdateContants(mode, vars, style)
-    local SV = vars
-    local c = {}
-
-    if mode == 1 then
-        local kb =
+function FancyActionBar.UpdateConstants(mode, vars, style)
+    local scaleKey = modeScaleKey[mode]
+    local ultScaling = vars.ultScaling or FancyActionBar.defaultSettings.ultScaling
+    local qsScaling = vars.qsScaling or FancyActionBar.defaultSettings.qsScaling
+    local c =
+    {
+        mode = mode,
+        isGamepad = mode == 2,
+        duration = mapSection(vars, mode, durationFields),
+        stacks = mapSection(vars, mode, stackFields),
+        targets = mapSection(vars, mode, targetFields),
+        ult =
         {
-            duration =
-            {
-                font = SV.fontNameKB,
-                size = SV.fontSizeKB,
-                outline = SV.fontTypeKB,
-                y = SV.timeYKB,
-                color = SV.timeColorKB,
-            },
-            stacks =
-            {
-                font = SV.fontNameStackKB,
-                size = SV.fontSizeStackKB,
-                outline = SV.fontTypeStackKB,
-                x = SV.stackXKB,
-                y = SV.stackYKB,
-                color = SV.stackColorKB,
-            },
-            targets =
-            {
-                font = SV.fontNameTargetKB,
-                size = SV.fontSizeTargetKB,
-                outline = SV.fontTypeTargetKB,
-                x = SV.targetXKB,
-                y = SV.targetYKB,
-                color = SV.targetColorKB,
-            },
-            ult =
-            {
-                duration =
-                {
-                    show = SV.ultShowKB,
-                    font = SV.ultNameKB,
-                    size = SV.ultSizeKB,
-                    outline = SV.ultTypeKB,
-                    x = SV.ultXKB,
-                    y = SV.ultYKB,
-                    color = SV.ultColorKB,
-                },
-                value =
-                {
-                    show = SV.ultValueEnableKB,
-                    mode = SV.ultValueModeKB,
-                    font = SV.ultValueNameKB,
-                    size = SV.ultValueSizeKB,
-                    outline = SV.ultValueTypeKB,
-                    x = SV.ultValueXKB,
-                    y = SV.ultValueYKB,
-                    color = SV.ultValueColorKB,
-                    threshold = SV.ultValueThresholdKB,
-                    usableThresholdColor = SV.ultUsableThresholdColorKB,
-                    usableColor = SV.ultUsableValueColorKB,
-                    maxColor = SV.ultMaxValueColorKB,
-                },
-                companion =
-                {
-                    show = SV.ultValueEnableCompanionKB,
-                    mode = SV.ultValueModeCompanionKB,
-                    x = SV.ultValueCompanionXKB,
-                    y = SV.ultValueCompanionYKB,
-                },
-            },
-            qs =
-            {
-                show = SV.qsTimerEnableKB,
-                font = SV.qsNameKB,
-                size = SV.qsSizeKB,
-                outline = SV.qsTypeKB,
-                x = SV.qsXKB,
-                y = SV.qsYKB,
-                color = SV.qsColorKB,
-                stackFont = SV.qsStackNameKB,
-                stackSize = SV.qsStackSizeKB,
-                stackOutline = SV.qsStackTypeKB,
-                stackColor = SV.qsStackColorKB,
-            },
-            abScale =
-            {
-                enable = SV.abScaling.kb.enable,
-                scale = SV.abScaling.kb.scale,
-            },
-            move =
-            {
-                enable = SV.abMove.kb.enable,
-                x = SV.abMove.kb.x,
-                y = SV.abMove.kb.y,
-            },
-            abilitySlot =
-            {
-                offsetX = SV.abilitySlotOffsetXKB,
-            },
-            style = {},
-        }
-        c = kb
-    else
-        local gp =
-        {
-            duration =
-            {
-                font = SV.fontNameGP,
-                size = SV.fontSizeGP,
-                outline = SV.fontTypeGP,
-                y = SV.timeYGP,
-                color = SV.timeColorGP,
-            },
-            stacks =
-            {
-                font = SV.fontNameStackGP,
-                size = SV.fontSizeStackGP,
-                outline = SV.fontTypeStackGP,
-                x = SV.stackXGP,
-                y = SV.stackYGP,
-                color = SV.stackColorGP,
-            },
-            targets =
-            {
-                font = SV.fontNameTargetGP,
-                size = SV.fontSizeTargetGP,
-                outline = SV.fontTypeTargetGP,
-                x = SV.targetXGP,
-                y = SV.targetYGP,
-                color = SV.targetColorGP,
-            },
-            ult =
-            {
-                duration =
-                {
-                    show = SV.ultShowGP,
-                    font = SV.ultNameGP,
-                    size = SV.ultSizeGP,
-                    outline = SV.ultTypeGP,
-                    x = SV.ultXGP,
-                    y = SV.ultYGP,
-                    color = SV.ultColorGP,
-                },
-                value =
-                {
-                    show = SV.ultValueEnableGP,
-                    mode = SV.ultValueModeGP,
-                    font = SV.ultValueNameGP,
-                    size = SV.ultValueSizeGP,
-                    outline = SV.ultValueTypeGP,
-                    x = SV.ultValueXGP,
-                    y = SV.ultValueYGP,
-                    color = SV.ultValueColorGP,
-                    threshold = SV.ultValueThresholdGP,
-                    usableThresholdColor = SV.ultUsableThresholdColorGP,
-                    usableColor = SV.ultUsableValueColorGP,
-                    maxColor = SV.ultMaxValueColorGP,
-                },
-                companion =
-                {
-                    show = SV.ultValueEnableCompanionGP,
-                    mode = SV.ultValueModeCompanionGP,
-                    x = SV.ultValueCompanionXGP,
-                    y = SV.ultValueCompanionYGP,
-                },
-            },
-            qs =
-            {
-                show = SV.qsTimerEnableGP,
-                font = SV.qsNameGP,
-                size = SV.qsSizeGP,
-                outline = SV.qsTypeGP,
-                x = SV.qsXGP,
-                y = SV.qsYGP,
-                color = SV.qsColorGP,
-                stackFont = SV.qsStackNameGP,
-                stackSize = SV.qsStackSizeGP,
-                stackOutline = SV.qsStackTypeGP,
-                stackColor = SV.qsStackColorGP,
-            },
-            abScale =
-            {
-                enable = SV.abScaling.gp.enable,
-                scale = SV.abScaling.gp.scale,
-            },
-            move =
-            {
-                enable = SV.abMove.gp.enable,
-                x = SV.abMove.gp.x,
-                y = SV.abMove.gp.y,
-            },
-            abilitySlot =
-            {
-                offsetX = SV.abilitySlotOffsetXGP,
-            },
-            style = {},
-        }
-        c = gp
-    end
+            duration = mapSection(vars, mode, ultDurationFields),
+            value = mapSection(vars, mode, ultValueFields),
+            companion = mapSection(vars, mode, ultCompanionFields),
+        },
+        qs = mapSection(vars, mode, qsFields),
+        abScale = { enable = vars.abScaling[scaleKey].enable, scale = vars.abScaling[scaleKey].scale },
+        ultScale = { enable = ultScaling[scaleKey].enable, scale = ultScaling[scaleKey].scale },
+        qsScale = { enable = qsScaling[scaleKey].enable, scale = qsScaling[scaleKey].scale },
+        move = { enable = vars.abMove[scaleKey].enable, x = vars.abMove[scaleKey].x, y = vars.abMove[scaleKey].y },
+        abilitySlot = { offsetX = vars[FancyActionBar.SvKey("abilitySlotOffsetX", mode)] },
+        layout = FancyActionBar.BuildLayout(vars, mode),
+        scaled = {},
+        style = style,
+    }
 
     c.hideOnNoTargetGlobal = FancyActionBar.GetHideOnNoTargetGlobalSetting()
     c.hideOnNoTargetList = FancyActionBar.GetHideOnNoTargetList()
     c.noTargetFade = FancyActionBar.GetNoTargetFade()
     c.noTargetAlpha = FancyActionBar.GetNoTargetAlpha()
     c.update = FancyActionBar.RefreshUpdateConfiguration()
-    c.style = style
     return c
 end

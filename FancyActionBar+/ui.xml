@@ -7,23 +7,20 @@
              inheritAlpha="false"
              movable="true">
       <OnInitialized>
-                <![CDATA[
-                  self:SetParent(ZO_ActionBar1)
+        <![CDATA[
+          self:SetParent(ZO_ActionBar1)
 
-                  for i = 3 + 20, 7 + 20 do
-                    local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, self, "ZO_ActionButton", HOTBAR_CATEGORY_BACKUP)
-                    button:SetShowBindingText(false)
-                    button.icon:SetHidden(true)
-                    button:SetupBounceAnimation()
-                    button:UpdateState()
-                    -- Force update the actionId properly
-                    button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(i - 20, HOTBAR_CATEGORY_BACKUP)
-                    FancyActionBar.buttons[i] = button
-                  end
-
-                  FancyActionBar:AdjustControlsPositions()
-                ]]>
-            </OnInitialized>
+          for i = 3 + 20, 7 + 20 do
+            local button = ActionButton:New(i, ACTION_BUTTON_TYPE_VISIBLE, self, "ZO_ActionButton", HOTBAR_CATEGORY_BACKUP)
+            button:SetShowBindingText(false)
+            button.icon:SetHidden(true)
+            button:SetupBounceAnimation()
+            button:UpdateState()
+            button.button.actionId = FancyActionBar.GetSlotBoundAbilityId(i - 20, HOTBAR_CATEGORY_BACKUP)
+            FancyActionBar.buttons[i] = button
+          end
+        ]]>
+      </OnInitialized>
       <Controls>
         <Texture name="$(parent)Arrow"
                  textureFile="esoui/art/buttons/large_rightarrow_up.dds"
@@ -55,8 +52,8 @@
       <Dimensions x="100"
                   y="100" />
       <OnMoveStop>
-                <![CDATA[FancyActionBar.SaveGCDPosition()]]>
-            </OnMoveStop>
+        <![CDATA[FancyActionBar.SaveGCDPosition()]]>
+      </OnMoveStop>
     </TopLevelControl>
     <!-- Actionbar Mover -->
     <TopLevelControl name="FAB_Mover"
@@ -72,8 +69,8 @@
               relativeTo="ZO_ActionBar1"
               relativePoint="BOTTOM" />
       <OnMoveStop>
-                <![CDATA[FancyActionBar.SaveMoverPosition()]]>
-            </OnMoveStop>
+        <![CDATA[FancyActionBar.SaveMoverPosition()]]>
+      </OnMoveStop>
       <Controls>
         <Backdrop name="$(parent)BG"
                   inherits="FAB_BG" />
