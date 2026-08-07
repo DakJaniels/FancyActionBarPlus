@@ -20,6 +20,11 @@ FancyActionBar.defaultCharacter =
     nextConfigProfileId = 1,
     dynamicAbilityConfig = false,
 
+    effectWidgets = {},
+    effectWidgetActiveAlphaDefault = 1,
+    effectWidgetInactiveAlphaDefault = 0,
+    effectWidgetsLocked = true,
+
     hideOnNoTargetGlobal = false,
     hideOnNoTargetList = {},
 

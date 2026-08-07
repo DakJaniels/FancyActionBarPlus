@@ -384,6 +384,7 @@ end
 local characterScopedPresetGroups =
 {
     abilityConfig = true,
+    effectWidgets = true,
 }
 
 function FancyActionBar.GetPresetSavedVarsForGroup(groupName)
@@ -1567,7 +1568,7 @@ local function SetChangedSkillToEdit(string)
 end
 
 function FancyActionBar.RefreshEffectWidgetChoices()
-    local widgets = SV.effectWidgets
+    local widgets = FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets
     effectWidgetNames = { "== Select a Widget ==" }
     effectWidgetNameById = {}
     effectWidgetIdByName = {}
@@ -1656,7 +1657,7 @@ function FancyActionBar.SetEffectWidgetAbilityId(value)
 
     effectWidgetAbilityId = id
     effectWidgetAbilityName = GetAbilityName(id)
-    local widget = SV.effectWidgets[id]
+    local widget = FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets[id]
     if widget then
         selectedEffectWidget = id
         FancyActionBar.ApplyEffectWidgetState(widget)
@@ -1683,7 +1684,7 @@ function FancyActionBar.SetSelectedEffectWidget(value)
             selectedEffectWidget = abilityId
             effectWidgetAbilityId = abilityId
             effectWidgetAbilityName = GetAbilityName(abilityId)
-            FancyActionBar.ApplyEffectWidgetState(SV.effectWidgets[abilityId])
+            FancyActionBar.ApplyEffectWidgetState(FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets[abilityId])
         end
     end
     FancyActionBar.RefreshEffectWidgetSettingControls()
@@ -1704,7 +1705,7 @@ function FancyActionBar.GetCurrentEffectWidget()
     if abilityId == 0 then
         return 0, nil
     end
-    return abilityId, SV.effectWidgets[abilityId]
+    return abilityId, FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets[abilityId]
 end
 
 function FancyActionBar.IsEffectWidgetActionDisabled()
@@ -1875,7 +1876,8 @@ function FancyActionBar.AddOrUpdateEffectWidget()
         return
     end
 
-    local existing = SV.effectWidgets[abilityId]
+    local widgets = FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets
+    local existing = widgets[abilityId]
     local allowExternal = existing and existing.allowExternal == true or effectWidgetAllowExternal == true
     local externalOnly = existing and existing.externalOnly == true or effectWidgetExternalOnly == true
     if externalOnly then
@@ -1885,7 +1887,7 @@ function FancyActionBar.AddOrUpdateEffectWidget()
     local activeAlpha = zo_clamp(existing and (tonumber(existing.activeAlpha) or effectWidgetActiveAlphaDefault) or (tonumber(effectWidgetActiveAlpha) or effectWidgetActiveAlphaDefault), 0, 1)
     local inactiveAlpha = zo_clamp(existing and (tonumber(existing.inactiveAlpha) or effectWidgetInactiveAlphaDefault) or (tonumber(effectWidgetInactiveAlpha) or effectWidgetInactiveAlphaDefault), 0, 1)
     FancyActionBar.AddEffectWidget(abilityId, allowExternal, scale, activeAlpha, inactiveAlpha)
-    local widget = SV.effectWidgets[abilityId]
+    local widget = widgets[abilityId]
     if widget then
         widget.externalOnly = externalOnly == true
         if widget.externalOnly then
@@ -1942,7 +1944,7 @@ function FancyActionBar.SetSelectedEffectWidgetAllowExternal(value)
 
     local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId ~= 0 then
-        local widget = SV.effectWidgets[abilityId]
+        local widget = FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets[abilityId]
         if widget then
             widget.allowExternal = value == true
             if not widget.allowExternal then
@@ -1970,7 +1972,7 @@ function FancyActionBar.SetSelectedEffectWidgetExternalOnly(value)
 
     local abilityId = FancyActionBar.GetCurrentEffectWidgetId()
     if abilityId ~= 0 then
-        local widget = SV.effectWidgets[abilityId]
+        local widget = FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgets[abilityId]
         if widget then
             widget.externalOnly = value == true
             if widget.externalOnly then
@@ -1983,11 +1985,11 @@ function FancyActionBar.SetSelectedEffectWidgetExternalOnly(value)
 end
 
 function FancyActionBar.GetEffectWidgetsLocked()
-    return SV.effectWidgetsLocked ~= false
+    return FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgetsLocked ~= false
 end
 
 function FancyActionBar.SetEffectWidgetsLocked(value)
-    SV.effectWidgetsLocked = not value
+    FancyActionBar.GetCharacterScopedSavedVarsForPreset().effectWidgetsLocked = not value
     for _, control in pairs(FancyActionBar.effectWidgetControls) do
         control:SetMovable(value)
         control:SetMouseEnabled(value)
@@ -6968,7 +6970,7 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     {
                         type = "checkbox",
                         name = "Accountwide Skill Settings",
-                        tooltip = "If accountwide settings is enabled, changes made will affect a changed skill's ability timer for all characters.",
+                        tooltip = "If accountwide settings is enabled, skill configuration and effect widget changes apply to all characters.",
                         default = true,
                         getFunc = function ()
                             return CV.useAccountWide

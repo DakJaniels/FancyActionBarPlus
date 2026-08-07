@@ -2108,7 +2108,7 @@ function FancyActionBar.IsEffectWidgetTracked(effectId)
     if not effectId or effectId == 0 then
         return false
     end
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     if not widgets then
         return false
     end
@@ -2132,6 +2132,7 @@ local function ShouldTrackEffectChange(abilityId)
         return true
     end
 
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     if abilityConfig[abilityId]
         or FancyActionBar.toggled[abilityId]
         or FancyActionBar.passive[abilityId]
@@ -2140,7 +2141,7 @@ local function ShouldTrackEffectChange(abilityId)
         or FancyActionBar.bannerBearer[abilityId]
         or FancyActionBar.fixedStacks[abilityId]
         or (SV.debuffTable and SV.debuffTable[abilityId])
-        or (SV.effectWidgets and SV.effectWidgets[abilityId])
+        or (widgets and widgets[abilityId])
         or trackedId ~= abilityId
     then
         return true
@@ -3530,7 +3531,7 @@ function FancyActionBar.SetExternalBuffTracking() -- buffs gained from others
             trackedExternalIds[id] = true
         end
 
-        local widgets = SV.effectWidgets
+        local widgets = GetAbilityConfigSavedVars().effectWidgets
         for abilityId, widget in pairs(widgets) do
             if widget and widget.enabled ~= false and widget.allowExternal then
                 trackedExternalIds[abilityId] = true
@@ -3814,7 +3815,7 @@ function FancyActionBar.CreateQuickSlotOverlay(index) -- create quickslot button
 end
 
 function FancyActionBar.SaveEffectWidgetPosition(abilityId)
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     local widget = widgets[abilityId]
     local control = FancyActionBar.effectWidgetControls[abilityId]
     if not widget or not control then
@@ -3885,7 +3886,7 @@ local function CreateEffectWidgetControl(abilityId, widget)
     control:ClearAnchors()
     control:SetAnchor(CENTER, GuiRoot, TOPLEFT, x, y, control:GetResizeToFitConstrains())
     control:SetScale(tonumber(widget and widget.scale) or 1)
-    local locked = SV.effectWidgetsLocked ~= false
+    local locked = GetAbilityConfigSavedVars().effectWidgetsLocked ~= false
     control:SetMovable(not locked)
     control:SetMouseEnabled(not locked)
     control:SetClampedToScreen(true)
@@ -3991,9 +3992,10 @@ local function ResolveWidgetDuration(effect, currentTime, allowExternal, externa
 end
 
 function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control, updateTime)
-    local showForMove = SV.effectWidgetsLocked == false
-    local activeAlpha = zo_clamp(tonumber(widget.activeAlpha) or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
-    local inactiveAlpha = zo_clamp(tonumber(widget.inactiveAlpha) or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
+    local widgetVars = GetAbilityConfigSavedVars()
+    local showForMove = widgetVars.effectWidgetsLocked == false
+    local activeAlpha = zo_clamp(tonumber(widget.activeAlpha) or widgetVars.effectWidgetActiveAlphaDefault or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
+    local inactiveAlpha = zo_clamp(tonumber(widget.inactiveAlpha) or widgetVars.effectWidgetInactiveAlphaDefault or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
     local showWhenInactive = not showForMove and inactiveAlpha > 0
     local effectId = GetWidgetEffectId(abilityId)
     local effect = effectId and FancyActionBar.effects[effectId] or nil
@@ -4076,7 +4078,7 @@ function FancyActionBar.UpdateSingleEffectWidget(abilityId, widget, control, upd
 end
 
 function FancyActionBar.IsEffectWidgetExternalAllowed(abilityId)
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     for widgetAbilityId, widget in pairs(widgets) do
         if widget and widget.enabled ~= false and widget.allowExternal then
             local trackedEffectId = GetWidgetEffectId(widgetAbilityId)
@@ -4093,7 +4095,8 @@ function FancyActionBar.AddEffectWidget(abilityId, allowExternal, scaleOffset, a
         return false
     end
 
-    local widgets = SV.effectWidgets
+    local widgetVars = GetAbilityConfigSavedVars()
+    local widgets = widgetVars.effectWidgets
     local widget = widgets[abilityId] or {}
     local resolvedScale = tonumber(scaleOffset)
     if resolvedScale == nil then
@@ -4103,13 +4106,13 @@ function FancyActionBar.AddEffectWidget(abilityId, allowExternal, scaleOffset, a
     if resolvedActiveAlpha == nil then
         resolvedActiveAlpha = widget.activeAlpha
     end
-    resolvedActiveAlpha = zo_clamp(tonumber(resolvedActiveAlpha) or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
+    resolvedActiveAlpha = zo_clamp(tonumber(resolvedActiveAlpha) or widgetVars.effectWidgetActiveAlphaDefault or defaultSettings.effectWidgetActiveAlphaDefault, 0, 1)
 
     local resolvedInactiveAlpha = inactiveAlpha
     if resolvedInactiveAlpha == nil then
         resolvedInactiveAlpha = widget.inactiveAlpha
     end
-    resolvedInactiveAlpha = zo_clamp(tonumber(resolvedInactiveAlpha) or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
+    resolvedInactiveAlpha = zo_clamp(tonumber(resolvedInactiveAlpha) or widgetVars.effectWidgetInactiveAlphaDefault or defaultSettings.effectWidgetInactiveAlphaDefault, 0, 1)
 
     local resolvedExternalOnly = externalOnly
     if resolvedExternalOnly == nil then
@@ -4137,7 +4140,7 @@ function FancyActionBar.RemoveEffectWidget(abilityId)
         return
     end
 
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     widgets[abilityId] = nil
     FancyActionBar.widgetEffects[abilityId] = nil
     local trackedEffectId = GetWidgetEffectId(abilityId)
@@ -4149,7 +4152,7 @@ function FancyActionBar.RemoveEffectWidget(abilityId)
 end
 
 function FancyActionBar.RefreshEffectWidgets()
-    local widgets = SV.effectWidgets
+    local widgets = GetAbilityConfigSavedVars().effectWidgets
     hasEnabledEffectWidgets = false
 
     for abilityId in pairs(FancyActionBar.effectWidgetControls) do
@@ -4173,7 +4176,7 @@ function FancyActionBar.RefreshEffectWidgets()
 end
 
 function FancyActionBar.UpdateEffectWidgets(updateTime)
-    for abilityId, widget in pairs(SV.effectWidgets) do
+    for abilityId, widget in pairs(GetAbilityConfigSavedVars().effectWidgets) do
         if widget and widget.enabled ~= false then
             local control = FancyActionBar.effectWidgetControls[abilityId]
             if control then
@@ -7011,6 +7014,9 @@ function FancyActionBar.Initialize()
     end
     if type(SV.effectWidgets) ~= "table" then
         SV.effectWidgets = {}
+    end
+    if type(CV.effectWidgets) ~= "table" then
+        CV.effectWidgets = {}
     end
 
     if SV.qsScaling == nil then
