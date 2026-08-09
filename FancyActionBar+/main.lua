@@ -3026,8 +3026,8 @@ function FancyActionBar.SlotEffect(index, abilityId, overrideRank, casterUnitTag
     return effect
 end
 
-function FancyActionBar.SlotEffects() -- slot effects for primary and backup bars.
-    local currentHotbarCategory = GetActiveHotbarCategory()
+function FancyActionBar.SlotEffects(hotbarCategory)
+    local currentHotbarCategory = hotbarCategory or GetActiveHotbarCategory()
     if currentHotbarCategory == HOTBAR_CATEGORY_PRIMARY or currentHotbarCategory == HOTBAR_CATEGORY_BACKUP then
         for i = MIN_INDEX, MAX_INDEX do
             FancyActionBar.SlotEffect(i, FancyActionBar.GetSlotBoundAbilityId(i, HOTBAR_CATEGORY_PRIMARY))
@@ -5902,10 +5902,8 @@ end
 local function PrepareWeaponLockState()
     FancyActionBar.oakensoulEquipped = (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING1) == FancyActionBar.oakensoul)
         or (GetItemInfo(BAG_WORN, EQUIP_SLOT_RING2) == FancyActionBar.oakensoul)
+    FancyActionBar.isWerewolf = IsPlayerInWerewolfForm()
     if SV.hideLockedBar then
-        if FancyActionBar.isWerewolf and not IsPlayerInWerewolfForm() then
-            FancyActionBar.isWerewolf = false
-        end
         isWeaponSwapLocked = FancyActionBar.oakensoulEquipped or FancyActionBar.isWerewolf
     end
 end
@@ -7094,7 +7092,7 @@ function FancyActionBar.Initialize()
         if SV.hideLockedBar then
             applyWeaponLockPresentation(FancyActionBar.oakensoulEquipped or value)
         end
-        FancyActionBar.SlotEffects()
+        FancyActionBar.SlotEffects(value and HOTBAR_CATEGORY_WEREWOLF or nil)
         FancyActionBar.SyncEffectState("slotted")
     end)
 
