@@ -3,7 +3,7 @@
 ## Description: A *fancy* action bar addon for the Elder Scrolls Online.
 ## Version: 2.19.1
 ## APIVersion: 101050
-## AddOnVersion: 21901
+## AddOnVersion: 21902
 ## SavedVariables: FancyActionBarSV
 ## PCDependsOn: LibAddonMenu-2.0>=40
 ## ConsoleDependsOn: LibAddonMenu-2.0>=40
