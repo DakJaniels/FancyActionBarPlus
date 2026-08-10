@@ -775,7 +775,6 @@ FancyActionBar.stackMap =
     {
         91416,
         86027,
-        101904,
     },
 
     -- Blood Hunger

@@ -6305,7 +6305,11 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
 
     local effectId = abilityId
     if not ownsStackStorage then
-        effectId = ownerId
+        local trackedId = FancyActionBar.GetTrackedEffectId(abilityId)
+        if trackedId ~= 0 and trackedId ~= abilityId and trackedId ~= ownerId then
+            return
+        end
+        effectId = trackedId ~= 0 and trackedId or ownerId
     end
     local effect = FancyActionBar.effects[effectId]
     if not effect then
