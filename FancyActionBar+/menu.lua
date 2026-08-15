@@ -320,6 +320,17 @@ function FancyActionBar.GetFonts()
     return fonts
 end
 
+local function FormatOverlayFont(fontName, size, outline)
+    local path = FAB_Fonts[fontName]
+    if not path and LMP and fontName and fontName ~= "" then
+        path = LMP:Fetch(LMP.MediaType.FONT, fontName)
+        if path then
+            FAB_Fonts[fontName] = path
+        end
+    end
+    return (path or FAB_Fonts["Univers 67"]) .. "|" .. size .. "|" .. outline
+end
+
 function FancyActionBar.EnsureUserUIPresets()
     FancyActionBar.EnsureUserUIPresetsStored(SV)
 
@@ -8678,22 +8689,19 @@ end
 
 function FancyActionBar.ApplyTimerFont()
     local name, size, outline = FancyActionBar.GetCurrentFont()
-
-    if name == "" then
-        name = "$(BOLD_FONT)"
-    end
+    local font = FormatOverlayFont(name, size, outline)
 
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.overlays[i]
         local timer = overlay:GetNamedChild("Duration")
 
-        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+        timer:SetFont(font)
         timer:SetHidden(false)
 
         overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET]
         timer = overlay:GetNamedChild("Duration")
 
-        timer:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+        timer:SetFont(font)
         timer:SetHidden(false)
     end
 end
@@ -8718,22 +8726,19 @@ end
 
 function FancyActionBar.ApplyStackFont()
     local name, size, outline = FancyActionBar.GetCurrentStackFont()
-
-    if name == "" then
-        name = "$(BOLD_FONT)"
-    end
+    local font = FormatOverlayFont(name, size, outline)
 
     for i = MIN_INDEX, ULT_INDEX do
         local overlay = FancyActionBar.GetOverlay(i)
         local stack = overlay:GetNamedChild("Stacks")
 
-        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+        stack:SetFont(font)
         stack:SetHidden(false)
 
         overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
         stack = overlay:GetNamedChild("Stacks")
 
-        stack:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+        stack:SetFont(font)
         stack:SetHidden(false)
     end
 end
@@ -8761,22 +8766,19 @@ end
 
 function FancyActionBar.ApplyTargetFont()
     local name, size, outline = FancyActionBar.GetCurrentTargetFont()
-
-    if name == "" then
-        name = "$(BOLD_FONT)"
-    end
+    local font = FormatOverlayFont(name, size, outline)
 
     for i = MIN_INDEX, ULT_INDEX do
         local overlay = FancyActionBar.GetOverlay(i)
         local target = overlay:GetNamedChild("Targets")
 
-        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+        target:SetFont(font)
         target:SetHidden(false)
 
         overlay = FancyActionBar.GetOverlay(i + SLOT_INDEX_OFFSET)
         target = overlay:GetNamedChild("Targets")
 
-        target:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+        target:SetFont(font)
         target:SetHidden(false)
     end
 end
@@ -8811,16 +8813,13 @@ end
 
 function FancyActionBar.ApplyQuickSlotFont()
     local name, size, type, stackName, stackSize, stackType = FancyActionBar.GetCurrentQuickSlotTimerFont()
-    if name == "" then
-        name = "$(BOLD_FONT)"
-    end
 
     if FancyActionBar.qsOverlay then
-        FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. type)
+        FancyActionBar.qsOverlay:GetNamedChild("Duration"):SetFont(FormatOverlayFont(name, size, type))
     end
 
     local QSB = GetControl("QuickslotButton")
-    QSB:GetNamedChild("CountText"):SetFont(FAB_Fonts[stackName] .. "|" .. stackSize .. "|" .. stackType)
+    QSB:GetNamedChild("CountText"):SetFont(FormatOverlayFont(stackName, stackSize, stackType))
     QSB:GetNamedChild("CountText"):SetColor(unpack(FancyActionBar.useGamepadActionBar and SV.qsStackColorGP or SV.qsStackColorKB))
 end
 
@@ -8843,14 +8842,11 @@ end
 
 function FancyActionBar.ApplyUltFont(sample)
     local name, size, outline = FancyActionBar.GetCurrentUltFont()
-
-    if name == "" then
-        name = "$(BOLD_FONT)"
-    end
+    local font = FormatOverlayFont(name, size, outline)
 
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
         if overlay then
-            overlay:GetNamedChild("Duration"):SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+            overlay:GetNamedChild("Duration"):SetFont(font)
         end
     end
 
@@ -8875,15 +8871,14 @@ end
 
 function FancyActionBar.ApplyUltValueFont()
     local name, size, outline = FancyActionBar.GetCurrentUltValueFont()
-
-    if name == "" then
-        name = "$(BOLD_FONT)"
-    end
+    local font = FormatOverlayFont(name, size, outline)
 
     for i, overlay in pairs(FancyActionBar.ultOverlays) do
         if overlay then
             local l = overlay:GetNamedChild("Value")
-            l:SetFont(FAB_Fonts[name] .. "|" .. size .. "|" .. outline)
+            if l then
+                l:SetFont(font)
+            end
         end
     end
 end

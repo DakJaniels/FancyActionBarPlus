@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.19.3"
+local VERSION = "2.19.4"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -593,7 +593,7 @@ function FancyActionBar.GetDisplayStacks(effect, currentTime)
         end
         for i = 1, count do
             local sourceId = sourceIds[i]
-            if sourceId ~= ownerId then
+            if sourceId ~= ownerId or not ownerMapType then
                 local sourceMapType = debuffStackMap and debuffStackMap[sourceId] and "debuff" or nil
                 local sourceStacks = FancyActionBar.GetStacks(sourceId, currentTime, sourceMapType)
                 maxStacks = AccumulateMaxStacks(maxStacks, sourceStacks)
@@ -1543,13 +1543,14 @@ local function applyActiveBarSlotAppearance(btn, slot, hotbar)
     end
 
     local needsTheme = SV.applyActiveBarAlpha or SV.applyActiveBarDesaturation or SV.applyActiveBarTint
-    local needsSkillStyle = SV.applyActionBarSkillStyles
+    local needsIcon = SV.applyActionBarSkillStyles
+        or (hotbar ~= HOTBAR_CATEGORY_PRIMARY and hotbar ~= HOTBAR_CATEGORY_BACKUP)
 
-    if not needsTheme and not needsSkillStyle then
+    if not needsTheme and not needsIcon then
         return
     end
 
-    if needsSkillStyle then
+    if needsIcon then
         local icon = GetBarSlotIcon(slot, hotbar)
         if icon then
             btn.icon:SetTexture(icon)
@@ -1593,11 +1594,14 @@ local function applyInactiveSlotVisibility(slot, activeHotbar)
     end
 end
 
-local function PaintAbilityOverlay(physicalIndex, activeHotbar)
-    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+local function PaintAbilityOverlay(physicalIndex, layoutHotbar, abilityHotbar)
+    layoutHotbar = layoutHotbar or GetActiveHotbarCategory()
+    if layoutHotbar ~= HOTBAR_CATEGORY_PRIMARY and layoutHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        layoutHotbar = HOTBAR_CATEGORY_PRIMARY
+    end
     local slot = GetSlotFromOverlayIndex(physicalIndex)
     local isActive = not IsPhysicalBackRow(physicalIndex)
-    local hotbar = isActive and activeHotbar or GetInactiveHotbarCategory(activeHotbar)
+    local hotbar = isActive and (abilityHotbar or layoutHotbar) or GetInactiveHotbarCategory(layoutHotbar)
     local overlay = FancyActionBar.GetOverlay(physicalIndex)
     local btn = FancyActionBar.GetActionButton(physicalIndex)
 
@@ -1627,7 +1631,7 @@ local function PaintAbilityOverlay(physicalIndex, activeHotbar)
 
     if isActive then
         applyActiveBarSlotAppearance(btn, slot, hotbar)
-    elseif btn and btn.icon and not IsInactiveSlotVisibilityHidden(slot, activeHotbar) then
+    elseif btn and btn.icon and not IsInactiveSlotVisibilityHidden(slot, layoutHotbar) then
         local icon = GetBarSlotIcon(slot, hotbar)
         if icon then
             btn.icon:SetTexture(icon)
@@ -1644,7 +1648,13 @@ local function PaintAbilityOverlay(physicalIndex, activeHotbar)
 end
 
 local function PaintDataOverlay(dataIndex, activeHotbar)
-    PaintAbilityOverlay(GetPhysicalOverlayIndexForData(dataIndex, activeHotbar), activeHotbar)
+    activeHotbar = activeHotbar or GetActiveHotbarCategory()
+    local layoutHotbar = activeHotbar
+    if layoutHotbar ~= HOTBAR_CATEGORY_PRIMARY and layoutHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        layoutHotbar = HOTBAR_CATEGORY_PRIMARY
+    end
+    local physicalIndex = GetPhysicalOverlayIndexForData(dataIndex, layoutHotbar)
+    PaintAbilityOverlay(physicalIndex, layoutHotbar, (not IsPhysicalBackRow(physicalIndex)) and activeHotbar or nil)
 end
 
 -- hideInactiveSlots: track whether inactive row slot has nothing to show (timers/stacks).
@@ -1687,20 +1697,22 @@ end
 
 function FancyActionBar.PaintAbilityOverlays(hotbarCategory, activeHotbar)
     activeHotbar = activeHotbar or GetActiveHotbarCategory()
-    if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
-        activeHotbar = HOTBAR_CATEGORY_PRIMARY
+    local layoutHotbar = activeHotbar
+    if layoutHotbar ~= HOTBAR_CATEGORY_PRIMARY and layoutHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        layoutHotbar = HOTBAR_CATEGORY_PRIMARY
     end
     local function paintPhysicalRow(isBackRow)
+        local abilityHotbar = (not isBackRow) and activeHotbar or nil
         for slot = MIN_INDEX, MAX_INDEX do
             local physicalIndex = isBackRow and (slot + SLOT_INDEX_OFFSET) or slot
-            PaintAbilityOverlay(physicalIndex, activeHotbar)
+            PaintAbilityOverlay(physicalIndex, layoutHotbar, abilityHotbar)
         end
-        PaintAbilityOverlay(isBackRow and (ULT_INDEX + SLOT_INDEX_OFFSET) or ULT_INDEX, activeHotbar)
+        PaintAbilityOverlay(isBackRow and (ULT_INDEX + SLOT_INDEX_OFFSET) or ULT_INDEX, layoutHotbar, abilityHotbar)
     end
-    if not hotbarCategory or hotbarCategory == activeHotbar then
+    if not hotbarCategory or hotbarCategory == layoutHotbar then
         paintPhysicalRow(false)
     end
-    if not hotbarCategory or hotbarCategory ~= activeHotbar then
+    if not hotbarCategory or hotbarCategory ~= layoutHotbar then
         paintPhysicalRow(true)
     end
 end
@@ -1753,7 +1765,8 @@ local function OnActiveActionButtonVisualUpdate(self)
     if not slot then
         return
     end
-    if SV.applyActionBarSkillStyles then
+    if SV.applyActionBarSkillStyles
+        or (hotbar ~= HOTBAR_CATEGORY_PRIMARY and hotbar ~= HOTBAR_CATEGORY_BACKUP) then
         local icon = GetBarSlotIcon(slot, hotbar)
         if icon and self.icon then
             self.icon:SetTexture(icon)
@@ -4603,43 +4616,7 @@ local function UpdateWeaponSwapTransformOffset()
     end
 end
 
-local function syncActionButton(button, hotbarCategory, overlay)
-    if not button then
-        return
-    end
-    button.hotbarSwapAnimation = nil
-    button.showTimer = false
-    if button.stackCountText then button.stackCountText:SetHidden(true) end
-    if button.timerText then button.timerText:SetHidden(true) end
-    if button.timerOverlay then button.timerOverlay:SetHidden(true) end
-    button:HandleSlotChanged(hotbarCategory)
-    if overlay and button.slot then
-        AnchorOverlayToSlot(overlay, button.slot)
-    end
-    if button.buttonText then
-        button.buttonText:SetHidden(not SV.showHotkeys)
-    end
-end
-
---------------------------------------------------------------------------------
--- Hotbar slot sync and presentation (dependency order: sync → paint → timers → lock)
---------------------------------------------------------------------------------
-
-local function syncInactiveSlotButton(slotNum, hotbarCategory)
-    local altbutton = ZO_ActionBar_GetButton(slotNum, hotbarCategory)
-    if altbutton then
-        altbutton.noUpdates = true
-        altbutton.showBackRowSlot = false
-        syncActionButton(altbutton, hotbarCategory)
-    end
-    local dataIndex = GetOverlayIndex(slotNum, hotbarCategory)
-    local physicalIndex = GetPhysicalOverlayIndexForData(dataIndex, GetActiveHotbarCategory())
-    if IsPhysicalBackRow(physicalIndex) then
-        local fabButton = FancyActionBar.GetActionButton(physicalIndex)
-        if fabButton then
-            fabButton.noUpdates = true
-            local overlay = slotNum == ULT_INDEX
-                and FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
+Werewolf/overload/etc. are not a weapon swap, but the front row may still be bound 
                 or FancyActionBar.overlays[physicalIndex]
             syncActionButton(fabButton, hotbarCategory, overlay)
         end
@@ -4674,7 +4651,7 @@ end
 local function refreshBackupBarButtons()
     local hotbar = GetActiveHotbarCategory()
     if hotbar ~= HOTBAR_CATEGORY_PRIMARY and hotbar ~= HOTBAR_CATEGORY_BACKUP then
-        return
+        hotbar = HOTBAR_CATEGORY_PRIMARY
     end
     local altCategory = hotbar == HOTBAR_CATEGORY_PRIMARY and HOTBAR_CATEGORY_BACKUP or HOTBAR_CATEGORY_PRIMARY
     for i = MIN_INDEX, MAX_INDEX do
@@ -4709,14 +4686,10 @@ end
 
 function FancyActionBar.RefreshHotbarPresentation(activeHotbar, syncSlots)
     activeHotbar = activeHotbar or GetActiveHotbarCategory()
-    local presentationHotbar = activeHotbar
-    if presentationHotbar ~= HOTBAR_CATEGORY_PRIMARY and presentationHotbar ~= HOTBAR_CATEGORY_BACKUP then
-        presentationHotbar = HOTBAR_CATEGORY_PRIMARY
-    end
     if syncSlots then
         FancyActionBar.RefreshActiveBarSlots(activeHotbar)
     end
-    FancyActionBar.PaintAbilityOverlays(nil, presentationHotbar)
+    FancyActionBar.PaintAbilityOverlays(nil, activeHotbar)
 end
 
 function FancyActionBar.ResetActiveBarSkillStyles()
@@ -5235,6 +5208,9 @@ local function InstallActionButtonHooks()
         if slot and slot >= MIN_INDEX and slot <= MAX_INDEX then
             FancyActionBar.SetupButtonText(self, style, slot)
         end
+        if self:GetSlot() == QUICK_SLOT then
+            FancyActionBar.ApplyQuickSlotFont()
+        end
     end)
 
     ZO_PreHook(ActionButton, "UpdateState", function (self)
@@ -5412,7 +5388,7 @@ function FancyActionBar.ShouldTrackAsDebuff(id, tag)
         return false
     end -- ZoS seem to think that Stampede is a debuff and not a ground effect :S
     if tag then
-        if AreUnitsEqual("player", tag) or FancyActionBar.IsGroupUnit(tag) then
+        if AreUnitsEqual("player", tag) or FancyActionBar.IsGroupUnit(tag) or FancyActionBar.IsPlayerPet(tag) then
             return false
         end
     end
@@ -5479,7 +5455,7 @@ function FancyActionBar.UpdateSpecialEffect(effect, specialEffect, change, updat
     end
 
     if abilityType ~= ABILITY_TYPE_AREAEFFECT then
-        local isMultiTargetValid = specialEffect.isMultiTarget and not SV.multiTargetBlacklist[effect.id] and GetAbilityTargetDescription(effect.id, nil, unitTag) ~= "Self"
+        local isMultiTargetValid = specialEffect.isMultiTarget and not SV.multiTargetBlacklist[effect.id] and GetAbilityTargetDescription(effect.id, nil, unitTag) ~= "Self" and not FancyActionBar.IsPlayerPet(unitTag)
 
         local isActiveCastValid = effect.hasActiveCast and unitId and unitId > 0
         if isMultiTargetValid or isActiveCastValid then
@@ -5767,7 +5743,7 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
     local prevEffectId, prevAbilityId = FancyActionBar.GetSlottedEffect(slotIndex)
     local bindingChanged = prevAbilityId ~= boundId
 
-    if hotbarCategory == currentHotbarCategory then
+    if hotbarCategory == currentHotbarCategory and slotNum ~= ULT_INDEX then
         local btn = FancyActionBar.GetActionButton(slotNum)
         if btn then
             syncActionButton(btn, hotbarCategory)
@@ -5885,6 +5861,15 @@ local function OnActiveHotbarUpdated(_, didActiveHotbarChange, shouldUpdateAbili
         FancyActionBar.PaintAbilityOverlays(nil, activeHotbarCategory)
         tickOverlayTimers(time(), activeHotbarCategory)
         FancyActionBar.UpdateUltimateCost()
+    elseif didActiveHotbarChange then
+        if layoutHotbarCategory ~= HOTBAR_CATEGORY_PRIMARY then
+            FancyActionBar.ApplyActiveHotbarGeometry(HOTBAR_CATEGORY_PRIMARY, isWeaponSwapLocked)
+        end
+        FancyActionBar.RefreshActiveBarSlots(activeHotbarCategory)
+        refreshBackupBarButtons()
+        FancyActionBar.PaintAbilityOverlays(nil, activeHotbarCategory)
+        tickOverlayTimers(time(), layoutHotbarCategory)
+        FancyActionBar.UpdateUltimateCost()
     end
 end
 
@@ -5904,10 +5889,11 @@ end
 
 local function OnAllHotbarsUpdated()
     local activeHotbar = GetActiveHotbarCategory()
-    if activeHotbar ~= HOTBAR_CATEGORY_PRIMARY and activeHotbar ~= HOTBAR_CATEGORY_BACKUP then
-        activeHotbar = HOTBAR_CATEGORY_PRIMARY
+    local layoutHotbar = activeHotbar
+    if layoutHotbar ~= HOTBAR_CATEGORY_PRIMARY and layoutHotbar ~= HOTBAR_CATEGORY_BACKUP then
+        layoutHotbar = HOTBAR_CATEGORY_PRIMARY
     end
-    local layoutCurrent = layoutHotbarCategory == activeHotbar
+    local layoutCurrent = layoutHotbarCategory == layoutHotbar
 
     FancyActionBar.SlotEffects()
 
@@ -5920,7 +5906,7 @@ local function OnAllHotbarsUpdated()
         refreshBackupBarButtons()
         FancyActionBar.PaintAbilityOverlays(nil, activeHotbar)
     end
-    tickOverlayTimers(time(), activeHotbar)
+    tickOverlayTimers(time(), layoutHotbar)
     FancyActionBar.RefreshEffectWidgets()
     FancyActionBar.UpdateSlottedSkillsDecriptions()
     HideAllAbilityActionButtonDropCallouts()
@@ -6349,14 +6335,15 @@ local function OnEffectChanged(eventCode, change, effectSlot, effectName, unitTa
 
     if isGain then
         local isSelf = GetAbilityTargetDescription(effect.id, nil, unitTag) == "Self"
-        local willRecord = (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= ABILITY_TYPE_AREAEFFECT) and not isSelf
+        local isPlayerPet = FancyActionBar.IsPlayerPet(unitTag)
+        local willRecord = (not SV.multiTargetBlacklist[effect.id]) and (abilityType ~= ABILITY_TYPE_AREAEFFECT) and not isSelf and not isPlayerPet
 
         if effect.hasActiveCast then
             local targetData = FancyActionBar.GetUnits(effect.id, "targets")
             if not targetData or not next(targetData.times or {}) then
                 effect.beginTime = beginTime
             end
-            if unitId and unitId > 0 and abilityType ~= ABILITY_TYPE_AREAEFFECT then
+            if unitId and unitId > 0 and abilityType ~= ABILITY_TYPE_AREAEFFECT and not isPlayerPet then
                 willRecord = true
             end
         end

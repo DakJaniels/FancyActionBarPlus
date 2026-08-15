@@ -326,7 +326,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
 
     local isFade = change == EFFECT_RESULT_FADED
     if SV.keepLastTarget == false and tag ~= "reticleover" and not debuff.keepOnTargetChange then
-        if not SV.multiTargetBlacklist[debuff.id] then
+        if not SV.multiTargetBlacklist[debuff.id] and not FancyActionBar.IsPlayerPet(tag) then
             local unitKey = unitId ~= 0 and unitId or nil
             FancyActionBar.UpdateMultiTargetDebuffs(FancyActionBar.effects[debuff.id] or debuff, change, t, beginTime, endTime, unitKey, abilityType)
         end
@@ -368,7 +368,7 @@ function FancyActionBar.OnDebuffChanged(debuff, t, eventCode, change, effectSlot
         debuff.isDebuff = true
         FancyActionBar.effects[debuff.id] = debuff
 
-        if not SV.multiTargetBlacklist[debuff.id] then
+        if not SV.multiTargetBlacklist[debuff.id] and not FancyActionBar.IsPlayerPet(tag) then
             local unitKey = unitId ~= 0 and unitId or nil
             FancyActionBar.UpdateMultiTargetDebuffs(debuff, change, t, beginTime, endTime, unitKey, abilityType)
         end
