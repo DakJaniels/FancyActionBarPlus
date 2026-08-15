@@ -3499,7 +3499,7 @@ function FancyActionBar.OnEffectGainedFromAlly(eventCode, change, effectSlot, ef
                     and endTime > t + FancyActionBar.durationMin
                     and endTime < t + FancyActionBar.durationMax
                 then
-                    if endTime > we.endTime then
+                    if endTime > (we.endTime or 0) then
                         we.endTime = endTime
                     end
                 end
