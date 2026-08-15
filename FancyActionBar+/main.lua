@@ -4616,7 +4616,43 @@ local function UpdateWeaponSwapTransformOffset()
     end
 end
 
-Werewolf/overload/etc. are not a weapon swap, but the front row may still be bound 
+local function syncActionButton(button, hotbarCategory, overlay)
+    if not button then
+        return
+    end
+    button.hotbarSwapAnimation = nil
+    button.showTimer = false
+    if button.stackCountText then button.stackCountText:SetHidden(true) end
+    if button.timerText then button.timerText:SetHidden(true) end
+    if button.timerOverlay then button.timerOverlay:SetHidden(true) end
+    button:HandleSlotChanged(hotbarCategory)
+    if overlay and button.slot then
+        AnchorOverlayToSlot(overlay, button.slot)
+    end
+    if button.buttonText then
+        button.buttonText:SetHidden(not SV.showHotkeys)
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Hotbar slot sync and presentation (dependency order: sync → paint → timers → lock)
+--------------------------------------------------------------------------------
+
+local function syncInactiveSlotButton(slotNum, hotbarCategory)
+    local altbutton = ZO_ActionBar_GetButton(slotNum, hotbarCategory)
+    if altbutton then
+        altbutton.noUpdates = true
+        altbutton.showBackRowSlot = false
+        syncActionButton(altbutton, hotbarCategory)
+    end
+    local dataIndex = GetOverlayIndex(slotNum, hotbarCategory)
+    local physicalIndex = GetPhysicalOverlayIndexForData(dataIndex, GetActiveHotbarCategory())
+    if IsPhysicalBackRow(physicalIndex) then
+        local fabButton = FancyActionBar.GetActionButton(physicalIndex)
+        if fabButton then
+            fabButton.noUpdates = true
+            local overlay = slotNum == ULT_INDEX
+                and FancyActionBar.ultOverlays[ULT_INDEX + SLOT_INDEX_OFFSET]
                 or FancyActionBar.overlays[physicalIndex]
             syncActionButton(fabButton, hotbarCategory, overlay)
         end
