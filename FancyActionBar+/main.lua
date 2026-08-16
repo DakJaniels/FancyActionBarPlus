@@ -5244,7 +5244,7 @@ local function InstallActionButtonHooks()
         if slot and slot >= MIN_INDEX and slot <= MAX_INDEX then
             FancyActionBar.SetupButtonText(self, style, slot)
         end
-        if self:GetSlot() == QUICK_SLOT then
+        if self:GetHotbarCategory() == HOTBAR_CATEGORY_QUICKSLOT_WHEEL then
             FancyActionBar.ApplyQuickSlotFont()
         end
     end)
