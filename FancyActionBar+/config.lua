@@ -967,7 +967,7 @@ FancyActionBar.specialClassEffects =
     -- Sorcerer
     [41] =
     {                                                                                        -- Dark Magic
-        [46331] = { id = 46331, stackId = { 46331 }, stacks = 2, procs = 1, hasProced = 0 }, -- Crystal Weapon
+        [46331] = { id = 46331, stackId = { 46331 }, stacks = 3, procs = 1, hasProced = 0 }, -- Crystal Weapon
 
         [24828] = { id = 24828, stackId = { 24828 }, handler = "device" },                   -- Daedric Mines (Parent Ability)
         [24830] = { id = 24828, stackId = { 24828 }, handler = "device" },                   -- Daedric Mines (1st Mine)
