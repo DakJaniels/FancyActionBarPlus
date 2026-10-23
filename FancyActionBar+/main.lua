@@ -3564,9 +3564,12 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
     anchor:SetFromControlAnchor(ACTION_BAR)
     anchor:SetOffsets(nil, style.actionBarOffset)
     anchor:Set(ACTION_BAR)
-    anchor:SetFromControlAnchor(ZO_PlayerAttribute)
-    anchor:SetOffsets(nil, style.attributesOffset)
-    anchor:Set(ZO_PlayerAttribute)
+    -- HUDitorTools is a PC only addon... for now. Console and Game Core still apply attributesOffset.
+    if not (ZO_IsPCUI() and HUDitorTools) then
+        anchor:SetFromControlAnchor(ZO_PlayerAttribute)
+        anchor:SetOffsets(nil, style.attributesOffset)
+        anchor:Set(ZO_PlayerAttribute)
+    end
 end
 
 function FancyActionBar.AdjustQuickSlotSpacing(lock)
