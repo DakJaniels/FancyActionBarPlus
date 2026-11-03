@@ -5753,6 +5753,25 @@ function FancyActionBar.UpdateBackbarButtonActionIds(slotNum, activeHotbar)
     end
 end
 
+-- Start a fresh stack count for a slot-state skill (Power Lash / Volcanic Whip)
+function FancyActionBar.StartSlotStateStacks(index, abilityId, spec)
+    local srcId = GetConfiguredStackSources(spec)[1] or spec.id
+    local slotEffectId, slotAbilityId = FancyActionBar.GetSlottedEffect(index)
+    local eff = (slotEffectId and slotEffectId ~= 0 and FancyActionBar.effects[slotEffectId]) or FancyActionBar.effects[spec.id]
+    local state =
+    {
+        effectId = (eff and eff.id) or spec.id,
+        specialAbilityId = abilityId,
+        sourceAbilityId = slotAbilityId,
+        specialEffectId = spec.id,
+        stackSourceId = srcId,
+        stacks = spec.stacks,
+    }
+    FancyActionBar.slotStateSpecialEffects[index] = state
+    FancyActionBar.SetStacks(srcId, state.stacks, true)
+    return state
+end
+
 -- Call this function after slot changes or bar swap
 local function OnSlotChanged(_, slotNum, hotbarCategory)
     if slotNum < MIN_INDEX or slotNum > ULT_INDEX then return end
@@ -5772,6 +5791,14 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
     end
 
     FancyActionBar.SlotEffect(slotIndex, boundId)
+
+    local boundSpec = FancyActionBar.specialEffects[boundId]
+    if boundSpec and boundSpec.useSlotStateChange and hotbarCategory == currentHotbarCategory and slotNum ~= ULT_INDEX then
+        local ss = FancyActionBar.slotStateSpecialEffects[slotIndex]
+        if not (ss and ss.specialAbilityId == boundId) then
+            FancyActionBar.StartSlotStateStacks(slotIndex, boundId, boundSpec)
+        end
+    end
 
     local inactiveHotbar = GetInactiveHotbarCategory(currentHotbarCategory)
     FancyActionBar.UpdateOverlay(slotIndex, time(), currentHotbarCategory, inactiveHotbar)
@@ -5962,6 +5989,15 @@ local function OnAbilityUsed(_, n)
     local t = time()
     local slotStateSpecialEffect = FancyActionBar.specialEffects[id]
     if slotStateSpecialEffect and slotStateSpecialEffect.useSlotStateChange then
+        local ssState = FancyActionBar.slotStateSpecialEffects[index]
+        if not (ssState and ssState.specialAbilityId == id) then
+            ssState = FancyActionBar.StartSlotStateStacks(index, id, slotStateSpecialEffect)
+        end
+        local cur = ssState.stacks or FancyActionBar.GetStacks(ssState.stackSourceId) or 0
+        if cur > 0 then
+            ssState.stacks = cur - 1
+            FancyActionBar.SetStacks(ssState.stackSourceId, ssState.stacks, true)
+        end
         return
     end
     local slot = slots[index]
@@ -6108,11 +6144,10 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         end
 
         if not isNewSlotStateEffect then
-            local currentStacks = slotStateEffect.stacks
-            if currentStacks == nil then
-                currentStacks = FancyActionBar.GetStacks(stackSourceId) or specialEffect.stacks or 0
+            nextStacks = slotStateEffect.stacks
+            if nextStacks == nil then
+                nextStacks = FancyActionBar.GetStacks(stackSourceId) or specialEffect.stacks or 0
             end
-            nextStacks = zo_max(currentStacks - 1, 0)
         end
 
         if isSameEffectId then
