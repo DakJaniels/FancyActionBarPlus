@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.19.7"
+local VERSION = "2.19.8"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -3564,9 +3564,12 @@ function FancyActionBar:AdjustControlsPositions() -- resource bars and default a
     anchor:SetFromControlAnchor(ACTION_BAR)
     anchor:SetOffsets(nil, style.actionBarOffset)
     anchor:Set(ACTION_BAR)
-    anchor:SetFromControlAnchor(ZO_PlayerAttribute)
-    anchor:SetOffsets(nil, style.attributesOffset)
-    anchor:Set(ZO_PlayerAttribute)
+    -- HUDitorTools is a PC only addon... for now. Console and Game Core still apply attributesOffset.
+    if not (ZO_IsPCUI() and HUDitorTools) then
+        anchor:SetFromControlAnchor(ZO_PlayerAttribute)
+        anchor:SetOffsets(nil, style.attributesOffset)
+        anchor:Set(ZO_PlayerAttribute)
+    end
 end
 
 function FancyActionBar.AdjustQuickSlotSpacing(lock)
@@ -4789,7 +4792,7 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
     FancyActionBar.HideHotkeys(not SV.showHotkeys)
     if not SV.forceAzurahMover then
         FancyActionBar.MoveActionBar()
-        if SV.forceReposition or not FancyActionBar.wasMoved then
+        if ZO_IsConsoleOrGameCoreUI() and (SV.forceReposition or not FancyActionBar.wasMoved) then
             FancyActionBar.RepositionElements()
         end
     end
@@ -6769,6 +6772,7 @@ local function OnPlayerActivated(_eventId, _initial)
     if firstZone then
         if not ZO_IsConsoleOrGameCoreUI() then
             SetAbilityBarTimersEnabled()
+            FancyActionBar.InitializeHUDManagerIntegration()
         end
         FancyActionBar.InitializeScreenResizeHandler()
         FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })
