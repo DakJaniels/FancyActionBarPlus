@@ -5790,6 +5790,15 @@ local function OnSlotChanged(_, slotNum, hotbarCategory)
         PaintDataOverlay(slotIndex)
     end
 
+    if bindingChanged then
+        local previousSpec = FancyActionBar.specialEffects[prevAbilityId]
+        if previousSpec and previousSpec.useSlotStateChange then
+            local previousSlotState = FancyActionBar.slotStateSpecialEffects[slotIndex]
+            local previousStackSourceId = (previousSlotState and previousSlotState.stackSourceId) or GetConfiguredStackSources(previousSpec)[1] or previousSpec.id
+            FancyActionBar.SetStacks(previousStackSourceId, 0, true)
+        end
+    end
+
     FancyActionBar.SlotEffect(slotIndex, boundId)
 
     local boundSpec = FancyActionBar.specialEffects[boundId]
@@ -6136,14 +6145,14 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         local beginTime = t - (duration - remain)
         local endTime = t + remain
         local isSameEffectId = effect.id == specialEffect.id
-        local isNewSlotStateEffect = (not slotStateEffect) or slotStateEffect.specialAbilityId ~= abilityId or slotStateEffect.effectId ~= effect.id
+        local hasSameAbilityState = slotStateEffect and slotStateEffect.specialAbilityId == abilityId
         local nextStacks = specialEffect.stacks
 
         if slotStateEffect and slotStateEffect.stackSourceId and slotStateEffect.stackSourceId ~= stackSourceId then
             FancyActionBar.SetStacks(slotStateEffect.stackSourceId, 0, true)
         end
 
-        if not isNewSlotStateEffect then
+        if hasSameAbilityState then
             nextStacks = slotStateEffect.stacks
             if nextStacks == nil then
                 nextStacks = FancyActionBar.GetStacks(stackSourceId) or specialEffect.stacks or 0
