@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.19.7"
+local VERSION = "2.19.8"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -6051,7 +6051,7 @@ local function OnAbilityUsed(_, n)
         effect = effect or FancyActionBar.effects[slot.effectId] or FancyActionBar.SlotEffect(index, id)
         if effect then
             channeledAbility.wasBlockActive = IsBlockActive()
-            local isChannel, castTimeMs, channelTimeMs = GetAbilityCastInfo(slot.effectId, nil, "player")
+            local isChannel, castTimeMs, channelTimeMs = GetAbilityCastInfo(id, nil, "player")
             local durationMs = (castTimeMs and castTimeMs > 0) and castTimeMs or channelTimeMs
             local castDuration = durationMs and durationMs > 1000 and (durationMs / 1000) or nil
             if castDuration then
@@ -6242,7 +6242,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         end
     end
     local usesConfiguredTracking = IsAbilityConfigured(abilityId) and effectId ~= abilityId
-    local allowSlotTimerUpdate = (not IsAbilityConfigured(abilityId)) or SV.allowParentTime
+    local allowSlotTimerUpdate = (not IsAbilityConfigured(abilityId)) or SV.allowParentTime or (effect and effect.isChanneled)
 
     if not allowSlotTimerUpdate then
         return
@@ -6273,7 +6273,7 @@ local function OnActionSlotEffectUpdated(_, hotbarCategory, actionSlotIndex)
         return
     end
 
-    if (usesConfiguredTracking or not effect) and SV.allowParentTime then
+    if (usesConfiguredTracking or not effect) and SV.allowParentTime and not (effect and effect.isChanneled) then
         if slot then
             slot.parentEndTime = t + remain
         end
