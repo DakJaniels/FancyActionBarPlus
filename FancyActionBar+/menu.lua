@@ -8790,19 +8790,21 @@ end
 
 function FancyActionBar.AdjustTimerY()
     local y = sliderOffsetToAnchorY(FancyActionBar.constants.duration.y)
+    local frontBarOffset = FancyActionBar.constants.duration.frontOffset or 0
+    local backBarOffset = FancyActionBar.constants.duration.backOffset or 0
 
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.overlays[i]
         local timer = overlay:GetNamedChild("Duration")
 
         timer:ClearAnchors()
-        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y)
+        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y - frontBarOffset)
 
         overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET]
         timer = overlay:GetNamedChild("Duration")
 
         timer:ClearAnchors()
-        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y)
+        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y - backBarOffset)
     end
 end
 
