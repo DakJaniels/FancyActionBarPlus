@@ -1559,6 +1559,9 @@ local function applyInactiveSlotVisibility(slot, activeHotbar)
     if not btn then
         return
     end
+    btn.slot:SetDrawTier(DT_LOW)
+    btn.bg:SetDrawTier(DT_LOW)
+    btn.icon:SetDrawTier(DT_LOW)
     if btn.slot then
         btn.slot:SetHidden(hidden)
     end
