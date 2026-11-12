@@ -3094,6 +3094,7 @@ function FancyActionBar.UpdateGCD()
 
     local height = (cooldown / duration) * SV.gcd.sizeY
     FAB_GCD.fill:SetHeight(height)
+    FAB_GCD.fill:SetHidden(height <= 0)
 end
 
 --------------
