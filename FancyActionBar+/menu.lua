@@ -4709,6 +4709,46 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     width = "half",
                                 },
                                 {
+                                    type = "slider",
+                                    name = "Front bar timer offset",
+                                    tooltip = "Move the front bar timer up or down.",
+                                    default = defaults.timeFrontOffsetKB,
+                                    min = -30,
+                                    max = 30,
+                                    step = 1,
+                                    getFunc = function ()
+                                        return SV.timeFrontOffsetKB
+                                    end,
+                                    setFunc = function (value)
+                                        SV.timeFrontOffsetKB = value
+                                        if FancyActionBar.style == 1 then
+                                            FancyActionBar.constants.duration.frontOffset = value
+                                            FancyActionBar.AdjustTimerY()
+                                        end
+                                    end,
+                                    width = "half",
+                                },
+                                {
+                                    type = "slider",
+                                    name = "Back bar timer offset",
+                                    tooltip = "Move the back bar timer up or down.",
+                                    default = defaults.timeBackOffsetKB,
+                                    min = -30,
+                                    max = 30,
+                                    step = 1,
+                                    getFunc = function ()
+                                        return SV.timeBackOffsetKB
+                                    end,
+                                    setFunc = function (value)
+                                        SV.timeBackOffsetKB = value
+                                        if FancyActionBar.style == 1 then
+                                            FancyActionBar.constants.duration.backOffset = value
+                                            FancyActionBar.AdjustTimerY()
+                                        end
+                                    end,
+                                    width = "half",
+                                },
+                                {
                                     type = "colorpicker",
                                     name = "Timer color",
                                     default = ZO_ColorDef:New(unpack(defaults.timeColorKB)),
@@ -5711,6 +5751,46 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                                     SV.timeYGP = value
                                     if FancyActionBar.style == 2 then
                                         FancyActionBar.constants.duration.y = value
+                                        FancyActionBar.AdjustTimerY()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                                                        {
+                                type = "slider",
+                                name = "Front bar timer offset",
+                                tooltip = "Move the front bar timer up or down.",
+                                default = defaults.timeFrontOffsetGP,
+                                min = -30,
+                                max = 30,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.timeFrontOffsetGP
+                                end,
+                                setFunc = function (value)
+                                    SV.timeFrontOffsetGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.frontOffset = value
+                                        FancyActionBar.AdjustTimerY()
+                                    end
+                                end,
+                                width = "half",
+                            },
+                            {
+                                type = "slider",
+                                name = "Back bar timer offset",
+                                tooltip = "Move the back bar timer up or down.",
+                                default = defaults.timeBackOffsetGP,
+                                min = -30,
+                                max = 30,
+                                step = 1,
+                                getFunc = function ()
+                                    return SV.timeBackOffsetGP
+                                end,
+                                setFunc = function (value)
+                                    SV.timeBackOffsetGP = value
+                                    if FancyActionBar.style == 2 then
+                                        FancyActionBar.constants.duration.backOffset = value
                                         FancyActionBar.AdjustTimerY()
                                     end
                                 end,
@@ -8710,19 +8790,21 @@ end
 
 function FancyActionBar.AdjustTimerY()
     local y = sliderOffsetToAnchorY(FancyActionBar.constants.duration.y)
+    local frontBarOffset = FancyActionBar.constants.duration.frontOffset or 0
+    local backBarOffset = FancyActionBar.constants.duration.backOffset or 0
 
     for i = MIN_INDEX, MAX_INDEX do
         local overlay = FancyActionBar.overlays[i]
         local timer = overlay:GetNamedChild("Duration")
 
         timer:ClearAnchors()
-        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y)
+        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y - frontBarOffset)
 
         overlay = FancyActionBar.overlays[i + SLOT_INDEX_OFFSET]
         timer = overlay:GetNamedChild("Duration")
 
         timer:ClearAnchors()
-        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y)
+        timer:SetAnchor(BOTTOM, overlay, BOTTOM, 0, y - backBarOffset)
     end
 end
 

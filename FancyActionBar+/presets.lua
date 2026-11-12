@@ -175,6 +175,8 @@ FancyActionBar.devConfig =
     ["ultValueModeGP"] = 3,
     ["activeBarTop"] = false,
     ["timeYGP"] = -2,
+    ["timeFrontOffsetGP"] = 0,
+    ["timeBackOffsetGP"] = 0,
     ["targetColorGP"] =
     {
         [1] = 1,
@@ -213,6 +215,8 @@ FancyActionBar.devConfig =
     ["ultValueXKB"] = 5,
     ["qsXGP"] = 0,
     ["timeYKB"] = 0,
+    ["timeFrontOffsetKB"] = 0,
+    ["timeBackOffsetKB"] = 0,
     ["ultShowGP"] = true,
     ["highlightColor"] =
     {
