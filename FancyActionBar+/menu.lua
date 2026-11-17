@@ -9570,15 +9570,27 @@ local function OnHUDManagerOffsetsChanged(element)
     end
 end
 
+local HUD_ELEMENT_SET_DEFAULT_ANCHOR_API_VERSION = 101052
+
 local function ApplyFabActionBarDefaultAnchor(actionBarElement, offsetX, offsetY, resetWhenUsingDefault)
     if not actionBarElement then
         return
     end
-    local resetToDefault = resetWhenUsingDefault and actionBarElement:IsUsingDefaultAnchor()
     local defaultAnchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, offsetX, offsetY)
-    -- ZO_HUDManager_Element:SetDefaultAnchor (HUDManager.lua). resetToDefault only for the active element,
-    -- because both elements share ACTION_BAR and ResetToDefaultAnchor sets that control.
-    actionBarElement:SetDefaultAnchor(defaultAnchor, resetToDefault)
+    -- IsUsingDefaultAnchor compares currentAnchor == defaultAnchor, so read it before replacing the anchor.
+    -- Only the active element: both elements share ACTION_BAR, and applying the default sets that control.
+    local isUsingDefaultAnchor = actionBarElement:IsUsingDefaultAnchor()
+    local resetToDefault = isUsingDefaultAnchor and resetWhenUsingDefault
+    if GetAPIVersion() >= HUD_ELEMENT_SET_DEFAULT_ANCHOR_API_VERSION then
+        -- ZO_HUDManager_Element:SetDefaultAnchor (HUDManager.lua).
+        actionBarElement:SetDefaultAnchor(defaultAnchor, resetToDefault)
+    else
+        -- API 101051 stores the baseline on the element (ZO_HUDManager_Element:Initialize).
+        actionBarElement.defaultAnchor = defaultAnchor
+        if resetToDefault then
+            actionBarElement:ResetToDefaultAnchor()
+        end
+    end
 end
 
 local function ApplyFabActionBarDefaultAnchors()
