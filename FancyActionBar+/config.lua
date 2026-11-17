@@ -1544,6 +1544,7 @@ FancyActionBar.allowedChanneled =
     [103492] = true, -- Meditate
     [103652] = true, -- Deep Thoughts
     [103665] = true, -- Introspection
+    [103706] = true, -- Channeled Accleration
 
     [20930] = true,  -- Engulfing Dragonfire
 

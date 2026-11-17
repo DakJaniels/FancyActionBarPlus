@@ -148,6 +148,8 @@ FancyActionBar.defaultSettings =
     fontSizeKB = 24,
     fontTypeKB = "thick-outline",
     timeYKB = 0,
+    timeFrontOffsetKB = 0,
+    timeBackOffsetKB = 0,
     timeColorKB = { 1, 1, 1 },
     -- stacks
     fontNameStackKB = "Univers 67",
@@ -210,6 +212,8 @@ FancyActionBar.defaultSettings =
     fontSizeGP = 34,
     fontTypeGP = "thick-outline",
     timeYGP = 0,
+    timeFrontOffsetGP = 0,
+    timeBackOffsetGP = 0,
     timeColorGP = { 1, 1, 1 },
     -- stacks
     fontNameStackGP = "Univers 67",
@@ -585,7 +589,7 @@ local function mapSection(sv, mode, fields)
     return section
 end
 
-local durationFields = { font = "fontName", size = "fontSize", outline = "fontType", y = "timeY", color = "timeColor" }
+local durationFields = { font = "fontName", size = "fontSize", outline = "fontType", y = "timeY", frontOffset = "timeFrontOffset", backOffset = "timeBackOffset", color = "timeColor" }
 local stackFields = { font = "fontNameStack", size = "fontSizeStack", outline = "fontTypeStack", x = "stackX", y = "stackY", color = "stackColor" }
 local targetFields = { font = "fontNameTarget", size = "fontSizeTarget", outline = "fontTypeTarget", x = "targetX", y = "targetY", color = "targetColor" }
 local ultDurationFields = { show = "ultShow", font = "ultName", size = "ultSize", outline = "ultType", x = "ultX", y = "ultY", color = "ultColor" }
