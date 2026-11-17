@@ -4,7 +4,7 @@ local FancyActionBar = FancyActionBar
 -----------------------------[    Constants   ]--------------------------------
 -------------------------------------------------------------------------------
 local NAME = "FancyActionBar+"
-local VERSION = "2.19.9"
+local VERSION = "2.20.0"
 local slashCommand = "/fab" or "/FAB"
 local EM = GetEventManager()
 local WM = GetWindowManager()
@@ -3554,13 +3554,17 @@ end
 --  UI Setup
 --  ---------------------------------
 
--- Move action bar and attributes up a bit.
-function FancyActionBar:AdjustControlsPositions() -- resource bars and default action bar position
+-- Console and Game Core have no saved HUD offsets. PC position comes from HUD_MANAGER.
+function FancyActionBar:AdjustControlsPositions()
     if FAB_ActionBarFakeQS == nil then
         FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
     end
     FAB_ActionBarFakeQS:ClearAnchors()
     FAB_ActionBarFakeQS:SetAnchor(LEFT, ACTION_BAR, LEFT, 0, -5, FAB_ActionBarFakeQS:GetResizeToFitConstrains())
+
+    if not ZO_IsConsoleOrGameCoreUI() then
+        return
+    end
 
     local style = FancyActionBar.constants.style
     local anchor = style.anchor
@@ -4792,7 +4796,7 @@ function FancyActionBar.ApplyPosition() -- check if action bar should be moved.
     FancyActionBar.HideHotkeys(not SV.showHotkeys)
     if not SV.forceAzurahMover then
         FancyActionBar.MoveActionBar()
-        if SV.forceReposition or not FancyActionBar.wasMoved then
+        if ZO_IsConsoleOrGameCoreUI() and (SV.forceReposition or not FancyActionBar.wasMoved) then
             FancyActionBar.RepositionElements()
         end
     end
@@ -6740,6 +6744,7 @@ local function OnPlayerActivated(_eventId, _initial)
     if firstZone then
         if not ZO_IsConsoleOrGameCoreUI() then
             SetAbilityBarTimersEnabled()
+            FancyActionBar.InitializeHUDManagerIntegration()
         end
         FancyActionBar.InitializeScreenResizeHandler()
         FancyActionBar.UpdateBarSettings(isWeaponSwapLocked, { skipSlots = true })

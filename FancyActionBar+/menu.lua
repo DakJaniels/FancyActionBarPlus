@@ -2624,6 +2624,31 @@ function FancyActionBar.RefreshMoverSize()
 end
 
 ----------------------------------------------
+-------[   HUD Manager Integration   ]--------
+----------------------------------------------
+function FancyActionBar.GetHUDElementForControl(control)
+    if IsInGamepadPreferredMode() then
+        return HUD_MANAGER:GetGamepadElementForControl(control)
+    end
+    return HUD_MANAGER:GetKeyboardElementForControl(control)
+end
+
+local function IsMoverModeGamepad()
+    if ZO_IsConsoleOrGameCoreUI() then
+        return FancyActionBar.style == 2
+    end
+    return IsInGamepadPreferredMode()
+end
+
+local function SaveActionBarPositionToHUDManager(targetLeft, targetTop)
+    local actionBarElement = FancyActionBar.GetHUDElementForControl(ACTION_BAR)
+    local deltaX = targetLeft - ACTION_BAR:GetLeft()
+    local deltaY = targetTop - ACTION_BAR:GetTop()
+    local _, refOffsetX, refOffsetY = actionBarElement:GetConvertedRefControlAnchorInfo()
+    actionBarElement:ApplyOffset(refOffsetX + deltaX, refOffsetY + deltaY)
+end
+
+----------------------------------------------
 ----------------[   Other   ]-----------------
 ----------------------------------------------
 
@@ -2688,14 +2713,17 @@ function FancyActionBar.SetUIPreset(presetName)
     end
 
     local abilityDataApplied = false
+    local presetAppliesPosition = true
     local builtInData = FancyActionBar.GetBuiltInPresetData(presetName)
 
     if builtInData then
         ApplyOverlayUIPresetSettings(builtInData)
+        presetAppliesPosition = builtInData.abMove ~= nil
     else
         local external = FancyActionBar.GetExternalUIPresetByName(presetName)
         if external then
             ApplyOverlayUIPresetSettings(external.settings)
+            presetAppliesPosition = external.settings.abMove ~= nil
         else
             local presetInfo = FancyActionBar.GetUserUIPresetByName(presetName)
             if presetInfo == nil or presetInfo.settings == nil then
@@ -2708,8 +2736,16 @@ function FancyActionBar.SetUIPreset(presetName)
         end
     end
 
+    if presetAppliesPosition and not ZO_IsConsoleOrGameCoreUI() then
+        SV.abMove.kb.hudPresetPending = true
+        SV.abMove.gp.hudPresetPending = true
+    end
+
     FancyActionBar.RefreshAfterPresetApply(abilityDataApplied)
     FancyActionBar.RefreshMenuAfterUIPresetApply(abilityDataApplied)
+    if not ZO_IsConsoleOrGameCoreUI() and HUDitorTools then
+        HUDitorTools.RebuildHudEditorIfShowing()
+    end
 end
 
 function FancyActionBar.SetDarkUI()
@@ -3161,12 +3197,13 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 {
                     type = "checkbox",
                     name = "Unlock Actionbar Position (Keyboard)",
+                    tooltip = "Drag the action bar to a new position. The position is saved to the game's Edit HUD layout for keyboard mode.",
                     default = unlocked,
                     disabled = function ()
-                        return FancyActionBar.style == 2 or SV.forceAzurahMover
+                        return IsMoverModeGamepad() or SV.forceAzurahMover
                     end,
                     getFunc = function ()
-                        return FancyActionBar.style == 1 and FancyActionBar.IsUnlocked()
+                        return not IsMoverModeGamepad() and FancyActionBar.IsUnlocked()
                     end,
                     setFunc = function (value)
                         FancyActionBar.ToggleMover(value)
@@ -3228,17 +3265,27 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                 {
                     type = "checkbox",
                     name = "Unlock Actionbar Position (Gamepad)",
+                    tooltip = "Drag the action bar to a new position. The position is saved to the game's Edit HUD layout for gamepad mode.",
                     default = unlocked,
                     disabled = function ()
-                        return FancyActionBar.style == 1 or SV.forceAzurahMover
+                        return not IsMoverModeGamepad() or SV.forceAzurahMover
                     end,
                     getFunc = function ()
-                        return FancyActionBar.style == 2 and FancyActionBar.IsUnlocked()
+                        return IsMoverModeGamepad() and FancyActionBar.IsUnlocked()
                     end,
                     setFunc = function (value)
                         FancyActionBar.ToggleMover(value)
                     end,
                     width = "full",
+                },
+                {
+                    type = "button",
+                    name = "Open ESO HUD Editor",
+                    tooltip = "Opens the game's Edit HUD screen, where the action bar, attribute bars, buffs and synergy prompt can be positioned.",
+                    width = "half",
+                    func = function ()
+                        SCENE_MANAGER:Show("hud_editor_keyboard")
+                    end,
                 },
                 { type = "divider" },
             }
@@ -8187,101 +8234,6 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                         requiresReload = true,
                         width = "half",
                     },
-                    {
-                        type = "checkbox",
-                        name = "Adjust Health Bar",
-                        tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
-                        default = defaults.moveHealthBar,
-                        getFunc = function ()
-                            return SV.moveHealthBar
-                        end,
-                        setFunc = function (value)
-                            SV.moveHealthBar = value or false
-                            if SV.forceReposition or not FancyActionBar.wasMoved then
-                                FancyActionBar.RepositionElements()
-                            end
-                        end,
-                        requiresReload = true,
-                        width = "half",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Adjust Mag/Stam Bars",
-                        tooltip = "Also adjust the position of the magicka and stamina bars to align with health bar.",
-                        default = defaults.moveResourceBars,
-                        getFunc = function ()
-                            return SV.moveResourceBars
-                        end,
-                        setFunc = function (value)
-                            SV.moveResourceBars = value or false
-                            if SV.forceReposition or not FancyActionBar.wasMoved then
-                                FancyActionBar.RepositionElements()
-                            end
-                        end,
-                        disabled = function ()
-                            return not SV.moveHealthBar
-                        end,
-                        requiresReload = true,
-                        width = "half",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Adjust Player Buffs Bar",
-                        tooltip = "Also adjust the position of the player buffs bar to not conflict with the adjusted attribute bars in console UI.",
-                        default = defaults.moveBuffs,
-                        getFunc = function ()
-                            return SV.moveBuffs
-                        end,
-                        setFunc = function (value)
-                            SV.moveBuffs = value or false
-                            if SV.forceReposition or not FancyActionBar.wasMoved then
-                                FancyActionBar.RepositionElements()
-                            end
-                        end,
-                        disabled = function ()
-                            return not SV.moveHealthBar
-                        end,
-                        requiresReload = true,
-                        width = "half",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Adjust Synergy Prompt",
-                        tooltip = "Also adjust the position of the synergy prompt to not conflict with the buff bar in console UI.",
-                        default = defaults.moveSynergy,
-                        getFunc = function ()
-                            return SV.moveSynergy
-                        end,
-                        setFunc = function (value)
-                            SV.moveSynergy = value or false
-                            if SV.forceReposition or not FancyActionBar.wasMoved then
-                                FancyActionBar.RepositionElements()
-                            end
-                        end,
-                        disabled = function ()
-                            return not SV.moveHealthBar
-                        end,
-                        requiresReload = true,
-                        width = "half",
-                    },
-                    {
-                        type = "checkbox",
-                        name = "Force UI Adjustments",
-                        tooltip = "By default respositioning the Resource Bars, Synergy Prompt, and Buff Bars only occurs with the action bar in its defualt postion, enabling this setting forces these adjustments to always occur.",
-                        default = defaults.forceReposition,
-                        getFunc = function ()
-                            return SV.forceReposition
-                        end,
-                        setFunc = function (value)
-                            SV.forceReposition = value or false
-                            FancyActionBar.RepositionElements()
-                        end,
-                        disabled = function ()
-                            return not SV.moveHealthBar
-                        end,
-                        requiresReload = true,
-                        width = "half",
-                    },
                     { type = "description", text = "", width = "half" },
 
                     -- ============[	Enemy Markers	]=======================
@@ -8425,6 +8377,110 @@ function FancyActionBar.BuildMenu(sv, cv, defaults)
                     },
                 },
             })
+        if ZO_IsConsoleOrGameCoreUI() then
+            local repositionControls =
+            {
+                {
+                    type = "checkbox",
+                    name = "Adjust Health Bar",
+                    tooltip = "The scale of Fancy Action Bar+ can cause it to overlap the health bar in its default position. When enabled, if FAB is in its default position, it will reanchor the default health bar to be above the action bar. If FAB is moved, it will not adjust the health bar. Disabling this setting will require reloading the UI. Installation of Azurah will cause this setting to be ignored.",
+                    default = defaults.moveHealthBar,
+                    getFunc = function ()
+                        return SV.moveHealthBar
+                    end,
+                    setFunc = function (value)
+                        SV.moveHealthBar = value or false
+                        if SV.forceReposition or not FancyActionBar.wasMoved then
+                            FancyActionBar.RepositionElements()
+                        end
+                    end,
+                    requiresReload = true,
+                    width = "half",
+                },
+                {
+                    type = "checkbox",
+                    name = "Adjust Mag/Stam Bars",
+                    tooltip = "Also adjust the position of the magicka and stamina bars to align with health bar.",
+                    default = defaults.moveResourceBars,
+                    getFunc = function ()
+                        return SV.moveResourceBars
+                    end,
+                    setFunc = function (value)
+                        SV.moveResourceBars = value or false
+                        if SV.forceReposition or not FancyActionBar.wasMoved then
+                            FancyActionBar.RepositionElements()
+                        end
+                    end,
+                    disabled = function ()
+                        return not SV.moveHealthBar
+                    end,
+                    requiresReload = true,
+                    width = "half",
+                },
+                {
+                    type = "checkbox",
+                    name = "Adjust Player Buffs Bar",
+                    tooltip = "Also adjust the position of the player buffs bar to not conflict with the adjusted attribute bars in console UI.",
+                    default = defaults.moveBuffs,
+                    getFunc = function ()
+                        return SV.moveBuffs
+                    end,
+                    setFunc = function (value)
+                        SV.moveBuffs = value or false
+                        if SV.forceReposition or not FancyActionBar.wasMoved then
+                            FancyActionBar.RepositionElements()
+                        end
+                    end,
+                    disabled = function ()
+                        return not SV.moveHealthBar
+                    end,
+                    requiresReload = true,
+                    width = "half",
+                },
+                {
+                    type = "checkbox",
+                    name = "Adjust Synergy Prompt",
+                    tooltip = "Also adjust the position of the synergy prompt to not conflict with the buff bar in console UI.",
+                    default = defaults.moveSynergy,
+                    getFunc = function ()
+                        return SV.moveSynergy
+                    end,
+                    setFunc = function (value)
+                        SV.moveSynergy = value or false
+                        if SV.forceReposition or not FancyActionBar.wasMoved then
+                            FancyActionBar.RepositionElements()
+                        end
+                    end,
+                    disabled = function ()
+                        return not SV.moveHealthBar
+                    end,
+                    requiresReload = true,
+                    width = "half",
+                },
+                {
+                    type = "checkbox",
+                    name = "Force UI Adjustments",
+                    tooltip = "By default respositioning the Resource Bars, Synergy Prompt, and Buff Bars only occurs with the action bar in its defualt postion, enabling this setting forces these adjustments to always occur.",
+                    default = defaults.forceReposition,
+                    getFunc = function ()
+                        return SV.forceReposition
+                    end,
+                    setFunc = function (value)
+                        SV.forceReposition = value or false
+                        FancyActionBar.RepositionElements()
+                    end,
+                    disabled = function ()
+                        return not SV.moveHealthBar
+                    end,
+                    requiresReload = true,
+                    width = "half",
+                },
+            }
+            local miscRepositionInsertIndex = 4
+            for repositionIndex, repositionControl in ipairs(repositionControls) do
+                table.insert(optionsTable[tableIndex].controls, miscRepositionInsertIndex + repositionIndex - 1, repositionControl)
+            end
+        end
         if IsConsoleUI() then
             local moveGCD =
             {
@@ -9100,10 +9156,15 @@ function FancyActionBar.UndoMove()
         prevY = SV.abMove.kb.prevY
     end
     FancyActionBar.SaveCurrentLocation()
-    ACTION_BAR:ClearAnchors()
-    ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, prevX, prevY)
-    FancyActionBar.ReanchorMover()
-    FancyActionBar.SaveMoverPosition()
+    if ZO_IsConsoleOrGameCoreUI() then
+        ACTION_BAR:ClearAnchors()
+        ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, prevX, prevY)
+        FancyActionBar.ReanchorMover()
+        FancyActionBar.SaveMoverPosition()
+    else
+        SaveActionBarPositionToHUDManager(prevX, prevY)
+        FancyActionBar.ReanchorMover()
+    end
     FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
 end
 
@@ -9122,6 +9183,30 @@ local function SyncMoveConstants(x, y, enable)
     if enable ~= nil then
         move.enable = enable
     end
+end
+
+local HUD_OFFSET_PRECISION = 0.00001
+
+local function GetHudInputModeMoveSettings()
+    if IsInGamepadPreferredMode() then
+        return SV.abMove.gp, FancyActionBar.defaultSettings.abMove.gp
+    end
+    return SV.abMove.kb, FancyActionBar.defaultSettings.abMove.kb
+end
+
+local function GetHudInputModeScaleSettings()
+    if IsInGamepadPreferredMode() then
+        return SV.abScaling.gp
+    end
+    return SV.abScaling.kb
+end
+
+local function HudInputModeMatchesActiveStyle()
+    return IsInGamepadPreferredMode() == (FancyActionBar.style == 2)
+end
+
+local function MoveSettingsHaveNormalizedOffsets(moveSettings)
+    return type(moveSettings.offsetX) == "number" and type(moveSettings.offsetY) == "number"
 end
 
 local function PersistMoveSettings(x, y, enable)
@@ -9156,6 +9241,14 @@ end
 function FancyActionBar.ResetMoveActionBar()
     local _, d = FancyActionBar:GetMovableVarsForUI()
     FancyActionBar.SaveCurrentLocation()
+    if not ZO_IsConsoleOrGameCoreUI() then
+        FancyActionBar.GetHUDElementForControl(ACTION_BAR):ResetToDefaultAnchor()
+        FancyActionBar.MoveActionBar()
+        FancyActionBar.ReanchorMover()
+        FancyActionBar.RefreshMoverSize()
+        FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
+        return
+    end
     ACTION_BAR:ClearAnchors()
     ApplyDefaultActionBarAnchor(d)
 
@@ -9181,10 +9274,15 @@ function FancyActionBar.CenterActionBar(horiz, vert)
         x = zo_floor((GuiRoot:GetWidth() - width) / 2)
     end
 
-    ACTION_BAR:ClearAnchors()
-    ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
-    FancyActionBar.ReanchorMover()
-    FancyActionBar.SaveMoverPosition()
+    if ZO_IsConsoleOrGameCoreUI() then
+        ACTION_BAR:ClearAnchors()
+        ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
+        FancyActionBar.ReanchorMover()
+        FancyActionBar.SaveMoverPosition()
+    else
+        SaveActionBarPositionToHUDManager(x, y)
+        FancyActionBar.ReanchorMover()
+    end
     FAB_Mover:SetHidden(not FancyActionBar.IsUnlocked())
 end
 
@@ -9206,8 +9304,84 @@ function FancyActionBar.ToggleMover(enableMove)
     end
 end
 
+local function ApplyNormalizedOffsetsToHudElement(actionBarElement, normalizedOffsetX, normalizedOffsetY)
+    local guiRootWidth, guiRootHeight = GuiRoot:GetDimensions()
+    local primaryOffsetX = guiRootWidth * normalizedOffsetX
+    local primaryOffsetY = guiRootHeight * normalizedOffsetY
+    local defaultOffsetX, defaultOffsetY = actionBarElement.defaultAnchor:GetOffsets()
+    if zo_abs(primaryOffsetX - defaultOffsetX) < 0.5 and zo_abs(primaryOffsetY - defaultOffsetY) < 0.5 then
+        actionBarElement:ResetToDefaultAnchor()
+        return
+    end
+
+    local workingAnchor = actionBarElement:GetWorkingAnchor()
+    workingAnchor:SetOffsets(primaryOffsetX, primaryOffsetY)
+    workingAnchor:Set(ACTION_BAR)
+    -- ZO_HUDManager_Element:SaveOffsets writes currentAnchor's offsets (HUDManager.lua).
+    actionBarElement.currentAnchor = workingAnchor
+    actionBarElement:SaveOffsets()
+end
+
+local function PersistHudMoveFromElement(actionBarElement, moveSettings, defaultMove)
+    if actionBarElement:IsUsingDefaultAnchor() then
+        moveSettings.enable = false
+        moveSettings.x = defaultMove.x
+        moveSettings.y = defaultMove.y
+        moveSettings.offsetX = nil
+        moveSettings.offsetY = nil
+        if HudInputModeMatchesActiveStyle() then
+            SyncMoveConstants(defaultMove.x, defaultMove.y, false)
+        end
+        return
+    end
+
+    local primaryOffsetX, primaryOffsetY = actionBarElement:GetCurrentAnchor():GetOffsets()
+    local guiRootWidth, guiRootHeight = GuiRoot:GetDimensions()
+    moveSettings.enable = true
+    moveSettings.offsetX = zo_roundToNearest(primaryOffsetX / guiRootWidth, HUD_OFFSET_PRECISION)
+    moveSettings.offsetY = zo_roundToNearest(primaryOffsetY / guiRootHeight, HUD_OFFSET_PRECISION)
+    moveSettings.x = primaryOffsetX
+    moveSettings.y = primaryOffsetY
+    if HudInputModeMatchesActiveStyle() then
+        SyncMoveConstants(primaryOffsetX, primaryOffsetY, true)
+    end
+end
+
 function FancyActionBar.MoveActionBar()
     local v, d = FancyActionBar:GetMovableVarsForUI()
+
+    if not ZO_IsConsoleOrGameCoreUI() then
+        if SV.forceAzurahMover then
+            return
+        end
+
+        local actionBarElement = FancyActionBar.GetHUDElementForControl(ACTION_BAR)
+        local moveSettings, defaultMove = GetHudInputModeMoveSettings()
+        -- Flags are cleared before ApplyOffset/ResetToDefaultAnchor: their OffsetsChanged callback re-enters MoveActionBar.
+        if moveSettings.hudPresetPending then
+            moveSettings.hudPresetPending = nil
+            moveSettings.hudMigrated = true
+            if moveSettings.enable and MoveSettingsHaveNormalizedOffsets(moveSettings) then
+                ApplyNormalizedOffsetsToHudElement(actionBarElement, moveSettings.offsetX, moveSettings.offsetY)
+            elseif moveSettings.enable then
+                SaveActionBarPositionToHUDManager(moveSettings.x, moveSettings.y)
+            else
+                actionBarElement:ResetToDefaultAnchor()
+            end
+        elseif not moveSettings.hudMigrated then
+            moveSettings.hudMigrated = true
+            if moveSettings.enable and not MoveSettingsHaveNormalizedOffsets(moveSettings) and actionBarElement:IsUsingDefaultAnchor() then
+                SaveActionBarPositionToHUDManager(moveSettings.x, moveSettings.y)
+            end
+        end
+
+        -- Reapply the element anchor. ZOS ApplyStyle still sets the original BOTTOM 0,0 / 0,-25 anchor.
+        actionBarElement:GetCurrentAnchor():Set(ACTION_BAR)
+        PersistHudMoveFromElement(actionBarElement, moveSettings, defaultMove)
+        FancyActionBar.SetMoved(not actionBarElement:IsUsingDefaultAnchor())
+        return
+    end
+
     FancyActionBar.SetMoved(v.enable or false)
 
     ACTION_BAR:ClearAnchors()
@@ -9239,8 +9413,11 @@ end
 function FancyActionBar.SaveMoverPosition()
     local x = FAB_Mover:GetLeft()
     local y = FAB_Mover:GetTop()
+    local isConsoleOrGameCoreUI = ZO_IsConsoleOrGameCoreUI()
 
-    PersistMoveSettings(x, y, true)
+    if isConsoleOrGameCoreUI then
+        PersistMoveSettings(x, y, true)
+    end
 
     if Azurah then UpdateAzurahDb() end
 
@@ -9251,13 +9428,12 @@ function FancyActionBar.SaveMoverPosition()
         BUI.Vars["ZO_ActionBar1"][4] = y
     end
 
-    if LUIE and LUIE.SV["ZO_ActionBar1"] then
-        LUIE.SV["ZO_ActionBar1"][1] = x
-        LUIE.SV["ZO_ActionBar1"][2] = y
+    if isConsoleOrGameCoreUI then
+        ACTION_BAR:ClearAnchors()
+        ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
+    else
+        SaveActionBarPositionToHUDManager(x, y)
     end
-
-    ACTION_BAR:ClearAnchors()
-    ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
     FancyActionBar.SetMoved(true)
 end
 
@@ -9382,6 +9558,100 @@ function FancyActionBar.RepositionElements()
     end
 end
 
+local function OnHUDManagerLayoutChanged()
+    FancyActionBar.MoveActionBar()
+    FancyActionBar.ReanchorMover()
+    FancyActionBar.RefreshMoverSize()
+end
+
+local function OnHUDManagerOffsetsChanged(element)
+    if element:GetControl() == ACTION_BAR then
+        OnHUDManagerLayoutChanged()
+    end
+end
+
+local HUD_ELEMENT_SET_DEFAULT_ANCHOR_API_VERSION = 101052
+
+local function ApplyFabActionBarDefaultAnchor(actionBarElement, offsetX, offsetY, resetWhenUsingDefault)
+    if not actionBarElement then
+        return
+    end
+    local defaultAnchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, offsetX, offsetY)
+    -- IsUsingDefaultAnchor compares currentAnchor == defaultAnchor, so read it before replacing the anchor.
+    -- Only the active element: both elements share ACTION_BAR, and applying the default sets that control.
+    local isUsingDefaultAnchor = actionBarElement:IsUsingDefaultAnchor()
+    local resetToDefault = isUsingDefaultAnchor and resetWhenUsingDefault
+    if GetAPIVersion() >= HUD_ELEMENT_SET_DEFAULT_ANCHOR_API_VERSION then
+        -- ZO_HUDManager_Element:SetDefaultAnchor (HUDManager.lua).
+        actionBarElement:SetDefaultAnchor(defaultAnchor, resetToDefault)
+    else
+        -- API 101051 stores the baseline on the element (ZO_HUDManager_Element:Initialize).
+        actionBarElement.defaultAnchor = defaultAnchor
+        if resetToDefault then
+            actionBarElement:ResetToDefaultAnchor()
+        end
+    end
+end
+
+local function ApplyFabActionBarDefaultAnchors()
+    if SV.forceAzurahMover then
+        return
+    end
+
+    local keyboardDefault = FancyActionBar.defaultSettings.abMove.kb
+    local gamepadDefault = FancyActionBar.defaultSettings.abMove.gp
+    local keyboardElement = HUD_MANAGER:GetKeyboardElementForControl(ACTION_BAR)
+    local gamepadElement = HUD_MANAGER:GetGamepadElementForControl(ACTION_BAR)
+    local activeIsGamepad = IsInGamepadPreferredMode()
+    ApplyFabActionBarDefaultAnchor(keyboardElement, keyboardDefault.x, keyboardDefault.y, not activeIsGamepad)
+    ApplyFabActionBarDefaultAnchor(gamepadElement, gamepadDefault.x, gamepadDefault.y, activeIsGamepad)
+end
+
+local function MirrorActionBarScaleFromHuditor()
+    if not HUDitorTools or SV.forceAzurahMover then
+        return
+    end
+
+    local scaleSettings = GetHudInputModeScaleSettings()
+    if not scaleSettings then
+        return
+    end
+
+    local appearanceRow = HUDitorTools.GetAppearanceRow(ACTION_BAR:GetName())
+    local appearanceScale = 1
+    if type(appearanceRow) == "table" and type(appearanceRow.scale) == "number" then
+        appearanceScale = appearanceRow.scale
+    end
+
+    local scalePercent = zo_round(appearanceScale * 100)
+    local scaleEnabled = zo_abs(appearanceScale - 1) >= 0.001
+    if scaleSettings.scale == scalePercent and scaleSettings.enable == scaleEnabled then
+        return
+    end
+
+    scaleSettings.scale = scalePercent
+    scaleSettings.enable = scaleEnabled
+    if HudInputModeMatchesActiveStyle() and FancyActionBar.constants and FancyActionBar.constants.abScale then
+        FancyActionBar.constants.abScale.scale = scalePercent
+        FancyActionBar.constants.abScale.enable = scaleEnabled
+        FancyActionBar.SetScale()
+    end
+end
+
+local function OnHUDEditorSceneStateChanged(oldState, newState)
+    if newState == SCENE_HIDDEN then
+        OnHUDManagerLayoutChanged()
+        MirrorActionBarScaleFromHuditor()
+    end
+end
+
+function FancyActionBar.InitializeHUDManagerIntegration()
+    ApplyFabActionBarDefaultAnchors()
+    HUD_MANAGER:RegisterCallback("PropagateSettings", OnHUDManagerLayoutChanged)
+    HUD_MANAGER:RegisterCallback("OffsetsChanged", OnHUDManagerOffsetsChanged)
+    HUD_EDITOR_SCENE_KEYBOARD:RegisterCallback("StateChange", OnHUDEditorSceneStateChanged)
+end
+
 local function PlayerDeath(oldState, newState)
     if newState == SCENE_SHOWN then
         ACTION_BAR:SetHidden(false)
@@ -9403,14 +9673,30 @@ function FancyActionBar.ApplyDeathStateOption()
     end
 end
 
-function FancyActionBar.UpdateScale(s)
-    local scale = s
-    ACTION_BAR:SetScale(scale)
+function FancyActionBar.UpdateScale(scaleValue)
+    if HUDitorTools and not SV.forceAzurahMover and not ZO_IsConsoleOrGameCoreUI() then
+        local saveKey = ACTION_BAR:GetName()
+        local appearanceRow = HUDitorTools.GetAppearanceRow(saveKey) or {}
+        HUDitorTools.SetAppearanceRow(saveKey, {
+            scale = scaleValue,
+            fontFace = appearanceRow.fontFace,
+            fontSize = appearanceRow.fontSize,
+            fontOutline = appearanceRow.fontOutline,
+        })
+        HUDitorTools.ApplyElementAppearance(FancyActionBar.GetHUDElementForControl(ACTION_BAR))
+        HUDitorTools.RebuildHudEditorIfShowing()
+    else
+        ACTION_BAR:SetScale(scaleValue)
+    end
     FancyActionBar.RefreshMoverSize()
 end
 
 function FancyActionBar.InitializeScreenResizeHandler()
     local function OnScreenResize()
+        if not ZO_IsConsoleOrGameCoreUI() then
+            FancyActionBar.ReanchorMover()
+            return
+        end
         local v, d = FancyActionBar:GetMovableVarsForUI()
         if v.enable then
             local screenWidth = GuiRoot:GetWidth()
