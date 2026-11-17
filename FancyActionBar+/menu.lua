@@ -2743,6 +2743,9 @@ function FancyActionBar.SetUIPreset(presetName)
 
     FancyActionBar.RefreshAfterPresetApply(abilityDataApplied)
     FancyActionBar.RefreshMenuAfterUIPresetApply(abilityDataApplied)
+    if not ZO_IsConsoleOrGameCoreUI() and HUDitorTools then
+        HUDitorTools.RebuildHudEditorIfShowing()
+    end
 end
 
 function FancyActionBar.SetDarkUI()
@@ -9182,6 +9185,30 @@ local function SyncMoveConstants(x, y, enable)
     end
 end
 
+local HUD_OFFSET_PRECISION = 0.00001
+
+local function GetHudInputModeMoveSettings()
+    if IsInGamepadPreferredMode() then
+        return SV.abMove.gp, FancyActionBar.defaultSettings.abMove.gp
+    end
+    return SV.abMove.kb, FancyActionBar.defaultSettings.abMove.kb
+end
+
+local function GetHudInputModeScaleSettings()
+    if IsInGamepadPreferredMode() then
+        return SV.abScaling.gp
+    end
+    return SV.abScaling.kb
+end
+
+local function HudInputModeMatchesActiveStyle()
+    return IsInGamepadPreferredMode() == (FancyActionBar.style == 2)
+end
+
+local function MoveSettingsHaveNormalizedOffsets(moveSettings)
+    return type(moveSettings.offsetX) == "number" and type(moveSettings.offsetY) == "number"
+end
+
 local function PersistMoveSettings(x, y, enable)
     local moveSV = FancyActionBar.style == 2 and SV.abMove.gp or SV.abMove.kb
     if not moveSV then
@@ -9277,40 +9304,81 @@ function FancyActionBar.ToggleMover(enableMove)
     end
 end
 
+local function ApplyNormalizedOffsetsToHudElement(actionBarElement, normalizedOffsetX, normalizedOffsetY)
+    local guiRootWidth, guiRootHeight = GuiRoot:GetDimensions()
+    local primaryOffsetX = guiRootWidth * normalizedOffsetX
+    local primaryOffsetY = guiRootHeight * normalizedOffsetY
+    local defaultOffsetX, defaultOffsetY = actionBarElement.defaultAnchor:GetOffsets()
+    if zo_abs(primaryOffsetX - defaultOffsetX) < 0.5 and zo_abs(primaryOffsetY - defaultOffsetY) < 0.5 then
+        actionBarElement:ResetToDefaultAnchor()
+        return
+    end
+
+    local workingAnchor = actionBarElement:GetWorkingAnchor()
+    workingAnchor:SetOffsets(primaryOffsetX, primaryOffsetY)
+    workingAnchor:Set(ACTION_BAR)
+    -- ZO_HUDManager_Element:SaveOffsets writes currentAnchor's offsets (HUDManager.lua).
+    actionBarElement.currentAnchor = workingAnchor
+    actionBarElement:SaveOffsets()
+end
+
+local function PersistHudMoveFromElement(actionBarElement, moveSettings, defaultMove)
+    if actionBarElement:IsUsingDefaultAnchor() then
+        moveSettings.enable = false
+        moveSettings.x = defaultMove.x
+        moveSettings.y = defaultMove.y
+        moveSettings.offsetX = nil
+        moveSettings.offsetY = nil
+        if HudInputModeMatchesActiveStyle() then
+            SyncMoveConstants(defaultMove.x, defaultMove.y, false)
+        end
+        return
+    end
+
+    local primaryOffsetX, primaryOffsetY = actionBarElement:GetCurrentAnchor():GetOffsets()
+    local guiRootWidth, guiRootHeight = GuiRoot:GetDimensions()
+    moveSettings.enable = true
+    moveSettings.offsetX = zo_roundToNearest(primaryOffsetX / guiRootWidth, HUD_OFFSET_PRECISION)
+    moveSettings.offsetY = zo_roundToNearest(primaryOffsetY / guiRootHeight, HUD_OFFSET_PRECISION)
+    moveSettings.x = primaryOffsetX
+    moveSettings.y = primaryOffsetY
+    if HudInputModeMatchesActiveStyle() then
+        SyncMoveConstants(primaryOffsetX, primaryOffsetY, true)
+    end
+end
+
 function FancyActionBar.MoveActionBar()
     local v, d = FancyActionBar:GetMovableVarsForUI()
 
     if not ZO_IsConsoleOrGameCoreUI() then
+        if SV.forceAzurahMover then
+            return
+        end
+
         local actionBarElement = FancyActionBar.GetHUDElementForControl(ACTION_BAR)
-        local moveSV = FancyActionBar.style == 2 and SV.abMove.gp or SV.abMove.kb
+        local moveSettings, defaultMove = GetHudInputModeMoveSettings()
         -- Flags are cleared before ApplyOffset/ResetToDefaultAnchor: their OffsetsChanged callback re-enters MoveActionBar.
-        if moveSV.hudPresetPending then
-            moveSV.hudPresetPending = nil
-            moveSV.hudMigrated = true
-            if v.enable then
-                SaveActionBarPositionToHUDManager(v.x, v.y)
+        if moveSettings.hudPresetPending then
+            moveSettings.hudPresetPending = nil
+            moveSettings.hudMigrated = true
+            if moveSettings.enable and MoveSettingsHaveNormalizedOffsets(moveSettings) then
+                ApplyNormalizedOffsetsToHudElement(actionBarElement, moveSettings.offsetX, moveSettings.offsetY)
+            elseif moveSettings.enable then
+                SaveActionBarPositionToHUDManager(moveSettings.x, moveSettings.y)
             else
                 actionBarElement:ResetToDefaultAnchor()
             end
-        elseif not moveSV.hudMigrated then
-            moveSV.hudMigrated = true
-            if v.enable and actionBarElement:IsUsingDefaultAnchor() then
-                ACTION_BAR:ClearAnchors()
-                ApplyDefaultActionBarAnchor(d)
-                SaveActionBarPositionToHUDManager(v.x, v.y)
+        elseif not moveSettings.hudMigrated then
+            moveSettings.hudMigrated = true
+            if moveSettings.enable and not MoveSettingsHaveNormalizedOffsets(moveSettings) and actionBarElement:IsUsingDefaultAnchor() then
+                SaveActionBarPositionToHUDManager(moveSettings.x, moveSettings.y)
             end
         end
 
-        local isUsingDefaultAnchor = actionBarElement:IsUsingDefaultAnchor()
-        if isUsingDefaultAnchor then
-            ACTION_BAR:ClearAnchors()
-            ApplyDefaultActionBarAnchor(d)
-            PersistMoveSettings(d.x, d.y, false)
-        else
-            actionBarElement:GetCurrentAnchor():Set(ACTION_BAR)
-            PersistMoveSettings(ACTION_BAR:GetLeft(), ACTION_BAR:GetTop(), true)
-        end
-        FancyActionBar.SetMoved(not isUsingDefaultAnchor)
+        -- Reapply the element anchor. ZOS ApplyStyle still sets the original BOTTOM 0,0 / 0,-25 anchor.
+        actionBarElement:GetCurrentAnchor():Set(ACTION_BAR)
+        PersistHudMoveFromElement(actionBarElement, moveSettings, defaultMove)
+        FancyActionBar.SetMoved(not actionBarElement:IsUsingDefaultAnchor())
         return
     end
 
@@ -9502,13 +9570,71 @@ local function OnHUDManagerOffsetsChanged(element)
     end
 end
 
+local function ApplyFabActionBarDefaultAnchor(actionBarElement, offsetX, offsetY, resetWhenUsingDefault)
+    if not actionBarElement then
+        return
+    end
+    local resetToDefault = resetWhenUsingDefault and actionBarElement:IsUsingDefaultAnchor()
+    local defaultAnchor = ZO_Anchor:New(BOTTOM, GuiRoot, BOTTOM, offsetX, offsetY)
+    -- ZO_HUDManager_Element:SetDefaultAnchor (HUDManager.lua). resetToDefault only for the active element,
+    -- because both elements share ACTION_BAR and ResetToDefaultAnchor sets that control.
+    actionBarElement:SetDefaultAnchor(defaultAnchor, resetToDefault)
+end
+
+local function ApplyFabActionBarDefaultAnchors()
+    if SV.forceAzurahMover then
+        return
+    end
+
+    local keyboardDefault = FancyActionBar.defaultSettings.abMove.kb
+    local gamepadDefault = FancyActionBar.defaultSettings.abMove.gp
+    local keyboardElement = HUD_MANAGER:GetKeyboardElementForControl(ACTION_BAR)
+    local gamepadElement = HUD_MANAGER:GetGamepadElementForControl(ACTION_BAR)
+    local activeIsGamepad = IsInGamepadPreferredMode()
+    ApplyFabActionBarDefaultAnchor(keyboardElement, keyboardDefault.x, keyboardDefault.y, not activeIsGamepad)
+    ApplyFabActionBarDefaultAnchor(gamepadElement, gamepadDefault.x, gamepadDefault.y, activeIsGamepad)
+end
+
+local function MirrorActionBarScaleFromHuditor()
+    if not HUDitorTools or SV.forceAzurahMover then
+        return
+    end
+
+    local scaleSettings = GetHudInputModeScaleSettings()
+    if not scaleSettings then
+        return
+    end
+
+    local appearanceRow = HUDitorTools.GetAppearanceRow(ACTION_BAR:GetName())
+    local appearanceScale = 1
+    if type(appearanceRow) == "table" and type(appearanceRow.scale) == "number" then
+        appearanceScale = appearanceRow.scale
+    end
+
+    local scalePercent = zo_round(appearanceScale * 100)
+    local scaleEnabled = zo_abs(appearanceScale - 1) >= 0.001
+    if scaleSettings.scale == scalePercent and scaleSettings.enable == scaleEnabled then
+        return
+    end
+
+    scaleSettings.scale = scalePercent
+    scaleSettings.enable = scaleEnabled
+    if HudInputModeMatchesActiveStyle() and FancyActionBar.constants and FancyActionBar.constants.abScale then
+        FancyActionBar.constants.abScale.scale = scalePercent
+        FancyActionBar.constants.abScale.enable = scaleEnabled
+        FancyActionBar.SetScale()
+    end
+end
+
 local function OnHUDEditorSceneStateChanged(oldState, newState)
     if newState == SCENE_HIDDEN then
         OnHUDManagerLayoutChanged()
+        MirrorActionBarScaleFromHuditor()
     end
 end
 
 function FancyActionBar.InitializeHUDManagerIntegration()
+    ApplyFabActionBarDefaultAnchors()
     HUD_MANAGER:RegisterCallback("PropagateSettings", OnHUDManagerLayoutChanged)
     HUD_MANAGER:RegisterCallback("OffsetsChanged", OnHUDManagerOffsetsChanged)
     HUD_EDITOR_SCENE_KEYBOARD:RegisterCallback("StateChange", OnHUDEditorSceneStateChanged)
@@ -9535,9 +9661,21 @@ function FancyActionBar.ApplyDeathStateOption()
     end
 end
 
-function FancyActionBar.UpdateScale(s)
-    local scale = s
-    ACTION_BAR:SetScale(scale)
+function FancyActionBar.UpdateScale(scaleValue)
+    if HUDitorTools and not SV.forceAzurahMover and not ZO_IsConsoleOrGameCoreUI() then
+        local saveKey = ACTION_BAR:GetName()
+        local appearanceRow = HUDitorTools.GetAppearanceRow(saveKey) or {}
+        HUDitorTools.SetAppearanceRow(saveKey, {
+            scale = scaleValue,
+            fontFace = appearanceRow.fontFace,
+            fontSize = appearanceRow.fontSize,
+            fontOutline = appearanceRow.fontOutline,
+        })
+        HUDitorTools.ApplyElementAppearance(FancyActionBar.GetHUDElementForControl(ACTION_BAR))
+        HUDitorTools.RebuildHudEditorIfShowing()
+    else
+        ACTION_BAR:SetScale(scaleValue)
+    end
     FancyActionBar.RefreshMoverSize()
 end
 

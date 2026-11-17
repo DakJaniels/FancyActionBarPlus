@@ -3554,25 +3554,26 @@ end
 --  UI Setup
 --  ---------------------------------
 
--- Move action bar and attributes up a bit.
-function FancyActionBar:AdjustControlsPositions() -- resource bars and default action bar position
+-- Console and Game Core have no saved HUD offsets. PC position comes from HUD_MANAGER.
+function FancyActionBar:AdjustControlsPositions()
     if FAB_ActionBarFakeQS == nil then
         FAB_ActionBarFakeQS = GetControl("FAB_ActionBarFakeQS")
     end
     FAB_ActionBarFakeQS:ClearAnchors()
     FAB_ActionBarFakeQS:SetAnchor(LEFT, ACTION_BAR, LEFT, 0, -5, FAB_ActionBarFakeQS:GetResizeToFitConstrains())
 
+    if not ZO_IsConsoleOrGameCoreUI() then
+        return
+    end
+
     local style = FancyActionBar.constants.style
     local anchor = style.anchor
     anchor:SetFromControlAnchor(ACTION_BAR)
     anchor:SetOffsets(nil, style.actionBarOffset)
     anchor:Set(ACTION_BAR)
-    -- HUDitorTools is a PC only addon... for now. Console and Game Core still apply attributesOffset.
-    if not (ZO_IsPCUI() and HUDitorTools) then
-        anchor:SetFromControlAnchor(ZO_PlayerAttribute)
-        anchor:SetOffsets(nil, style.attributesOffset)
-        anchor:Set(ZO_PlayerAttribute)
-    end
+    anchor:SetFromControlAnchor(ZO_PlayerAttribute)
+    anchor:SetOffsets(nil, style.attributesOffset)
+    anchor:Set(ZO_PlayerAttribute)
 end
 
 function FancyActionBar.AdjustQuickSlotSpacing(lock)
