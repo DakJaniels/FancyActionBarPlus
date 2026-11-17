@@ -9360,11 +9360,6 @@ function FancyActionBar.SaveMoverPosition()
         BUI.Vars["ZO_ActionBar1"][4] = y
     end
 
-    if LUIE and LUIE.SV["ZO_ActionBar1"] then
-        LUIE.SV["ZO_ActionBar1"][1] = x
-        LUIE.SV["ZO_ActionBar1"][2] = y
-    end
-
     if isConsoleOrGameCoreUI then
         ACTION_BAR:ClearAnchors()
         ACTION_BAR:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, x, y)
